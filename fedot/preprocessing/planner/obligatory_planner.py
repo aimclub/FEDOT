@@ -10,6 +10,7 @@ from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStep,
 from fedot.core.data.tensor_data.tools import get_idx_from_features_names, convert_idx_to_list
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.preprocessing.planner.planner import PreprocessingPlan
+from fedot.preprocessing.planner.auto_create_step import auto_encoding_steps
 
 
 def get_embedding_steps(parameters: Optional[List],
@@ -196,23 +197,27 @@ def get_encoding_steps(features: ArrayType,
         return None
 
     if parameters is None:
-        parameters = list()
-    parameters.append(None)
+        parameters = []
+    else:
+        parameters = list(parameters)
 
-    if len(parameters) > 2:
+    if used_idx is None:
+        used_idx = []
+
+    if len(parameters) > 1:
         features_idx_detected = all(
             param.get("features_idx") is not None
             for param in parameters
             if param is not None
         )
-        if (not features_idx_detected or features_idx_detected is None) and len(parameters) > 1:
+        if not features_idx_detected or features_idx_detected is None:
             raise ValueError(
                 "More than one encoding step should have features_idx parameter")
 
     cat_idx = force_categorical_determination(features)
     steps = []
     for param in parameters:
-        remainder_idx = list(set(cat_idx) - set(used_idx))
+        remainder_idx = [idx for idx in cat_idx if idx not in used_idx]
 
         DEFAULT_PARAMS = {
             "method": EncodingMethodEnum.label,
@@ -238,6 +243,14 @@ def get_encoding_steps(features: ArrayType,
             used_idx.extend(features_idx)
 
         steps.append(step)
+
+    remainder_idx = [idx for idx in cat_idx if idx not in used_idx]
+    auto_steps = auto_encoding_steps(features, remainder_idx)
+    if len(auto_steps) > 0:
+        steps.extend(auto_steps)
+        for step in auto_steps:
+            used_idx.extend(step.features_idx)
+
     return steps
 
 

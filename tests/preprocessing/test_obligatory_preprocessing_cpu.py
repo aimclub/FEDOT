@@ -11,7 +11,56 @@ from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.prepared_data.prepared_data import PreparedData
 from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
+from fedot.preprocessing.planner.obligatory_planner import get_encoding_steps
 from fedot.preprocessing.tools.preprocessor_types import EncodingMethodEnum, EmbeddingMethodEnum
+
+
+@pytest.mark.unit
+def test_auto_encoding_steps_choose_ohe_and_label():
+    """Test automatic split of categorical features between OHE and label."""
+    X = np.array([
+        [f"unique_{i}", "A" if i % 2 == 0 else "B"]
+        for i in range(12)
+    ], dtype=object)
+
+    steps = get_encoding_steps(X, parameters=None)
+    methods_by_idx = {
+        feature_idx: step.method
+        for step in steps
+        for feature_idx in step.features_idx
+    }
+
+    assert methods_by_idx[0] == EncodingMethodEnum.label
+    assert methods_by_idx[1] == EncodingMethodEnum.ohe
+
+
+@pytest.mark.unit
+def test_auto_encoding_steps_append_only_uncovered_columns():
+    """Test that automatic encoding is created only for uncovered categorical features."""
+    X = np.array([
+        [f"unique_{i}", "A" if i % 2 == 0 else "B"]
+        for i in range(12)
+    ], dtype=object)
+    encoding_strategy = [{
+        "method": EncodingMethodEnum.label,
+        "features_idx": [0],
+    }]
+
+    steps = get_encoding_steps(X, parameters=encoding_strategy)
+
+    assert len(steps) == 2
+    assert steps[0].method == EncodingMethodEnum.label
+    assert steps[0].features_idx == [0]
+    assert steps[1].method == EncodingMethodEnum.ohe
+    assert steps[1].features_idx == [1]
+
+    fully_covered_steps = get_encoding_steps(X, parameters=[{
+        "method": EncodingMethodEnum.label,
+        "features_idx": [0, 1],
+    }])
+
+    assert len(fully_covered_steps) == 1
+    assert fully_covered_steps[0].features_idx == [0, 1]
 
 
 @pytest.mark.unit
