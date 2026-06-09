@@ -1,7 +1,11 @@
 import numpy as np
-from typing import List
+from dataclasses import asdict
+from typing import List, Optional
 
 from fedot.core.pipelines.ts_wrappers import fitted_values
+from fedot.validation.context import ValidationContext
+from fedot.validation.errors import FedotValidationError
+from fedot.validation.schemas.prediction_intervals import validate_prediction_intervals_init
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot import Fedot
 from fedot.core.data.input_data.data import InputData
@@ -88,72 +92,25 @@ def check_init_params(model: Fedot,
                       horizon: int,
                       nominal_error: float,
                       method: str,
-                      params: PredictionIntervalsParams):
+                      params: PredictionIntervalsParams,
+                      context: Optional[ValidationContext] = None):
     """This function checks correctness of parameters initializing PredictionInterval instance."""
 
     if not model.current_pipeline:
-        raise ValueError('Fedot class object is not fitted.')
+        raise FedotValidationError(
+            'Fedot class object is not fitted.',
+            field_name='model',
+        )
 
-    if horizon is not None:
-        if not isinstance(horizon, int) or horizon < 1:
-            raise ValueError(
-                'Argument horizon must be None or positive integer number.')
-
-    if type(nominal_error) not in [int, float] or not (0 <= nominal_error <= 1):
-        raise ValueError(
-            'Argument nominal_error must be float number between 0 and 1.')
-
-    avaliable_methods = ['last_generation_ql',
-                         'best_pipelines_quantiles', 'mutation_of_best_pipeline']
-    if method not in avaliable_methods:
-        raise ValueError('''Argument 'method' is incorrect. Possible options: 'last_generation_ql',
-'best_pipelines_quantiles', 'mutation_of_best_pipeline'.''')
-
-    if params.logging_level not in [0, 10, 20, 30, 40, 50]:
-        raise ValueError(
-            'Argument logging_level must be in [0, 10, 20, 30, 40, 50].')
-
-    if not isinstance(params.n_jobs, int) or params.n_jobs == 0 or params.n_jobs < -1:
-        raise ValueError(
-            'Argument n_jobs must be -1 or positive integer number.')
-
-    if not isinstance(params.show_progress, bool):
-        raise ValueError('Argument show_progress must be boolean.')
-
-    if not isinstance(params.number_mutations, int) or params.number_mutations < 1:
-        raise ValueError(
-            'Argument number_mutations must be positive integer number.')
-
-    if params.mutations_choice not in ['different', 'with_replacement']:
-        raise ValueError(
-            "Arument mutations_choice is incorrect. Options: 'different' and 'with_replacement'.")
-
-    if not isinstance(params.mutations_discard_inapropriate_pipelines, bool):
-        raise ValueError(
-            'Argument mutations_discard_inapropriate_pipelines must be boolean.')
-
-    if type(params.mutations_keep_percentage) not in [int, float] or not (0 <= params.mutations_keep_percentage <= 1):
-        raise ValueError(
-            'Argument mutation_keep_percentage must be float number between 0 and 1.')
-
-    if not isinstance(params.mutations_operations, list):
-        raise ValueError(
-            'Argument mutations_operations must be list of strings.')
-
-    if params.ql_number_models != 'max':
-        if not isinstance(params.ql_number_models, int) or params.ql_number_models < 1:
-            raise ValueError(
-                "Argument ql_number_models must be positive integer number or 'max'.")
-
-    if not isinstance(params.ql_tuner_iterations, int) or params.ql_tuner_iterations < 1:
-        raise ValueError(
-            'Argument ql_tuner_iterations must be positive integer number.')
-
-    if type(params.ql_tuner_minutes) not in [int, float] or params.ql_tuner_minutes <= 0:
-        raise ValueError(
-            'Argument ql_tuner_minutes must be positive real number.')
-
-    if params.bpq_number_models != 'max':
-        if not isinstance(params.bpq_number_models, int) or params.bpq_number_models < 1:
-            raise ValueError(
-                "Argument bpq_number_models must be positive integer number or 'max'.")
+    params_dict = {
+        key: value
+        for key, value in asdict(params).items()
+        if key not in ('ql_low_tuner', 'ql_up_tuner')
+    }
+    validate_prediction_intervals_init(
+        horizon=horizon,
+        nominal_error=nominal_error,
+        method=method,
+        params_dict=params_dict,
+        context=context,
+    )
