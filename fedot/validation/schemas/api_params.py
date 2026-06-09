@@ -4,6 +4,8 @@ from marshmallow import RAISE, Schema, ValidationError, fields, validates_schema
 
 from fedot.validation.boundaries import load_validated
 from fedot.validation.context import ValidationContext
+
+
 def build_api_params_keys_schema(allowed_keys: Set[str]) -> Type[Schema]:
     """Build a schema that rejects unknown API parameter keys."""
     field_definitions = {
