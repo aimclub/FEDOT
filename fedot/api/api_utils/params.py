@@ -27,6 +27,7 @@ from fedot.core.pipelines.verification import rules_by_task
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TaskParams
+from fedot.validation.context import ValidationContext
 
 
 class ApiParams(UserDict):
@@ -34,7 +35,8 @@ class ApiParams(UserDict):
     def __init__(self, input_params: Dict[str, Any], problem: str, task_params: Optional[TaskParams] = None,
                  n_jobs: int = -1, timeout: float = 5, seed=None):
         self.log: LoggerAdapter = default_log(self)
-        task_resolution = resolve_task(problem, task_params)
+        self._validation_context = ValidationContext(logger=self.log)
+        task_resolution = resolve_task(problem, task_params, context=self._validation_context)
         if task_resolution.warning_message:
             self.log.warning(task_resolution.warning_message)
         self.task: Task = task_resolution.task
@@ -43,7 +45,7 @@ class ApiParams(UserDict):
 
         self._params_repository = ApiParamsRepository(self.task.task_type)
         parameters: dict = self._params_repository.check_and_set_default_params(
-            input_params)
+            input_params, context=self._validation_context)
         parameters['seed'] = seed
         super().__init__(parameters)
         self._check_timeout_vs_generations()
@@ -102,7 +104,7 @@ class ApiParams(UserDict):
 
     def _check_timeout_vs_generations(self):
         timeout_resolution = normalize_timeout_and_generations(
-            self.timeout, self.get('num_of_generations'))
+            self.timeout, self.get('num_of_generations'), context=self._validation_context)
         self.timeout = timeout_resolution.timeout
         self['num_of_generations'] = timeout_resolution.num_of_generations
 
