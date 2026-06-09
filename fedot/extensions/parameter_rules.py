@@ -4,6 +4,8 @@ from pymonad.either import Left, Right
 
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.extensions.contracts import ExtensionError, ExternalModelSpec
+from fedot.validation.errors import FedotValidationError
+from fedot.validation.schemas.extensions import validate_extension_hyperparams
 
 
 RuntimeReservedKeys = ('model_fit', 'model_predict')
@@ -36,7 +38,16 @@ def resolve_extension_params(model_spec: ExternalModelSpec,
             details={'required': list(missing_required_params)},
         ))
 
-    return Right(resolved_params)
+    try:
+        validated_params = validate_extension_hyperparams(model_spec.hyperparams_schema, resolved_params)
+    except FedotValidationError as exc:
+        return Left(ExtensionError(
+            code='validation_error',
+            message=f'Extension model "{model_spec.name}" hyperparameters are invalid.',
+            details={'messages': exc.messages},
+        ))
+
+    return Right(validated_params)
 
 
 def extract_factory_params(strategy_params: Union[Dict[str, Any], OperationParameters]) -> Dict[str, Any]:
