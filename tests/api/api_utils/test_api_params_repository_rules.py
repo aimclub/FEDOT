@@ -10,6 +10,7 @@ from fedot.api.api_utils.api_params_repository_rules import (
     validate_api_param_keys,
 )
 from fedot.core.constants import AUTO_PRESET_NAME
+from fedot.validation.errors import FedotInvalidKeysError
 from fedot.core.pipelines.ensembling.config import ChunkedEnsembleConfig, EnsembleMethod
 from fedot.core.repository.tasks import TaskTypesEnum
 
@@ -36,7 +37,7 @@ def test_build_default_api_params_contains_expected_defaults():
 
 
 def test_validate_api_param_keys_rejects_unknown_keys():
-    with pytest.raises(KeyError, match='Invalid key parameters'):
+    with pytest.raises(FedotInvalidKeysError, match='Invalid key parameters'):
         validate_api_param_keys({'unknown': 1}, {'known'})
 
 
