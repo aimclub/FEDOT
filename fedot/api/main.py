@@ -65,6 +65,8 @@ from fedot.utilities.composer_timer import fedot_composer_timer
 from fedot.utilities.define_metric_by_task import MetricByTask
 from fedot.utilities.memory import MemoryAnalytics
 from fedot.utilities.project_import_export import export_project_to_zip, import_project_from_zip
+from fedot.core.data.tensor_data.tensor_data import TensorData
+from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
 
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 
@@ -117,6 +119,12 @@ class Fedot:
 
         composer_tuner_params: Additional optional parameters. See their documentation at the methods of
             :class:`~fedot.api.builder.FedotBuilder`.
+
+            ``tensor_data_config`` is a dictionary of options for
+            :class:`~fedot.core.data.tensor_data.tensor_data_creator.TensorDataCreator`
+            (for example ``backend_name``, ``use_cache``, ``encoding_strategy``,
+            ``custom_strategy``, ``data_type``, ``ts_orientation``). It is validated
+            during initialization and stored on :attr:`~fedot.api.api_utils.params.ApiParams.tensor_data_config`.
     """
 
     def __init__(self,
@@ -438,7 +446,84 @@ class Fedot:
             use_auto_preprocessing=self.params.get('use_auto_preprocessing')
         )
 
+
+    def _prepare_fit_context_td(self,
+                                features: FeaturesType,
+                                target: TargetType) -> Tuple[FitDataContext, TensorData]:
+        self.target = target
+        with fedot_composer_timer.launch_data_definition('fit'):
+            creation = self.params.prepare_tensordata_creation(
+                target=target,
+                is_predict=False,
+            )
+            train_data = TensorDataCreator.create(
+                features,
+                creation.backend_name,
+                **creation.spec_kwargs,
+            )
+            
+            self.params.update_available_operations_by_preset(train_data)
+
+            if self.params.get('use_input_preprocessing'):
+                recommendations_for_data, recommendations_for_params = self.data_analyser.give_recommendations(
+                    input_data=train_data,
+                    input_params=self.params,
+                )
+                self.data_processor.accept_and_apply_recommendations(
+                    input_data=train_data,
+                    recommendations=recommendations_for_data,
+                )
+                self.params.accept_and_apply_recommendations(
+                    input_data=train_data,
+                    recommendations=recommendations_for_params,
+                )
+            else:
+                recommendations_for_data = None
+
+            self._init_remote_if_necessary(train_data)
+
+            if isinstance(train_data, InputData) and self.params.get('use_auto_preprocessing'):
+                with fedot_composer_timer.launch_preprocessing():
+                    train_data = self.data_processor.fit_transform(train_data)
+
+            sampling_config = self.params.get('sampling_config') or {}
+            sampling_stage_plan = plan_sampling_stage(
+                initial_assumption=self.params.data.get('initial_assumption'),
+                sampling_config_present=self.params.get('sampling_config') is not None,
+            )
+            chunked_ensemble_plan = plan_chunked_ensemble(
+                should_run_sampling_stage=sampling_stage_plan.should_run_sampling_stage,
+                strategy_kind=sampling_config.get('strategy_kind'),
+                task_type=self.params.task.task_type,
+                chunked_ensemble_config=self.params.get('chunked_ensemble_config'),
+            )
+
+            ensemble_validation_data = None
+            class_representatives = None
+            if chunked_ensemble_plan.should_use_chunked_ensemble:
+                # Chunked ensembles reserve a shared holdout split before sampling so all chunks are
+                # compared and pruned against the same validation data.
+                prepared_validation = prepare_chunked_ensemble_validation(
+                    train_data=train_data,
+                    plan=chunked_ensemble_plan,
+                )
+                train_data = prepared_validation.train_data
+                ensemble_validation_data = prepared_validation.validation_data
+                # Some chunking strategies can drop a class from an individual chunk, so we keep
+                # one representative per class and append it later only to the affected chunks.
+                class_representatives = prepared_validation.class_representatives
+
+        return FitDataContext(
+            recommendations_for_data=recommendations_for_data,
+            sampling_stage_plan=sampling_stage_plan,
+            chunked_ensemble_plan=chunked_ensemble_plan,
+            ensemble_validation_data=ensemble_validation_data,
+            class_representatives=class_representatives,
+        ), train_data
+
     def fit_tensordata(self, tensor_data, predefined_model: Union[str, Pipeline] = None) -> Pipeline:
+        
+
         fit_plan = build_tensordata_fit_plan(predefined_model)
 
         with fedot_composer_timer.launch_fitting():

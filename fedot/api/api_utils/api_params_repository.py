@@ -5,6 +5,7 @@ from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTyp
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
 
 from fedot.api.api_utils.api_params_repository_rules import apply_default_params, build_default_api_params
+from fedot.api.api_utils.tensor_data_config import validate_tensor_data_config
 from fedot.api.sampling_stage.config import validate_sampling_config
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation, add_resample_mutation
 from fedot.core.pipelines.ensembling.config import validate_chunked_ensemble_config
@@ -44,6 +45,7 @@ class ApiParamsRepository:
             default_params=self.default_params,
             sampling_validator=validate_sampling_config,
             chunked_ensemble_validator=validate_chunked_ensemble_config,
+            tensor_data_validator=validate_tensor_data_config,
         )
 
     @staticmethod

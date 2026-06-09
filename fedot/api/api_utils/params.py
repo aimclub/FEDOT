@@ -1,6 +1,7 @@
 ﻿import datetime
 from collections import UserDict
 from copy import deepcopy, copy
+from dataclasses import dataclass
 from typing import Any, Dict, Optional, Union
 
 from golem.core.log import LoggerAdapter, default_log
@@ -17,6 +18,8 @@ from fedot.api.api_utils.api_params_rules import (
     should_update_available_operations,
 )
 from fedot.api.api_utils.presets import OperationsPreset
+from fedot.api.api_utils.tensor_data_config import resolve_tensor_data_config
+from fedot.core.data.common.enums import StateEnum
 from fedot.core.data.input_data.data import InputData
 from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.pipelines.adapters import PipelineAdapter
@@ -27,6 +30,8 @@ from fedot.core.pipelines.verification import rules_by_task
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TaskParams
+from fedot.api.api_utils.api_data_rules import TensorDataCreationRequest
+from fedot.core.data.tensor_data.tensor_data import TensorData
 
 
 class ApiParams(UserDict):
@@ -48,11 +53,35 @@ class ApiParams(UserDict):
         super().__init__(parameters)
         self._check_timeout_vs_generations()
 
+        self.tensor_data_config: Dict[str, Any] = resolve_tensor_data_config(
+            self.get('tensor_data_config'),
+            use_preprocessing_cache=self.get('use_preprocessing_cache', True),
+        )
+
         self.composer_requirements = None
         self.graph_generation_params = None
         self.optimizer_params = None
 
-    def update_available_operations_by_preset(self, data: InputData):
+    def prepare_tensordata_creation(
+        self,
+        *,
+        target=None,
+        is_predict: bool = False,
+    ) -> TensorDataCreationRequest:
+        config = dict(self.tensor_data_config)
+        backend_name = config.pop('backend_name', 'cpu')
+
+        spec_kwargs = {
+            **config,
+            'task': self.task,
+            'state': StateEnum.PREDICT if is_predict else StateEnum.FIT,
+        }
+        if target is not None:
+            spec_kwargs['target'] = target
+
+        return TensorDataCreationRequest(backend_name=backend_name, spec_kwargs=spec_kwargs)
+
+    def update_available_operations_by_preset(self, data: Union[InputData, TensorData]):
         """ Updates available_operations by preset and data type"""
         preset = self.get('preset')
         if should_update_available_operations(preset):

@@ -48,6 +48,22 @@ def test_api_params_repository_preserves_valid_chunked_ensemble_config():
     }
 
 
+def test_api_params_repository_preserves_valid_tensor_data_config():
+    repository = ApiParamsRepository(TaskTypesEnum.classification)
+
+    result = repository.check_and_set_default_params({
+        'tensor_data_config': {
+            'backend_name': ' GPU ',
+            'use_cache': False,
+        },
+    })
+
+    assert result['tensor_data_config'] == {
+        'backend_name': 'gpu',
+        'use_cache': False,
+    }
+
+
 def test_api_params_repository_rejects_unknown_param_key():
     repository = ApiParamsRepository(TaskTypesEnum.classification)
 

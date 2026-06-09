@@ -47,6 +47,7 @@ def build_default_api_params(task_type: TaskTypesEnum, default_data_dir: str) ->
         seed=None,
         sampling_config=None,
         chunked_ensemble_config=None,
+        tensor_data_config=None,
     )
 
 
@@ -67,10 +68,17 @@ def normalize_chunked_ensemble_config(config: Any, validator: Callable[[Any], An
     return validator(config).to_dict()
 
 
+def normalize_tensor_data_config(config: Any, validator: Callable[[Any], Any]):
+    if config is None:
+        return None
+    return validator(config)
+
+
 def apply_default_params(params: Dict[str, Any],
                          default_params: Dict[str, Any],
                          sampling_validator: Callable[[Any], Any],
-                         chunked_ensemble_validator: Callable[[Any], Any]) -> Dict[str, Any]:
+                         chunked_ensemble_validator: Callable[[Any], Any],
+                         tensor_data_validator: Callable[[Any], Any]) -> Dict[str, Any]:
     validate_api_param_keys(params, default_params.keys())
 
     normalized_params = dict(params)
@@ -83,6 +91,11 @@ def apply_default_params(params: Dict[str, Any],
         normalized_params['chunked_ensemble_config'] = normalize_chunked_ensemble_config(
             normalized_params['chunked_ensemble_config'],
             chunked_ensemble_validator,
+        )
+    if 'tensor_data_config' in normalized_params:
+        normalized_params['tensor_data_config'] = normalize_tensor_data_config(
+            normalized_params['tensor_data_config'],
+            tensor_data_validator,
         )
 
     for key, value in default_params.items():
