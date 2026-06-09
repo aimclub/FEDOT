@@ -3,6 +3,8 @@ from typing import Optional, Sequence
 
 from golem.core.optimisers.optimization_parameters import GraphRequirements
 
+from fedot.validation.schemas.composer_requirements import validate_cv_folds
+
 
 @dataclass
 class PipelineComposerRequirements(GraphRequirements):
@@ -22,6 +24,4 @@ class PipelineComposerRequirements(GraphRequirements):
 
     def __post_init__(self):
         super().__post_init__()
-        if self.cv_folds is not None and self.cv_folds <= 1:
-            raise ValueError(
-                'Number of folds for KFold cross validation must be 2 or more.')
+        validate_cv_folds(self.cv_folds)
