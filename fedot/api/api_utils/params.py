@@ -83,14 +83,17 @@ class ApiParams(UserDict):
 
     def update_available_operations_by_preset(self, data: Union[InputData, TensorData]):
         """ Updates available_operations by preset and data type"""
+        # TODO romankuklo: update presets according to backend (cpu/gpu)
         preset = self.get('preset')
         if should_update_available_operations(preset):
             preset_operations = OperationsPreset(
                 task=self.task, preset_name=preset)
+            # TODO romankuklo: create a new data_operation_repository.json for TD
             self.data = preset_operations.composer_params_based_on_preset(
                 self.data, data.data_type)
 
-    def accept_and_apply_recommendations(self, input_data: Union[InputData, MultiModalData], recommendations: Dict):
+    def accept_and_apply_recommendations(self, input_data: Union[InputData, MultiModalData, TensorData],
+                                         recommendations: Dict):
         """
         Accepts recommendations for api params from DataAnalyser
 

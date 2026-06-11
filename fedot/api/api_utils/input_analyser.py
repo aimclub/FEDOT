@@ -12,6 +12,7 @@ from fedot.api.api_utils.recommendation_rules import (
 )
 from fedot.core.composer.meta_rules import get_cv_folds_number, get_early_stopping_generations, get_recommended_preset
 from fedot.core.data.input_data.data import InputData
+from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.preprocessing.data_preprocessing import find_categorical_columns
 from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -37,7 +38,7 @@ class InputAnalyser:
         self.max_cat_cardinality = 50
         self._log = default_log('InputAnalyzer')
 
-    def give_recommendations(self, input_data: Union[InputData, MultiModalData], input_params=None) \
+    def give_recommendations(self, input_data: Union[InputData, MultiModalData, TensorData], input_params=None) \
             -> Tuple[Dict, Dict]:
         """
         Gives recommendations for data and input parameters.
@@ -73,7 +74,15 @@ class InputAnalyser:
                 if 'label_encoded' in recommendations_for_data:
                     self._log.info(
                         'Switch categorical encoder to label encoder')
-
+        elif isinstance(input_data, TensorData):
+            if input_data.data_type in [DataTypesEnum.table, DataTypesEnum.text, DataTypesEnum.tabular]:
+                recommendations_for_params = collect_meta_rule_recommendations(
+                    input_data=input_data,
+                    input_params=input_params,
+                    rules=meta_rules,
+                    log=self._log,
+                )
+                recommendations_for_data = None
         return recommendations_for_data, recommendations_for_params
 
     def _give_recommendations_for_data(self, input_data: InputData) -> Dict:

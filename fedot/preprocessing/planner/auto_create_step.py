@@ -245,6 +245,7 @@ def auto_scaling_steps(data: TensorData):
         else:
             step = PreprocessingStep(PreprocessingStepEnum.scaling,
                                      ScalingMethodEnum.seasonal,
+                                     data.numerical_idx,
                                      step_args={
                                          'period': 5
                                      })

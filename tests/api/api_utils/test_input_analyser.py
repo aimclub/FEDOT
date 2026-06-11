@@ -2,6 +2,7 @@
 
 from fedot.api.api_utils.input_analyser import InputAnalyser
 from fedot.core.data.input_data.data import InputData
+from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -59,3 +60,34 @@ def test_input_analyser_control_helpers_delegate_to_rules():
     assert is_cut_needed is True
     assert border == 2
     assert analyser.control_categorical(input_data) is True
+
+
+def test_input_analyser_tensor_data_uses_only_meta_rule_recommendations(monkeypatch):
+    captured = {}
+
+    def fake_collect_meta_rule_recommendations(**kwargs):
+        captured['input_data'] = kwargs['input_data']
+        captured['input_params'] = kwargs['input_params']
+        return {'cv_folds': 3}
+
+    monkeypatch.setattr(
+        'fedot.api.api_utils.input_analyser.collect_meta_rule_recommendations',
+        fake_collect_meta_rule_recommendations,
+    )
+
+    tensor_data = TensorData(
+        task=Task(TaskTypesEnum.classification),
+        data_type=DataTypesEnum.tabular,
+        features=np.zeros((1000, 3)),
+    )
+    analyser = InputAnalyser(safe_mode=True)
+
+    data_recommendations, params_recommendations = analyser.give_recommendations(
+        tensor_data,
+        input_params={'use_meta_rules': True},
+    )
+
+    assert captured['input_data'] is tensor_data
+    assert captured['input_params'] == {'use_meta_rules': True}
+    assert data_recommendations == {}
+    assert params_recommendations == {'cv_folds': 3}

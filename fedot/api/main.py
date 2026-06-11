@@ -42,6 +42,7 @@ from fedot.api.api_utils.predefined_model import PredefinedModel
 from fedot.api.sampling_stage.config import SamplingChunkingConfig
 from fedot.api.sampling_stage.executor import SamplingStageExecutor
 from fedot.core.constants import DEFAULT_API_TIMEOUT_MINUTES, DEFAULT_TUNING_ITERATIONS_NUMBER
+from fedot.core.data.common.compatibility_rules import to_tensor_canonical_data_type
 from fedot.core.data.input_data.data import InputData, InputDataList, OutputData, PathType
 from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_forecast, plot_roc_auc
@@ -54,13 +55,17 @@ from fedot.core.pipelines.ensembling.utils import prepare_chunked_ensemble_valid
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import convert_forecast_to_output, out_of_sample_ts_forecast
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.metrics_repository import MetricCallable
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
 from fedot.core.utils import set_random_seed
 from fedot.explainability.explainer_template import Explainer
 from fedot.explainability.explainers import explain_pipeline
 from fedot.preprocessing.base_preprocessing import BasePreprocessor
+from fedot.preprocessing.service.tabular_optional_service import OptionalTabularService
+from fedot.preprocessing.tools.preprocessor_types import PreprocessingStepEnum
 from fedot.remote.remote_evaluator import RemoteEvaluator
+from fedot.industrial.core.architecture.preprocessing.ts_optional_service import OptionalTSService
 from fedot.utilities.composer_timer import fedot_composer_timer
 from fedot.utilities.define_metric_by_task import MetricByTask
 from fedot.utilities.memory import MemoryAnalytics
@@ -80,6 +85,35 @@ class FitDataContext:
     chunked_ensemble_plan: ChunkedEnsemblePlan
     ensemble_validation_data: Optional[InputData]
     class_representatives: Optional[dict]
+
+
+def build_default_tensor_optional_steps(tensor_data: TensorData) -> dict:
+    """Return API-level optional preprocessing defaults for TensorData.
+
+    The default stage names intentionally mirror legacy optional preprocessing.
+    Concrete methods and feature indices are resolved later by `auto_create_step`:
+    tabular data gets tabular imputation/scaling, while time-series-like data gets
+    TS-specific methods for the same stage names.
+    """
+    data_type = to_tensor_canonical_data_type(tensor_data.data_type)
+    if data_type == DataTypesEnum.tabular:
+        return {
+            PreprocessingStepEnum.imputation: None,
+            PreprocessingStepEnum.scaling: None,
+        }
+    if data_type == DataTypesEnum.ts:
+        return {
+            PreprocessingStepEnum.imputation: None,
+            PreprocessingStepEnum.scaling: None,
+        }
+    return {}
+
+
+def tensor_optional_service_for_data(tensor_data: TensorData, use_cache: bool = True):
+    data_type = to_tensor_canonical_data_type(tensor_data.data_type)
+    if data_type == DataTypesEnum.ts:
+        return OptionalTSService(use_cache=use_cache)
+    return OptionalTabularService(use_cache=use_cache)
 
 
 class Fedot:
@@ -446,6 +480,17 @@ class Fedot:
             use_auto_preprocessing=self.params.get('use_auto_preprocessing')
         )
 
+    def _fit_transform_tensor_optional(self, train_data: TensorData) -> TensorData:
+        optional_steps = build_default_tensor_optional_steps(train_data)
+        if not optional_steps:
+            return train_data
+
+        service = tensor_optional_service_for_data(
+            train_data,
+            use_cache=self.params.get('use_preprocessing_cache', True),
+        )
+        return service.fit_transform(train_data, optional_steps)
+
 
     def _prepare_fit_context_td(self,
                                 features: FeaturesType,
@@ -457,62 +502,63 @@ class Fedot:
                 is_predict=False,
             )
             train_data = TensorDataCreator.create(
-                features,
-                creation.backend_name,
+                source_data=features,
+                backend_name=creation.backend_name,
                 **creation.spec_kwargs,
             )
             
             self.params.update_available_operations_by_preset(train_data)
 
+            recommendations_for_data = None
             if self.params.get('use_input_preprocessing'):
-                recommendations_for_data, recommendations_for_params = self.data_analyser.give_recommendations(
+                _, recommendations_for_params = self.data_analyser.give_recommendations(
                     input_data=train_data,
                     input_params=self.params,
-                )
-                self.data_processor.accept_and_apply_recommendations(
-                    input_data=train_data,
-                    recommendations=recommendations_for_data,
                 )
                 self.params.accept_and_apply_recommendations(
                     input_data=train_data,
                     recommendations=recommendations_for_params,
                 )
-            else:
-                recommendations_for_data = None
 
             self._init_remote_if_necessary(train_data)
 
-            if isinstance(train_data, InputData) and self.params.get('use_auto_preprocessing'):
+            if isinstance(train_data, TensorData) and self.params.get('use_auto_preprocessing'):
                 with fedot_composer_timer.launch_preprocessing():
-                    train_data = self.data_processor.fit_transform(train_data)
+                    train_data = self._fit_transform_tensor_optional(train_data)
 
-            sampling_config = self.params.get('sampling_config') or {}
-            sampling_stage_plan = plan_sampling_stage(
-                initial_assumption=self.params.data.get('initial_assumption'),
-                sampling_config_present=self.params.get('sampling_config') is not None,
-            )
-            chunked_ensemble_plan = plan_chunked_ensemble(
-                should_run_sampling_stage=sampling_stage_plan.should_run_sampling_stage,
-                strategy_kind=sampling_config.get('strategy_kind'),
-                task_type=self.params.task.task_type,
-                chunked_ensemble_config=self.params.get('chunked_ensemble_config'),
-            )
+            # TODO romankuklo: add sampling stage and chunked ensemble for TD
 
+            # sampling_config = self.params.get('sampling_config') or {}
+            # sampling_stage_plan = plan_sampling_stage(
+            #     initial_assumption=self.params.data.get('initial_assumption'),
+            #     sampling_config_present=self.params.get('sampling_config') is not None,
+            # )
+            # chunked_ensemble_plan = plan_chunked_ensemble(
+            #     should_run_sampling_stage=sampling_stage_plan.should_run_sampling_stage,
+            #     strategy_kind=sampling_config.get('strategy_kind'),
+            #     task_type=self.params.task.task_type,
+            #     chunked_ensemble_config=self.params.get('chunked_ensemble_config'),
+            # )
+
+            # ensemble_validation_data = None
+            # class_representatives = None
+            # if chunked_ensemble_plan.should_use_chunked_ensemble:
+            #     # Chunked ensembles reserve a shared holdout split before sampling so all chunks are
+            #     # compared and pruned against the same validation data.
+            #     prepared_validation = prepare_chunked_ensemble_validation(
+            #         train_data=train_data,
+            #         plan=chunked_ensemble_plan,
+            #     )
+            #     train_data = prepared_validation.train_data
+            #     ensemble_validation_data = prepared_validation.validation_data
+            #     # Some chunking strategies can drop a class from an individual chunk, so we keep
+            #     # one representative per class and append it later only to the affected chunks.
+            #     class_representatives = prepared_validation.class_representatives
+
+            sampling_stage_plan = None
+            chunked_ensemble_plan = None
             ensemble_validation_data = None
             class_representatives = None
-            if chunked_ensemble_plan.should_use_chunked_ensemble:
-                # Chunked ensembles reserve a shared holdout split before sampling so all chunks are
-                # compared and pruned against the same validation data.
-                prepared_validation = prepare_chunked_ensemble_validation(
-                    train_data=train_data,
-                    plan=chunked_ensemble_plan,
-                )
-                train_data = prepared_validation.train_data
-                ensemble_validation_data = prepared_validation.validation_data
-                # Some chunking strategies can drop a class from an individual chunk, so we keep
-                # one representative per class and append it later only to the affected chunks.
-                class_representatives = prepared_validation.class_representatives
-
         return FitDataContext(
             recommendations_for_data=recommendations_for_data,
             sampling_stage_plan=sampling_stage_plan,
@@ -522,7 +568,6 @@ class Fedot:
         ), train_data
 
     def fit_tensordata(self, tensor_data, predefined_model: Union[str, Pipeline] = None) -> Pipeline:
-        
 
         fit_plan = build_tensordata_fit_plan(predefined_model)
 
