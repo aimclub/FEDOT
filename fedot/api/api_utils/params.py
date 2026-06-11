@@ -47,7 +47,7 @@ class ApiParams(UserDict):
         self.timeout = timeout
 
         self._params_repository = ApiParamsRepository(self.task.task_type)
-        parameters: dict = self._params_repository.check_and_set_default_params(
+        parameters: dict = self._params_repository.apply_default_params(
             input_params)
         parameters['seed'] = seed
         super().__init__(parameters)

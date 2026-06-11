@@ -1,5 +1,5 @@
 from dataclasses import asdict
-from typing import Any, Callable, Dict
+from typing import Any, Callable
 
 from fedot.core.constants import AUTO_PRESET_NAME
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -72,34 +72,3 @@ def normalize_tensor_data_config(config: Any, validator: Callable[[Any], Any]):
     if config is None:
         return None
     return validator(config)
-
-
-def apply_default_params(params: Dict[str, Any],
-                         default_params: Dict[str, Any],
-                         sampling_validator: Callable[[Any], Any],
-                         chunked_ensemble_validator: Callable[[Any], Any],
-                         tensor_data_validator: Callable[[Any], Any]) -> Dict[str, Any]:
-    validate_api_param_keys(params, default_params.keys())
-
-    normalized_params = dict(params)
-    if 'sampling_config' in normalized_params:
-        normalized_params['sampling_config'] = normalize_sampling_config(
-            normalized_params['sampling_config'],
-            sampling_validator,
-        )
-    if 'chunked_ensemble_config' in normalized_params:
-        normalized_params['chunked_ensemble_config'] = normalize_chunked_ensemble_config(
-            normalized_params['chunked_ensemble_config'],
-            chunked_ensemble_validator,
-        )
-    if 'tensor_data_config' in normalized_params:
-        normalized_params['tensor_data_config'] = normalize_tensor_data_config(
-            normalized_params['tensor_data_config'],
-            tensor_data_validator,
-        )
-
-    for key, value in default_params.items():
-        if key not in normalized_params and value is not None:
-            normalized_params[key] = value
-
-    return normalized_params

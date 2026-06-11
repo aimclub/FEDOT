@@ -2,7 +2,6 @@
 from dataclasses import dataclass
 
 from fedot.api.api_utils.api_params_repository_rules import (
-    apply_default_params,
     build_default_api_params,
     default_cv_folds_for_task,
     normalize_chunked_ensemble_config,
@@ -75,24 +74,3 @@ def test_normalize_tensor_data_config_uses_validator_result():
     ) == {'backend_name': 'gpu', 'use_cache': False}
     assert normalize_tensor_data_config(None, lambda config: {'backend_name': 'cpu'}) is None
 
-
-def test_apply_default_params_adds_missing_values_and_normalizes_sampling():
-    defaults = {
-        'preset': AUTO_PRESET_NAME,
-        'sampling_config': None,
-        'chunked_ensemble_config': None,
-        'tensor_data_config': None,
-        'show_progress': True,
-    }
-
-    result = apply_default_params(
-        params={'sampling_config': {'strategy': 'random'}},
-        default_params=defaults,
-        sampling_validator=lambda config: ValidatedConfig(),
-        chunked_ensemble_validator=lambda config: ChunkedEnsembleConfig(),
-        tensor_data_validator=lambda config: config,
-    )
-
-    assert result['preset'] == AUTO_PRESET_NAME
-    assert result['show_progress'] is True
-    assert result['sampling_config'] == {'strategy': 'random'}

@@ -70,7 +70,7 @@ def get_api_params_repository(task_type: Optional[TaskTypesEnum] = None):
 @pytest.mark.parametrize('input_params', [fedot_params_full, params_with_missings])
 def test_correctly_sets_default_params(input_params):
     params_repository = get_api_params_repository()
-    output_params = params_repository.check_and_set_default_params(
+    output_params = params_repository.apply_default_params(
         input_params)
     default_params = params_repository.default_params_for_task(
         params_repository.task_type)
@@ -90,7 +90,7 @@ def test_filter_params_correctly(input_params, case, correct_keys):
     if case == 'gp_algo':
         input_params['seed'] = 0
         correct_keys.add('seed')
-    input_params = params_repository.check_and_set_default_params(input_params)
+    input_params = params_repository.apply_default_params(input_params)
     if case == 'composer':
         output_params = params_repository.get_params_for_composer_requirements(
             input_params)
@@ -109,7 +109,7 @@ def test_sampling_config_is_accepted_and_preserved():
                                   'candidate_ratios': [0.2, 0.5],
                                   'delta_metric_threshold': 0.05}}
 
-    output_params = params_repository.check_and_set_default_params(params)
+    output_params = params_repository.apply_default_params(params)
 
     assert 'sampling_config' in output_params
     assert output_params['sampling_config']['strategy'] == 'random'
@@ -121,4 +121,4 @@ def test_sampling_config_rejects_invalid_schema_in_api_params_repository():
     params_repository = get_api_params_repository(TaskTypesEnum.classification)
 
     with pytest.raises(ValueError, match='Unknown keys'):
-        params_repository.check_and_set_default_params({'sampling_config': {'strategy_kind': 'subset', 'unknown': 1}})
+        params_repository.apply_default_params({'sampling_config': {'strategy_kind': 'subset', 'unknown': 1}})
