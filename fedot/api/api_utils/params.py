@@ -53,7 +53,7 @@ class ApiParams(UserDict):
         super().__init__(parameters)
         self._check_timeout_vs_generations()
 
-        self.tensor_data_config: Dict[str, Any] = resolve_tensor_data_config(
+        self.tensor_data_config = resolve_tensor_data_config(
             self.get('tensor_data_config'),
             use_preprocessing_cache=self.get('use_preprocessing_cache', True),
         )
