@@ -1,6 +1,7 @@
 from dataclasses import fields
 from typing import Any, Dict, Optional, Set
 
+from fedot.core.backend.backend import Backend
 from fedot.core.data.tensor_data.data_spec import DataSpec
 
 _CREATOR_ONLY_KEYS: Set[str] = {'backend_name'}
@@ -22,10 +23,6 @@ _USER_CONFIGURABLE_DATA_SPEC_KEYS: Set[str] = {
 } - _RUNTIME_KEYS
 
 _ALLOWED_KEYS: Set[str] = _USER_CONFIGURABLE_DATA_SPEC_KEYS | _CREATOR_ONLY_KEYS
-
-# TODO romankuklo: add "cuda:n" to the supported backends
-_SUPPORTED_BACKENDS = frozenset({'cpu', 'gpu'})
-
 
 def validate_tensor_data_config(config: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
     """
@@ -67,7 +64,7 @@ def validate_tensor_data_config(config: Optional[Dict[str, Any]]) -> Optional[Di
     # TODO romankuklo: should remove from here?
     normalized = dict(config)
     if 'backend_name' in normalized:
-        normalized['backend_name'] = _normalize_backend_name(normalized['backend_name'])
+        normalized['backend_name'] = Backend.normalize_name(normalized['backend_name'])
 
     if 'use_cache' in normalized and not isinstance(normalized['use_cache'], bool):
         raise ValueError('"tensor_data_config.use_cache" must be a boolean.')
@@ -88,22 +85,7 @@ def resolve_tensor_data_config(
     """
     validated = validate_tensor_data_config(user_config) or {}
     config = dict(validated)
-    config.setdefault('backend_name', 'cpu')
+    config.setdefault('backend_name', Backend.DEFAULT_NAME)
     if 'use_cache' not in config:
         config['use_cache'] = use_preprocessing_cache
     return validate_tensor_data_config(config)
-
-
-def _normalize_backend_name(backend_name: Any) -> str:
-    if not isinstance(backend_name, str) or not backend_name.strip():
-        raise ValueError(
-            '"tensor_data_config.backend_name" must be a non-empty string.'
-        )
-
-    normalized = backend_name.strip().lower()
-    if normalized not in _SUPPORTED_BACKENDS:
-        raise ValueError(
-            '"tensor_data_config.backend_name" must be one of '
-            f'{sorted(_SUPPORTED_BACKENDS)}, got {backend_name!r}.'
-        )
-    return normalized

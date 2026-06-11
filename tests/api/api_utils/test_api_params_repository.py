@@ -65,6 +65,18 @@ def test_api_params_repository_preserves_valid_tensor_data_config():
     }
 
 
+def test_api_params_repository_preserves_cuda_device_backend_name():
+    repository = ApiParamsRepository(TaskTypesEnum.classification)
+
+    result = repository.apply_default_params({
+        'tensor_data_config': {
+            'backend_name': ' CUDA:1 ',
+        },
+    })
+
+    assert result['tensor_data_config']['backend_name'] == 'cuda:1'
+
+
 def test_apply_default_params_adds_missing_values_and_normalizes_sampling():
     repository = ApiParamsRepository(TaskTypesEnum.classification)
 

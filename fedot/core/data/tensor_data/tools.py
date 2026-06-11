@@ -136,7 +136,7 @@ def replace_missing_with_np_nan(arr: ArrayType) -> ArrayType:
     pd_backend = Backend().pd
     backend_name = Backend().name
 
-    if backend_name == "gpu":
+    if Backend.is_gpu_name(backend_name):
         return arr
 
     try:

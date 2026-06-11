@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Any, Optional, Union, List
 import logging
 
+from fedot.core.backend.backend import Backend
 from fedot.core.data.common.enums import StateEnum, TSOrientationEnum
 from fedot.core.data.common.types import IndexType
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -10,8 +11,6 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.data.tensor_data.tools import convert_idx_to_list
 
 logger = logging.getLogger(__name__)
-
-SUPPORTED_BACKEND_NAMES = ('cpu', 'gpu')
 
 DEFAULT_DATALOADER_KWARGS = {
     'batch_size': 32,
@@ -110,13 +109,7 @@ def normalize_backend_name(backend_name: str) -> str:
     if not isinstance(backend_name, str):
         raise TypeError(f'backend_name must be str, got {type(backend_name)}')
 
-    normalized_name = backend_name.strip().lower()
-    if normalized_name not in SUPPORTED_BACKEND_NAMES:
-        supported = ', '.join(SUPPORTED_BACKEND_NAMES)
-        raise ValueError(
-            f'Unsupported backend_name: {backend_name}. Expected one of: {supported}')
-
-    return normalized_name
+    return Backend.normalize_name(backend_name)
 
 
 def normalize_state(state: Union[StateEnum, str]) -> StateEnum:

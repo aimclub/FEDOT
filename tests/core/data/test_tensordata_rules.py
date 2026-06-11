@@ -32,6 +32,8 @@ from fedot.core.repository.tasks import TaskTypesEnum
         ('cpu', 'cpu'),
         ('CPU', 'cpu'),
         (' gpu ', 'gpu'),
+        ('cuda', 'gpu'),
+        ('CUDA:1', 'cuda:1'),
     ],
 )
 def test_normalize_backend_name_accepts_supported_values(backend_name, expected):

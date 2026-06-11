@@ -126,7 +126,7 @@ def read_arff_file(file_path: PathType) -> Tuple[np.ndarray, Optional[List[str]]
 
     features = convert_bytes(data_array)
 
-    if backend_name == "gpu":
+    if Backend.is_gpu_name(backend_name):
         features = xp.asarray(features)
 
     return features, field_names
