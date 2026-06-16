@@ -5,6 +5,7 @@ from fedot.core.backend.backend import Backend
 from fedot.core.data.tensor_data.data_spec import DataSpec
 
 _CREATOR_ONLY_KEYS: Set[str] = {'backend_name'}
+_API_ONLY_KEYS: Set[str] = {'optional_strategy'}
 
 # Injected at fit/predict time or filled during TensorDataCreator pipeline.
 _RUNTIME_KEYS: Set[str] = {
@@ -22,7 +23,18 @@ _USER_CONFIGURABLE_DATA_SPEC_KEYS: Set[str] = {
     field.name for field in fields(DataSpec)
 } - _RUNTIME_KEYS
 
-_ALLOWED_KEYS: Set[str] = _USER_CONFIGURABLE_DATA_SPEC_KEYS | _CREATOR_ONLY_KEYS
+_ALLOWED_KEYS: Set[str] = _USER_CONFIGURABLE_DATA_SPEC_KEYS | _CREATOR_ONLY_KEYS | _API_ONLY_KEYS
+
+
+# TODO romankuklo: how to validate optional strategy?
+def _normalize_optional_strategy(
+    optional_strategy: Mapping[Any, Any],
+) -> Dict[PreprocessingStepEnum, Any]:
+    return {
+        PreprocessingStepEnum(step_name) if isinstance(step_name, str) else step_name: step_params
+        for step_name, step_params in optional_strategy.items()
+    }
+
 
 def validate_tensor_data_config(config: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
     """
@@ -68,6 +80,11 @@ def validate_tensor_data_config(config: Optional[Dict[str, Any]]) -> Optional[Di
 
     if 'use_cache' in normalized and not isinstance(normalized['use_cache'], bool):
         raise ValueError('"tensor_data_config.use_cache" must be a boolean.')
+
+    if 'optional_strategy' in normalized:
+        normalized['optional_strategy'] = _normalize_optional_strategy(normalized['optional_strategy'])
+    else:
+        normalized['optional_strategy'] = None
 
     return normalized
 

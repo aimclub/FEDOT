@@ -98,6 +98,7 @@ def test_prepare_tensordata_creation_uses_tensor_data_config_and_predict_state()
                 'backend_name': 'gpu',
                 'use_cache': False,
                 'encoding_strategy': {'kind': 'label'},
+                'optional_strategy': {'scaling': None},
             },
             'use_preprocessing_cache': True,
         },
@@ -113,6 +114,7 @@ def test_prepare_tensordata_creation_uses_tensor_data_config_and_predict_state()
     assert request.spec_kwargs['encoding_strategy'] == {'kind': 'label'}
     assert request.spec_kwargs['task'].task_type is TaskTypesEnum.classification
     assert 'target' not in request.spec_kwargs
+    assert 'optional_strategy' not in request.spec_kwargs
 
 
 def test_api_params_composer_requirements_do_not_receive_cv_folds():
