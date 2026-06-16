@@ -136,3 +136,17 @@ class InputAnalyser:
             max_size=self.max_size,
             max_cat_cardinality=self.max_cat_cardinality,
         )
+    
+    def warn_if_large_tensor_without_sampling(self,
+                                              train_data: TensorData,
+                                              sampling_config_present: bool) -> None:
+        features = train_data.features
+
+        num_elements = features.numel()
+        if num_elements > self.max_size and not sampling_config_present:
+            self._log.warning(
+                'TensorData features contain %s elements (threshold: %s) and sampling is not configured. '
+                'AutoML may run out of memory. Consider using sampling_config with a subset or chunking strategy.',
+                num_elements,
+                self.max_size,
+            )

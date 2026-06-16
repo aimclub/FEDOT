@@ -3,6 +3,7 @@ from typing import Any, Dict, Optional, Set
 
 from fedot.core.backend.backend import Backend
 from fedot.core.data.tensor_data.data_spec import DataSpec
+from fedot.preprocessing.tools.preprocessor_types import PreprocessingStepEnum
 
 _CREATOR_ONLY_KEYS: Set[str] = {'backend_name'}
 _API_ONLY_KEYS: Set[str] = {'optional_strategy'}
@@ -28,12 +29,9 @@ _ALLOWED_KEYS: Set[str] = _USER_CONFIGURABLE_DATA_SPEC_KEYS | _CREATOR_ONLY_KEYS
 
 # TODO romankuklo: how to validate optional strategy?
 def _normalize_optional_strategy(
-    optional_strategy: Mapping[Any, Any],
+    optional_strategy: Dict,
 ) -> Dict[PreprocessingStepEnum, Any]:
-    return {
-        PreprocessingStepEnum(step_name) if isinstance(step_name, str) else step_name: step_params
-        for step_name, step_params in optional_strategy.items()
-    }
+    ...
 
 
 def validate_tensor_data_config(config: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:

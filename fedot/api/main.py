@@ -518,6 +518,11 @@ class Fedot:
             chunked_ensemble_plan = None
             ensemble_validation_data = None
             class_representatives = None
+
+            self.data_analyser.warn_if_large_tensor_without_sampling(
+                train_data,
+                sampling_config_present=sampling_stage_plan,
+            )
         return FitDataContext(
             recommendations_for_data=recommendations_for_data,
             sampling_stage_plan=sampling_stage_plan,
@@ -525,6 +530,42 @@ class Fedot:
             ensemble_validation_data=ensemble_validation_data,
             class_representatives=class_representatives,
         ), train_data
+    
+
+    def fit_td(self,
+            features: FeaturesType,
+            target: TargetType = 'target',
+            predefined_model: Union[str, Pipeline] = None) -> Pipeline:
+
+        MemoryAnalytics.start()
+
+        initial_timeout = self.params.timeout
+
+        try:
+            fit_context, train_data = self._prepare_fit_context_td(features=features, target=target)
+            # TODO romankuklo: apply sampling stage and chunked ensemble
+            # fit_context, train_data = self._apply_sampling_stage(fit_context, train_data)
+            # self.train_data = train_data
+            self._obtain_pipeline(
+                fit_context=fit_context,
+                predefined_model=predefined_model,
+            )
+            self._finalize_fit_model_if_required(
+                fit_context=fit_context,
+                predefined_model=predefined_model,
+            )
+            self._merge_current_pipeline_preprocessors()
+
+            if isinstance(self.current_pipeline, Pipeline):
+                self.log.message(f'Final pipeline: {graph_structure(self.current_pipeline)}')
+            elif isinstance(self.current_pipeline, PipelineEnsemble):
+                self.log.message(f'Final pipeline ensemble: {len(self.current_pipeline.pipelines)} pipelines')
+
+            return self.current_pipeline
+        finally:
+            self.params.timeout = initial_timeout
+            MemoryAnalytics.finish()
+
 
     def fit_tensordata(self, tensor_data, predefined_model: Union[str, Pipeline] = None) -> Pipeline:
 
