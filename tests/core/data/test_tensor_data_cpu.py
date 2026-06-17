@@ -4,11 +4,13 @@ import pytest
 import torch
 
 from fedot.core.backend.backend import Backend
+from fedot.core.data.common.enums import StateEnum
 from fedot.core.data.reader.ucr_loader import TSLoader
 from fedot.core.data.tensor_data.lazy_tensor import LazyTensor
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
 from fedot.core.utils import fedot_project_root
+from fedot.preprocessing.tools.preprocessor_types import EncodingMethodEnum
 
 
 @pytest.mark.unit
@@ -349,3 +351,52 @@ def test_is_multichannel():
     assert td.features.shape[0] == X.shape[0]
     assert td.features.shape[1] == X.shape[1]
     assert td.features.shape[2] == X.shape[2]
+
+
+@pytest.mark.unit
+def test_create_predict_label_encoding_maps_unseen_category():
+    """
+    Predict-time TensorData creation reuses train obligatory encoders from trace.
+
+    Unseen categorical values in test features must be mapped to the per-column
+    unknown label learned during fit.
+    """
+    train = np.array([
+        [1.0, "A", 10.0, 0],
+        [2.0, "B", 20.0, 1],
+        [3.0, "A", 30.0, 0],
+    ], dtype=object)
+    test = np.array([
+        [4.0, "C", 40.0],
+        [5.0, "A", 50.0],
+    ], dtype=object)
+    encoding_strategy = [{
+        "method": EncodingMethodEnum.label,
+        "features_idx": [1],
+    }]
+
+    train_td = TensorDataCreator.create(
+        train,
+        backend_name="cpu",
+        encoding_strategy=encoding_strategy,
+        use_cache=True,
+    )
+    test_td = TensorDataCreator.create(
+        test,
+        backend_name="cpu",
+        state=StateEnum.PREDICT,
+        without_target=True,
+        trace_uuid=train_td.trace_uuid,
+        encoding_strategy=encoding_strategy,
+        use_cache=True,
+    )
+
+    expected = np.array([
+        [4.0, 2.0, 40.0],
+        [5.0, 0.0, 50.0],
+    ], dtype=np.float32)
+
+    assert test_td.trace_uuid == train_td.trace_uuid
+    assert test_td.target is None
+    assert test_td.features.shape == (2, 3)
+    assert np.allclose(test_td.features.numpy(), expected, atol=1e-6)

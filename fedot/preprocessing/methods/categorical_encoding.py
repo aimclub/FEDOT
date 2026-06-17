@@ -30,8 +30,9 @@ class LabelEncoder(AbstractPreprocessingHandler):
 
     Behavior details:
     - category vocabulary is inferred from non-missing values during `fit`;
-    - transformed values are dense numeric ids in column-wise order;
-    - missing values are kept as `NaN` and are not mapped to artificial labels.
+    - transformed known values are dense numeric ids in column-wise order;
+    - unseen non-missing values are mapped to a per-column unknown label;
+    - missing values are kept as `NaN`.
 
     The transformed categorical block keeps shape
     `(n_samples, n_selected_categorical_columns)`.
@@ -40,6 +41,7 @@ class LabelEncoder(AbstractPreprocessingHandler):
     def __init__(self):
         """Initialize `LabelEncoder`."""
         self.categories_ = {}
+        self.unknown_labels_ = {}
         self.categorical_idx_ = None
 
     def fit(self, data: PreparedData, features_idx: Sequence[int]):
@@ -47,8 +49,8 @@ class LabelEncoder(AbstractPreprocessingHandler):
         Learn category sets for each categorical column.
 
         Args:
-            data (ArrayType): Feature matrix of shape `(n_samples, n_features)`.
-            categorical_idx (IndexType): Indices of categorical columns to encode.
+            data: Feature matrix wrapper.
+            features_idx: Indices of categorical columns to encode.
 
         Returns:
             LabelEncoder: Fitted encoder instance.
@@ -59,6 +61,7 @@ class LabelEncoder(AbstractPreprocessingHandler):
 
         self.categorical_idx_ = list(features_idx)
         self.categories_ = {}
+        self.unknown_labels_ = {}
 
         for idx in self.categorical_idx_:
             column = features[:, idx]
@@ -67,7 +70,9 @@ class LabelEncoder(AbstractPreprocessingHandler):
             valid_values = column[~nan_mask]
 
             categories = xp.unique(valid_values)
+
             self.categories_[idx] = categories
+            self.unknown_labels_[idx] = float(categories.size)
 
         return self
 
@@ -76,10 +81,10 @@ class LabelEncoder(AbstractPreprocessingHandler):
         Transform categorical values to label-encoded numeric IDs.
 
         Args:
-            data (ArrayType): Feature matrix of shape `(n_samples, n_features)`.
+            data: Feature matrix wrapper.
 
         Returns:
-            ArrayType: Encoded array of shape `(n_samples, n_categorical_columns)`.
+            PreparedData: Data with encoded categorical columns.
         """
         xp = Backend().xp
 
@@ -93,17 +98,21 @@ class LabelEncoder(AbstractPreprocessingHandler):
         for j, idx in enumerate(self.categorical_idx_):
             column = features[:, idx]
             categories = self.categories_[idx]
+            unknown_label = self.unknown_labels_[idx]
 
             nan_mask = column != column
+            known_mask = xp.zeros(n_rows, dtype=bool)
 
             if categories.size > 0:
                 matches = column.reshape(-1, 1) == categories.reshape(1, -1)
+                known_mask = matches.any(axis=1)
 
-                matched_rows = matches.any(axis=1)
+                encoded[known_mask, j] = matches.argmax(
+                    axis=1
+                )[known_mask].astype(float)
 
-                encoded[matched_rows, j] = matches.argmax(
-                    axis=1)[matched_rows].astype(float)
-
+            unknown_mask = ~known_mask & ~nan_mask
+            encoded[unknown_mask, j] = unknown_label
             encoded[nan_mask, j] = xp.nan
 
         features[:, self.categorical_idx_] = encoded
