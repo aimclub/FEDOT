@@ -4,7 +4,7 @@ from typing import Any, Callable, Dict, Optional
 from fedot.core.constants import AUTO_PRESET_NAME
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.validation.context import ValidationContext
-from fedot.validation.schemas.api_params import validate_api_param_keys as _validate_api_param_keys
+from fedot.api.api_utils.schemas import validate_api_param_keys
 
 
 def default_cv_folds_for_task(task_type: TaskTypesEnum) -> int:
@@ -50,14 +50,6 @@ def build_default_api_params(task_type: TaskTypesEnum, default_data_dir: str) ->
         sampling_config=None,
         chunked_ensemble_config=None,
     )
-
-
-def validate_api_param_keys(
-    params: dict,
-    allowed_keys,
-    context: Optional[ValidationContext] = None,
-) -> None:
-    _validate_api_param_keys(params, allowed_keys, context)
 
 
 def normalize_sampling_config(config: Any, validator: Callable[[Any], Any]):

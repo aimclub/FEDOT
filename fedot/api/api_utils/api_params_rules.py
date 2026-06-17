@@ -5,7 +5,7 @@ from fedot.core.constants import AUTO_PRESET_NAME, DEFAULT_FORECAST_LENGTH
 from fedot.core.repository.tasks import Task, TaskParams, TaskTypesEnum, TsForecastingParams
 from fedot.validation.context import ValidationContext
 from fedot.validation.errors import FedotValidationError
-from fedot.validation.schemas.api_params import validate_problem, validate_timeout_generations
+from fedot.api.api_utils.schemas import validate_problem, validate_timeout_generations
 
 
 @dataclass(frozen=True)
