@@ -3,7 +3,7 @@ from typing import Optional, Sequence
 
 from golem.core.optimisers.optimization_parameters import GraphRequirements
 
-from fedot.validation.schemas.composer_requirements import validate_cv_folds
+from fedot.core.pipelines.schemas import validate_cv_folds
 
 
 @dataclass
