@@ -5,7 +5,7 @@ from typing import List, Optional
 from fedot.core.pipelines.ts_wrappers import fitted_values
 from fedot.validation.context import ValidationContext
 from fedot.validation.errors import FedotValidationError
-from fedot.validation.schemas.prediction_intervals import validate_prediction_intervals_init
+from fedot.core.pipelines.prediction_intervals.schemas import validate_prediction_intervals_init
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot import Fedot
 from fedot.core.data.input_data.data import InputData
