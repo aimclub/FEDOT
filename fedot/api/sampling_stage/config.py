@@ -4,7 +4,7 @@ from typing import Any, Dict, Literal, Optional, Tuple, Union
 from fedot.validation.boundaries import load_validated
 from fedot.validation.context import ValidationContext
 from fedot.validation.errors import FedotValidationError
-from fedot.validation.schemas.sampling_config import SamplingConfigSchema
+from fedot.api.sampling_stage.schemas import SamplingConfigSchema
 
 
 @dataclass(frozen=True)
