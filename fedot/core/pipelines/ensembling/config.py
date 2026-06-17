@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional
 from fedot.validation.boundaries import load_validated
 from fedot.validation.context import ValidationContext
 from fedot.validation.errors import FedotValidationError
-from fedot.validation.schemas.chunked_ensemble_config import ChunkedEnsembleConfigSchema
+from fedot.core.pipelines.ensembling.schemas import ChunkedEnsembleConfigSchema
 
 
 class EnsembleMethod(str, Enum):
