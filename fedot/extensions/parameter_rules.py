@@ -5,7 +5,7 @@ from pymonad.either import Left, Right
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.extensions.contracts import ExtensionError, ExternalModelSpec
 from fedot.validation.errors import FedotValidationError
-from fedot.validation.schemas.extensions import validate_extension_hyperparams
+from fedot.extensions.schemas import validate_extension_hyperparams
 
 
 RuntimeReservedKeys = ('model_fit', 'model_predict')
