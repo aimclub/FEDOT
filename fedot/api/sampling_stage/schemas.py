@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, Sequence, Tuple
 
 from marshmallow import RAISE, Schema, ValidationError, fields, validates
 
@@ -10,8 +10,42 @@ from fedot.validation.fields import (
     OpenClosedUnitInterval,
     OpenUnitInterval,
     PositiveFloat,
-    SortedUniqueFloatTuple,
 )
+
+
+def validate_sorted_unique_ratios(ratios: Sequence[float]) -> None:
+    if not ratios:
+        raise ValidationError(
+            '"sampling_config.candidate_ratios" must be a non-empty list of floats.')
+    normalized = [float(ratio) for ratio in ratios]
+    if len(set(normalized)) != len(normalized):
+        raise ValidationError(
+            '"sampling_config.candidate_ratios" must not contain duplicates.')
+    if tuple(sorted(normalized)) != tuple(normalized):
+        raise ValidationError(
+            '"sampling_config.candidate_ratios" must be sorted in ascending order without duplicates.')
+
+
+class SortedUniqueFloatTuple(fields.List):
+    def __init__(self, **kwargs):
+        super().__init__(fields.Float(), **kwargs)
+
+    def _deserialize(self, value: Any, attr, data, **kwargs) -> Tuple[float, ...]:
+        if not isinstance(value, (list, tuple)) or len(value) == 0:
+            raise ValidationError(
+                '"sampling_config.candidate_ratios" must be a non-empty list of floats.')
+        normalized = []
+        for ratio in value:
+            if not isinstance(ratio, (float, int)):
+                raise ValidationError(
+                    '"sampling_config.candidate_ratios" must contain only numbers.')
+            ratio = float(ratio)
+            if not 0 < ratio <= 1:
+                raise ValidationError(
+                    '"sampling_config.candidate_ratios" values must be in range (0, 1].')
+            normalized.append(ratio)
+        validate_sorted_unique_ratios(normalized)
+        return tuple(normalized)
 
 
 class SamplingConfigBaseSchema(Schema):
