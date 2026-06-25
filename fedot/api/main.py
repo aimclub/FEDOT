@@ -482,8 +482,9 @@ class Fedot:
     def _prepare_fit_context_td(self,
                                 features: FeaturesType,
                                 target: TargetType) -> Tuple[FitDataContext, TensorData]:
-        self.target = target
+
         with fedot_composer_timer.launch_data_definition('fit'):
+            # TODO romankuklo: use only label encoding in default if sampling stage is used
             creation = self.params.prepare_tensordata_creation(
                 target=target,
                 is_predict=False,
@@ -493,7 +494,7 @@ class Fedot:
                 backend_name=creation.backend_name,
                 **creation.spec_kwargs,
             )
-            
+            self.target = train_data.target
             self.params.update_available_operations_by_preset(train_data)
 
             recommendations_for_data = None
@@ -515,7 +516,13 @@ class Fedot:
             # TODO romankuklo: add sampling stage and chunked ensemble for TD
 
             sampling_stage_plan = None
-            chunked_ensemble_plan = None
+            chunked_ensemble_plan = ChunkedEnsemblePlan(
+                should_use_chunked_ensemble=False,
+                config=None,
+                train_split_ratio=1.0,
+                should_select_class_representatives=False,
+                validation_split_seed=123,
+            )
             ensemble_validation_data = None
             class_representatives = None
 
@@ -530,9 +537,30 @@ class Fedot:
             ensemble_validation_data=ensemble_validation_data,
             class_representatives=class_representatives,
         ), train_data
-    
 
-    def fit_td(self,
+    def _obtain_pipeline_td(self,
+                         fit_context: FitDataContext,
+                         predefined_model: Union[str, Pipeline, None]):
+        with fedot_composer_timer.launch_fitting():
+            if predefined_model is None:
+                raise ValueError(
+                    'TensorData fit currently supports only predefined models or pipelines.')
+
+            predefined = PredefinedModel(
+                predefined_model,
+                self.train_data,
+                self.log,
+                use_input_preprocessing=False,
+                api_preprocessor=None,
+            )
+            self.current_pipeline = predefined.fit_tensordata()
+            self.best_models = ()
+            self.history = None
+
+            if self.current_pipeline is None:
+                raise ValueError('No models were found')
+
+    def fit_tensor_data(self,
             features: FeaturesType,
             target: TargetType = 'target',
             predefined_model: Union[str, Pipeline] = None) -> Pipeline:
@@ -542,11 +570,11 @@ class Fedot:
         initial_timeout = self.params.timeout
 
         try:
-            fit_context, train_data = self._prepare_fit_context_td(features=features, target=target)
+            fit_context, self.train_data = self._prepare_fit_context_td(features=features, target=target)
             # TODO romankuklo: apply sampling stage and chunked ensemble
             # fit_context, train_data = self._apply_sampling_stage(fit_context, train_data)
             # self.train_data = train_data
-            self._obtain_pipeline(
+            self._obtain_pipeline_td(
                 fit_context=fit_context,
                 predefined_model=predefined_model,
             )
@@ -554,7 +582,6 @@ class Fedot:
                 fit_context=fit_context,
                 predefined_model=predefined_model,
             )
-            self._merge_current_pipeline_preprocessors()
 
             if isinstance(self.current_pipeline, Pipeline):
                 self.log.message(f'Final pipeline: {graph_structure(self.current_pipeline)}')
@@ -566,32 +593,6 @@ class Fedot:
             self.params.timeout = initial_timeout
             MemoryAnalytics.finish()
 
-
-    def fit_tensordata(self, tensor_data, predefined_model: Union[str, Pipeline] = None) -> Pipeline:
-
-        fit_plan = build_tensordata_fit_plan(predefined_model)
-
-        with fedot_composer_timer.launch_fitting():
-            self.current_pipeline = getattr(
-                PredefinedModel(
-                    predefined_model,
-                    tensor_data,
-                    self.log,
-                    use_input_preprocessing=self.params.get('use_input_preprocessing'),
-                    api_preprocessor=self.data_processor.preprocessor,
-                ),
-                fit_plan.fit_method_name,
-            )()
-
-        self.train_data = self.data_processor.to_input_data(tensor_data)
-        self.target = self.train_data.target
-        self.current_pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
-            api_preprocessor=self.data_processor.preprocessor,
-            pipeline_preprocessor=self.current_pipeline.preprocessor,
-            use_auto_preprocessing=self.params.get('use_auto_preprocessing'),
-        )
-        self.log.message(f'Final pipeline: {graph_structure(self.current_pipeline)}')
-        return self.current_pipeline
 
     def tune_tensordata(self,
                         tensor_data: Optional[Any] = None,

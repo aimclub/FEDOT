@@ -11,6 +11,7 @@ from golem.serializers.serializer import register_serializable
 
 from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.data.input_data.data import InputData, OutputData
+from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.merge.data_merger import DataMerger
 from fedot.core.operations.factory import OperationFactory
 from fedot.core.operations.operation import Operation
@@ -232,6 +233,66 @@ class PipelineNode(LinkedGraphNode):
             self.update_params()
         return operation_predict
 
+    def fit_tensordata(self,
+                       tensor_data: TensorData,
+                       predictions_cache: Optional[PredictionsCache] = None,
+                       fold_id: Optional[int] = None) -> TensorData:
+        """Runs training process in the node on TensorData.
+
+        Slice 1 supports only primary nodes without parents (e.g. single predefined model).
+        """
+        self.log.debug(
+            f'Trying to fit pipeline node with operation: {self.operation} on TensorData')
+        tensor_data = self._get_tensor_data(tensor_data=tensor_data)
+
+        if self.fitted_operation is None:
+            with Timer() as t:
+                self.fitted_operation, operation_predict = self.operation.fit_tensordata(
+                    params=self._parameters,
+                    data=tensor_data,
+                    predictions_cache=predictions_cache,
+                    fold_id=fold_id,
+                    descriptive_id=self.descriptive_id,
+                )
+                self.fit_time_in_seconds = round(t.seconds_from_start, 3)
+        else:
+            operation_predict = self.operation.predict_tensordata(
+                fitted_operation=self.fitted_operation,
+                data=tensor_data,
+                params=self._parameters,
+                predictions_cache=predictions_cache,
+                fold_id=fold_id,
+                descriptive_id=self.descriptive_id,
+                is_fit_stage=True,
+            )
+
+        if should_update_node_parameters(self.operation.operation_type, self.operation.metadata.tags):
+            self.update_params()
+        return operation_predict
+
+    def predict_tensordata(self,
+                           tensor_data: TensorData,
+                           output_mode: str = 'default',
+                           predictions_cache: Optional[PredictionsCache] = None,
+                           fold_id: Optional[int] = None) -> TensorData:
+        """Runs prediction process in the node on TensorData."""
+        self.log.debug(
+            f'Trying to predict pipeline node with operation: {self.operation} on TensorData')
+        tensor_data = self._get_tensor_data(tensor_data=tensor_data)
+        with Timer() as t:
+            operation_predict = self.operation.predict_tensordata(
+                fitted_operation=self.fitted_operation,
+                data=tensor_data,
+                params=self._parameters,
+                output_mode=output_mode,
+                predictions_cache=predictions_cache,
+                fold_id=fold_id,
+                descriptive_id=self.descriptive_id,
+                is_fit_stage=False,
+            )
+            self.inference_time_in_seconds = round(t.seconds_from_start, 3)
+        return operation_predict
+
     def predict(self,
                 input_data: InputData,
                 output_mode: str = 'default',
@@ -311,6 +372,17 @@ class PipelineNode(LinkedGraphNode):
             else:
                 self.node_data = input_data
         return input_data
+
+    def _get_tensor_data(self, tensor_data: TensorData) -> TensorData:
+        # TODO romankuklo: getting tensor data from parents is not supported yet
+        if self.nodes_from:
+            raise ValueError(
+                'TensorData pipeline nodes with parent nodes are not supported yet.')
+        if self.direct_set:
+            return self._node_data
+
+        self.node_data = tensor_data
+        return tensor_data
 
     def _input_from_parents(self,
                             input_data: InputData,

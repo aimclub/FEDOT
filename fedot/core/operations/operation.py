@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from fedot.core.caching.predictions_cache import PredictionsCache
 
 from fedot.core.data.input_data.data import InputData, OutputData
+from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.operations.hyperparameters_preprocessing import HyperparametersPreprocessor
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
@@ -200,6 +201,72 @@ class Operation:
 
         prediction.supplementary_data.data_flow_length = data_flow_length
         return prediction
+
+    def fit_tensordata(self,
+                       params: Optional[Union[OperationParameters, dict]],
+                       data: TensorData,
+                       predictions_cache: Optional[PredictionsCache] = None,
+                       fold_id: Optional[int] = None,
+                       descriptive_id: Optional[str] = None):
+        """Trains the operation on TensorData and returns in-sample predictions."""
+        self._init(
+            data.task,
+            params=params,
+            n_samples_data=data.features.shape[0],
+        )
+
+        self.fitted_operation = self._eval_strategy.fit(
+            features=data.features, target=data.target)
+
+        predict_train = self.predict_tensordata(
+            fitted_operation=self.fitted_operation,
+            data=data,
+            params=params,
+            predictions_cache=predictions_cache,
+            fold_id=fold_id,
+            descriptive_id=descriptive_id,
+            is_fit_stage=True,
+        )
+        return self.fitted_operation, predict_train
+    
+    def predict_tensordata(self,
+                            fitted_operation,
+                            data: TensorData,
+                            params: Optional[OperationParameters] = None,
+                            output_mode: str = 'default',
+                            is_fit_stage: bool = False,
+                            predictions_cache: Optional[PredictionsCache] = None,
+                            fold_id: Optional[int] = None,
+                            descriptive_id: Optional[str] = None) -> TensorData:
+        self._init(
+            data.task,
+            output_mode=output_mode,
+            params=params,
+            n_samples_data=data.features.shape[0],
+        )
+
+        prediction = None
+
+        if predictions_cache is not None:
+            prediction = predictions_cache.load_node_prediction(
+                descriptive_id, output_mode, fold_id, is_fit=is_fit_stage)
+            if prediction is not None:
+                prediction_td = self._eval_strategy._replace_predict_in_tensor_data(
+                    prediction, data)
+                return prediction_td
+
+        prediction = self._eval_strategy.predict(
+            trained_operation=fitted_operation,
+            features=data.features,
+        )
+        prediction_td = self._eval_strategy._replace_predict_in_tensor_data(
+            prediction, data)
+
+        if predictions_cache is not None:
+            predictions_cache.save_node_prediction(
+                descriptive_id, output_mode, fold_id, prediction, is_fit=is_fit_stage)
+
+        return prediction_td
 
     @staticmethod
     @abstractmethod

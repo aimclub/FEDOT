@@ -1,4 +1,8 @@
 {
+  "torch_linear": {
+    "learning_rate": 0.05,
+    "epochs": 200
+  },
   "rf": {
     "n_jobs": 1
   },

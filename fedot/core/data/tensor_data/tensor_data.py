@@ -91,6 +91,7 @@ class TensorData:
 
     state: Union[str, StateEnum] = StateEnum.FIT
     idx: IndexType = None
+    # TODO romankuklo: make features as obligatory field
     features: Optional[torch.Tensor] = None
     target: Optional[torch.Tensor] = None
     predict: TensorLike = None
