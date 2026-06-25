@@ -9,6 +9,8 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.data.tensor_data.tools import convert_idx_to_list
 
+from fedot.core.data.tensor_data.schemas import validate_tabular_file_path
+
 logger = logging.getLogger(__name__)
 
 SUPPORTED_BACKEND_NAMES = ('cpu', 'gpu')
@@ -304,19 +306,6 @@ def normalize_possible_idx_keywords(
     if possible_idx_keywords is None:
         return list(default_keywords)
     return list(possible_idx_keywords)
-
-
-def validate_tabular_file_path(file_path: str) -> str:
-    normalized_path = str(file_path)
-    supported_suffixes = ('.csv', '.tsv')
-
-    if not normalized_path.lower().endswith(supported_suffixes):
-        raise ValueError(f'Unsupported tabular file format: {normalized_path}')
-
-    if not Path(normalized_path).is_file():
-        raise ValueError(f'File {normalized_path} does not exist')
-
-    return normalized_path
 
 
 def build_tabular_file_load_plan(

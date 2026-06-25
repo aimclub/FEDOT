@@ -89,7 +89,7 @@ class ApiComposer:
                                               train_data: InputData,
                                               validation_data: InputData) -> Tuple[
                                                   Pipeline, Sequence[Pipeline], OptHistory
-                                              ]:
+    ]:
         return self._obtain_model(
             train_data=train_data,
             context_builder=lambda data, _: build_external_holdout_composer_data_source_context(

@@ -156,11 +156,20 @@ def _collect_metrics(
     }
 
 
-def _save_task_metrics(task_name: str, problem: str, metrics: dict[str, float], main_metric_name: str, main_metric_value: float) -> None:
+def _save_task_metrics(task_name: str,
+                       problem: str,
+                       metrics: dict[str,
+                                     float],
+                       main_metric_name: str,
+                       main_metric_value: float) -> None:
     TASK_RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
     file_path = TASK_RESULTS_DIR / f"{task_name}.csv"
-    payload = {"task": task_name, "problem": problem, "main_metric_name": main_metric_name, "main_metric_value": main_metric_value}
+    payload = {
+        "task": task_name,
+        "problem": problem,
+        "main_metric_name": main_metric_name,
+        "main_metric_value": main_metric_value}
     payload.update(metrics)
     frame = pd.DataFrame([payload])
     frame.to_csv(file_path, index=False)
@@ -391,7 +400,8 @@ def _parse_tasks(raw: Optional[str]) -> Optional[list[str]]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run OpenML benchmark with FEDOT TabICL and update foundational column.")
+    parser = argparse.ArgumentParser(
+        description="Run OpenML benchmark with FEDOT TabICL and update foundational column.")
     parser.add_argument("--classification-suite", type=int, default=DEFAULT_CLASSIFICATION_SUITE)
     parser.add_argument("--regression-suite", type=int, default=DEFAULT_REGRESSION_SUITE)
     parser.add_argument("--classification-tasks", type=str, default=None, help="Comma-separated task names.")

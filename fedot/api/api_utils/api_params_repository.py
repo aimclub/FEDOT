@@ -36,14 +36,15 @@ class ApiParamsRepository:
         """ Returns a dict with default parameters"""
         return build_default_api_params(task_type, default_fedot_data_dir())
 
-    def check_and_set_default_params(self, params: dict) -> dict:
+    def check_and_set_default_params(self, params: dict, context=None) -> dict:
         """ Sets default values for parameters which were not set by the user
-        and raises KeyError for invalid parameter keys"""
+        and raises FedotInvalidKeysError for invalid parameter keys"""
         return apply_default_params(
             params=params,
             default_params=self.default_params,
             sampling_validator=validate_sampling_config,
             chunked_ensemble_validator=validate_chunked_ensemble_config,
+            context=context,
         )
 
     @staticmethod
