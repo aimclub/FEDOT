@@ -477,6 +477,26 @@ class Fedot:
         service = runtime_spec.service_cls(use_cache=self.use_cache)
 
         return service.fit_transform(tensor_data, optional_strategy)
+    
+    def _define_tensordata(
+        self,
+        features: FeaturesType,
+        target: TargetType,
+        trace_uuid: Optional[str] = None,
+        is_predict: bool = False,
+    ) -> TensorData:
+        creation = self.params.prepare_tensordata_creation(
+            target=target,
+            is_predict=is_predict,
+            trace_uuid=trace_uuid,
+        )
+
+        tensor_data = TensorDataCreator.create(
+            source_data=features,
+            backend_name=creation.backend_name,
+            **creation.spec_kwargs,
+        )
+        return tensor_data
 
 
     def _prepare_fit_context_td(self,
@@ -484,16 +504,7 @@ class Fedot:
                                 target: TargetType) -> Tuple[FitDataContext, TensorData]:
 
         with fedot_composer_timer.launch_data_definition('fit'):
-            # TODO romankuklo: use only label encoding in default if sampling stage is used
-            creation = self.params.prepare_tensordata_creation(
-                target=target,
-                is_predict=False,
-            )
-            train_data = TensorDataCreator.create(
-                source_data=features,
-                backend_name=creation.backend_name,
-                **creation.spec_kwargs,
-            )
+            train_data = self._define_tensordata(features=features, target=target, is_predict=False)
             self.target = train_data.target
             self.params.update_available_operations_by_preset(train_data)
 
@@ -760,19 +771,6 @@ class Fedot:
             self.save_predict(self.prediction, path_to_save)
 
         return self.prediction.predict
-    
-    def define_test_tensordata(self, features: FeaturesType, train_trace_uuid: str) -> TensorData:
-        creation = self.params.prepare_tensordata_creation(
-            target=None,
-            is_predict=True,
-            trace_uuid=train_trace_uuid,
-        )
-        test_data = TensorDataCreator.create(
-            source_data=features,
-            backend_name=creation.backend_name,
-            **creation.spec_kwargs,
-        )
-        return test_data
 
     def predict_tensordata(
         self,
@@ -787,7 +785,7 @@ class Fedot:
 
         trace_uuid = train_trace_uuid if train_trace_uuid is not None else self.train_data.trace_uuid
         with fedot_composer_timer.launch_data_definition('predict'):
-            self.test_data = self.define_test_tensordata(features, trace_uuid)
+            self.test_data = self._define_tensordata(features=features, target=None, is_predict=True, trace_uuid=trace_uuid)
 
         with fedot_composer_timer.launch_predicting():
             self.prediction = self.current_pipeline.predict_tensordata(self.test_data, output_mode=output_mode)
@@ -795,28 +793,6 @@ class Fedot:
         if path_to_save is not None:
             self.save_predict(self.prediction, path_to_save)
         return self.prediction
-
-    def predict_proba_tensordata(self, tensor_data,
-                                 probs_for_all_classes: bool = False,
-                                 path_to_save: Optional[PathType] = None) -> np.ndarray:
-        if self.current_pipeline is None:
-            raise ValueError(NOT_FITTED_ERR_MSG)
-
-        self.test_data = self.data_processor.to_input_data(tensor_data)
-        with fedot_composer_timer.launch_predicting():
-            if self.params.task.task_type == TaskTypesEnum.classification:
-                predict_plan = build_tensordata_predict_proba_plan(probs_for_all_classes)
-                self.prediction = self.current_pipeline.predict_tensordata(
-                    tensor_data,
-                    output_mode=predict_plan.output_mode,
-                )
-
-                if path_to_save is not None:
-                    self.save_predict(self.prediction, path_to_save)
-            else:
-                raise ValueError('Probabilities of predictions are available only for classification')
-
-        return self.prediction.predict
 
     def predict_proba(self,
                       features: FeaturesType,

@@ -79,10 +79,12 @@ class ApiParams(UserDict):
             'state': StateEnum.PREDICT if is_predict else StateEnum.FIT,
         }
         # TODO romankuklo: add ValueError if trace_uuid is None and is_predict is True
-        if trace_uuid is not None:
-            spec_kwargs['trace_uuid'] = trace_uuid
-        if target is not None:
-            spec_kwargs['target'] = target
+        if is_predict:
+            if trace_uuid is not None:
+                spec_kwargs['trace_uuid'] = trace_uuid
+        else:
+            if target is not None:
+                spec_kwargs['target'] = target
 
         return TensorDataCreationRequest(backend_name=backend_name, spec_kwargs=spec_kwargs)
 
