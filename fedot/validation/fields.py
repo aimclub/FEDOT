@@ -2,6 +2,7 @@ from typing import Any
 
 from marshmallow import ValidationError, fields
 
+
 class NonEmptyStr(fields.Str):
     def _validate(self, value: Any) -> None:
         super()._validate(value)
