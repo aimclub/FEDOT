@@ -760,24 +760,41 @@ class Fedot:
             self.save_predict(self.prediction, path_to_save)
 
         return self.prediction.predict
+    
+    def define_test_tensordata(self, features: FeaturesType, train_trace_uuid: str) -> TensorData:
+        creation = self.params.prepare_tensordata_creation(
+            target=None,
+            is_predict=True,
+            trace_uuid=train_trace_uuid,
+        )
+        test_data = TensorDataCreator.create(
+            source_data=features,
+            backend_name=creation.backend_name,
+            **creation.spec_kwargs,
+        )
+        return test_data
 
-    def predict_tensordata(self, tensor_data, output_mode: str = 'default',
-                           path_to_save: Optional[PathType] = None) -> np.ndarray:
+    def predict_tensordata(
+        self,
+        features: FeaturesType,
+        train_trace_uuid: Optional[str] = None,
+        output_mode: str = 'default',
+        path_to_save: Optional[PathType] = None
+    ) -> TensorData:
+
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
-        self.test_data = self.data_processor.to_input_data(tensor_data)
+        trace_uuid = train_trace_uuid if train_trace_uuid is not None else self.train_data.trace_uuid
+        with fedot_composer_timer.launch_data_definition('predict'):
+            self.test_data = self.define_test_tensordata(features, trace_uuid)
+
         with fedot_composer_timer.launch_predicting():
-            predict_plan = build_tensordata_predict_plan(output_mode=output_mode)
-            self.prediction = self.current_pipeline.predict_tensordata(
-                tensor_data,
-                output_mode=predict_plan.output_mode,
-            )
+            self.prediction = self.current_pipeline.predict_tensordata(self.test_data, output_mode=output_mode)
 
         if path_to_save is not None:
             self.save_predict(self.prediction, path_to_save)
-
-        return self.prediction.predict
+        return self.prediction
 
     def predict_proba_tensordata(self, tensor_data,
                                  probs_for_all_classes: bool = False,

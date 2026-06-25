@@ -67,6 +67,7 @@ class ApiParams(UserDict):
         *,
         target=None,
         is_predict: bool = False,
+        trace_uuid: Optional[str] = None,
     ) -> TensorDataCreationRequest:
         config = dict(self.tensor_data_config)
         backend_name = config.pop('backend_name', 'cpu')
@@ -77,6 +78,9 @@ class ApiParams(UserDict):
             'task': self.task,
             'state': StateEnum.PREDICT if is_predict else StateEnum.FIT,
         }
+        # TODO romankuklo: add ValueError if trace_uuid is None and is_predict is True
+        if trace_uuid is not None:
+            spec_kwargs['trace_uuid'] = trace_uuid
         if target is not None:
             spec_kwargs['target'] = target
 

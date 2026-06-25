@@ -453,17 +453,19 @@ class Pipeline(GraphDelegate, Serializable):
                            output_mode: str = 'default',
                            predictions_cache: Optional[PredictionsCache] = None,
                            fold_id: Optional[int] = None) -> TensorData:
+        # TODO romankuklo: add ValueError schema
         if not self.is_fitted:
             ex = 'Pipeline is not fitted yet'
             self.log.error(ex)
             raise ValueError(ex)
-
-        return self.root_node.predict_tensordata(
+        
+        result = self.root_node.predict_tensordata(
             tensor_data=tensor_data,
             output_mode=output_mode,
             predictions_cache=predictions_cache,
             fold_id=fold_id,
         )
+        return result
 
     def save(self, path: str = None, create_subdir: bool = True, is_datetime_in_path: bool = False) -> Tuple[str, dict]:
         """
