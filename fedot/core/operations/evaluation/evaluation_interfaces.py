@@ -143,6 +143,11 @@ class EvaluationStrategy:
         """Attach model prediction to TensorData, analogous to OutputData wrapping."""
         return replace(predict_data, predict=prediction)
 
+    @staticmethod
+    def _replace_features_in_tensor_data(features, tensor_data: TensorData) -> TensorData:
+        """Attach transformed features to TensorData and keep predict empty."""
+        return replace(tensor_data, features=features, predict=None)
+
 
 class SkLearnEvaluationStrategy(EvaluationStrategy):
     """This class defines the certain operation implementation for the sklearn operations

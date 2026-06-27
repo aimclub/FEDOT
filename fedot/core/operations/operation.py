@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 
 from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.data.tensor_data.tensor_data import TensorData
+from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.hyperparameters_preprocessing import HyperparametersPreprocessor
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
@@ -208,7 +209,7 @@ class Operation:
                        predictions_cache: Optional[PredictionsCache] = None,
                        fold_id: Optional[int] = None,
                        descriptive_id: Optional[str] = None):
-        """Trains the operation on TensorData and returns in-sample predictions."""
+        """Trains the operation on TensorData and returns the node output."""
         self._init(
             data.task,
             params=params,
@@ -218,7 +219,7 @@ class Operation:
         self.fitted_operation = self._eval_strategy.fit(
             features=data.features, target=data.target)
 
-        predict_train = self.predict_tensordata(
+        output = self.predict_tensordata(
             fitted_operation=self.fitted_operation,
             data=data,
             params=params,
@@ -227,17 +228,27 @@ class Operation:
             descriptive_id=descriptive_id,
             is_fit_stage=True,
         )
-        return self.fitted_operation, predict_train
-    
+        return self.fitted_operation, output
+
+    def _is_tensor_transform_operation(self) -> bool:
+        from fedot.core.operations.data_operation import DataOperation
+
+        return isinstance(self, DataOperation)
+
+    def _wrap_tensor_operation_result(self, result, data: TensorData) -> TensorData:
+        if self._is_tensor_transform_operation():
+            return EvaluationStrategy._replace_features_in_tensor_data(result, data)
+        return EvaluationStrategy._replace_predict_in_tensor_data(result, data)
+
     def predict_tensordata(self,
-                            fitted_operation,
-                            data: TensorData,
-                            params: Optional[OperationParameters] = None,
-                            output_mode: str = 'default',
-                            is_fit_stage: bool = False,
-                            predictions_cache: Optional[PredictionsCache] = None,
-                            fold_id: Optional[int] = None,
-                            descriptive_id: Optional[str] = None) -> TensorData:
+                           fitted_operation,
+                           data: TensorData,
+                           params: Optional[OperationParameters] = None,
+                           output_mode: str = 'default',
+                           is_fit_stage: bool = False,
+                           predictions_cache: Optional[PredictionsCache] = None,
+                           fold_id: Optional[int] = None,
+                           descriptive_id: Optional[str] = None) -> TensorData:
         self._init(
             data.task,
             output_mode=output_mode,
@@ -245,28 +256,25 @@ class Operation:
             n_samples_data=data.features.shape[0],
         )
 
-        prediction = None
+        result = None
 
         if predictions_cache is not None:
-            prediction = predictions_cache.load_node_prediction(
+            result = predictions_cache.load_node_prediction(
                 descriptive_id, output_mode, fold_id, is_fit=is_fit_stage)
-            if prediction is not None:
-                prediction_td = self._eval_strategy._replace_predict_in_tensor_data(
-                    prediction, data)
-                return prediction_td
+            if result is not None:
+                return self._wrap_tensor_operation_result(result, data)
 
-        prediction = self._eval_strategy.predict(
+        result = self._eval_strategy.predict(
             trained_operation=fitted_operation,
             features=data.features,
         )
-        prediction_td = self._eval_strategy._replace_predict_in_tensor_data(
-            prediction, data)
+        output = self._wrap_tensor_operation_result(result, data)
 
         if predictions_cache is not None:
             predictions_cache.save_node_prediction(
-                descriptive_id, output_mode, fold_id, prediction, is_fit=is_fit_stage)
+                descriptive_id, output_mode, fold_id, result, is_fit=is_fit_stage)
 
-        return prediction_td
+        return output
 
     @staticmethod
     @abstractmethod
