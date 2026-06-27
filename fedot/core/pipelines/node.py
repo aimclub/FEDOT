@@ -12,7 +12,7 @@ from golem.serializers.serializer import register_serializable
 from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.data.tensor_data.tensor_data import TensorData
-from fedot.core.data.merge.data_merger import DataMerger
+from fedot.core.data.merge.data_merger import DataMerger, TensorDataMerger
 from fedot.core.operations.factory import OperationFactory
 from fedot.core.operations.operation import Operation
 from fedot.core.operations.operation_parameters import OperationParameters
@@ -243,7 +243,8 @@ class PipelineNode(LinkedGraphNode):
         """
         self.log.debug(
             f'Trying to fit pipeline node with operation: {self.operation} on TensorData')
-        tensor_data = self._get_tensor_data(tensor_data=tensor_data)
+        tensor_data = self._get_tensor_data(
+            tensor_data=tensor_data, parent_operation='fit')
 
         if self.fitted_operation is None:
             with Timer() as t:
@@ -278,7 +279,8 @@ class PipelineNode(LinkedGraphNode):
         """Runs prediction process in the node on TensorData."""
         self.log.debug(
             f'Trying to predict pipeline node with operation: {self.operation} on TensorData')
-        tensor_data = self._get_tensor_data(tensor_data=tensor_data)
+        tensor_data = self._get_tensor_data(
+            tensor_data=tensor_data, parent_operation='predict')
         with Timer() as t:
             operation_predict = self.operation.predict_tensordata(
                 fitted_operation=self.fitted_operation,
@@ -373,16 +375,42 @@ class PipelineNode(LinkedGraphNode):
                 self.node_data = input_data
         return input_data
 
-    def _get_tensor_data(self, tensor_data: TensorData) -> TensorData:
-        # TODO romankuklo: getting tensor data from parents is not supported yet
+    def _get_tensor_data(self, tensor_data: TensorData, parent_operation: str) -> TensorData:
         if self.nodes_from:
-            raise ValueError(
-                'TensorData pipeline nodes with parent nodes are not supported yet.')
+            return self._tensordata_from_parents(
+                tensor_data=tensor_data, parent_operation=parent_operation)
         if self.direct_set:
             return self._node_data
 
         self.node_data = tensor_data
         return tensor_data
+    
+    def _tensordata_from_parents(
+        self,
+        tensor_data: TensorData,
+        parent_operation: str,
+        predictions_cache: Optional[PredictionsCache] = None,
+        fold_id: Optional[int] = None
+    ) -> TensorData:
+        """Processes all the parent nodes via the current operation using ``tensor_data``
+        """
+        # TODO romankuklo: ValueError schema
+        if len(self.nodes_from) == 0:
+            raise ValueError('No parent nodes found')
+        
+        self.log.debug(
+            f'Fit all parent nodes in secondary node with operation: {self.operation}')
+
+        parent_nodes = self._nodes_from_with_fixed_order()
+        parent_results = _combine_parents_tensordata(
+            parent_nodes,
+            tensor_data,
+            parent_operation,
+            predictions_cache=predictions_cache,
+            fold_id=fold_id,
+        )
+        secondary_input = TensorDataMerger(parent_results).merge()
+        return secondary_input
 
     def _input_from_parents(self,
                             input_data: InputData,
@@ -471,6 +499,30 @@ class PipelineNode(LinkedGraphNode):
             self.operation.operation_type)
         if info is not None:
             return info.tags
+
+
+def _combine_parents_tensordata(parent_nodes: List[PipelineNode],
+                                tensor_data: TensorData,
+                                parent_operation: str,
+                                predictions_cache: Optional[PredictionsCache] = None,
+                                fold_id: Optional[int] = None) -> List[TensorData]:
+    """ Combines predictions from the ``parent_nodes`` on TensorData.
+    """
+    parents_result = []
+
+    for parent in parent_nodes:
+        if parent_operation == 'predict':
+            prediction = parent.predict_tensordata(
+                tensor_data=tensor_data, predictions_cache=predictions_cache, fold_id=fold_id)
+            parents_result.append(prediction)
+        elif parent_operation == 'fit':
+            prediction = parent.fit_tensordata(
+                tensor_data=tensor_data, predictions_cache=predictions_cache, fold_id=fold_id)
+            parents_result.append(prediction)
+        else:
+            raise ValueError(
+                "Value parent_operation should be 'fit' or 'predict'")
+    return parents_result
 
 
 def _combine_parents(parent_nodes: List[PipelineNode],
