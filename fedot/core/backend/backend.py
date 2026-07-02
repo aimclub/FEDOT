@@ -1,15 +1,16 @@
 from contextlib import contextmanager
-import re
 import threading
 from typing import Any
 import logging
 import torch
 
+from fedot.core.backend.schemas import (
+    BACKEND_CUDA_DEVICE_PATTERN,
+    BACKEND_SUPPORTED_NAMES_HINT,
+    validate_backend_name,
+)
 
 logger = logging.getLogger(__name__)
-
-_CUDA_DEVICE_PATTERN = re.compile(r'^cuda:\d+$')
-
 
 class Backend:
     """Singleton object for managing the compute backend (CPU/GPU).
@@ -70,7 +71,7 @@ class Backend:
 
     @classmethod
     def supported_name_hint(cls) -> str:
-        return 'cpu, gpu, cuda, mps, cuda:<device_index>'
+        return BACKEND_SUPPORTED_NAMES_HINT
 
     @classmethod
     def is_cuda_stack_compatible(cls) -> bool:
@@ -112,7 +113,7 @@ class Backend:
                     "CUDA is available."
                 )
             return cls.CUDA_STACK_NAME
-        if _CUDA_DEVICE_PATTERN.match(normalized_name):
+        if BACKEND_CUDA_DEVICE_PATTERN.match(normalized_name):
             if not cls.is_cuda_stack_compatible():
                 raise RuntimeError(
                     "CUDA stack is not available. Install cupy and cudf and ensure "
@@ -123,28 +124,10 @@ class Backend:
 
     @classmethod
     def normalize_name(cls, name: Any) -> str:
-        if not isinstance(name, str) or not name.strip():
-            raise ValueError(
-                f'Backend name must be a non-empty string, got {name!r}. '
-                f'Expected one of: {cls.supported_name_hint()}'
-            )
-
-        normalized = name.strip().lower()
-        if normalized == cls.DEFAULT_NAME:
-            return cls.DEFAULT_NAME
+        normalized = validate_backend_name(name)
         if normalized in cls.GENERIC_GPU_ALIASES:
             return cls.CUDA_STACK_NAME
-        if normalized == 'cuda':
-            return 'cuda'
-        if normalized == cls.MPS_NAME:
-            return cls.MPS_NAME
-        if _CUDA_DEVICE_PATTERN.match(normalized):
-            return normalized
-
-        raise ValueError(
-            f'Unsupported backend name: {name!r}. '
-            f'Expected one of: {cls.supported_name_hint()}'
-        )
+        return normalized
 
     @classmethod
     def is_gpu_name(cls, name: str) -> bool:
@@ -171,7 +154,7 @@ class Backend:
         self.name = self.DEFAULT_NAME
 
     def _set_mps_backend(self):
-        if not self.is_mps_compatible():
+        if not Backend.is_mps_compatible():
             raise RuntimeError("MPS is not available")
 
         import numpy as xp
@@ -183,7 +166,7 @@ class Backend:
         self.name = self.MPS_NAME
 
     def _set_cuda_stack_backend(self, normalized_name: str):
-        if not self.is_cuda_stack_compatible():
+        if not Backend.is_cuda_stack_compatible():
             raise RuntimeError(
                 "CUDA stack is not available. Install cupy and cudf and ensure "
                 "CUDA is available, or use backend_name='mps' on Apple Silicon."
@@ -209,8 +192,8 @@ class Backend:
             if resolved_name == self.MPS_NAME:
                 self._set_mps_backend()
                 logger.info(
-                    "Using MPS with NumPy/Pandas and torch.device('mps'). ",
-                    "For cudf/cupy support, CUDA is required.",
+                    "Using MPS with NumPy/Pandas and torch.device('mps'). "
+                    "For cudf/cupy support, CUDA is required."
                 )
                 return
             self._set_cuda_stack_backend(self.CUDA_STACK_NAME)
@@ -226,12 +209,12 @@ class Backend:
         if normalized_name == self.MPS_NAME:
             self._set_mps_backend()
             logger.info(
-                "Using MPS with NumPy/Pandas and torch.device('mps'). ",
-                "For cudf/cupy support, CUDA is required.",
+                "Using MPS with NumPy/Pandas and torch.device('mps'). "
+                "For cudf/cupy support, CUDA is required."
             )
             return
 
-        if _CUDA_DEVICE_PATTERN.match(normalized_name):
+        if BACKEND_CUDA_DEVICE_PATTERN.match(normalized_name):
             self._set_cuda_stack_backend(normalized_name)
             logger.info(
                 f"Using CUDA stack with cudf/cupy and torch.device('{normalized_name}'). ",

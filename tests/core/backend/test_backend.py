@@ -2,6 +2,7 @@ import pytest
 import torch
 
 from fedot.core.backend.backend import Backend
+from fedot.validation.errors import FedotValidationError
 
 
 @pytest.mark.unit
@@ -84,8 +85,20 @@ def test_backend_explicit_cuda_requires_cuda_stack(monkeypatch):
 
 @pytest.mark.unit
 def test_backend_normalize_name_rejects_unknown_value():
-    with pytest.raises(ValueError, match='Unsupported backend name'):
+    with pytest.raises(FedotValidationError, match='Unsupported backend name'):
         Backend.normalize_name('tpu')
+
+
+@pytest.mark.unit
+def test_backend_normalize_name_rejects_empty_string():
+    with pytest.raises(FedotValidationError, match='must be a non-empty string'):
+        Backend.normalize_name('   ')
+
+
+@pytest.mark.unit
+def test_backend_normalize_name_rejects_non_string():
+    with pytest.raises(FedotValidationError, match='must be a non-empty string'):
+        Backend.normalize_name(123)
 
 
 @pytest.mark.unit
