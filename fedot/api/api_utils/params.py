@@ -9,6 +9,7 @@ from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.optimizer import GraphGenerationParams
 from golem.utilities.utilities import determine_n_jobs
 
+from fedot.api.api_utils.api_data_rules import TensorDataCreationRequest
 from fedot.api.api_utils.api_params_repository import ApiParamsRepository
 from fedot.api.api_utils.api_params_rules import (
     build_label_encoded_preset_name,
@@ -30,8 +31,8 @@ from fedot.core.pipelines.verification import rules_by_task
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TaskParams
-from fedot.api.api_utils.api_data_rules import TensorDataCreationRequest
 from fedot.core.data.tensor_data.tensor_data import TensorData
+from fedot.validation.context import ValidationContext
 
 
 class ApiParams(UserDict):
@@ -39,7 +40,8 @@ class ApiParams(UserDict):
     def __init__(self, input_params: Dict[str, Any], problem: str, task_params: Optional[TaskParams] = None,
                  n_jobs: int = -1, timeout: float = 5, seed=None):
         self.log: LoggerAdapter = default_log(self)
-        task_resolution = resolve_task(problem, task_params)
+        self._validation_context = ValidationContext(logger=self.log)
+        task_resolution = resolve_task(problem, task_params, context=self._validation_context)
         if task_resolution.warning_message:
             self.log.warning(task_resolution.warning_message)
         self.task: Task = task_resolution.task
@@ -47,8 +49,10 @@ class ApiParams(UserDict):
         self.timeout = timeout
 
         self._params_repository = ApiParamsRepository(self.task.task_type)
+
         parameters: dict = self._params_repository.apply_default_params(
-            input_params)
+            input_params, context=self._validation_context)
+
         parameters['seed'] = seed
         super().__init__(parameters)
         self._check_timeout_vs_generations()
@@ -141,7 +145,7 @@ class ApiParams(UserDict):
 
     def _check_timeout_vs_generations(self):
         timeout_resolution = normalize_timeout_and_generations(
-            self.timeout, self.get('num_of_generations'))
+            self.timeout, self.get('num_of_generations'), context=self._validation_context)
         self.timeout = timeout_resolution.timeout
         self['num_of_generations'] = timeout_resolution.num_of_generations
 

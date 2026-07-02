@@ -1,17 +1,16 @@
 ﻿import datetime
 
+import pytest
+
 from fedot.api.api_utils.params import ApiParams
 from fedot.core.data.common.enums import StateEnum
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.validation.errors import FedotValidationError
 
 
-def test_api_params_raises_value_error_for_unknown_problem():
-    try:
+def test_api_params_raises_validation_error_for_unknown_problem():
+    with pytest.raises(FedotValidationError, match='Wrong type name of the given task'):
         ApiParams({}, problem='clustering')
-    except ValueError as error:
-        assert 'Wrong type name of the given task' in str(error)
-    else:
-        raise AssertionError('ApiParams should reject unknown problem values')
 
 
 def test_api_params_normalizes_timeout_and_generations():

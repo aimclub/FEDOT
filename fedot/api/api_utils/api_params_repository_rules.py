@@ -1,8 +1,10 @@
 from dataclasses import asdict
-from typing import Any, Callable
+from typing import Any, Callable, Dict, Optional
 
 from fedot.core.constants import AUTO_PRESET_NAME
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.validation.context import ValidationContext
+from fedot.api.api_utils.schemas import validate_api_param_keys
 
 
 def default_cv_folds_for_task(task_type: TaskTypesEnum) -> int:
@@ -51,12 +53,6 @@ def build_default_api_params(task_type: TaskTypesEnum, default_data_dir: str) ->
     )
 
 
-def validate_api_param_keys(params: dict, allowed_keys) -> None:
-    invalid_keys = params.keys() - set(allowed_keys)
-    if invalid_keys:
-        raise KeyError(f'Invalid key parameters {invalid_keys}')
-
-
 def normalize_sampling_config(config: Any, validator: Callable[[Any], Any]):
     validated_sampling_config = validator(config)
     return asdict(validated_sampling_config) if validated_sampling_config else None
@@ -72,3 +68,44 @@ def normalize_tensor_data_config(config: Any, validator: Callable[[Any], Any]):
     if config is None:
         return None
     return validator(config)
+
+
+def apply_default_params(
+    params: Dict[str, Any],
+    default_params: Dict[str, Any],
+    sampling_validator: Callable[[Any], Any],
+    chunked_ensemble_validator: Callable[[Any], Any],
+    tensor_data_validator: Optional[Callable[[Any], Any]] = None,
+    context: Optional[ValidationContext] = None,
+) -> Dict[str, Any]:
+    validate_api_param_keys(params, default_params.keys(), context)
+
+    normalized_params = dict(params)
+    if 'sampling_config' in normalized_params:
+        normalized_params['sampling_config'] = normalize_sampling_config(
+            normalized_params['sampling_config'],
+            lambda config: _call_validator(sampling_validator, config, context),
+        )
+    if 'chunked_ensemble_config' in normalized_params:
+        normalized_params['chunked_ensemble_config'] = normalize_chunked_ensemble_config(
+            normalized_params['chunked_ensemble_config'],
+            lambda config: _call_validator(chunked_ensemble_validator, config, context),
+        )
+    if tensor_data_validator is not None and 'tensor_data_config' in normalized_params:
+        normalized_params['tensor_data_config'] = normalize_tensor_data_config(
+            normalized_params['tensor_data_config'],
+            lambda config: _call_validator(tensor_data_validator, config, context),
+        )
+
+    for key, value in default_params.items():
+        if key not in normalized_params and value is not None:
+            normalized_params[key] = value
+
+    return normalized_params
+
+
+def _call_validator(validator: Callable, config: Any, context: Optional[ValidationContext]):
+    try:
+        return validator(config, context)
+    except TypeError:
+        return validator(config)

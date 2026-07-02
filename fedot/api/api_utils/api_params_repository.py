@@ -5,11 +5,8 @@ from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTyp
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
 
 from fedot.api.api_utils.api_params_repository_rules import (
+    apply_default_params as apply_default_params_rules,
     build_default_api_params,
-    normalize_chunked_ensemble_config,
-    normalize_sampling_config,
-    normalize_tensor_data_config,
-    validate_api_param_keys,
 )
 from fedot.api.api_utils.tensor_data_config import validate_tensor_data_config
 from fedot.api.sampling_stage.config import validate_sampling_config
@@ -43,32 +40,20 @@ class ApiParamsRepository:
         """ Returns a dict with default parameters"""
         return build_default_api_params(task_type, default_fedot_data_dir())
 
-    def apply_default_params(self, params: dict) -> dict:
+    def apply_default_params(self, params: dict, context=None) -> dict:
         """Validate keys, normalize nested configs, and fill defaults for unset parameters."""
-        validate_api_param_keys(params, self.default_params.keys())
+        return apply_default_params_rules(
+            params=params,
+            default_params=self.default_params,
+            sampling_validator=validate_sampling_config,
+            chunked_ensemble_validator=validate_chunked_ensemble_config,
+            tensor_data_validator=validate_tensor_data_config,
+            context=context,
+        )
 
-        normalized_params = dict(params)
-        if 'sampling_config' in normalized_params:
-            normalized_params['sampling_config'] = normalize_sampling_config(
-                normalized_params['sampling_config'],
-                validate_sampling_config,
-            )
-        if 'chunked_ensemble_config' in normalized_params:
-            normalized_params['chunked_ensemble_config'] = normalize_chunked_ensemble_config(
-                normalized_params['chunked_ensemble_config'],
-                validate_chunked_ensemble_config,
-            )
-        if 'tensor_data_config' in normalized_params:
-            normalized_params['tensor_data_config'] = normalize_tensor_data_config(
-                normalized_params['tensor_data_config'],
-                validate_tensor_data_config,
-            )
-
-        for key, value in self.default_params.items():
-            if key not in normalized_params and value is not None:
-                normalized_params[key] = value
-
-        return normalized_params
+    def check_and_set_default_params(self, params: dict, context=None) -> dict:
+        """Backward-compatible alias for :meth:`apply_default_params`."""
+        return self.apply_default_params(params, context=context)
 
     @staticmethod
     def get_params_for_composer_requirements(params: dict) -> dict:

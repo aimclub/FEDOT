@@ -3,6 +3,7 @@
 from fedot.api.api_utils.api_params_repository import ApiParamsRepository
 from fedot.core.constants import AUTO_PRESET_NAME
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.validation.errors import FedotInvalidKeysError
 
 
 def test_api_params_repository_builds_task_specific_defaults():
@@ -95,8 +96,9 @@ def test_apply_default_params_adds_missing_values_and_normalizes_sampling():
 def test_api_params_repository_rejects_unknown_param_key():
     repository = ApiParamsRepository(TaskTypesEnum.classification)
 
-    with pytest.raises(KeyError, match='Invalid key parameters'):
-        repository.apply_default_params({'unknown': 1})
+    with pytest.raises(FedotInvalidKeysError, match='Invalid key parameters'):
+        repository.check_and_set_default_params({'unknown': 1})
+
 
 
 def test_params_for_composer_requirements_excludes_runtime_cv_folds():
