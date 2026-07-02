@@ -11,6 +11,18 @@ from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
 from fedot.core.utils import fedot_project_root
 from fedot.preprocessing.tools.preprocessor_types import EncodingMethodEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.repository.dataset_types import DataTypesEnum
+
+
+@pytest.mark.unit
+def test_tensor_data_requires_features():
+    """TensorData must not be constructed without the obligatory features field."""
+    with pytest.raises(TypeError, match='features'):
+        TensorData(
+            task=Task(TaskTypesEnum.classification),
+            data_type=DataTypesEnum.tabular,
+        )
 
 
 @pytest.mark.unit
