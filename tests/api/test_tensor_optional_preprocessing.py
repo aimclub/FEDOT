@@ -82,7 +82,7 @@ def test_fedot_prepare_fit_context_td_applies_optional_preprocessing_when_auto_e
     ], dtype=np.float32)
     target = np.array([0, 1, 0])
 
-    _, train_data = model._prepare_fit_context_td(features=features, target=target)
+    _, train_data = model._prepare_fit_context(features=features, target=target)
 
     assert isinstance(train_data, TensorData)
     assert not np.isnan(float(train_data.features[1, 1]))
@@ -98,6 +98,6 @@ def test_fedot_prepare_fit_context_td_skips_optional_preprocessing_when_auto_dis
     ], dtype=np.float32)
     target = np.array([0, 1, 0])
 
-    _, train_data = model._prepare_fit_context_td(features=features, target=target)
+    _, train_data = model._prepare_fit_context(features=features, target=target)
 
     assert np.isnan(float(train_data.features[1, 1]))

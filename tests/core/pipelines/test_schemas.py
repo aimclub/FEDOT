@@ -1,7 +1,11 @@
 import pytest
 
 from fedot.validation.errors import FedotValidationError
-from fedot.core.pipelines.schemas import validate_cv_folds
+from fedot.core.pipelines.schemas import (
+    validate_cv_folds,
+    validate_pipeline_is_fitted,
+    validate_single_root_node,
+)
 
 
 def test_validate_cv_folds_accepts_valid_value():
@@ -34,3 +38,21 @@ def test_validate_cv_folds_rejects_zero():
     """Zero folds is nonsensical and must be rejected (same message as k=1)."""
     with pytest.raises(FedotValidationError, match='must be 2 or more'):
         validate_cv_folds(0)
+
+
+def test_validate_pipeline_is_fitted_accepts_true():
+    validate_pipeline_is_fitted(True)
+
+
+def test_validate_pipeline_is_fitted_rejects_false():
+    with pytest.raises(FedotValidationError, match='Pipeline is not fitted yet'):
+        validate_pipeline_is_fitted(False)
+
+
+def test_validate_single_root_node_accepts_single_root():
+    validate_single_root_node(1)
+
+
+def test_validate_single_root_node_rejects_multiple_roots():
+    with pytest.raises(FedotValidationError, match='More than 1 root_nodes in pipeline'):
+        validate_single_root_node(2)
