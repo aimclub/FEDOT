@@ -54,17 +54,17 @@
       ],
       "tasks": "[TaskTypesEnum.classification]"
     },
-    "torch_tabular_class": {
+    "simple_class": {
       "accepted_node_types": [
         "any"
       ],
-      "description": "Native torch tabular classification models for TensorData runtime",
+      "description": "Lightweight classification models for TensorData runtime",
       "forbidden_node_types": "[]",
       "input_type": "[DataTypesEnum.tabular]",
       "output_type": "[DataTypesEnum.tabular]",
       "strategies": [
-        "fedot.core.operations.evaluation.torch_tabular",
-        "TorchTabularClassificationStrategy"
+        "fedot.core.operations.evaluation.simple_classification",
+        "SimpleClassificationStrategy"
       ],
       "tags": [
         "ml",
@@ -437,7 +437,7 @@
       ]
     },
     "torch_linear": {
-      "meta": "torch_tabular_class",
+      "meta": "simple_class",
       "presets": ["fast_train"],
       "tags": [
         "simple",

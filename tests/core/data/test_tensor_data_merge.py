@@ -64,6 +64,24 @@ def test_tensor_data_merger_clears_predict_and_keeps_target(base_tensor_data):
 
 
 @pytest.mark.unit
+def test_tensor_data_merger_uses_branch_with_target_as_main(base_tensor_data):
+    branch_without_target = replace(
+        base_tensor_data,
+        target=None,
+        features=base_tensor_data.features[:, :1],
+    )
+    branch_with_target = replace(
+        base_tensor_data,
+        features=base_tensor_data.features[:, 1:2],
+    )
+
+    merged = TensorDataMerger([branch_without_target, branch_with_target]).merge()
+
+    assert torch.equal(merged.target, branch_with_target.target)
+    assert merged.features.shape == (4, 2)
+
+
+@pytest.mark.unit
 def test_tensor_data_merger_filters_by_common_idx(base_tensor_data):
     branch_a = replace(
         base_tensor_data,
@@ -124,6 +142,65 @@ def test_tensor_data_merger_raises_on_mixed_data_types(base_tensor_data):
 
     with pytest.raises(ValueError, match="Can't merge different TensorData data types"):
         TensorDataMerger([branch_a, branch_b]).merge()
+
+
+@pytest.mark.unit
+def test_tensor_data_merger_promotes_1d_features_to_2d(base_tensor_data):
+    branch_a = replace(
+        base_tensor_data,
+        features=torch.tensor([10.0, 20.0, 30.0, 40.0]),
+    )
+    branch_b = replace(
+        base_tensor_data,
+        features=torch.tensor([1.0, 2.0, 3.0, 4.0]),
+    )
+
+    merged = TensorDataMerger([branch_a, branch_b]).merge()
+
+    assert merged.features.shape == (4, 2)
+    assert torch.allclose(merged.features[:, 0], torch.tensor([10.0, 20.0, 30.0, 40.0]))
+    assert torch.allclose(merged.features[:, 1], torch.tensor([1.0, 2.0, 3.0, 4.0]))
+
+
+@pytest.mark.unit
+def test_tensor_data_merger_flattens_branches_with_different_ndims(base_tensor_data):
+    branch_2d = replace(
+        base_tensor_data,
+        features=torch.tensor([
+            [1.0, 2.0],
+            [3.0, 4.0],
+            [5.0, 6.0],
+            [7.0, 8.0],
+        ]),
+    )
+    branch_3d = replace(
+        base_tensor_data,
+        features=torch.arange(24, dtype=torch.float32).reshape(4, 2, 3),
+    )
+
+    merged = TensorDataMerger([branch_2d, branch_3d]).merge()
+
+    assert merged.features.shape == (4, 8)
+    assert torch.allclose(merged.features[:, :2], branch_2d.features)
+    assert torch.allclose(merged.features[:, 2:], branch_3d.features.reshape(4, -1))
+
+
+@pytest.mark.unit
+def test_tensor_data_merger_flattens_incompatible_same_ndim_shapes(base_tensor_data):
+    branch_a = replace(
+        base_tensor_data,
+        features=torch.arange(24, dtype=torch.float32).reshape(4, 2, 3),
+    )
+    branch_b = replace(
+        base_tensor_data,
+        features=torch.arange(12, dtype=torch.float32).reshape(4, 1, 3),
+    )
+
+    merged = TensorDataMerger([branch_a, branch_b]).merge()
+
+    assert merged.features.shape == (4, 9)
+    assert torch.allclose(merged.features[:, :6], branch_a.features.reshape(4, -1))
+    assert torch.allclose(merged.features[:, 6:], branch_b.features.reshape(4, -1))
 
 
 @pytest.mark.unit

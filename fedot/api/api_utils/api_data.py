@@ -138,6 +138,16 @@ class ApiDataProcessor:
             prediction.predict = np.ravel(np.array(prediction.predict))
         return prediction
 
+    def define_predictions_tensordata(self,
+                                      current_pipeline: Union[Pipeline, PipelineEnsemble],
+                                      test_data: TensorData,
+                                      in_sample: bool = False,
+                                      validation_blocks: int = None) -> TensorData:
+        """ Prepare predictions """
+        prediction_plan = plan_prediction(
+            task_type=self.task.task_type,
+        )
+
     def correct_predictions(self, real: InputData, prediction: OutputData):
         """ Change shape for models predictions if its necessary. Apply """
         if self.task == TaskTypesEnum.ts_forecasting:

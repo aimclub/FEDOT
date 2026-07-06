@@ -191,48 +191,6 @@ class PipelineNode(LinkedGraphNode):
         if hasattr(self, 'node_data'):
             self.node_data = None
 
-    def fit(self,
-            input_data: InputData,
-            predictions_cache: Optional[PredictionsCache] = None,
-            fold_id: Optional[int] = None) -> OutputData:
-        """Runs training process in the node
-
-        Args:
-            input_data: data used for operation training
-
-        Returns:
-            OutputData: values predicted on the provided ``input_data``
-        """
-        self.log.debug(
-            f'Trying to fit pipeline node with operation: {self.operation}')
-        try:
-            input_data = self._get_input_data(
-                input_data=input_data, parent_operation='fit')
-        except Exception:
-            input_data = self._get_input_data(
-                input_data=input_data, parent_operation='fit')
-
-        if self.fitted_operation is None:
-            with Timer() as t:
-                self.fitted_operation, operation_predict = self.operation.fit(params=self._parameters,
-                                                                              data=input_data,
-                                                                              predictions_cache=predictions_cache,
-                                                                              fold_id=fold_id,
-                                                                              descriptive_id=self.descriptive_id)
-                self.fit_time_in_seconds = round(t.seconds_from_start, 3)
-        else:
-            operation_predict = self.operation.predict_for_fit(fitted_operation=self.fitted_operation,
-                                                               data=input_data,
-                                                               params=self._parameters,
-                                                               predictions_cache=predictions_cache,
-                                                               fold_id=fold_id,
-                                                               descriptive_id=self.descriptive_id)
-
-        # Update parameters after operation fitting (they can be corrected)
-        if should_update_node_parameters(self.operation.operation_type, self.operation.metadata.tags):
-            self.update_params()
-        return operation_predict
-
     def fit_tensordata(self,
                        tensor_data: TensorData,
                        predictions_cache: Optional[PredictionsCache] = None,
@@ -257,14 +215,13 @@ class PipelineNode(LinkedGraphNode):
                 )
                 self.fit_time_in_seconds = round(t.seconds_from_start, 3)
         else:
-            operation_predict = self.operation.predict_tensordata(
+            operation_predict = self.operation.predict_for_fit_tensordata(
                 fitted_operation=self.fitted_operation,
                 data=tensor_data,
                 params=self._parameters,
                 predictions_cache=predictions_cache,
                 fold_id=fold_id,
                 descriptive_id=self.descriptive_id,
-                is_fit_stage=True,
             )
 
         if should_update_node_parameters(self.operation.operation_type, self.operation.metadata.tags):
@@ -279,8 +236,9 @@ class PipelineNode(LinkedGraphNode):
         """Runs prediction process in the node on TensorData."""
         self.log.debug(
             f'Trying to predict pipeline node with operation: {self.operation} on TensorData')
+        # TODO romankuklo: check these predictions_cache=predictions_cache, fold_id=fold_id
         tensor_data = self._get_tensor_data(
-            tensor_data=tensor_data, parent_operation='predict')
+            tensor_data=tensor_data, parent_operation='predict',)
         with Timer() as t:
             operation_predict = self.operation.predict_tensordata(
                 fitted_operation=self.fitted_operation,
@@ -290,39 +248,7 @@ class PipelineNode(LinkedGraphNode):
                 predictions_cache=predictions_cache,
                 fold_id=fold_id,
                 descriptive_id=self.descriptive_id,
-                is_fit_stage=False,
             )
-            self.inference_time_in_seconds = round(t.seconds_from_start, 3)
-        return operation_predict
-
-    def predict(self,
-                input_data: InputData,
-                output_mode: str = 'default',
-                predictions_cache: Optional[PredictionsCache] = None,
-                fold_id: Optional[int] = None) -> OutputData:
-        """Runs prediction process in the node
-
-        Args:
-            input_data: data used for prediction
-            output_mode: desired output for operations (e.g. ``'labels'``, ``'probs'``, ``'full_probs'``)
-
-        Returns:
-            OutputData: values predicted on the provided ``input_data``
-        """
-        self.log.debug(
-            f'Obtain prediction in pipeline node by operation: {self.operation}')
-
-        input_data = self._get_input_data(input_data=input_data, parent_operation='predict',
-                                          predictions_cache=predictions_cache, fold_id=fold_id)
-
-        with Timer() as t:
-            operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
-                                                       params=self._parameters,
-                                                       data=input_data,
-                                                       output_mode=output_mode,
-                                                       predictions_cache=predictions_cache,
-                                                       fold_id=fold_id,
-                                                       descriptive_id=self.descriptive_id)
             self.inference_time_in_seconds = round(t.seconds_from_start, 3)
         return operation_predict
 
@@ -359,22 +285,6 @@ class PipelineNode(LinkedGraphNode):
         else:
             self._node_data = value
 
-    def _get_input_data(self,
-                        input_data: InputData,
-                        parent_operation: str,
-                        predictions_cache: Optional[PredictionsCache] = None,
-                        fold_id: Optional[int] = None):
-        if self.nodes_from:
-            input_data = self._input_from_parents(
-                input_data=input_data, parent_operation=parent_operation, predictions_cache=predictions_cache,
-                fold_id=fold_id)
-        else:
-            if self.direct_set:
-                input_data = self.node_data
-            else:
-                self.node_data = input_data
-        return input_data
-
     def _get_tensor_data(self, tensor_data: TensorData, parent_operation: str) -> TensorData:
         if self.nodes_from:
             return self._tensordata_from_parents(
@@ -410,38 +320,6 @@ class PipelineNode(LinkedGraphNode):
             fold_id=fold_id,
         )
         secondary_input = TensorDataMerger(parent_results).merge()
-        return secondary_input
-
-    def _input_from_parents(self,
-                            input_data: InputData,
-                            parent_operation: str,
-                            predictions_cache: Optional[PredictionsCache] = None,
-                            fold_id: Optional[int] = None) -> InputData:
-        """Processes all the parent nodes via the current operation using ``input_data``
-
-        Args:
-            input_data: input data from pipeline abstraction (source input data)
-            parent_operation: name of parent operation (``'fit'`` or ``'predict'``)
-
-        Returns:
-            InputData: predictions from the secondary nodes
-        """
-
-        if len(self.nodes_from) == 0:
-            raise ValueError('No parent nodes found')
-
-        self.log.debug(
-            f'Fit all parent nodes in secondary node with operation: {self.operation}')
-
-        parent_nodes = self._nodes_from_with_fixed_order()
-
-        parent_results, _ = _combine_parents(parent_nodes, input_data,
-                                             parent_operation, predictions_cache=predictions_cache, fold_id=fold_id)
-        secondary_input = DataMerger.get(parent_results).merge()
-        # Update info about visited nodes
-        parent_operations = [
-            node.operation.operation_type for node in parent_nodes]
-        secondary_input.supplementary_data.previous_operations = parent_operations
         return secondary_input
 
     def _nodes_from_with_fixed_order(self):
@@ -520,54 +398,10 @@ def _combine_parents_tensordata(parent_nodes: List[PipelineNode],
                 tensor_data=tensor_data, predictions_cache=predictions_cache, fold_id=fold_id)
             parents_result.append(prediction)
         else:
+            # TODO romankuklo: ValueError schema
             raise ValueError(
                 "Value parent_operation should be 'fit' or 'predict'")
     return parents_result
-
-
-def _combine_parents(parent_nodes: List[PipelineNode],
-                     input_data: Optional[InputData],
-                     parent_operation: str,
-                     predictions_cache: Optional[PredictionsCache] = None,
-                     fold_id: Optional[int] = None) -> Tuple[List[OutputData], np.array]:
-    """ Combines predictions from the ``parent_nodes``
-
-    Args:
-        parent_nodes: list of parent nodes, from which predictions will be combined
-        input_data: input data from pipeline abstraction (source input data)
-        parent_operation: name of parent operation (``'fit'`` or ``'predict'``)
-
-    Returns:
-        Tuple[List[OutputData], np.array]: :obj:`output data list from parent nodes`,
-        :obj:`target for final pipeline prediction`
-    """
-
-    if input_data is not None:
-        # InputData was set to pipeline
-        target = input_data.target
-    parent_results = []
-    for parent in parent_nodes:
-        if parent_operation == 'predict':
-            prediction = parent.predict(
-                input_data=input_data, predictions_cache=predictions_cache, fold_id=fold_id)
-            parent_results.append(prediction)
-        elif parent_operation == 'fit':
-            try:
-                prediction = parent.fit(
-                    input_data=input_data, predictions_cache=predictions_cache, fold_id=fold_id)
-                parent_results.append(prediction)
-            except Exception:
-                prediction = parent.fit(
-                    input_data=input_data, predictions_cache=predictions_cache, fold_id=fold_id)
-                parent_results.append(prediction)
-        else:
-            raise ValueError(
-                "Value parent_operation should be 'fit' or 'predict'")
-        if input_data is None:
-            # InputData was set to primary nodes
-            target = prediction.target
-
-    return parent_results, target
 
 
 # TODO: these two lines are used for backwards compatibility.

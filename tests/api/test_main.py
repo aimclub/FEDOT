@@ -1,5 +1,7 @@
 import numpy as np
 import pytest
+import torch
+from dataclasses import replace
 
 from fedot import Fedot
 from fedot.api.sampling_stage.config import SamplingChunkingConfig
@@ -30,12 +32,9 @@ class _StubPipeline(Pipeline):
 
     def predict_tensordata(self, tensor_data, output_mode='default'):
         self.calls.append(('predict_tensordata', output_mode))
-        return OutputData(
-            idx=np.arange(2),
-            predict=np.array([[0.2, 0.8], [0.7, 0.3]]),
-            target=None,
-            task=Task(TaskTypesEnum.classification),
-            data_type=DataTypesEnum.table,
+        return replace(
+            tensor_data,
+            predict=torch.tensor([[0.2, 0.8], [0.7, 0.3]]),
         )
 
 
@@ -208,7 +207,7 @@ def test_main_facade_predict_tensordata_uses_tensor_pipeline_entrypoint():
     prediction = model.predict_tensordata(
         tensor_data=_minimal_tensordata_for_predict(), output_mode='labels')
 
-    assert prediction.shape == (2, 2)
+    assert prediction.predict.shape == (2, 2)
     assert model.current_pipeline.calls == [('predict_tensordata', 'labels')]
 
 
@@ -219,7 +218,7 @@ def test_main_facade_predict_proba_tensordata_uses_service_rule_mode_selection()
     prediction = model.predict_proba_tensordata(tensor_data=_minimal_tensordata_for_predict(),
                                                 probs_for_all_classes=True)
 
-    assert prediction.shape == (2, 2)
+    assert prediction.predict.shape == (2, 2)
     assert model.current_pipeline.calls == [
         ('predict_tensordata', 'full_probs')]
 
@@ -278,16 +277,14 @@ def test_main_facade_fit_tensordata_stores_legacy_train_data(monkeypatch):
     assert model.target == 'stored-target'
 
 
-def test_main_facade_predict_tensordata_stores_legacy_test_data():
+def test_main_facade_predict_tensordata_stores_tensor_test_data():
     model = Fedot(problem='classification')
     model.current_pipeline = _StubPipeline()
-    stored_test_data = object()
-    model.data_processor.to_input_data = lambda td: stored_test_data
+    tensor_data = _minimal_tensordata_for_predict()
 
-    model.predict_tensordata(
-        tensor_data=_minimal_tensordata_for_predict(), output_mode='labels')
+    model.predict_tensordata(tensor_data=tensor_data, output_mode='labels')
 
-    assert model.test_data is stored_test_data
+    assert model.test_data is tensor_data
 
 
 def test_main_facade_tune_tensordata_uses_tensor_tuner_runtime_path(monkeypatch):

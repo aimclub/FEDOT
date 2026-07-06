@@ -174,9 +174,10 @@ class TensorDataMerger:
         if not outputs:
             raise ValueError('No TensorData outputs to merge')
         self.outputs = outputs
-        self.main_output = outputs[0]
+        self.main_output = self._find_main_output(outputs)
         self.data_type = DataMerger.get_datatype_for_merge(
             output.data_type for output in outputs)
+        # TODO romankuklo: add ValueError schema
         if self.data_type is None:
             raise ValueError("Can't merge different TensorData data types")
         self.common_indices = self._find_common_indices()
@@ -209,7 +210,7 @@ class TensorDataMerger:
             for output in self.outputs
         ]
         self._check_equal_rows(features)
-        return features
+        return self._normalize_feature_shapes(features)
 
     def merge_target(self) -> Optional[torch.Tensor]:
         target = self.main_output.target
@@ -236,6 +237,44 @@ class TensorDataMerger:
         if len(set(row_counts)) != 1:
             raise ValueError(
                 f"Can't merge TensorData objects with different row counts: {row_counts}")
+
+    @staticmethod
+    def _normalize_feature_shapes(features: List[torch.Tensor]) -> List[torch.Tensor]:
+        """Normalize TensorData branch outputs before concatenation.
+
+        Contract:
+        - all tensors must have equal sample count in dim 0 (validated earlier);
+        - 1D tensors are promoted to 2D as ``[n_samples, 1]``;
+        - if branch shapes are incompatible for ``torch.cat(..., dim=-1)``,
+          tensors are flattened to ``[n_samples, -1]``.
+        """
+        normalized = [TensorDataMerger._atleast_2d_tensor(tensor) for tensor in features]
+        if TensorDataMerger._can_cat_by_last_axis(normalized):
+            return normalized
+        return [tensor.reshape(tensor.shape[0], -1) for tensor in normalized]
+
+    @staticmethod
+    def _atleast_2d_tensor(tensor: torch.Tensor) -> torch.Tensor:
+        while tensor.ndim < 2:
+            tensor = tensor.unsqueeze(-1)
+        return tensor
+
+    @staticmethod
+    def _can_cat_by_last_axis(features: List[torch.Tensor]) -> bool:
+        if not features:
+            return True
+        base_shape = features[0].shape[:-1]
+        return all(tensor.shape[:-1] == base_shape for tensor in features[1:])
+
+    @staticmethod
+    def _find_main_output(outputs: List[TensorData]) -> TensorData:
+        """Choose branch metadata holder for merged TensorData.
+
+        TensorData runtime has no SupplementaryData, so main output selection
+        falls back to the first branch with available target. If all targets are
+        absent, the first branch is used.
+        """
+        return next((output for output in outputs if output.target is not None), outputs[0])
 
 
 class ImageDataMerger(DataMerger):

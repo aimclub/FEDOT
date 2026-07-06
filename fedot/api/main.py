@@ -67,7 +67,6 @@ from fedot.utilities.define_metric_by_task import MetricByTask
 from fedot.utilities.memory import MemoryAnalytics
 from fedot.utilities.project_import_export import export_project_to_zip, import_project_from_zip
 from fedot.core.data.tensor_data.tensor_data import TensorData
-from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
 from fedot.preprocessing.service.tensor_optional_runtime import (
     get_optional_runtime_spec_for_tensor_data,
 )
@@ -604,21 +603,28 @@ class Fedot:
 
     def predict_tensordata(
         self,
-        features: FeaturesType,
-        train_trace_uuid: Optional[str] = None,
+        tensor_data: TensorData,
         output_mode: str = 'default',
         path_to_save: Optional[PathType] = None
     ) -> TensorData:
+        """Runs prediction on a prepared :class:`TensorData` instance.
 
+        Args:
+            tensor_data: test data already converted to ``TensorData`` (e.g. via
+                :class:`~fedot.core.data.tensor_data.tensor_data_creator.TensorDataCreator`).
+            output_mode: prediction format for classification models.
+            path_to_save: if specified, path to save prediction to.
+        """
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
-        trace_uuid = train_trace_uuid if train_trace_uuid is not None else self.train_data.trace_uuid
-        with fedot_composer_timer.launch_data_definition('predict'):
-            self.test_data = self._define_tensordata(features=features, target=None, is_predict=True, trace_uuid=trace_uuid)
-
+        self.test_data = tensor_data
+        # TODO @romankuklo: add optional preprocessing
         with fedot_composer_timer.launch_predicting():
-            self.prediction = self.current_pipeline.predict_tensordata(self.test_data, output_mode=output_mode)
+            self.prediction = self.current_pipeline.predict_tensordata(
+                tensor_data,
+                output_mode=output_mode,
+            )
 
         if path_to_save is not None:
             self.save_predict(self.prediction, path_to_save)
