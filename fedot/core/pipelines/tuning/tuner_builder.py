@@ -11,9 +11,8 @@ from golem.core.tuning.tuner_interface import BaseTuner
 from golem.utilities.data_structures import ensure_wrapped_in_sequence
 
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
-from fedot.core.data.input_data.data import InputData
 from fedot.core.data.tensor_data import TensorData
-from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective import PipelineObjectiveEvaluateWithTensorData
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.adapters import PipelineAdapter
@@ -110,7 +109,7 @@ class TunerBuilder:
                     'Multi objective tuning applicable only for OptunaTuner and IOptTuner.')
         objective = MetricsObjective(
             self.metric, is_multi_objective=len(self.metric) > 1)
-        objective_evaluate = PipelineObjectiveEvaluate(
+        objective_evaluate = PipelineObjectiveEvaluateWithTensorData(
             objective,
             data_producer,
             time_constraint=self.eval_time_constraint,

@@ -1,6 +1,5 @@
 from .data_objective_eval import (
     DataSource,
-    PipelineObjectiveEvaluate,
     PipelineObjectiveEvaluateWithTensorData,
     TensorDataSource,
 )

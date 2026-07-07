@@ -6,14 +6,14 @@ from fedot.api.api_utils.api_service_rules import (
     build_tensordata_predict_plan,
     build_tensordata_predict_proba_plan,
     build_tensordata_tune_plan,
-    build_tune_execution_plan,
+    build_tune_execution_plan_tensordata,
     resolve_forecast_horizon,
     resolve_predict_proba_mode,
 )
 
 
 def test_build_tune_execution_plan_uses_explicit_values_when_provided():
-    plan = build_tune_execution_plan(
+    plan = build_tune_execution_plan_tensordata(
         input_data='new-data',
         train_data='train-data',
         requested_cv_folds=5,
@@ -31,7 +31,7 @@ def test_build_tune_execution_plan_uses_explicit_values_when_provided():
 
 
 def test_build_tune_execution_plan_uses_defaults_when_values_are_missing():
-    plan = build_tune_execution_plan(
+    plan = build_tune_execution_plan_tensordata(
         input_data=None,
         train_data='train-data',
         requested_cv_folds=None,

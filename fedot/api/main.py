@@ -45,7 +45,7 @@ from fedot.core.constants import DEFAULT_API_TIMEOUT_MINUTES, DEFAULT_TUNING_ITE
 from fedot.core.data.input_data.data import InputData, InputDataList, OutputData, PathType
 from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_forecast, plot_roc_auc
-from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective import PipelineObjectiveEvaluate, PipelineObjectiveEvaluateWithTensorData
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.ensembling.config import ChunkedEnsembleConfig
 from fedot.core.pipelines.ensembling.pipeline_ensemble import PipelineEnsemble
@@ -451,7 +451,7 @@ class Fedot:
         )
 
         with fedot_composer_timer.launch_tuning('post'):
-            common_tune_plan = build_tune_execution_plan(
+            common_tune_plan = build_tune_execution_plan_tensordata(
                 input_data=tune_plan.input_data,
                 train_data=self.train_data,
                 requested_cv_folds=cv_folds,
@@ -470,7 +470,7 @@ class Fedot:
                               .with_iterations(iterations)
                               .with_timeout(timeout))
             pipeline_tuner = getattr(pipeline_tuner, tune_plan.builder_method_name)(
-                tensor_data if tune_plan.use_tensor_runtime else common_tune_plan.input_data
+                tensor_data if tune_plan.use_tensor_runtime else common_tune_plan.tensor_data
             )
 
             self.current_pipeline = pipeline_tuner.tune(self.current_pipeline, show_progress=show_progress)
@@ -481,7 +481,7 @@ class Fedot:
             )
 
             if tune_plan.use_tensor_runtime:
-                self.train_data = common_tune_plan.input_data
+                self.train_data = common_tune_plan.tensor_data
                 self.target = self.train_data.target
                 self.current_pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
                     api_preprocessor=self.data_processor.preprocessor,
@@ -766,6 +766,7 @@ class Fedot:
                     in_sample: Optional[bool] = None,
                     validation_blocks: Optional[int] = None,
                     rounding_order: int = 3) -> dict:
+        # TODO @romankuklo: refactor this for tensor data
         """Gets quality metrics for a fitted graph
 
         Args:
@@ -809,6 +810,12 @@ class Fedot:
                                              validation_blocks=validation_blocks,
                                              eval_n_jobs=self.params.n_jobs,
                                              do_unfit=False)
+        # obj_eval = PipelineObjectiveEvaluateWithTensorData(objective=objective,
+        #                                                   data_producer=lambda: (
+        #                                                       yield self.train_data, self.test_data),
+        #                                                   validation_blocks=validation_blocks,
+        #                                                   eval_n_jobs=self.params.n_jobs,
+        #                                                   do_unfit=False)
 
         metrics = obj_eval.evaluate(self.current_pipeline).values
         metrics = {metric_name: round(abs(metric), rounding_order) for (metric_name, metric) in

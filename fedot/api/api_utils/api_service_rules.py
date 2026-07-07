@@ -6,11 +6,10 @@ from fedot.core.data.tensor_data import TensorData
 
 @dataclass(frozen=True)
 class TuneExecutionPlan:
-    tensor_data: Optional[TensorData]
+    tensor_data: Any
     cv_folds: Optional[int]
     n_jobs: int
     metric: Any
-
 
 @dataclass(frozen=True)
 class TensorPredictExecutionPlan:
@@ -113,11 +112,12 @@ def build_tune_execution_plan_tensordata(
     resolved_n_jobs = default_n_jobs if requested_n_jobs is None else requested_n_jobs
     resolved_metric = default_metric if requested_metric is None else requested_metric
     return TuneExecutionPlan(
-        input_data=resolved_tensor_data,
+        tensor_data=resolved_tensor_data,
         cv_folds=resolved_cv_folds,
         n_jobs=resolved_n_jobs,
         metric=resolved_metric,
     )
+
 
 def resolve_predict_proba_mode(probs_for_all_classes: bool) -> str:
     return 'full_probs' if probs_for_all_classes else 'probs'

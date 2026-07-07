@@ -16,6 +16,7 @@ from fedot.core.data.input_data.data import InputData
 from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.optimisers.objective.data_objective_eval import (
     PipelineObjectiveEvaluate,
+    # PipelineObjectiveEvaluateWithTensorData,
 )
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_composer_requirements import (
@@ -70,7 +71,17 @@ class GPComposer(Composer):
                                                         predictions_cache=self.predictions_cache,
                                                         validation_blocks=data_source_context.validation_blocks,
                                                         eval_n_jobs=n_jobs_for_evaluation)
-        objective_function = objective_evaluator.evaluate
+        # TODO @romankuklo: refactor this - GP composer data source should become TensorData-native.
+        # objective_evaluator = PipelineObjectiveEvaluateWithTensorData(
+        #     objective=self.optimizer.objective,
+        #     data_producer=data_source_context.data_producer,
+        #     time_constraint=self.composer_requirements.max_graph_fit_time,
+        #     operations_cache=self.operations_cache,
+        #     preprocessing_cache=self.preprocessing_cache,
+        #     predictions_cache=self.predictions_cache,
+        #     validation_blocks=data_source_context.validation_blocks,
+        #     eval_n_jobs=n_jobs_for_evaluation)
+        # objective_function = objective_evaluator.evaluate
 
         # Define callback for computing intermediate metrics if needed
         if self.composer_requirements.collect_intermediate_metric:
