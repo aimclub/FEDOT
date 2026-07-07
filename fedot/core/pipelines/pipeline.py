@@ -248,6 +248,8 @@ class Pipeline(GraphDelegate, Serializable):
                            predictions_cache: Optional[PredictionsCache] = None,
                            fold_id: Optional[int] = None) -> TensorData:
         validate_pipeline_is_fitted(self.is_fitted)
+
+        output_mode = output_mode if output_mode is not None else 'default'
         
         copied_tensor_data = deepcopy(tensor_data)
 

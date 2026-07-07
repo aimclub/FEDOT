@@ -1,10 +1,12 @@
 from dataclasses import dataclass
 from typing import Any, Optional
 
+from fedot.core.data.tensor_data import TensorData
+
 
 @dataclass(frozen=True)
 class TuneExecutionPlan:
-    input_data: Any
+    tensor_data: Optional[TensorData]
     cv_folds: Optional[int]
     n_jobs: int
     metric: Any
@@ -96,25 +98,26 @@ def build_tensordata_explain_plan(method: str, visualization: bool) -> TensorExp
     return TensorExplainExecutionPlan(method=method, visualization=visualization)
 
 
-def build_tune_execution_plan(input_data: Any,
-                              train_data: Any,
-                              requested_cv_folds: Optional[int],
-                              default_cv_folds: Optional[int],
-                              requested_n_jobs: Optional[int],
-                              default_n_jobs: int,
-                              requested_metric: Any,
-                              default_metric: Any) -> TuneExecutionPlan:
-    resolved_input_data = train_data if input_data is None else input_data
+def build_tune_execution_plan_tensordata(
+    tensor_data: Optional[TensorData],
+    train_data: TensorData,
+    requested_cv_folds: Optional[int],
+    default_cv_folds: Optional[int],
+    requested_n_jobs: Optional[int],
+    default_n_jobs: int,
+    requested_metric: Any,
+    default_metric: Any
+) -> TuneExecutionPlan:
+    resolved_tensor_data = train_data if tensor_data is None else tensor_data
     resolved_cv_folds = default_cv_folds if requested_cv_folds is None else requested_cv_folds
     resolved_n_jobs = default_n_jobs if requested_n_jobs is None else requested_n_jobs
     resolved_metric = default_metric if requested_metric is None else requested_metric
     return TuneExecutionPlan(
-        input_data=resolved_input_data,
+        input_data=resolved_tensor_data,
         cv_folds=resolved_cv_folds,
         n_jobs=resolved_n_jobs,
         metric=resolved_metric,
     )
-
 
 def resolve_predict_proba_mode(probs_for_all_classes: bool) -> str:
     return 'full_probs' if probs_for_all_classes else 'probs'

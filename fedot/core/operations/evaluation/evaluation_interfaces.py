@@ -87,7 +87,7 @@ class EvaluationStrategy:
         raise AbstractMethodNotImplementError
 
     def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
-        # TODO romankuklo: I think, we can remove this method
+
         """Method to predict the target data for fit stage.
         Allows to implement predict method different from main predict method
         if another behaviour for fit graph stage is needed.

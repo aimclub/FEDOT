@@ -30,7 +30,7 @@ from fedot.api.api_utils.api_service_rules import (
     build_tensordata_predict_plan,
     build_tensordata_predict_proba_plan,
     build_tensordata_tune_plan,
-    build_tune_execution_plan,
+    build_tune_execution_plan_tensordata,
     resolve_forecast_horizon,
     resolve_predict_proba_mode,
 )
@@ -491,9 +491,8 @@ class Fedot:
 
         return self.current_pipeline
 
-    def tune(self,
-             input_data: Optional[FeaturesType] = None,
-             target: TargetType = 'target',
+    def tune_with_tensordata(self,
+             tensor_data: Optional[TensorData] = None,
              metric_name: Optional[Union[str, MetricCallable]] = None,
              iterations: int = DEFAULT_TUNING_ITERATIONS_NUMBER,
              timeout: Optional[float] = None,
@@ -503,8 +502,7 @@ class Fedot:
         """Method for hyperparameters tuning of current pipeline
 
         Args:
-            input_data: data for tuning pipeline in one of the supported formats.
-            target: data target values in one of the supported target formats.
+            tensor_data: data for tuning pipeline in one of the supported formats.
             metric_name: name of metric for quality tuning.
             iterations: numbers of tuning iterations.
             timeout: time for tuning (in minutes). If ``None`` or ``-1`` means tuning until max iteration reach.
@@ -520,10 +518,12 @@ class Fedot:
         if isinstance(self.current_pipeline, PipelineEnsemble):
             self.log.warning('Tuning for pipeline ensembles is not supported yet. Existing ensemble is returned.')
             return self.current_pipeline
+        
+        # TODO romankuklo: add optional preprocessing
 
         with fedot_composer_timer.launch_tuning('post'):
-            tune_plan = build_tune_execution_plan(
-                input_data=input_data,
+            tune_plan = build_tune_execution_plan_tensordata(
+                tensor_data=tensor_data,
                 train_data=self.train_data,
                 requested_cv_folds=cv_folds,
                 default_cv_folds=self.params.get('cv_folds'),
@@ -532,11 +532,9 @@ class Fedot:
                 requested_metric=metric_name,
                 default_metric=self.metrics[0],
             )
-            if input_data is not None:
-                tune_input_data = self.data_processor.define_data(
-                    features=tune_plan.input_data, target=target, is_predict=False)
-            else:
-                tune_input_data = tune_plan.input_data
+            # TODO romankuklo: add optioba
+            if tensor_data is None:
+                raise ValueError('Tensor data is required for tuning')
 
             pipeline_tuner = (TunerBuilder(self.params.task)
                               .with_tuner(SimultaneousTuner)
@@ -545,7 +543,7 @@ class Fedot:
                               .with_metric(tune_plan.metric)
                               .with_iterations(iterations)
                               .with_timeout(timeout)
-                              .build(tune_input_data))
+                              .build(tune_plan.tensor_data))
 
             self.current_pipeline = pipeline_tuner.tune(self.current_pipeline, show_progress=show_progress)
             self.api_composer.was_tuned = pipeline_tuner.was_tuned
@@ -554,57 +552,12 @@ class Fedot:
             self.current_pipeline.fit(self.train_data)
 
         return self.current_pipeline
-
-    def predict(self,
-                features: FeaturesType,
-                in_sample: bool = True,
-                validation_blocks: Optional[int] = None,
-                path_to_save: Optional[PathType] = None) -> np.ndarray:
-        """Predicts new target using already fitted model.
-
-        For time-series performs forecast with depth ``forecast_length`` if ``in_sample=False``.
-        If ``in_sample=True`` performs in-sample forecast using features as sample.
-
-        Args:
-            features: an array with features of test data.
-            in_sample: used while time-series prediction. If ``in_sample=True`` performs in-sample forecast using
-                features with number if iterations specified in ``validation_blocks``.
-            validation_blocks: number of validation blocks for in-sample forecast.
-            path_to_save: if specified, path to save prediction to.
-
-        Returns:
-            An array with prediction values.
-        """
-        if self.current_pipeline is None:
-            raise ValueError(NOT_FITTED_ERR_MSG)
-
-        with fedot_composer_timer.launch_data_definition('predict'):
-            self.test_data = self.data_processor.define_data(target=self.target, features=features, is_predict=True)
-        self._is_in_sample_prediction = in_sample
-
-        if (
-            isinstance(self.test_data, InputData)
-            and self.params.get('use_auto_preprocessing')
-            and not isinstance(self.current_pipeline, PipelineEnsemble)
-        ):
-            with fedot_composer_timer.launch_preprocessing():
-                self.test_data = self.data_processor.transform(self.test_data, self.current_pipeline)
-
-        with fedot_composer_timer.launch_predicting():
-            self.prediction = self.data_processor.define_predictions(current_pipeline=self.current_pipeline,
-                                                                     test_data=self.test_data,
-                                                                     in_sample=self._is_in_sample_prediction,
-                                                                     validation_blocks=validation_blocks)
-
-        if path_to_save is not None:
-            self.save_predict(self.prediction, path_to_save)
-
-        return self.prediction.predict
-
+    
     def predict_tensordata(
         self,
         tensor_data: TensorData,
-        output_mode: str = 'default',
+        in_sample: bool = True,
+        validation_blocks: Optional[int] = None,
         path_to_save: Optional[PathType] = None
     ) -> TensorData:
         """Runs prediction on a prepared :class:`TensorData` instance.
@@ -621,9 +574,11 @@ class Fedot:
         self.test_data = tensor_data
         # TODO @romankuklo: add optional preprocessing
         with fedot_composer_timer.launch_predicting():
-            self.prediction = self.current_pipeline.predict_tensordata(
-                tensor_data,
-                output_mode=output_mode,
+            self.prediction = self.data_processor.define_predictions_tensordata(
+                current_pipeline=self.current_pipeline,
+                test_data=tensor_data,
+                in_sample=in_sample,
+                validation_blocks=validation_blocks,
             )
 
         if path_to_save is not None:

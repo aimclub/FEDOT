@@ -3,6 +3,7 @@ from typing import Dict, Union
 from typing import Optional
 
 import numpy as np
+import torch
 from golem.core.log import default_log
 
 from fedot.api.api_utils.api_data_rules import (
@@ -27,6 +28,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import convert_memory_size
 from fedot.preprocessing.dummy_preprocessing import DummyPreprocessor
 from fedot.preprocessing.preprocessing import DataPreprocessor
+from fedot.core.data.tensor_data import TensorData
 
 
 class ApiDataProcessor:
@@ -61,62 +63,14 @@ class ApiDataProcessor:
 
         self.log = default_log(self)
 
-    def define_data(self,
-                    features: FeaturesType,
-                    target: Optional[TargetType] = None,
-                    is_predict=False):
-        """ Prepare data for FEDOT pipeline composing.
-        Obligatory preprocessing steps are applying also. If features is dictionary
-        there is a need to process MultiModalData
-        """
-        normalized_features = normalize_features_for_definition(features)
-
-        try:
-            data = data_strategy_selector(features=normalized_features.features,
-                                          target=target,
-                                          task=self.task,
-                                          is_predict=is_predict)
-            for data_source_name, shared_index in iter_shared_index_assignments(data, normalized_features.shared_index):
-                data[data_source_name].idx = shared_index
-        except Exception as ex:
-            raise ValueError('Please specify the "features" as path to csv file/'
-                             'Numpy array/Pandas DataFrame/FEDOT InputData/dict for multimodal data, '
-                             f'Exception: {ex}')
-
-        # Perform obligatory steps of data preprocessing
-        # preprocessing
-        if is_predict:
-            data = self.preprocessor.obligatory_prepare_for_predict(data)
-        else:
-            data = self.preprocessor.obligatory_prepare_for_fit(data)
-        return data
-
-    def define_tensordata(self,
-                          features: FeaturesType,
-                          target: Optional[TargetType] = None,
-                          is_predict: bool = False,
-                          backend_name: str = 'cpu'):
-        definition_plan = build_tensordata_definition_plan(
-            backend_name=backend_name, is_predict=is_predict)
-        input_data = self.define_data(
-            features=features, target=target, is_predict=is_predict)
-        if not isinstance(input_data, InputData):
-            raise ValueError(
-                'TensorData path currently supports only InputData. MultiModalData is not supported yet.')
-        return self.to_tensordata(
-            input_data,
-            backend_name=definition_plan.backend_name,
-            is_predict=definition_plan.state is StateEnum.PREDICT,
-        )
-
-    def define_predictions(self,
-                           current_pipeline: Union[Pipeline, PipelineEnsemble],
-                           test_data: Union[InputData, MultiModalData],
-                           in_sample: bool = False,
-                           validation_blocks: int = None) -> OutputData:
+    def define_predictions_tensordata(self,
+                                      current_pipeline: Union[Pipeline, PipelineEnsemble],
+                                      test_data: TensorData,
+                                      in_sample: bool = False,
+                                      validation_blocks: int = None) -> TensorData:
         """ Prepare predictions """
         forecast_length = getattr(
-            test_data.task.task_params, 'forecast_length', None)
+            self.task.task_params, 'forecast_length', None)
         prediction_plan = plan_prediction(
             task_type=self.task.task_type,
             in_sample=in_sample,
@@ -124,29 +78,17 @@ class ApiDataProcessor:
             forecast_length=forecast_length,
         )
 
-        if prediction_plan.output_mode is not None:
-            return current_pipeline.predict(test_data, output_mode=prediction_plan.output_mode)
+        # TODO @lopa10ko: it should be refactored for TD
+        # if prediction_plan.use_in_sample_forecast:
+        #     forecast = in_sample_ts_forecast(
+        #         current_pipeline, test_data, prediction_plan.horizon)
+        #     idx = test_data.idx[-prediction_plan.horizon:]
+        #     return convert_forecast_to_output(test_data, forecast, idx=idx)
 
-        if prediction_plan.use_in_sample_forecast:
-            forecast = in_sample_ts_forecast(
-                current_pipeline, test_data, prediction_plan.horizon)
-            idx = test_data.idx[-prediction_plan.horizon:]
-            return convert_forecast_to_output(test_data, forecast, idx=idx)
-
-        prediction = current_pipeline.predict(test_data)
+        prediction = current_pipeline.predict_tensordata(test_data)
         if prediction_plan.flatten_prediction:
-            prediction.predict = np.ravel(np.array(prediction.predict))
+            prediction.predict = torch.flatten(prediction.predict)
         return prediction
-
-    def define_predictions_tensordata(self,
-                                      current_pipeline: Union[Pipeline, PipelineEnsemble],
-                                      test_data: TensorData,
-                                      in_sample: bool = False,
-                                      validation_blocks: int = None) -> TensorData:
-        """ Prepare predictions """
-        prediction_plan = plan_prediction(
-            task_type=self.task.task_type,
-        )
 
     def correct_predictions(self, real: InputData, prediction: OutputData):
         """ Change shape for models predictions if its necessary. Apply """
@@ -160,13 +102,6 @@ class ApiDataProcessor:
             if len(real.target.shape) != len(prediction.predict.shape):
                 prediction.predict = convert_into_column(prediction.predict)
                 real.target = convert_into_column(np.array(real.target))
-
-    def to_tensordata(self, input_data: InputData, backend_name: str = 'cpu', is_predict: bool = False):
-        state = StateEnum.PREDICT if is_predict else StateEnum.FIT
-        return input_data_to_tensordata(input_data, backend_name=backend_name, state=state)
-
-    def to_input_data(self, tensor_data):
-        return tensordata_to_input_data(tensor_data)
 
     def accept_and_apply_recommendations(self, input_data: Union[InputData, MultiModalData], recommendations: Dict):
         """
@@ -183,71 +118,3 @@ class ApiDataProcessor:
             for name, rec in recommendations.items():
                 # Apply desired preprocessing function
                 self._recommendations[name](input_data, *rec.values())
-
-    def fit_transform(self, train_data: InputData) -> InputData:
-        start_time = datetime.now()
-        self.log.message('Preprocessing data')
-        memory_usage = convert_memory_size(train_data.memory_usage)
-        features_shape = train_data.features.shape
-        target_shape = train_data.target.shape
-        self.log.message(
-            f'Train Data (Original) Memory Usage: {memory_usage} Data Shapes: {features_shape, target_shape}')
-
-        train_data = self._apply_preprocessing_plan(
-            data=train_data,
-            current_pipeline=Pipeline(),
-            plan=plan_fit_preprocessing(),
-        )
-
-        memory_usage = convert_memory_size(train_data.memory_usage)
-
-        features_shape = train_data.features.shape
-        target_shape = train_data.target.shape
-        self.log.message(
-            f'Train Data (Processed) Memory Usage: {memory_usage} Data Shape: {features_shape, target_shape}')
-        self.log.message(
-            f'Data preprocessing runtime = {datetime.now() - start_time}')
-
-        return train_data
-
-    def transform(self, test_data: InputData, current_pipeline) -> InputData:
-        start_time = datetime.now()
-        self.log.message('Preprocessing data')
-        memory_usage = convert_memory_size(test_data.memory_usage)
-        features_shape = test_data.features.shape
-        target_shape = test_data.target.shape
-        self.log.message(
-            f'Test Data (Original) Memory Usage: {memory_usage} Data Shapes: {features_shape, target_shape}')
-
-        test_data = self._apply_preprocessing_plan(
-            data=test_data,
-            current_pipeline=current_pipeline,
-            plan=plan_predict_preprocessing(),
-        )
-
-        memory_usage = convert_memory_size(test_data.memory_usage)
-        features_shape = test_data.features.shape
-        target_shape = test_data.target.shape
-        self.log.message(
-            f'Test Data (Processed) Memory Usage: {memory_usage} Data Shape: {features_shape, target_shape}')
-        self.log.message(
-            f'Data preprocessing runtime = {datetime.now() - start_time}')
-
-        return test_data
-
-    def _apply_preprocessing_plan(self,
-                                  data: InputData,
-                                  current_pipeline: Pipeline,
-                                  plan) -> InputData:
-        for step_name in plan.steps:
-            self.log.debug(f'- {step_name} started')
-            step = getattr(self.preprocessor, step_name)
-            if step_name.startswith('optional_prepare') or step_name.startswith('convert_indexes'):
-                data = step(pipeline=current_pipeline, data=data)
-            else:
-                data = step(data=data)
-
-        if plan.mark_auto_preprocessed:
-            data.supplementary_data.is_auto_preprocessed = True
-
-        return data

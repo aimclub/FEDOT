@@ -236,6 +236,8 @@ class PipelineNode(LinkedGraphNode):
         """Runs prediction process in the node on TensorData."""
         self.log.debug(
             f'Trying to predict pipeline node with operation: {self.operation} on TensorData')
+
+        output_mode = output_mode if output_mode is not None else 'default'
         # TODO romankuklo: check these predictions_cache=predictions_cache, fold_id=fold_id
         tensor_data = self._get_tensor_data(
             tensor_data=tensor_data, parent_operation='predict',)

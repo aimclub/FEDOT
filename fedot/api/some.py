@@ -48,7 +48,7 @@ if __name__ == '__main__':
     )
 
     test_prediction = model.predict_tensordata(test_tensor_data)
-    test_labels = model.predict_tensordata(test_tensor_data, output_mode='labels')
+    test_labels = model.predict_tensordata(test_tensor_data, )
     print('test features:\n', test_features)
     print('test probabilities:', _to_numpy(test_prediction.predict))
     print('test labels:', _to_numpy(test_labels.predict))

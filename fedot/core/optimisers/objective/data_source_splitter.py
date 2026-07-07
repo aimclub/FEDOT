@@ -1,17 +1,21 @@
 from functools import partial
-from typing import Optional, Union
+from typing import Any, Generator, Optional, Union
 
 from golem.core.log import default_log
 
 from fedot.core.constants import default_data_split_ratio_by_task
 from fedot.core.data.input_data.data import InputData
-from fedot.core.data.split.data_split import train_test_data_setup, _are_stratification_allowed
+from fedot.core.data.split.data_split import (
+    train_test_data_setup,
+    train_test_tensor_data_setup,
+    _are_stratification_allowed,
+)
 from fedot.core.data.multimodal.multi_modal import MultiModalData
-from fedot.core.data.bridges.tensor_to_input import tensordata_to_input_data
-from fedot.core.optimisers.objective.data_objective_eval import DataSource
+from fedot.core.optimisers.objective.data_objective_eval import DataSource, TensorDataSource
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
 from fedot.core.data.split.cv_folds import cv_generator
+from fedot.core.data.tensor_data import TensorData
 
 
 class DataSourceSplitter:
@@ -48,9 +52,19 @@ class DataSourceSplitter:
         self.random_seed = random_seed
         self.log = default_log(self)
 
-    def build_tensordata(self, tensor_data) -> DataSource:
-        input_data = tensordata_to_input_data(tensor_data)
-        return self.build(input_data)
+    def build_tensordata(self, tensor_data: TensorData) -> TensorDataSource:
+        # TODO @artemlunev: add native TensorData CV/stratification later.
+        self.split_ratio = self.split_ratio or default_data_split_ratio_by_task[
+            tensor_data.task.task_type]
+        if not 0 < self.split_ratio < 1:
+            raise ValueError(
+                f'split_ratio is {self.split_ratio} but should be between 0 and 1')
+        if self.cv_folds is not None:
+            self.log.info('TensorData splitter currently uses hold-out validation; cv_folds is ignored.')
+
+        train_data, test_data = train_test_tensor_data_setup(
+            tensor_data, split_ratio=self.split_ratio)
+        return partial(DataSourceSplitter._data_producer, train_data, test_data)
 
     def build(self, data: Union[InputData, MultiModalData]) -> DataSource:
         # define split_ratio

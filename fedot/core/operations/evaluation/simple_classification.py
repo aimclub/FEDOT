@@ -33,6 +33,7 @@ class SimpleClassificationStrategy(EvaluationStrategy):
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: TensorData) -> TensorData:
+        # TODO @romankuklo: add schema
         features = predict_data.features
         if self.output_mode == 'labels':
             prediction = trained_operation.predict_labels(features)
