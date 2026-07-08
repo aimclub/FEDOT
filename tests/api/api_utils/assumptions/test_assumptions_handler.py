@@ -1,5 +1,6 @@
 from types import SimpleNamespace
 
+import pytest
 from pymonad.either import Left, Right
 
 import fedot.api.api_utils.assumptions.assumptions_handler as handler_module
@@ -20,9 +21,24 @@ class _FakePipeline:
         if self.should_fail:
             raise RuntimeError('fit failed')
         self.fitted = True
+        self.fit_data = data_train
+        self.fit_n_jobs = n_jobs
 
     def predict(self, data_test):
         self.predicted = True
+        self.predict_data = data_test
+        return 'ok'
+
+    def fit_tensordata(self, data_train, n_jobs=-1):
+        if self.should_fail:
+            raise RuntimeError('fit failed')
+        self.fitted = True
+        self.fit_data = data_train
+        self.fit_n_jobs = n_jobs
+
+    def predict_tensordata(self, data_test):
+        self.predicted = True
+        self.predict_data = data_test
         return 'ok'
 
 
@@ -91,3 +107,60 @@ def test_fit_assumption_and_check_correctness_raises_from_original_exception(mon
     else:
         raise AssertionError(
             'Compatibility wrapper should chain original fit error')
+
+
+def test_propose_assumptions_with_tensordata_requires_user_pipeline():
+    handler = AssumptionsHandler(SimpleNamespace())
+
+    with pytest.raises(NotImplementedError, match='without initial assumption'):
+        handler.propose_assumptions_with_tensordata(None)
+
+
+def test_propose_assumptions_with_tensordata_accepts_user_pipeline_list():
+    handler = AssumptionsHandler(SimpleNamespace())
+    pipeline = _FakePipeline()
+
+    assert handler.propose_assumptions_with_tensordata([pipeline]) == [pipeline]
+
+
+def test_try_fit_assumption_with_tensordata_returns_right_for_success(monkeypatch):
+    class _FakeTensorDataSplitter:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def build_tensordata(self, data):
+            assert data.name == 'tensor-data'
+
+            def _producer():
+                yield 'tensor-train', 'tensor-test'
+
+            return _producer
+
+    monkeypatch.setattr(handler_module, 'DataSourceSplitter', _FakeTensorDataSplitter)
+    monkeypatch.setattr(handler_module.MemoryAnalytics, 'log',
+                        staticmethod(lambda *args, **kwargs: None))
+
+    pipeline = _FakePipeline()
+    result = AssumptionsHandler(SimpleNamespace(name='tensor-data')).try_fit_assumption_with_tensordata(
+        pipeline,
+        eval_n_jobs=3,
+    )
+
+    assert result.is_right()
+    assert result.value is pipeline
+    assert pipeline.loaded is True
+    assert pipeline.fitted is True
+    assert pipeline.predicted is True
+    assert pipeline.fit_data == 'tensor-train'
+    assert pipeline.predict_data == 'tensor-test'
+    assert pipeline.fit_n_jobs == 3
+
+
+def test_fit_assumption_and_check_correctness_with_tensordata_raises_on_failure(monkeypatch):
+    handler = AssumptionsHandler(SimpleNamespace())
+    pipeline = _FakePipeline()
+    monkeypatch.setattr(handler, 'try_fit_assumption_with_tensordata',
+                        lambda **kwargs: Left(SimpleNamespace(message='tensor boom')))
+
+    with pytest.raises(ValueError, match='tensor boom'):
+        handler.fit_assumption_and_check_correctness_with_tensordata(pipeline)

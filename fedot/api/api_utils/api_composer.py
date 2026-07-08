@@ -339,8 +339,8 @@ class ApiComposer:
 
     def propose_and_fit_initial_assumption(self, train_data: TensorData) -> Tuple[Sequence[Pipeline], Pipeline]:
         """Method for obtaining and fitting initial assumption."""
-        # TODO @romankuklo: refactor this - TensorData auto-composition without initial assumption is not supported yet.
-        # Previous InputData implementation:
+        # TODO @romankuklo: refactor this - automatic TensorData assumptions building is not supported yet.
+        # Previous InputData auto-builder implementation:
         # available_operations = self.params.get('available_operations')
         # preset = self.params.get('preset')
         # assumption_handler = AssumptionsHandler(train_data)
@@ -356,19 +356,31 @@ class ApiComposer:
         #         preprocessing_cache=self.preprocessing_cache,
         #         eval_n_jobs=self.params.n_jobs,
         #     )
-        # self.log.message(
-        #     f'Initial pipeline was fitted in '
-        #     f'{round(self.timer.assumption_fit_spend_time_single_fold.total_seconds(), 1)} sec.'
-        # )
-        # self.log.message(
-        #     f'Taking into account n_folds={self.params.data["cv_folds"]}, estimated fit time for initial assumption '
-        #     f'is {round(self.timer.assumption_fit_spend_time.total_seconds(), 1)} sec.'
-        # )
-        # self.params.update(preset=assumption_handler.propose_preset(
-        #     preset, self.timer, n_jobs=self.params.n_jobs))
-        # return initial_assumption, fitted_assumption
-        raise NotImplementedError(
-            'TensorData auto-composition without initial assumption is not supported yet')
+        assumption_handler = AssumptionsHandler(train_data)
+        initial_assumption = assumption_handler.propose_assumptions_with_tensordata(
+            self.params.get('initial_assumption'))
+
+        with self.timer.launch_assumption_fit(n_folds=self.params.data['cv_folds']):
+            fitted_assumption = assumption_handler.fit_assumption_and_check_correctness_with_tensordata(
+                deepcopy(initial_assumption[0]),
+                operations_cache=self.operations_cache,
+                preprocessing_cache=self.preprocessing_cache,
+                eval_n_jobs=self.params.n_jobs,
+            )
+
+        self.log.message(
+            f'Initial pipeline was fitted in '
+            f'{round(self.timer.assumption_fit_spend_time_single_fold.total_seconds(), 1)} sec.')
+
+        self.log.message(
+            f'Taking into account n_folds={self.params.data["cv_folds"]}, estimated fit time for initial assumption '
+            f'is {round(self.timer.assumption_fit_spend_time.total_seconds(), 1)} sec.')
+
+        preset = self.params.get('preset')
+        self.params.update(preset=assumption_handler.propose_preset(
+            preset, self.timer, n_jobs=self.params.n_jobs))
+
+        return initial_assumption, fitted_assumption
 
     def compose_pipeline_with_tensordata(
         self,
