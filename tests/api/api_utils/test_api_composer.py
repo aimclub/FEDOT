@@ -273,6 +273,7 @@ def _dummy_composer():
 def _dummy_tensor_composer(initial_assumption=None):
     composer = _dummy_composer()
     composer.params['initial_assumption'] = initial_assumption
+    composer.params['available_operations'] = ['torch_linear']
     composer.params['preset'] = 'auto'
     composer.params.data = {'cv_folds': 3}
     composer.operations_cache = 'operations-cache'
@@ -296,11 +297,42 @@ def _classification_input(n_samples: int = 4) -> InputData:
     )
 
 
-def test_tensor_initial_assumption_is_required_for_composition():
+def test_tensor_initial_assumption_can_be_built_automatically(monkeypatch):
+    captured = {}
+    auto_pipeline = SimpleNamespace(name='auto')
+    fitted_pipeline = SimpleNamespace(name='fitted')
+
+    class _FakeAssumptionsHandler:
+        def __init__(self, data):
+            captured['data'] = data
+
+        def propose_assumptions_with_tensordata(self, initial_assumption, available_operations=None):
+            captured['initial_assumption'] = initial_assumption
+            captured['available_operations'] = available_operations
+            return [auto_pipeline]
+
+        def fit_assumption_and_check_correctness_with_tensordata(
+                self, pipeline, operations_cache=None, preprocessing_cache=None, eval_n_jobs=-1):
+            captured['fit_pipeline'] = pipeline
+            return fitted_pipeline
+
+        def propose_preset(self, preset, timer, n_jobs):
+            return preset
+
+    monkeypatch.setattr(composer_module, 'AssumptionsHandler', _FakeAssumptionsHandler)
+
+    tensor_data = SimpleNamespace(name='tensor-data')
     composer = _dummy_tensor_composer(initial_assumption=None)
 
-    with pytest.raises(NotImplementedError, match='without initial assumption'):
-        composer.propose_and_fit_initial_assumption(SimpleNamespace(name='tensor-data'))
+    initial_assumptions, fitted_assumption = composer.propose_and_fit_initial_assumption(tensor_data)
+
+    assert captured['data'] is tensor_data
+    assert captured['initial_assumption'] is None
+    assert captured['available_operations'] == ['torch_linear']
+    assert captured['fit_pipeline'] is not auto_pipeline
+    assert captured['fit_pipeline'].name == 'auto'
+    assert initial_assumptions == [auto_pipeline]
+    assert fitted_assumption is fitted_pipeline
 
 
 def test_tensor_initial_assumption_uses_user_pipeline_without_auto_builder(monkeypatch):
@@ -312,8 +344,9 @@ def test_tensor_initial_assumption_uses_user_pipeline_without_auto_builder(monke
         def __init__(self, data):
             captured['data'] = data
 
-        def propose_assumptions_with_tensordata(self, initial_assumption):
+        def propose_assumptions_with_tensordata(self, initial_assumption, available_operations=None):
             captured['initial_assumption'] = initial_assumption
+            captured['available_operations'] = available_operations
             return [initial_assumption]
 
         def fit_assumption_and_check_correctness_with_tensordata(
@@ -339,6 +372,7 @@ def test_tensor_initial_assumption_uses_user_pipeline_without_auto_builder(monke
 
     assert captured['data'] is tensor_data
     assert captured['initial_assumption'] is initial_pipeline
+    assert captured['available_operations'] == ['torch_linear']
     assert captured['fit_pipeline'] is not initial_pipeline
     assert captured['fit_pipeline'].name == 'initial'
     assert captured['operations_cache'] == 'operations-cache'

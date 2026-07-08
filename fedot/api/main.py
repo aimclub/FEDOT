@@ -189,11 +189,11 @@ class Fedot:
             remote.remote_task_params.task_type = task_str
             remote.remote_task_params.is_multi_modal = isinstance(train_data, MultiModalData)
 
+    # TODO @artemlunev: should be refactored for TD
     def _apply_sampling_stage(self,
                               fit_context: FitDataContext,
                               train_data: Union[InputData, InputDataList]) -> Tuple[
                                   FitDataContext, Union[InputData, InputDataList]]:
-        # TODO: should be refactored for TD
         if fit_context.sampling_stage_plan.skip_metadata is not None:
             self.sampling_stage_metadata = fit_context.sampling_stage_plan.skip_metadata
             self.log.message('Composition for AtomizedModel currently unavailable')
@@ -415,7 +415,7 @@ class Fedot:
             # TODO romankuklo: apply sampling stage and chunked ensemble
             # fit_context, train_data = self._apply_sampling_stage(fit_context, train_data)
             # self.train_data = train_data
-            self._obtain_pipeline(
+            self._obtain_pipeline_with_tensordata(
                 fit_context=fit_context,
                 predefined_model=predefined_model,
             )

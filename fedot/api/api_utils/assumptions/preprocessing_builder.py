@@ -8,8 +8,10 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.data.tensor_data import TensorData
 
 
+# TODO: think about preprocessing for TensorData
 class PreprocessingBuilder:
     """
     Builder for constructing preprocessing part of pipeline during the preparation of an initial assumption.
@@ -22,6 +24,18 @@ class PreprocessingBuilder:
         self.data_type = data_type
         self._builder = PipelineBuilder(
             *initial_nodes, use_input_preprocessing=use_input_preprocessing)
+
+    @classmethod
+    def builder_for_tensordata(cls,
+                                task_type: TaskTypesEnum,
+                                data: TensorData,
+                                *initial_nodes: Optional[PipelineNode],
+                                use_input_preprocessing: bool = False,
+    ) -> PipelineBuilder:
+        return PipelineBuilder(
+            *initial_nodes,
+            use_input_preprocessing=False,
+        )
 
     @classmethod
     def builder_for_data(cls,

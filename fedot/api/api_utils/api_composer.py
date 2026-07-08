@@ -339,26 +339,11 @@ class ApiComposer:
 
     def propose_and_fit_initial_assumption(self, train_data: TensorData) -> Tuple[Sequence[Pipeline], Pipeline]:
         """Method for obtaining and fitting initial assumption."""
-        # TODO @romankuklo: refactor this - automatic TensorData assumptions building is not supported yet.
-        # Previous InputData auto-builder implementation:
-        # available_operations = self.params.get('available_operations')
-        # preset = self.params.get('preset')
-        # assumption_handler = AssumptionsHandler(train_data)
-        # initial_assumption = assumption_handler.propose_assumptions(
-        #     self.params.get('initial_assumption'),
-        #     available_operations,
-        #     use_input_preprocessing=self.params.get('use_input_preprocessing'),
-        # )
-        # with self.timer.launch_assumption_fit(n_folds=self.params.data['cv_folds']):
-        #     fitted_assumption = assumption_handler.fit_assumption_and_check_correctness(
-        #         deepcopy(initial_assumption[0]),
-        #         operations_cache=self.operations_cache,
-        #         preprocessing_cache=self.preprocessing_cache,
-        #         eval_n_jobs=self.params.n_jobs,
-        #     )
         assumption_handler = AssumptionsHandler(train_data)
         initial_assumption = assumption_handler.propose_assumptions_with_tensordata(
-            self.params.get('initial_assumption'))
+            self.params.get('initial_assumption'),
+            available_operations=self.params.get('available_operations'),
+        )
 
         with self.timer.launch_assumption_fit(n_folds=self.params.data['cv_folds']):
             fitted_assumption = assumption_handler.fit_assumption_and_check_correctness_with_tensordata(
