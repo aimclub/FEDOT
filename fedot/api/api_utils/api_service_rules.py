@@ -1,7 +1,10 @@
 from dataclasses import dataclass
 from typing import Any, Optional
 
+from fedot.api.api_utils.schemas import TensorMetricsExecutionSchema
 from fedot.core.data.tensor_data import TensorData
+from fedot.validation.boundaries import load_validated
+from fedot.validation.context import ValidationContext
 
 
 @dataclass(frozen=True)
@@ -43,6 +46,15 @@ class TensorForecastExecutionPlan:
 @dataclass(frozen=True)
 class TensorMetricsExecutionPlan:
     output_mode: str
+
+
+@dataclass(frozen=True)
+class TensorMetricsValidationPlan:
+    metrics: Any
+    metric_names: list[str]
+    in_sample: bool
+    validation_blocks: Optional[int]
+    rounding_order: int
 
 
 @dataclass(frozen=True)
@@ -91,6 +103,55 @@ def build_tensordata_forecast_plan(
 
 def build_tensordata_metrics_plan() -> TensorMetricsExecutionPlan:
     return TensorMetricsExecutionPlan(output_mode='default')
+
+
+def build_tensordata_metrics_validation_plan(
+    is_pipeline_fitted: bool,
+    metric_names: Any,
+    default_metrics: Any,
+    requested_in_sample: Optional[bool],
+    default_in_sample: bool,
+    validation_blocks: Optional[int],
+    rounding_order: int,
+    context: ValidationContext = None,
+) -> TensorMetricsValidationPlan:
+    validated = load_validated(
+        TensorMetricsExecutionSchema(),
+        {
+            'is_pipeline_fitted': is_pipeline_fitted,
+            'metric_names': metric_names,
+            'default_metrics': default_metrics,
+            'requested_in_sample': requested_in_sample,
+            'default_in_sample': default_in_sample,
+            'validation_blocks': validation_blocks,
+            'rounding_order': rounding_order,
+        },
+        context,
+        prefix='tensor_metrics',
+    )
+
+    metrics = validated['metric_names'] if validated['metric_names'] else validated['default_metrics']
+    if isinstance(metrics, (str, bytes)):
+        metrics = [metrics]
+    else:
+        try:
+            metrics = list(metrics)
+        except TypeError:
+            metrics = [metrics]
+
+    in_sample = validated['requested_in_sample']
+    if in_sample is None:
+        in_sample = validated['default_in_sample']
+
+    resolved_validation_blocks = validated['validation_blocks'] if in_sample else None
+
+    return TensorMetricsValidationPlan(
+        metrics=metrics,
+        metric_names=[str(metric) for metric in metrics],
+        in_sample=in_sample,
+        validation_blocks=resolved_validation_blocks,
+        rounding_order=validated['rounding_order'],
+    )
 
 
 def build_tensordata_explain_plan(method: str, visualization: bool) -> TensorExplainExecutionPlan:

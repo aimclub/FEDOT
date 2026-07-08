@@ -1,8 +1,11 @@
+from types import SimpleNamespace
+
 import numpy as np
 import pytest
 import torch
 from dataclasses import replace
 
+import fedot.api.main as main_module
 from fedot import Fedot
 from fedot.api.sampling_stage.config import SamplingChunkingConfig
 from fedot.core.data.input_data.data import OutputData
@@ -59,6 +62,18 @@ def _minimal_tensordata_for_fit() -> TensorData:
         data_type=DataTypesEnum.tabular,
         idx=np.array([0, 1]),
         target=np.array([0, 1]),
+    )
+
+
+def _tensor_metric_data(target_size: int = 5) -> TensorData:
+    """Minimal TensorData for get_metrics facade tests."""
+    return TensorData(
+        state=StateEnum.FIT,
+        features=torch.arange(target_size * 2, dtype=torch.float32).reshape(target_size, 2),
+        target=torch.arange(target_size),
+        task=Task(TaskTypesEnum.classification),
+        data_type=DataTypesEnum.tabular,
+        idx=np.arange(target_size),
     )
 
 
@@ -526,6 +541,57 @@ def test_main_facade_forecast_tensordata_reuses_forecast_validation():
 
     with pytest.raises(ValueError, match='Forecasting can be used only for the time series'):
         model.forecast_tensordata(tensor_data=_minimal_tensordata_ts_predict())
+
+
+def test_main_facade_get_metrics_tensordata_uses_validation_plan(monkeypatch):
+    captured = {}
+
+    class FakeObjectiveEvaluate:
+        def __init__(self, objective, data_producer, validation_blocks=None, eval_n_jobs=1, do_unfit=True):
+            captured['objective'] = objective
+            captured['data_producer'] = data_producer
+            captured['validation_blocks'] = validation_blocks
+            captured['eval_n_jobs'] = eval_n_jobs
+            captured['do_unfit'] = do_unfit
+
+        def evaluate(self, pipeline):
+            captured['pipeline'] = pipeline
+            captured['produced_data'] = next(captured['data_producer']())
+            return SimpleNamespace(values=(-0.87654,))
+
+    monkeypatch.setattr(
+        main_module, 'PipelineObjectiveEvaluateWithTensorData', FakeObjectiveEvaluate)
+    monkeypatch.setattr(
+        main_module, 'MetricsObjective', lambda metrics: ('objective', metrics))
+
+    model = Fedot.__new__(Fedot)
+    model.current_pipeline = 'pipeline'
+    model.metrics = ['accuracy']
+    model._is_in_sample_prediction = True
+    model.params = SimpleNamespace(n_jobs=2)
+    model.train_data = _tensor_metric_data(target_size=3)
+    model.test_data = None
+    model.prediction = SimpleNamespace(predict=torch.zeros(3))
+
+    tensor_data = _tensor_metric_data(target_size=5)
+    metrics = Fedot.get_metrics(
+        model,
+        tensor_data=tensor_data,
+        metric_names='f1',
+        in_sample=False,
+        validation_blocks=10,
+        rounding_order=2,
+    )
+
+    assert metrics == {'f1': 0.88}
+    assert captured['objective'] == ('objective', ['f1'])
+    assert captured['validation_blocks'] is None
+    assert captured['eval_n_jobs'] == 2
+    assert captured['do_unfit'] is False
+    assert captured['pipeline'] == 'pipeline'
+    assert captured['produced_data'][0] is model.train_data
+    assert captured['produced_data'][1] is tensor_data
+    assert model.test_data.target.tolist() == [0, 1, 2]
 
 
 def test_main_facade_fit_tensordata_merges_api_and_pipeline_preprocessors(monkeypatch):

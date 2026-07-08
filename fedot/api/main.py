@@ -27,6 +27,7 @@ from fedot.api.api_utils.api_service_rules import (
     build_tensordata_fit_plan,
     build_tensordata_forecast_plan,
     build_tensordata_metrics_plan,
+    build_tensordata_metrics_validation_plan,
     build_tensordata_predict_plan,
     build_tensordata_predict_proba_plan,
     build_tensordata_tune_plan,
@@ -45,7 +46,7 @@ from fedot.core.constants import DEFAULT_API_TIMEOUT_MINUTES, DEFAULT_TUNING_ITE
 from fedot.core.data.input_data.data import InputData, InputDataList, OutputData, PathType
 from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_forecast, plot_roc_auc
-from fedot.core.optimisers.objective import PipelineObjectiveEvaluate, PipelineObjectiveEvaluateWithTensorData
+from fedot.core.optimisers.objective import PipelineObjectiveEvaluateWithTensorData
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.ensembling.config import ChunkedEnsembleConfig
 from fedot.core.pipelines.ensembling.pipeline_ensemble import PipelineEnsemble
@@ -759,14 +760,13 @@ class Fedot:
         else:
             self.log.error('No prediction to visualize')
             raise ValueError('Prediction from model is empty')
-
+    
     def get_metrics(self,
-                    target: Union[np.ndarray, pd.Series] = None,
+                    tensor_data: TensorData,
                     metric_names: Union[str, List[str]] = None,
                     in_sample: Optional[bool] = None,
                     validation_blocks: Optional[int] = None,
                     rounding_order: int = 3) -> dict:
-        # TODO @romankuklo: refactor this for tensor data
         """Gets quality metrics for a fitted graph
 
         Args:
@@ -780,46 +780,34 @@ class Fedot:
         Returns:
             Values of quality metrics.
         """
-        if self.current_pipeline is None:
-            raise ValueError(NOT_FITTED_ERR_MSG)
+        metrics_plan = build_tensordata_metrics_validation_plan(
+            is_pipeline_fitted=self.current_pipeline is not None,
+            metric_names=metric_names,
+            default_metrics=self.metrics,
+            requested_in_sample=in_sample,
+            default_in_sample=self._is_in_sample_prediction,
+            validation_blocks=validation_blocks,
+            rounding_order=rounding_order,
+        )
 
-        if target is not None:
+        if tensor_data.target is not None:
             if self.test_data is None:
-                self.test_data = InputData(idx=np.arange(len(self.prediction.predict)),
-                                           features=None,
-                                           target=target[:len(
-                                               self.prediction.predict)],
-                                           task=self.train_data.task,
-                                           data_type=self.train_data.data_type)
+                self.test_data = tensor_data
+                self.test_data.target = tensor_data.target[:len(self.prediction.predict)]
             else:
-                self.test_data.target = target[:len(self.prediction.predict)]
+                self.test_data.target = tensor_data.target[:len(self.prediction.predict)]
 
-        metrics = ensure_wrapped_in_sequence(
-            metric_names) if metric_names else self.metrics
-        metric_names = [str(metric) for metric in metrics]
-
-        in_sample = in_sample if in_sample is not None else self._is_in_sample_prediction
-
-        if not in_sample:
-            validation_blocks = None
-
-        objective = MetricsObjective(metrics)
-        obj_eval = PipelineObjectiveEvaluate(objective=objective,
-                                             data_producer=lambda: (
-                                                 yield self.train_data, self.test_data),
-                                             validation_blocks=validation_blocks,
-                                             eval_n_jobs=self.params.n_jobs,
-                                             do_unfit=False)
-        # obj_eval = PipelineObjectiveEvaluateWithTensorData(objective=objective,
-        #                                                   data_producer=lambda: (
-        #                                                       yield self.train_data, self.test_data),
-        #                                                   validation_blocks=validation_blocks,
-        #                                                   eval_n_jobs=self.params.n_jobs,
-        #                                                   do_unfit=False)
+        objective = MetricsObjective(metrics_plan.metrics)
+        obj_eval = PipelineObjectiveEvaluateWithTensorData(objective=objective,
+                                                          data_producer=lambda: (
+                                                              yield self.train_data, self.test_data),
+                                                          validation_blocks=metrics_plan.validation_blocks,
+                                                          eval_n_jobs=self.params.n_jobs,
+                                                          do_unfit=False)
 
         metrics = obj_eval.evaluate(self.current_pipeline).values
-        metrics = {metric_name: round(abs(metric), rounding_order) for (metric_name, metric) in
-                   zip(metric_names, metrics)}
+        metrics = {metric_name: round(abs(metric), metrics_plan.rounding_order) for (metric_name, metric) in
+                   zip(metrics_plan.metric_names, metrics)}
 
         return metrics
 

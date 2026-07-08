@@ -25,6 +25,7 @@ class MetricsObjective(Objective):
                     else:
                         quality_metrics[metric] = metric_func
                 else:
+                    # TODO @romankuklo: add validation schema
                     raise ValueError(f'Incorrect metric {metric}')
 
         super().__init__(quality_metrics, complexity_metrics, is_multi_objective)

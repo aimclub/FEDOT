@@ -82,7 +82,6 @@ class PipelineObjectiveEvaluateWithTensorData(ObjectiveEvaluate[Pipeline]):
                         raise ex
                 break  # if even one fold fails, the evaluation stops
 
-            # TODO: refactor this - metrics/objective may still expect legacy OutputData/InputData.
             evaluated_fitness = self._objective(prepared_pipeline,
                                                 reference_data=test_data,
                                                 validation_blocks=self._validation_blocks,

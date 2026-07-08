@@ -1,6 +1,6 @@
 from typing import Any, Dict, Set, Type
 
-from marshmallow import RAISE, Schema, ValidationError, fields, validates_schema
+from marshmallow import INCLUDE, RAISE, Schema, ValidationError, fields, validates, validates_schema
 
 from fedot.validation.boundaries import load_validated
 from fedot.validation.context import ValidationContext
@@ -52,6 +52,29 @@ class TimeoutGenerationsSchema(Schema):
                 f'invalid "timeout" value: timeout={timeout}',
                 field_name='timeout',
             )
+
+
+class TensorMetricsExecutionSchema(Schema):
+    class Meta:
+        unknown = RAISE
+
+    is_pipeline_fitted = fields.Bool(required=True)
+    metric_names = fields.Raw(allow_none=True, load_default=None)
+    default_metrics = fields.Raw(required=True)
+    requested_in_sample = fields.Bool(allow_none=True, load_default=None)
+    default_in_sample = fields.Bool(required=True)
+    validation_blocks = fields.Int(allow_none=True, load_default=None)
+    rounding_order = fields.Int(load_default=3)
+
+    @validates('is_pipeline_fitted')
+    def validate_pipeline_is_fitted(self, value: bool) -> None:
+        if not value:
+            raise ValidationError('Pipeline is not fitted yet')
+
+    @validates('rounding_order')
+    def validate_rounding_order(self, value: int) -> None:
+        if value < 0:
+            raise ValidationError('rounding_order should be non-negative')
 
 
 def validate_api_param_keys(
