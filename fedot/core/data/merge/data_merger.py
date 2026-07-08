@@ -10,6 +10,7 @@ from golem.utilities.data_structures import are_same_length
 from fedot.core.data.common.array_utils import find_common_elements, atleast_2d, atleast_4d, flatten_extra_dim
 from fedot.core.data.input_data.data import OutputData, InputData
 from fedot.core.data.merge.supplementary_data_merger import SupplementaryDataMerger
+from fedot.core.data.schemas import validate_tensor_data_merge_data_type
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.repository.dataset_types import DataTypesEnum
 
@@ -177,9 +178,7 @@ class TensorDataMerger:
         self.main_output = self._find_main_output(outputs)
         self.data_type = DataMerger.get_datatype_for_merge(
             output.data_type for output in outputs)
-        # TODO romankuklo: add ValueError schema
-        if self.data_type is None:
-            raise ValueError("Can't merge different TensorData data types")
+        validate_tensor_data_merge_data_type(self.data_type)
         self.common_indices = self._find_common_indices()
 
     def merge(self) -> TensorData:

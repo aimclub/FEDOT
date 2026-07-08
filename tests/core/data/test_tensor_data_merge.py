@@ -9,6 +9,7 @@ from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.validation.errors import FedotValidationError
 
 
 @pytest.fixture
@@ -140,7 +141,7 @@ def test_tensor_data_merger_raises_on_mixed_data_types(base_tensor_data):
     branch_a = replace(base_tensor_data, data_type=DataTypesEnum.tabular)
     branch_b = replace(base_tensor_data, data_type=DataTypesEnum.ts)
 
-    with pytest.raises(ValueError, match="Can't merge different TensorData data types"):
+    with pytest.raises(FedotValidationError, match="Can't merge different TensorData data types"):
         TensorDataMerger([branch_a, branch_b]).merge()
 
 

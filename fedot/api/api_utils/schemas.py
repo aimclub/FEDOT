@@ -1,6 +1,6 @@
-from typing import Any, Dict, Set, Type
+from typing import Any, Dict, Optional, Set, Type
 
-from marshmallow import INCLUDE, RAISE, Schema, ValidationError, fields, validates, validates_schema
+from marshmallow import RAISE, Schema, ValidationError, fields, validates, validates_schema
 
 from fedot.validation.boundaries import load_validated
 from fedot.validation.context import ValidationContext
@@ -77,6 +77,30 @@ class TensorMetricsExecutionSchema(Schema):
             raise ValidationError('rounding_order should be non-negative')
 
 
+class AssumptionFitErrorSchema(Schema):
+    class Meta:
+        unknown = RAISE
+
+    message = fields.Str(required=True)
+    exception = fields.Raw(allow_none=True, load_default=None)
+
+
+class TensorDataCreationTraceSchema(Schema):
+    class Meta:
+        unknown = RAISE
+
+    is_predict = fields.Bool(required=True)
+    trace_uuid = fields.Str(allow_none=True, load_default=None)
+
+    @validates_schema
+    def validate_trace_uuid(self, data: Dict[str, Any], **kwargs) -> None:
+        if data['is_predict'] and data.get('trace_uuid') is None:
+            raise ValidationError(
+                'trace_uuid is required for TensorData creation in predict state.',
+                field_name='trace_uuid',
+            )
+
+
 def validate_api_param_keys(
     params: dict,
     allowed_keys,
@@ -99,4 +123,33 @@ def validate_timeout_generations(
         TimeoutGenerationsSchema(),
         {'timeout': timeout, 'num_of_generations': num_of_generations},
         context,
+    )
+
+
+def raise_from_assumption_fit_error(
+    fit_error: object,
+    context: ValidationContext = None,
+) -> None:
+    validated = load_validated(
+        AssumptionFitErrorSchema(),
+        {
+            'message': getattr(fit_error, 'message', str(fit_error)),
+            'exception': getattr(fit_error, 'exception', None),
+        },
+        context,
+        prefix='assumption_fit',
+    )
+    raise ValueError(validated['message']) from validated.get('exception')
+
+
+def validate_tensordata_creation_trace(
+    is_predict: bool,
+    trace_uuid: Optional[str],
+    context: ValidationContext = None,
+) -> None:
+    load_validated(
+        TensorDataCreationTraceSchema(),
+        {'is_predict': is_predict, 'trace_uuid': trace_uuid},
+        context,
+        prefix='tensor_data_creation',
     )

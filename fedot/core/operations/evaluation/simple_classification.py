@@ -2,8 +2,9 @@ from typing import Optional
 
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
-from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.operations.evaluation.operation_implementations.models.torch import TorchLinearClassifier
+from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.operations.schemas import validate_classification_output_mode
 
 
 class SimpleClassificationStrategy(EvaluationStrategy):
@@ -33,16 +34,14 @@ class SimpleClassificationStrategy(EvaluationStrategy):
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: TensorData) -> TensorData:
-        # TODO @romankuklo: add schema
+        output_mode = validate_classification_output_mode(self.output_mode)
         features = predict_data.features
-        if self.output_mode == 'labels':
+        if output_mode == 'labels':
             prediction = trained_operation.predict_labels(features)
-        elif self.output_mode in ['probs', 'full_probs', 'default', False]:
+        elif output_mode in ['probs', 'full_probs', 'default', False]:
             prediction = trained_operation.predict_proba(features)
-            if self.output_mode != 'full_probs' and prediction.shape[-1] == 2:
+            if output_mode != 'full_probs' and prediction.shape[-1] == 2:
                 prediction = prediction[:, 1]
-        else:
-            raise ValueError(f'Output model {self.output_mode} is not supported')
 
         predict_data.predict = prediction
         return predict_data

@@ -15,6 +15,7 @@ from fedot.core.data.tensor_data import TensorData
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluateWithTensorData
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
+from fedot.core.optimisers.schemas import validate_multi_objective_tuner
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
@@ -99,14 +100,11 @@ class TunerBuilder:
         return self
     
     def _build_tuner_with_tensordata(self, data_producer, validation_blocks: int) -> BaseTuner:
+        validate_multi_objective_tuner(self.tuner_class, len(self.metric))
         if len(self.metric) > 1:
             if self.tuner_class in [OptunaTuner, IOptTuner]:
                 self.additional_params.update(
                     {'objectives_number': len(self.metric)})
-            else:
-                # TODO @romankuklo: add validation schema
-                raise ValueError(
-                    'Multi objective tuning applicable only for OptunaTuner and IOptTuner.')
         objective = MetricsObjective(
             self.metric, is_multi_objective=len(self.metric) > 1)
         objective_evaluate = PipelineObjectiveEvaluateWithTensorData(

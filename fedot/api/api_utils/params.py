@@ -19,6 +19,7 @@ from fedot.api.api_utils.api_params_rules import (
     should_update_available_operations,
 )
 from fedot.api.api_utils.presets import OperationsPreset
+from fedot.api.api_utils.schemas import validate_tensordata_creation_trace
 from fedot.api.api_utils.tensor_data_config import resolve_tensor_data_config
 from fedot.core.data.common.enums import StateEnum
 from fedot.core.data.input_data.data import InputData
@@ -66,6 +67,7 @@ class ApiParams(UserDict):
         self.graph_generation_params = None
         self.optimizer_params = None
 
+    # TODO @romankuklo: use it when TDCreator will be in API
     def prepare_tensordata_creation(
         self,
         *,
@@ -82,7 +84,7 @@ class ApiParams(UserDict):
             'task': self.task,
             'state': StateEnum.PREDICT if is_predict else StateEnum.FIT,
         }
-        # TODO romankuklo: add ValueError if trace_uuid is None and is_predict is True
+        validate_tensordata_creation_trace(is_predict=is_predict, trace_uuid=trace_uuid)
         if is_predict:
             if trace_uuid is not None:
                 spec_kwargs['trace_uuid'] = trace_uuid

@@ -19,6 +19,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_composer_requirements import (
     PipelineComposerRequirements,
 )
+from fedot.core.composer.schemas import validate_parallelization_mode
 from fedot.core.utils import default_fedot_data_dir
 from fedot.core.optimisers.objective.data_source_context import ComposerTensorDataSourceContext
 
@@ -51,15 +52,12 @@ class GPComposer(Composer):
         self,
         data_source_context: ComposerTensorDataSourceContext,
     ) -> Union[Pipeline, Sequence[Pipeline]]:
-        parallelization_mode = self.composer_requirements.parallelization_mode
+        parallelization_mode = validate_parallelization_mode(
+            self.composer_requirements.parallelization_mode)
         if parallelization_mode == 'populational':
             n_jobs_for_evaluation = 1
-        elif parallelization_mode == 'sequential':
-            n_jobs_for_evaluation = self.composer_requirements.n_jobs
         else:
-            # TODO @romankuklo: add validation schema
-            raise ValueError(
-                f'Unknown parallelization_mode: {parallelization_mode}')
+            n_jobs_for_evaluation = self.composer_requirements.n_jobs
 
         # Define objective function
         objective_evaluator = PipelineObjectiveEvaluateWithTensorData(

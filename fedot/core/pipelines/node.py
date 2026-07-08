@@ -21,6 +21,10 @@ from fedot.core.pipelines.pipeline_node_rules import (
     normalize_node_parameters,
     should_update_node_parameters,
 )
+from fedot.core.pipelines.schemas import (
+    validate_pipeline_node_has_parent_nodes,
+    validate_pipeline_node_parent_operation,
+)
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.utils import DEFAULT_PARAMS_STUB, NESTED_PARAMS_LABEL
 
@@ -306,9 +310,7 @@ class PipelineNode(LinkedGraphNode):
     ) -> TensorData:
         """Processes all the parent nodes via the current operation using ``tensor_data``
         """
-        # TODO romankuklo: ValueError schema
-        if len(self.nodes_from) == 0:
-            raise ValueError('No parent nodes found')
+        validate_pipeline_node_has_parent_nodes(len(self.nodes_from))
         
         self.log.debug(
             f'Fit all parent nodes in secondary node with operation: {self.operation}')
@@ -388,6 +390,7 @@ def _combine_parents_tensordata(parent_nodes: List[PipelineNode],
                                 fold_id: Optional[int] = None) -> List[TensorData]:
     """ Combines predictions from the ``parent_nodes`` on TensorData.
     """
+    parent_operation = validate_pipeline_node_parent_operation(parent_operation)
     parents_result = []
 
     for parent in parent_nodes:
@@ -399,10 +402,6 @@ def _combine_parents_tensordata(parent_nodes: List[PipelineNode],
             prediction = parent.fit_tensordata(
                 tensor_data=tensor_data, predictions_cache=predictions_cache, fold_id=fold_id)
             parents_result.append(prediction)
-        else:
-            # TODO romankuklo: ValueError schema
-            raise ValueError(
-                "Value parent_operation should be 'fit' or 'predict'")
     return parents_result
 
 

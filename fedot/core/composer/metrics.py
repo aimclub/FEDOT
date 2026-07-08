@@ -31,8 +31,6 @@ class Metric:
         """ Get metrics value based on pipeline and other optional arguments. """
         raise AbstractMethodNotImplementError
 
-# TODO @romankuklo: add validation schema
-
 class QualityMetric(Metric):
     max_penalty_part = 0.01
     output_mode = 'default'

@@ -10,7 +10,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.data.tensor_data.tools import convert_idx_to_list
 
-from fedot.core.data.tensor_data.schemas import validate_tabular_file_path
+from fedot.core.data.schemas import validate_tabular_file_path
 
 logger = logging.getLogger(__name__)
 
