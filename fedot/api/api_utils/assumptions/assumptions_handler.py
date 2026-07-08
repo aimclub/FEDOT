@@ -18,7 +18,7 @@ from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.utilities.memory import MemoryAnalytics
 
-
+# TODO @romankuklo: refactor this class
 class AssumptionsHandler:
     def __init__(self, data: InputData):
         """

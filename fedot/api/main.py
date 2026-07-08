@@ -377,7 +377,7 @@ class Fedot:
             class_representatives=class_representatives,
         )
 
-    def _obtain_pipeline(self,
+    def _obtain_pipeline_with_tensordata(self,
                          fit_context: FitDataContext,
                          predefined_model: Union[str, Pipeline, None]):
         # TODO: add other strategies here
@@ -394,7 +394,7 @@ class Fedot:
                 self.best_models = ()
                 self.history = None
             else:
-                self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(
+                self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model_with_tensordata(
                     self.train_data,
                 )
 
@@ -433,64 +433,6 @@ class Fedot:
         finally:
             self.params.timeout = initial_timeout
             MemoryAnalytics.finish()
-
-
-    def tune_tensordata(self,
-                        tensor_data: Optional[Any] = None,
-                        metric_name: Optional[Union[str, MetricCallable]] = None,
-                        iterations: int = DEFAULT_TUNING_ITERATIONS_NUMBER,
-                        timeout: Optional[float] = None,
-                        cv_folds: Optional[int] = None,
-                        n_jobs: Optional[int] = None,
-                        show_progress: bool = False) -> Pipeline:
-        if self.current_pipeline is None:
-            raise ValueError(NOT_FITTED_ERR_MSG)
-
-        tune_plan = build_tensordata_tune_plan(
-            converted_input_data=None if tensor_data is None else self.data_processor.to_input_data(tensor_data),
-            has_tensor_data=tensor_data is not None,
-        )
-
-        with fedot_composer_timer.launch_tuning('post'):
-            common_tune_plan = build_tune_execution_plan_tensordata(
-                input_data=tune_plan.input_data,
-                train_data=self.train_data,
-                requested_cv_folds=cv_folds,
-                default_cv_folds=self.params.get('cv_folds'),
-                requested_n_jobs=n_jobs,
-                default_n_jobs=self.params.n_jobs,
-                requested_metric=metric_name,
-                default_metric=self.metrics[0],
-            )
-
-            pipeline_tuner = (TunerBuilder(self.params.task)
-                              .with_tuner(SimultaneousTuner)
-                              .with_cv_folds(common_tune_plan.cv_folds)
-                              .with_n_jobs(common_tune_plan.n_jobs)
-                              .with_metric(common_tune_plan.metric)
-                              .with_iterations(iterations)
-                              .with_timeout(timeout))
-            pipeline_tuner = getattr(pipeline_tuner, tune_plan.builder_method_name)(
-                tensor_data if tune_plan.use_tensor_runtime else common_tune_plan.tensor_data
-            )
-
-            self.current_pipeline = pipeline_tuner.tune(self.current_pipeline, show_progress=show_progress)
-            self.api_composer.was_tuned = pipeline_tuner.was_tuned
-
-            getattr(self.current_pipeline, tune_plan.refit_method_name)(
-                tensor_data if tune_plan.use_tensor_runtime else self.train_data
-            )
-
-            if tune_plan.use_tensor_runtime:
-                self.train_data = common_tune_plan.tensor_data
-                self.target = self.train_data.target
-                self.current_pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
-                    api_preprocessor=self.data_processor.preprocessor,
-                    pipeline_preprocessor=self.current_pipeline.preprocessor,
-                    use_auto_preprocessing=self.params.get('use_auto_preprocessing'),
-                )
-
-        return self.current_pipeline
 
     def tune_with_tensordata(self,
              tensor_data: Optional[TensorData] = None,
@@ -533,7 +475,7 @@ class Fedot:
                 requested_metric=metric_name,
                 default_metric=self.metrics[0],
             )
-            # TODO romankuklo: add optioba
+
             if tensor_data is None:
                 raise ValueError('Tensor data is required for tuning')
 

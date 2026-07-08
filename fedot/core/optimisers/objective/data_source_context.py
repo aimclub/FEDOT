@@ -1,10 +1,9 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Union
+from typing import Optional
 
-from fedot.core.data.input_data.data import InputData
-from fedot.core.data.multimodal.multi_modal import MultiModalData
-from fedot.core.optimisers.objective.data_objective_eval import DataSource
+from fedot.core.data.tensor_data import TensorData
+from fedot.core.optimisers.objective.data_objective_eval import TensorDataSource
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 
 
@@ -14,28 +13,28 @@ class ComposerDataSourceMode(Enum):
 
 
 @dataclass(frozen=True)
-class ComposerDataSourceContext:
+class ComposerTensorDataSourceContext:
     mode: ComposerDataSourceMode
-    data_producer: DataSource
+    data_producer: TensorDataSource
     validation_blocks: Optional[int]
 
 
-def build_internal_composer_data_source_context(
-        train_data: Union[InputData, MultiModalData],
-        cv_folds: Optional[int]) -> ComposerDataSourceContext:
+def build_internal_composer_tensor_data_source_context(
+        train_data: TensorData,
+        cv_folds: Optional[int]) -> ComposerTensorDataSourceContext:
     data_splitter = DataSourceSplitter(cv_folds, shuffle=True)
-    data_producer = data_splitter.build(train_data)
-    return ComposerDataSourceContext(
+    data_producer = data_splitter.build_tensordata(train_data)
+    return ComposerTensorDataSourceContext(
         mode=ComposerDataSourceMode.internal_split,
         data_producer=data_producer,
         validation_blocks=data_splitter.validation_blocks,
     )
 
 
-def build_external_holdout_composer_data_source_context(
-        train_data: InputData,
-        validation_data: InputData) -> ComposerDataSourceContext:
-    return ComposerDataSourceContext(
+def build_external_holdout_composer_tensor_data_source_context(
+        train_data: TensorData,
+        validation_data: TensorData) -> ComposerTensorDataSourceContext:
+    return ComposerTensorDataSourceContext(
         mode=ComposerDataSourceMode.external_holdout,
         data_producer=DataSourceSplitter.build_holdout_producer_from_split(train_data, validation_data),
         validation_blocks=None,

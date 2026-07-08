@@ -22,9 +22,9 @@ from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.input_data.data import InputData, InputDataList
 from fedot.core.optimisers.objective.data_source_context import (
-    ComposerDataSourceContext,
-    build_external_holdout_composer_data_source_context,
-    build_internal_composer_data_source_context,
+    build_internal_composer_tensor_data_source_context,
+    ComposerTensorDataSourceContext,
+    build_external_holdout_composer_tensor_data_source_context
 )
 from fedot.core.pipelines.ensembling.config import ChunkedEnsembleConfig
 from fedot.core.pipelines.ensembling.pipeline_ensemble import PipelineEnsemble, PipelineInfo
@@ -38,10 +38,11 @@ from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.metrics_repository import MetricIDType, metric_name
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.utilities.composer_timer import fedot_composer_timer
+from fedot.core.data.tensor_data import TensorData
 
 
 class ApiComposer:
-
+# TODO @romankuklo: refactor this with new caching system
     def __init__(self, api_params: ApiParams, metrics: Union[MetricIDType, Sequence[MetricIDType]]):
         self.log = default_log(self)
         self.params = api_params
@@ -79,31 +80,33 @@ class ApiComposer:
                 cache_dir=cache_plan.cache_dir, use_stats=cache_plan.use_stats)
             self.predictions_cache.reset()
 
-    def obtain_model(self, train_data: InputData) -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
-        return self._obtain_model(
+    def obtain_model_with_tensor_data(self, train_data: TensorData) -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
+        return self._obtain_model_with_tensor_data(
             train_data=train_data,
-            context_builder=build_internal_composer_data_source_context,
+            context_builder=build_internal_composer_tensor_data_source_context,
         )
 
-    def obtain_model_with_external_validation(self,
-                                              train_data: InputData,
-                                              validation_data: InputData) -> Tuple[
+    def obtain_model_with_external_validation_tensordata(self,
+                                              train_data: TensorData,
+                                              validation_data: TensorData) -> Tuple[
                                                   Pipeline, Sequence[Pipeline], OptHistory
     ]:
-        return self._obtain_model(
+        return self._obtain_model_with_tensor_data(
             train_data=train_data,
-            context_builder=lambda data, _: build_external_holdout_composer_data_source_context(
+            context_builder=lambda data, _: build_external_holdout_composer_tensor_data_source_context(
                 train_data=data,
                 validation_data=validation_data,
             ),
         )
 
-    def _obtain_model(self,
-                      train_data: InputData,
-                      context_builder: Callable[
-                          [InputData, Optional[int]],
-                          ComposerDataSourceContext,
-                      ]) -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
+    def _obtain_model_with_tensor_data(
+        self,
+        train_data: TensorData,
+        context_builder: Callable[
+            [TensorData, Optional[int]],
+            ComposerTensorDataSourceContext,
+        ]
+    ) -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
         """ Function for composing FEDOT pipeline model """
 
         with fedot_composer_timer.launch_composing():
@@ -125,11 +128,10 @@ class ApiComposer:
                              f" Time limit: {timeout} min."
                              f" Set of candidate models: {self.params.get('available_operations')}.")
 
-            best_pipeline, best_pipeline_candidates, gp_composer = self.compose_pipeline(
-                train_data,
-                initial_assumption,
-                fitted_assumption,
-                data_source_context,
+            best_pipeline, best_pipeline_candidates, gp_composer = self.compose_pipeline_with_tensordata(
+                initial_assumption=initial_assumption,
+                fitted_assumption=fitted_assumption,
+                data_source_context=data_source_context,
             )
 
         timeout_for_tuning = abs(
@@ -143,7 +145,7 @@ class ApiComposer:
 
         if execution_plan.should_tune:
             with fedot_composer_timer.launch_tuning('composing'):
-                best_pipeline = self.tune_final_pipeline(
+                best_pipeline = self.tune_final_pipeline_with_tensordata(
                     train_data, best_pipeline, execution_plan)
         elif with_tuning:
             self.log.message(
@@ -161,6 +163,7 @@ class ApiComposer:
         self.log.message('Model generation finished')
         return best_pipeline, best_pipeline_candidates, gp_composer.history
 
+    # TODO @artemlunev: refactor this method if needed
     def obtain_ensemble_model(self,
                               train_data_list: InputDataList,
                               predefined_model: Optional[Union[str, Pipeline]] = None,
@@ -323,7 +326,7 @@ class ApiComposer:
 
     def _fit_chunk_pipeline_for_ensemble(self,
                                          pipeline: Pipeline,
-                                         chunk_data: InputData,
+                                         chunk_data: TensorData,
                                          history: Optional[OptHistory]) -> Pipeline:
         final_fit_plan = plan_final_fit(
             history=history,
@@ -331,47 +334,48 @@ class ApiComposer:
             is_pipeline_ensemble=False,
         )
         if final_fit_plan.action is FinalFitAction.fit_pipeline_on_full_data:
-            pipeline.fit(chunk_data, n_jobs=self.params.n_jobs)
+            pipeline.fit_tensordata(chunk_data, n_jobs=self.params.n_jobs)
         return pipeline
 
-    def propose_and_fit_initial_assumption(self, train_data: InputData) -> Tuple[Sequence[Pipeline], Pipeline]:
-        """ Method for obtaining and fitting initial assumption"""
-        available_operations = self.params.get('available_operations')
+    def propose_and_fit_initial_assumption(self, train_data: TensorData) -> Tuple[Sequence[Pipeline], Pipeline]:
+        """Method for obtaining and fitting initial assumption."""
+        # TODO @romankuklo: refactor this - TensorData auto-composition without initial assumption is not supported yet.
+        # Previous InputData implementation:
+        # available_operations = self.params.get('available_operations')
+        # preset = self.params.get('preset')
+        # assumption_handler = AssumptionsHandler(train_data)
+        # initial_assumption = assumption_handler.propose_assumptions(
+        #     self.params.get('initial_assumption'),
+        #     available_operations,
+        #     use_input_preprocessing=self.params.get('use_input_preprocessing'),
+        # )
+        # with self.timer.launch_assumption_fit(n_folds=self.params.data['cv_folds']):
+        #     fitted_assumption = assumption_handler.fit_assumption_and_check_correctness(
+        #         deepcopy(initial_assumption[0]),
+        #         operations_cache=self.operations_cache,
+        #         preprocessing_cache=self.preprocessing_cache,
+        #         eval_n_jobs=self.params.n_jobs,
+        #     )
+        # self.log.message(
+        #     f'Initial pipeline was fitted in '
+        #     f'{round(self.timer.assumption_fit_spend_time_single_fold.total_seconds(), 1)} sec.'
+        # )
+        # self.log.message(
+        #     f'Taking into account n_folds={self.params.data["cv_folds"]}, estimated fit time for initial assumption '
+        #     f'is {round(self.timer.assumption_fit_spend_time.total_seconds(), 1)} sec.'
+        # )
+        # self.params.update(preset=assumption_handler.propose_preset(
+        #     preset, self.timer, n_jobs=self.params.n_jobs))
+        # return initial_assumption, fitted_assumption
+        raise NotImplementedError(
+            'TensorData auto-composition without initial assumption is not supported yet')
 
-        preset = self.params.get('preset')
-
-        assumption_handler = AssumptionsHandler(train_data)
-
-        initial_assumption = assumption_handler.propose_assumptions(self.params.get('initial_assumption'),
-                                                                    available_operations,
-                                                                    use_input_preprocessing=self.params.get(
-                                                                        'use_input_preprocessing'))
-
-        with self.timer.launch_assumption_fit(n_folds=self.params.data['cv_folds']):
-            fitted_assumption = \
-                assumption_handler.fit_assumption_and_check_correctness(deepcopy(initial_assumption[0]),
-                                                                        operations_cache=self.operations_cache,
-                                                                        preprocessing_cache=self.preprocessing_cache,
-                                                                        eval_n_jobs=self.params.n_jobs)
-
-        self.log.message(
-            f'Initial pipeline was fitted in '
-            f'{round(self.timer.assumption_fit_spend_time_single_fold.total_seconds(), 1)} sec.')
-
-        self.log.message(
-            f'Taking into account n_folds={self.params.data["cv_folds"]}, estimated fit time for initial assumption '
-            f'is {round(self.timer.assumption_fit_spend_time.total_seconds(), 1)} sec.')
-
-        self.params.update(preset=assumption_handler.propose_preset(
-            preset, self.timer, n_jobs=self.params.n_jobs))
-
-        return initial_assumption, fitted_assumption
-
-    def compose_pipeline(self,
-                         train_data: InputData,
-                         initial_assumption: Sequence[Pipeline],
-                         fitted_assumption: Pipeline,
-                         data_source_context: ComposerDataSourceContext) -> Tuple[Pipeline, List[Pipeline], GPComposer]:
+    def compose_pipeline_with_tensordata(
+        self,
+        initial_assumption: Sequence[Pipeline],
+        fitted_assumption: Pipeline,
+        data_source_context: ComposerTensorDataSourceContext
+    ) -> Tuple[Pipeline, List[Pipeline], GPComposer]:
 
         gp_composer: GPComposer = (ComposerBuilder(task=self.params.task)
                                    .with_requirements(self.params.composer_requirements)
@@ -396,8 +400,7 @@ class ApiComposer:
             with self.timer.launch_composing():
                 self.log.message('Pipeline composition started.')
                 self.was_optimised = False
-                best_pipelines = gp_composer.compose_pipeline(
-                    data=train_data,
+                best_pipelines = gp_composer.compose_pipeline_with_tensor_data(
                     data_source_context=data_source_context,
                 )
                 best_pipeline_candidates = gp_composer.best_models
@@ -415,9 +418,12 @@ class ApiComposer:
             best_pipelines, Sequence) else best_pipelines
         return best_pipeline, best_pipeline_candidates, gp_composer
 
-    def tune_final_pipeline(self, train_data: InputData,
-                            pipeline_gp_composed: Pipeline,
-                            execution_plan=None) -> Pipeline:
+    def tune_final_pipeline_with_tensordata(
+        self,
+        train_data: TensorData,
+        pipeline_gp_composed: Pipeline,
+        execution_plan=None,
+    ) -> Pipeline:
         """ Launch tuning procedure for obtained pipeline by composer """
         timeout_for_tuning = execution_plan.tuning_timeout_minutes if execution_plan else abs(
             self.timer.determine_resources_for_tuning()) / 60
@@ -434,7 +440,7 @@ class ApiComposer:
                  .with_eval_time_constraint(self.params.composer_requirements.max_graph_fit_time)
                  .with_cv_folds(self.params.get('cv_folds'))
                  .with_n_jobs(self.params.n_jobs)
-                 .build(train_data))
+                 .build_with_tensordata(train_data))
 
         with self.timer.launch_tuning():
             self.was_tuned = False
