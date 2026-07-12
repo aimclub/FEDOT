@@ -25,7 +25,7 @@ if __name__ == '__main__':
         backend_name='cpu',
     )
     model = Fedot(problem='classification', use_input_preprocessing=True)
-    pipeline = model.fit_tensor_data(
+    pipeline = model.fit(
         tensor_data=tensor_data,
         predefined_model='torch_linear',
     )
@@ -47,8 +47,8 @@ if __name__ == '__main__':
         trace_uuid=tensor_data.trace_uuid,
     )
 
-    test_prediction = model.predict_tensordata(test_tensor_data)
-    test_labels = model.predict_tensordata(test_tensor_data, )
+    test_prediction = model.predict(test_tensor_data)
+    test_labels = model.predict(test_tensor_data, )
     print('test features:\n', test_features)
     print('test probabilities:', _to_numpy(test_prediction.predict))
     print('test labels:', _to_numpy(test_labels.predict))

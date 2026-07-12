@@ -67,5 +67,5 @@ class PredefinedModel:
             raise ValueError(advice_info)
         return self.pipeline
 
-    def fit_tensordata(self):
-        return self._fit_pipeline('fit_tensordata', 'Predefined TensorData model fit was failed')
+    def fit(self):
+        return self._fit_pipeline('fit', 'Predefined TensorData model fit was failed')

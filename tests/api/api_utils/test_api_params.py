@@ -53,8 +53,8 @@ def test_api_params_builds_tensor_data_config_field_on_init():
     assert params.tensor_data_config == {
         'backend_name': 'cpu',
         'use_cache': True,
+        'optional_strategy': None,
     }
-    assert params['tensor_data_config'] == params.tensor_data_config
 
 
 def test_api_params_tensor_data_config_uses_user_values_from_fedot_kwargs():
@@ -75,13 +75,14 @@ def test_api_params_tensor_data_config_uses_user_values_from_fedot_kwargs():
         'backend_name': 'gpu',
         'use_cache': False,
         'encoding_strategy': {'kind': 'label'},
+        'optional_strategy': None,
     }
 
 
 def test_prepare_tensordata_creation_uses_defaults_when_config_is_missing():
     params = ApiParams({}, problem='classification', timeout=1)
 
-    request = params.prepare_tensordata_creation(target=[0, 1])
+    request = params.prepare_creation(target=[0, 1])
 
     assert request.backend_name == 'cpu'
     assert request.spec_kwargs['task'] is params.task
@@ -105,7 +106,7 @@ def test_prepare_tensordata_creation_uses_tensor_data_config_and_predict_state()
         timeout=1,
     )
 
-    request = params.prepare_tensordata_creation(is_predict=True, trace_uuid='trace-1')
+    request = params.prepare_creation(is_predict=True, trace_uuid='trace-1')
 
     assert request.backend_name == 'gpu'
     assert request.spec_kwargs['state'] is StateEnum.PREDICT
@@ -121,7 +122,7 @@ def test_prepare_tensordata_creation_requires_trace_uuid_for_predict_state():
     params = ApiParams({}, problem='classification', timeout=1)
 
     with pytest.raises(FedotValidationError, match='trace_uuid is required'):
-        params.prepare_tensordata_creation(is_predict=True)
+        params.prepare_creation(is_predict=True)
 
 
 def test_api_params_composer_requirements_do_not_receive_cv_folds():

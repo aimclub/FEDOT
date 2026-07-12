@@ -23,7 +23,7 @@ def build_internal_composer_tensor_data_source_context(
         train_data: TensorData,
         cv_folds: Optional[int]) -> ComposerTensorDataSourceContext:
     data_splitter = DataSourceSplitter(cv_folds, shuffle=True)
-    data_producer = data_splitter.build_tensordata(train_data)
+    data_producer = data_splitter.build(train_data)
     return ComposerTensorDataSourceContext(
         mode=ComposerDataSourceMode.internal_split,
         data_producer=data_producer,

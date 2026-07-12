@@ -142,7 +142,7 @@ def raise_from_assumption_fit_error(
     raise ValueError(validated['message']) from validated.get('exception')
 
 
-def validate_tensordata_creation_trace(
+def validate_creation_trace(
     is_predict: bool,
     trace_uuid: Optional[str],
     context: ValidationContext = None,

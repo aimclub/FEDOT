@@ -52,7 +52,7 @@ def test_tuner_builder_build_uses_regular_splitter_boundary(monkeypatch):
     assert tuner.kwargs['objective_evaluate'] == 'objective-evaluate'
 
 
-def test_tuner_builder_build_with_tensordata_uses_tensor_splitter_boundary(monkeypatch):
+def test_tuner_builder_build_uses_tensor_splitter_boundary(monkeypatch):
     captured = {}
 
     class FakeSplitter:
@@ -60,7 +60,7 @@ def test_tuner_builder_build_with_tensordata_uses_tensor_splitter_boundary(monke
             captured['splitter_init'] = (cv_folds, validation_blocks)
             self.validation_blocks = 5
 
-        def build_tensordata(self, tensor_data):
+        def build(self, tensor_data):
             captured['tensor_data'] = tensor_data
             return 'tensor-producer'
 
@@ -86,7 +86,7 @@ def test_tuner_builder_build_with_tensordata_uses_tensor_splitter_boundary(monke
     builder = TunerBuilder(Task(TaskTypesEnum.classification))
     builder.tuner_class = _FakeTuner
 
-    tuner = builder.build_with_tensordata('tensor-data')
+    tuner = builder.build('tensor-data')
 
     assert captured['tensor_data'] == 'tensor-data'
     assert captured['data_producer'] == 'tensor-producer'

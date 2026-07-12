@@ -99,7 +99,7 @@ class TunerBuilder:
         self.additional_params.update(parameters)
         return self
     
-    def _build_tuner_with_tensordata(self, data_producer, validation_blocks: int) -> BaseTuner:
+    def _build_tuner(self, data_producer, validation_blocks: int) -> BaseTuner:
         validate_multi_objective_tuner(self.tuner_class, len(self.metric))
         if len(self.metric) > 1:
             if self.tuner_class in [OptunaTuner, IOptTuner]:
@@ -124,9 +124,9 @@ class TunerBuilder:
                                  **self.additional_params)
         return tuner
     
-    def build_with_tensordata(self, tensor_data: TensorData) -> BaseTuner:
+    def build(self, tensor_data: TensorData) -> BaseTuner:
         # TODO @artemlunev: refactor data_splitter to use tensor data
         data_splitter = DataSourceSplitter(
             self.cv_folds, validation_blocks=self.validation_blocks)
-        data_producer = data_splitter.build_tensordata(tensor_data)
-        return self._build_tuner_with_tensordata(data_producer, data_splitter.validation_blocks)
+        data_producer = data_splitter.build(tensor_data)
+        return self._build_tuner(data_producer, data_splitter.validation_blocks)

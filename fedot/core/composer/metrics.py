@@ -109,8 +109,8 @@ class QualityMetric(Metric):
                            reference_data: TensorData,
                            predictions_cache: Optional[PredictionsCache] = None,
                            fold_id: Optional[int] = None) -> Tuple[TensorData, TensorData]:
-        """Method calls pipeline.predict_tensordata() and returns the result."""
-        return reference_data, pipeline.predict_tensordata(
+        """Method calls pipeline.predict() and returns the result."""
+        return reference_data, pipeline.predict(
             reference_data, output_mode=cls.output_mode, predictions_cache=predictions_cache, fold_id=fold_id)
 
     @classmethod

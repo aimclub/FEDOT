@@ -23,15 +23,13 @@ from fedot.api.api_utils.api_run_planner import (
     plan_sampling_stage,
 )
 from fedot.api.api_utils.api_service_rules import (
-    build_tensordata_explain_plan,
-    build_tensordata_fit_plan,
-    build_tensordata_forecast_plan,
-    build_tensordata_metrics_plan,
-    build_tensordata_metrics_validation_plan,
-    build_tensordata_predict_plan,
-    build_tensordata_predict_proba_plan,
-    build_tensordata_tune_plan,
-    build_tune_execution_plan_tensordata,
+    build_explain_plan,
+    build_forecast_plan,
+    build_metrics_plan,
+    build_metrics_validation_plan,
+    build_predict_plan,
+    build_predict_proba_plan,
+    build_tune_execution_plan,
     resolve_forecast_horizon,
     resolve_predict_proba_mode,
 )
@@ -377,7 +375,7 @@ class Fedot:
             class_representatives=class_representatives,
         )
 
-    def _obtain_pipeline_with_tensordata(self,
+    def _obtain_pipeline(self,
                          fit_context: FitDataContext,
                          predefined_model: Union[str, Pipeline, None]):
         # TODO: add other strategies here
@@ -390,18 +388,18 @@ class Fedot:
                     use_input_preprocessing=False,
                     api_preprocessor=None,
                 )
-                self.current_pipeline = predefined.fit_tensordata()
+                self.current_pipeline = predefined.fit()
                 self.best_models = ()
                 self.history = None
             else:
-                self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model_with_tensordata(
+                self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(
                     self.train_data,
                 )
 
             if self.current_pipeline is None:
                 raise ValueError('No models were found')
 
-    def fit_tensor_data(self,
+    def fit(self,
             tensor_data: TensorData,
             predefined_model: Union[str, Pipeline] = None) -> Pipeline:
 
@@ -415,7 +413,7 @@ class Fedot:
             # TODO romankuklo: apply sampling stage and chunked ensemble
             # fit_context, train_data = self._apply_sampling_stage(fit_context, train_data)
             # self.train_data = train_data
-            self._obtain_pipeline_with_tensordata(
+            self._obtain_pipeline(
                 fit_context=fit_context,
                 predefined_model=predefined_model,
             )
@@ -434,7 +432,7 @@ class Fedot:
             self.params.timeout = initial_timeout
             MemoryAnalytics.finish()
 
-    def tune_with_tensordata(self,
+    def tune(self,
              tensor_data: Optional[TensorData] = None,
              metric_name: Optional[Union[str, MetricCallable]] = None,
              iterations: int = DEFAULT_TUNING_ITERATIONS_NUMBER,
@@ -465,7 +463,7 @@ class Fedot:
         # TODO romankuklo: add optional preprocessing
 
         with fedot_composer_timer.launch_tuning('post'):
-            tune_plan = build_tune_execution_plan_tensordata(
+            tune_plan = build_tune_execution_plan(
                 tensor_data=tensor_data,
                 train_data=self.train_data,
                 requested_cv_folds=cv_folds,
@@ -496,7 +494,7 @@ class Fedot:
 
         return self.current_pipeline
     
-    def predict_tensordata(
+    def predict(
         self,
         tensor_data: TensorData,
         in_sample: bool = True,
@@ -517,7 +515,7 @@ class Fedot:
         self.test_data = tensor_data
         # TODO @romankuklo: add optional preprocessing
         with fedot_composer_timer.launch_predicting():
-            self.prediction = self.data_processor.define_predictions_tensordata(
+            self.prediction = self.data_processor.define_predictions(
                 current_pipeline=self.current_pipeline,
                 test_data=tensor_data,
                 in_sample=in_sample,
@@ -528,6 +526,7 @@ class Fedot:
             self.save_predict(self.prediction, path_to_save)
         return self.prediction
 
+    # TODO @romankuklo: refactor for TensorData
     def predict_proba(self,
                       features: FeaturesType,
                       probs_for_all_classes: bool = False,
@@ -562,46 +561,14 @@ class Fedot:
 
         return self.prediction.predict
 
+    # TODO @romankuklo: refactor for TensorData
     def forecast(self,
-                 pre_history: Optional[Union[str, Tuple[np.ndarray, np.ndarray], InputData, dict]] = None,
-                 horizon: Optional[int] = None,
-                 path_to_save: Optional[PathType] = None) -> np.ndarray:
-        """Forecasts the new values of time series. If horizon is bigger than forecast length of fitted model -
-        out-of-sample forecast is applied (not supported for multi-modal data).
-
-        Args:
-            pre_history: an array with features for pre-history of the forecast.
-            horizon: amount of steps to forecast.
-            path_to_save: if specified, path to save prediction to.
-
-        Returns:
-            An array with prediction values.
-        """
-        self._check_forecast_applicable()
-
-        forecast_length = self.train_data.task.task_params.forecast_length
-        horizon = resolve_forecast_horizon(horizon, forecast_length)
-        if pre_history is None:
-            pre_history = self.train_data
-            pre_history.target = None
-        self.test_data = self.data_processor.define_data(target=self.target,
-                                                         features=pre_history,
-                                                         is_predict=True)
-        predict = out_of_sample_ts_forecast(
-            self.current_pipeline, self.test_data, horizon)
-        self.prediction = convert_forecast_to_output(self.test_data, predict)
-        self._is_in_sample_prediction = False
-        if path_to_save is not None:
-            self.save_predict(self.prediction, path_to_save)
-        return self.prediction.predict
-
-    def forecast_tensordata(self,
-                            tensor_data,
+                            tensor_data: TensorData,
                             horizon: Optional[int] = None,
                             path_to_save: Optional[PathType] = None) -> np.ndarray:
         self._check_forecast_applicable()
 
-        forecast_plan = build_tensordata_forecast_plan(
+        forecast_plan = build_forecast_plan(
             requested_horizon=horizon,
             forecast_length=self.train_data.task.task_params.forecast_length,
         )
@@ -624,7 +591,7 @@ class Fedot:
             raise ValueError(
                 'Forecasting can be used only for the time series')
 
-    def get_metrics_tensordata(self,
+    def get_metrics(self,
                                tensor_data,
                                target: Union[np.ndarray, pd.Series] = None,
                                metric_names: Union[str, List[str]] = None,
@@ -632,18 +599,19 @@ class Fedot:
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
-        metrics_plan = build_tensordata_metrics_plan()
+        metrics_plan = build_metrics_plan()
         self.test_data = self.data_processor.to_input_data(tensor_data)
-        self.prediction = self.current_pipeline.predict_tensordata(
+        self.prediction = self.current_pipeline.predict(
             tensor_data,
             output_mode=metrics_plan.output_mode,
         )
         self._is_in_sample_prediction = False
         return self.get_metrics(target=target, metric_names=metric_names, rounding_order=rounding_order)
 
-    def explain_tensordata(self, tensor_data,
+    # TODO @romankuklo: refactor for TensorData
+    def explain(self, tensor_data,
                            method: str = 'surrogate_dt', visualization: bool = True, **kwargs) -> Explainer:
-        explain_plan = build_tensordata_explain_plan(
+        explain_plan = build_explain_plan(
             method=method, visualization=visualization)
         data = self.data_processor.to_input_data(tensor_data)
         return explain_pipeline(
@@ -722,7 +690,7 @@ class Fedot:
         Returns:
             Values of quality metrics.
         """
-        metrics_plan = build_tensordata_metrics_validation_plan(
+        metrics_plan = build_metrics_validation_plan(
             is_pipeline_fitted=self.current_pipeline is not None,
             metric_names=metric_names,
             default_metrics=self.metrics,

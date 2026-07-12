@@ -27,8 +27,7 @@ from fedot.core.operations.model import Model
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline_rules import (
     build_pipeline_postprocess_plan,
-    build_pipeline_preprocess_plan,
-    build_pipeline_tensordata_runtime_plan,
+    build_pipeline_preprocess_plan
 )
 from fedot.core.pipelines.schemas import (
     validate_pipeline_is_fitted,
@@ -64,7 +63,7 @@ class Pipeline(GraphDelegate, Serializable):
         self.preprocessor = DataPreprocessor(
         ) if use_input_preprocessing else DummyPreprocessor()
 
-    def fit_from_scratch_tensordata(self, tensor_data: TensorData = None):
+    def fit_from_scratch(self, tensor_data: TensorData = None):
         """[Obsolete] Method used for training the pipeline without using saved information
 
         Args:
@@ -73,9 +72,9 @@ class Pipeline(GraphDelegate, Serializable):
 
         # Clean all saved states and fit all operations
         self.unfit()
-        self.fit_tensordata(tensor_data)
+        self.fit(tensor_data)
 
-    def _fit_with_time_limit_tensordata(self,
+    def _fit_with_time_limit(self,
                                         tensor_data: Optional[TensorData],
                                         time: timedelta,
                                         predictions_cache: Optional[PredictionsCache] = None,
@@ -86,7 +85,7 @@ class Pipeline(GraphDelegate, Serializable):
         fitted_operations = []
         try:
             func_timeout.func_timeout(
-                time, self._fit_tensordata,
+                time, self._fit,
                 args=(tensor_data, process_state_dict,
                       fitted_operations, predictions_cache, fold_id)
             )
@@ -101,7 +100,7 @@ class Pipeline(GraphDelegate, Serializable):
     
     # TODO romankuklo: add preprocessing after new features creating
 
-    def _fit_tensordata(self,
+    def _fit(self,
                         tensor_data: Optional[TensorData] = None,
                         process_state_dict: dict = None,
                         fitted_operations: list = None,
@@ -110,7 +109,7 @@ class Pipeline(GraphDelegate, Serializable):
         """Runs training process in all the pipeline nodes starting with root on TensorData."""
         with Timer() as t:
             computation_time_update = not self.root_node.fitted_operation or self.computation_time is None
-            train_predicted = self.root_node.fit_tensordata(
+            train_predicted = self.root_node.fit(
                 tensor_data=tensor_data,
                 predictions_cache=predictions_cache,
                 fold_id=fold_id,
@@ -150,7 +149,7 @@ class Pipeline(GraphDelegate, Serializable):
             result.predict = result.predict.ravel()
         return result
 
-    def fit_tensordata(self,
+    def fit(self,
                        tensor_data: TensorData,
                        time_constraint: Optional[timedelta] = None,
                        n_jobs: int = 1,
@@ -162,12 +161,12 @@ class Pipeline(GraphDelegate, Serializable):
         copied_tensor_data = self._assign_data_to_nodes(copied_tensor_data)
 
         if time_constraint is None:
-            return self._fit_tensordata(
+            return self._fit(
                 tensor_data=tensor_data,
                 predictions_cache=predictions_cache,
                 fold_id=fold_id,
             )
-        return self._fit_with_time_limit_tensordata(
+        return self._fit_with_time_limit(
             tensor_data=tensor_data,
             time=time_constraint,
             predictions_cache=predictions_cache,
@@ -242,7 +241,7 @@ class Pipeline(GraphDelegate, Serializable):
         if preprocessing_cache is not None:
             preprocessing_cache.try_load_preprocessor(self, fold_id)
 
-    def predict_tensordata(self,
+    def predict(self,
                            tensor_data: TensorData,
                            output_mode: str = 'default',
                            predictions_cache: Optional[PredictionsCache] = None,
@@ -254,7 +253,7 @@ class Pipeline(GraphDelegate, Serializable):
         copied_tensor_data = deepcopy(tensor_data)
 
         copied_tensor_data = self._assign_data_to_nodes(copied_tensor_data)
-        result = self.root_node.predict_tensordata(
+        result = self.root_node.predict(
             tensor_data=copied_tensor_data,
             output_mode=output_mode,
             predictions_cache=predictions_cache,

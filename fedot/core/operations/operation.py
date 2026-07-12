@@ -83,7 +83,7 @@ class Operation:
                 f'{self.__class__.__name__} {self.operation_type} not found')
         return operation_info
 
-    def fit_tensordata(self,
+    def fit(self,
                        params: Optional[Union[OperationParameters, dict]],
                        data: TensorData,
                        predictions_cache: Optional[PredictionsCache] = None,
@@ -98,7 +98,7 @@ class Operation:
 
         self.fitted_operation = self._eval_strategy.fit(train_data=data)
 
-        output = self.predict_for_fit_tensordata(
+        output = self.predict_for_fit(
             fitted_operation=self.fitted_operation,
             data=data,
             params=params,
@@ -112,7 +112,7 @@ class Operation:
 
         return isinstance(self, DataOperation)
     
-    def predict_tensordata(self,
+    def predict(self,
                            fitted_operation,
                            data: TensorData,
                            params: Optional[OperationParameters] = None,
@@ -120,7 +120,7 @@ class Operation:
                            predictions_cache: Optional[PredictionsCache] = None,
                            fold_id: Optional[int] = None,
                            descriptive_id: Optional[str] = None) -> TensorData:
-        return self._predict_tensordata(
+        return self._predict(
             fitted_operation=fitted_operation,
             data=data, params=params,
             output_mode=output_mode, 
@@ -130,7 +130,7 @@ class Operation:
             descriptive_id=descriptive_id,
         )
     
-    def predict_for_fit_tensordata(self,
+    def predict_for_fit(self,
                                    fitted_operation,
                                    data: TensorData,
                                    params: Optional[OperationParameters] = None,
@@ -138,7 +138,7 @@ class Operation:
                                    predictions_cache: Optional[PredictionsCache] = None,
                                    fold_id: Optional[int] = None,
                                    descriptive_id: Optional[str] = None) -> TensorData:
-        return self._predict_tensordata(
+        return self._predict(
             fitted_operation=fitted_operation,
             data=data,
             params=params,
@@ -149,7 +149,7 @@ class Operation:
             descriptive_id=descriptive_id,
         )
 
-    def _predict_tensordata(self,
+    def _predict(self,
                            fitted_operation,
                            data: TensorData,
                            params: Optional[OperationParameters] = None,

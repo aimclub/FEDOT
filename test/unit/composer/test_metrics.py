@@ -155,7 +155,7 @@ def test_metrics(metric: ClassificationMetricsEnum, pipeline_func: Callable[[], 
         if not hasattr(pipeline, 'fit_tensordata'):
             pytest.skip('Pipeline.fit_tensordata is not available')
         try:
-            pipeline.fit_tensordata(train)
+            pipeline.fit(train)
         except Exception as ex:
             pytest.skip(f'Pipeline operation is not TensorData-native yet: {ex}')
     metric_function = MetricsRepository.get_metric(metric)

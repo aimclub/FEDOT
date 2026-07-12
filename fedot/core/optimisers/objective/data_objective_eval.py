@@ -27,7 +27,7 @@ class PipelineObjectiveEvaluateWithTensorData(ObjectiveEvaluate[Pipeline]):
     :param objective: Objective for evaluating metrics on pipelines.
     :param data_producer: Producer of data folds, each fold is a tuple of (train_data, test_data).
     If it returns a single fold, it's effectively a hold-out validation. For many folds it's k-folds.
-    :param time_constraint: Optional time constraint for pipeline.fit_tensordata.
+    :param time_constraint: Optional time constraint for pipeline.fit.
     :param validation_blocks: Number of validation blocks, optional, used only for time series validation.
     :param operations_cache: Cache manager for fitted models, optional.
     :param preprocessing_cache: Cache manager for optional preprocessing encoders and imputers.
@@ -66,12 +66,12 @@ class PipelineObjectiveEvaluateWithTensorData(ObjectiveEvaluate[Pipeline]):
         folds_metrics = []
         for fold_id, (train_data, test_data) in enumerate(self._data_producer()):
             try:
-                prepared_pipeline = self.prepare_graph_with_tensordata(
+                prepared_pipeline = self.prepare_graph(
                     graph, train_data, fold_id, self._eval_n_jobs)
             except Exception as ex:
                 self._log.warning(f'Unsuccessful pipeline fit during fitness evaluation. '
                                   f'Skipping the pipeline. Exception <{ex}> on {graph_id}')
-                prepared_pipeline = self.prepare_graph_with_tensordata(
+                prepared_pipeline = self.prepare_graph(
                     graph, train_data, fold_id, self._eval_n_jobs)
                 if is_test_session() and not isinstance(ex, TimeoutError):
                     stack_trace = traceback.format_exc()
@@ -110,7 +110,7 @@ class PipelineObjectiveEvaluateWithTensorData(ObjectiveEvaluate[Pipeline]):
 
         return to_fitness(folds_metrics, self._objective.is_multi_objective)
 
-    def prepare_graph_with_tensordata(self, graph: Pipeline, train_data: TensorData,
+    def prepare_graph(self, graph: Pipeline, train_data: TensorData,
                                       fold_id: Optional[int] = None, n_jobs: int = -1) -> Pipeline:
         """
         Fit pipeline before metric evaluation can be performed.
@@ -128,7 +128,7 @@ class PipelineObjectiveEvaluateWithTensorData(ObjectiveEvaluate[Pipeline]):
         # TODO: refactor this - cache managers are still tuned for legacy data/preprocessing.
         # graph.try_load_from_cache(
         #     self._operations_cache, self._preprocessing_cache, fold_id)
-        graph.fit_tensordata(
+        graph.fit(
             train_data,
             n_jobs=n_jobs,
             time_constraint=self._time_constraint,
@@ -161,7 +161,7 @@ class PipelineObjectiveEvaluateWithTensorData(ObjectiveEvaluate[Pipeline]):
         #         continue
         #     intermediate_graph = Pipeline(
         #         node, use_input_preprocessing=graph.use_input_preprocessing)
-        #     intermediate_graph.fit_tensordata(
+        #     intermediate_graph.fit(
         #         train_data,
         #         time_constraint=self._time_constraint,
         #         n_jobs=self._eval_n_jobs,

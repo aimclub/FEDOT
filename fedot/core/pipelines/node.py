@@ -195,7 +195,7 @@ class PipelineNode(LinkedGraphNode):
         if hasattr(self, 'node_data'):
             self.node_data = None
 
-    def fit_tensordata(self,
+    def fit(self,
                        tensor_data: TensorData,
                        predictions_cache: Optional[PredictionsCache] = None,
                        fold_id: Optional[int] = None) -> TensorData:
@@ -210,7 +210,7 @@ class PipelineNode(LinkedGraphNode):
 
         if self.fitted_operation is None:
             with Timer() as t:
-                self.fitted_operation, operation_predict = self.operation.fit_tensordata(
+                self.fitted_operation, operation_predict = self.operation.fit(
                     params=self._parameters,
                     data=tensor_data,
                     predictions_cache=predictions_cache,
@@ -219,7 +219,7 @@ class PipelineNode(LinkedGraphNode):
                 )
                 self.fit_time_in_seconds = round(t.seconds_from_start, 3)
         else:
-            operation_predict = self.operation.predict_for_fit_tensordata(
+            operation_predict = self.operation.predict_for_fit(
                 fitted_operation=self.fitted_operation,
                 data=tensor_data,
                 params=self._parameters,
@@ -232,7 +232,7 @@ class PipelineNode(LinkedGraphNode):
             self.update_params()
         return operation_predict
 
-    def predict_tensordata(self,
+    def predict(self,
                            tensor_data: TensorData,
                            output_mode: str = 'default',
                            predictions_cache: Optional[PredictionsCache] = None,
@@ -246,7 +246,7 @@ class PipelineNode(LinkedGraphNode):
         tensor_data = self._get_tensor_data(
             tensor_data=tensor_data, parent_operation='predict',)
         with Timer() as t:
-            operation_predict = self.operation.predict_tensordata(
+            operation_predict = self.operation.predict(
                 fitted_operation=self.fitted_operation,
                 data=tensor_data,
                 params=self._parameters,
@@ -395,11 +395,11 @@ def _combine_parents_tensordata(parent_nodes: List[PipelineNode],
 
     for parent in parent_nodes:
         if parent_operation == 'predict':
-            prediction = parent.predict_tensordata(
+            prediction = parent.predict(
                 tensor_data=tensor_data, predictions_cache=predictions_cache, fold_id=fold_id)
             parents_result.append(prediction)
         elif parent_operation == 'fit':
-            prediction = parent.fit_tensordata(
+            prediction = parent.fit(
                 tensor_data=tensor_data, predictions_cache=predictions_cache, fold_id=fold_id)
             parents_result.append(prediction)
     return parents_result

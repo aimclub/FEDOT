@@ -29,32 +29,20 @@ class _FakePipeline:
         self.predict_data = data_test
         return 'ok'
 
-    def fit_tensordata(self, data_train, n_jobs=-1):
-        if self.should_fail:
-            raise RuntimeError('fit failed')
-        self.fitted = True
-        self.fit_data = data_train
-        self.fit_n_jobs = n_jobs
 
-    def predict_tensordata(self, data_test):
-        self.predicted = True
-        self.predict_data = data_test
-        return 'ok'
-
-
-def test_fit_assumption_and_check_correctness_with_tensordata_keeps_compatibility_wrapper(monkeypatch):
+def test_fit_assumption_and_check_correctness_keeps_compatibility_wrapper(monkeypatch):
     handler = AssumptionsHandler(SimpleNamespace())
     pipeline = _FakePipeline()
-    monkeypatch.setattr(handler, 'try_fit_assumption_with_tensordata',
+    monkeypatch.setattr(handler, 'try_fit_assumption',
                         lambda **kwargs: Right(pipeline))
 
-    assert handler.fit_assumption_and_check_correctness_with_tensordata(pipeline) is pipeline
+    assert handler.fit_assumption_and_check_correctness(pipeline) is pipeline
 
-    monkeypatch.setattr(handler, 'try_fit_assumption_with_tensordata',
+    monkeypatch.setattr(handler, 'try_fit_assumption',
                         lambda **kwargs: Left(SimpleNamespace(message='boom')))
 
     try:
-        handler.fit_assumption_and_check_correctness_with_tensordata(pipeline)
+        handler.fit_assumption_and_check_correctness(pipeline)
     except ValueError as error:
         assert str(error) == 'boom'
     else:
@@ -62,16 +50,16 @@ def test_fit_assumption_and_check_correctness_with_tensordata_keeps_compatibilit
             'Compatibility wrapper should raise ValueError for failed assumption fitting')
 
 
-def test_fit_assumption_and_check_correctness_with_tensordata_raises_from_original_exception(monkeypatch):
+def test_fit_assumption_and_check_correctness_raises_from_original_exception(monkeypatch):
     handler = AssumptionsHandler(SimpleNamespace())
     pipeline = _FakePipeline()
     original_error = RuntimeError('fit failed')
     fit_error = SimpleNamespace(message='boom', exception=original_error)
-    monkeypatch.setattr(handler, 'try_fit_assumption_with_tensordata',
+    monkeypatch.setattr(handler, 'try_fit_assumption',
                         lambda **kwargs: Left(fit_error))
 
     try:
-        handler.fit_assumption_and_check_correctness_with_tensordata(pipeline)
+        handler.fit_assumption_and_check_correctness(pipeline)
     except ValueError as error:
         assert str(error) == 'boom'
         assert error.__cause__ is original_error
@@ -101,7 +89,7 @@ def test_propose_assumptions_with_tensordata_builds_auto_assumption(monkeypatch)
 
     monkeypatch.setattr(handler_module, 'AssumptionsBuilder', _FakeAssumptionsBuilder)
 
-    result = handler.propose_assumptions_with_tensordata(None, available_operations=['torch_linear'])
+    result = handler.propose_assumptions(None, available_operations=['torch_linear'])
 
     assert result == [pipeline]
     assert captured['data'] is handler.data
@@ -113,15 +101,15 @@ def test_propose_assumptions_with_tensordata_accepts_user_pipeline_list():
     handler = AssumptionsHandler(SimpleNamespace())
     pipeline = _FakePipeline()
 
-    assert handler.propose_assumptions_with_tensordata([pipeline]) == [pipeline]
+    assert handler.propose_assumptions([pipeline]) == [pipeline]
 
 
-def test_try_fit_assumption_with_tensordata_returns_right_for_success(monkeypatch):
+def test_try_fit_assumption_returns_right_for_success(monkeypatch):
     class _FakeTensorDataSplitter:
         def __init__(self, *args, **kwargs):
             pass
 
-        def build_tensordata(self, data):
+        def build(self, data):
             assert data.name == 'tensor-data'
 
             def _producer():
@@ -134,7 +122,7 @@ def test_try_fit_assumption_with_tensordata_returns_right_for_success(monkeypatc
                         staticmethod(lambda *args, **kwargs: None))
 
     pipeline = _FakePipeline()
-    result = AssumptionsHandler(SimpleNamespace(name='tensor-data')).try_fit_assumption_with_tensordata(
+    result = AssumptionsHandler(SimpleNamespace(name='tensor-data')).try_fit_assumption(
         pipeline,
         eval_n_jobs=3,
     )
@@ -149,11 +137,11 @@ def test_try_fit_assumption_with_tensordata_returns_right_for_success(monkeypatc
     assert pipeline.fit_n_jobs == 3
 
 
-def test_fit_assumption_and_check_correctness_with_tensordata_raises_on_failure(monkeypatch):
+def test_fit_assumption_and_check_correctness_raises_on_failure(monkeypatch):
     handler = AssumptionsHandler(SimpleNamespace())
     pipeline = _FakePipeline()
-    monkeypatch.setattr(handler, 'try_fit_assumption_with_tensordata',
+    monkeypatch.setattr(handler, 'try_fit_assumption',
                         lambda **kwargs: Left(SimpleNamespace(message='tensor boom')))
 
     with pytest.raises(ValueError, match='tensor boom'):
-        handler.fit_assumption_and_check_correctness_with_tensordata(pipeline)
+        handler.fit_assumption_and_check_correctness(pipeline)

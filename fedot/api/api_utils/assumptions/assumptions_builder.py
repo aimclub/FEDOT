@@ -36,13 +36,9 @@ class AssumptionsBuilder:
         if not repository_name:
             repository_name = default_repository_name_for_data(data)
 
-        if isinstance(data, TensorData):
-            cls = UniModalAssumptionsBuilder
-        # elif isinstance(data, MultiModalData):
-        #     cls = MultiModalAssumptionsBuilder
-        else:
-            raise NotImplementedError(
-                f"Can't build assumptions for data type: {type(data).__name__}")
+        cls = UniModalAssumptionsBuilder
+        # TODO @romankuklo: add MultiModalAssumptionsBuilder
+
         return cls(data, repository_name=repository_name)
 
     @abstractmethod
@@ -102,7 +98,7 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
         """ Return a list of valid builders satisfying internal
         OperationsFilter or a single fallback builder. """
         preprocessing = \
-            PreprocessingBuilder.builder_for_tensordata(self.data.task.task_type, self.data, initial_node,
+            PreprocessingBuilder.builder(self.data.task.task_type, self.data, initial_node,
                                                   use_input_preprocessing=use_input_preprocessing)
         valid_builders = []
         for processing in self.assumptions_generator.processing_builders():

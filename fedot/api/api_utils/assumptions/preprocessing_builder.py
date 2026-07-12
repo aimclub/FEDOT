@@ -26,7 +26,7 @@ class PreprocessingBuilder:
             *initial_nodes, use_input_preprocessing=use_input_preprocessing)
 
     @classmethod
-    def builder_for_tensordata(cls,
+    def builder(cls,
                                 task_type: TaskTypesEnum,
                                 data: TensorData,
                                 *initial_nodes: Optional[PipelineNode],

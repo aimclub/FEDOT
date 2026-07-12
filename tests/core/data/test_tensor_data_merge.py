@@ -209,12 +209,12 @@ def test_tensordata_from_parents_merges_stub_parent_outputs(base_tensor_data):
     parent_a = PipelineNode('scaling')
     parent_b = PipelineNode('normalization')
 
-    parent_a.fit_tensordata = lambda tensor_data, predictions_cache=None, fold_id=None: replace(
+    parent_a.fit = lambda tensor_data, predictions_cache=None, fold_id=None: replace(
         tensor_data,
         features=tensor_data.features[:, :1] * 10,
         predict=torch.tensor([999.0]),
     )
-    parent_b.fit_tensordata = lambda tensor_data, predictions_cache=None, fold_id=None: replace(
+    parent_b.fit = lambda tensor_data, predictions_cache=None, fold_id=None: replace(
         tensor_data,
         features=tensor_data.features[:, 1:2] + 100,
         predict=torch.tensor([888.0]),

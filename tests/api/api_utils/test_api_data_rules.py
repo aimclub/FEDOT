@@ -6,7 +6,7 @@ import pytest
 
 from fedot.api.api_utils.api_data_rules import (
     DataDefinitionResolutionError,
-    build_tensordata_definition_plan,
+    build_definition_plan,
     iter_shared_index_assignments,
     normalize_features_for_definition,
     plan_fit_preprocessing,
@@ -87,9 +87,9 @@ def test_resolve_strategy_raises_typed_error_for_unsupported_source():
 
 
 def test_build_tensordata_definition_plan_is_explicit_for_backend_and_stage():
-    fit_plan = build_tensordata_definition_plan(
+    fit_plan = build_definition_plan(
         backend_name='cpu', is_predict=False)
-    predict_plan = build_tensordata_definition_plan(
+    predict_plan = build_definition_plan(
         backend_name='gpu', is_predict=True)
 
     assert fit_plan.backend_name == 'cpu'

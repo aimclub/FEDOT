@@ -15,41 +15,33 @@ class TuneExecutionPlan:
     metric: Any
 
 @dataclass(frozen=True)
-class TensorPredictExecutionPlan:
+class PredictExecutionPlan:
     output_mode: str
 
 
 @dataclass(frozen=True)
-class TensorPredictProbaExecutionPlan:
+class PredictProbaExecutionPlan:
     output_mode: str
 
 
 @dataclass(frozen=True)
-class TensorFitExecutionPlan:
+class FitExecutionPlan:
     fit_method_name: str
 
 
 @dataclass(frozen=True)
-class TensorTuneExecutionPlan:
-    input_data: Any
-    use_tensor_runtime: bool
-    builder_method_name: str
-    refit_method_name: str
-
-
-@dataclass(frozen=True)
-class TensorForecastExecutionPlan:
+class ForecastExecutionPlan:
     horizon: int
     clear_target: bool
 
 
 @dataclass(frozen=True)
-class TensorMetricsExecutionPlan:
+class MetricsExecutionPlan:
     output_mode: str
 
 
 @dataclass(frozen=True)
-class TensorMetricsValidationPlan:
+class MetricsValidationPlan:
     metrics: Any
     metric_names: list[str]
     in_sample: bool
@@ -58,54 +50,33 @@ class TensorMetricsValidationPlan:
 
 
 @dataclass(frozen=True)
-class TensorExplainExecutionPlan:
+class ExplainExecutionPlan:
     method: str
     visualization: bool
 
 
-def build_tensordata_fit_plan(predefined_model: Any) -> TensorFitExecutionPlan:
-    if predefined_model is None:
-        raise ValueError(
-            'TensorData fit currently supports only predefined models or pipelines.')
-    if predefined_model == 'auto':
-        raise ValueError(
-            'TensorData fit does not support auto assumption generation yet. '
-            'Pass a model name or Pipeline.'
-        )
-    return TensorFitExecutionPlan(fit_method_name='fit_tensordata')
+def build_predict_plan(output_mode: str = 'default') -> PredictExecutionPlan:
+    return PredictExecutionPlan(output_mode=output_mode)
 
 
-def build_tensordata_predict_plan(output_mode: str = 'default') -> TensorPredictExecutionPlan:
-    return TensorPredictExecutionPlan(output_mode=output_mode)
+def build_predict_proba_plan(probs_for_all_classes: bool) -> PredictProbaExecutionPlan:
+    return PredictProbaExecutionPlan(output_mode=resolve_predict_proba_mode(probs_for_all_classes))
 
 
-def build_tensordata_predict_proba_plan(probs_for_all_classes: bool) -> TensorPredictProbaExecutionPlan:
-    return TensorPredictProbaExecutionPlan(output_mode=resolve_predict_proba_mode(probs_for_all_classes))
-
-
-def build_tensordata_tune_plan(converted_input_data: Optional[Any], has_tensor_data: bool) -> TensorTuneExecutionPlan:
-    return TensorTuneExecutionPlan(
-        input_data=converted_input_data,
-        use_tensor_runtime=has_tensor_data,
-        builder_method_name='build_tensordata' if has_tensor_data else 'build',
-        refit_method_name='fit_tensordata' if has_tensor_data else 'fit',
-    )
-
-
-def build_tensordata_forecast_plan(
+def build_forecast_plan(
         requested_horizon: Optional[int],
-        forecast_length: int) -> TensorForecastExecutionPlan:
-    return TensorForecastExecutionPlan(
+        forecast_length: int) -> ForecastExecutionPlan:
+    return ForecastExecutionPlan(
         horizon=resolve_forecast_horizon(requested_horizon, forecast_length),
         clear_target=True,
     )
 
 
-def build_tensordata_metrics_plan() -> TensorMetricsExecutionPlan:
-    return TensorMetricsExecutionPlan(output_mode='default')
+def build_metrics_plan() -> MetricsExecutionPlan:
+    return MetricsExecutionPlan(output_mode='default')
 
 
-def build_tensordata_metrics_validation_plan(
+def build_metrics_validation_plan(
     is_pipeline_fitted: bool,
     metric_names: Any,
     default_metrics: Any,
@@ -114,7 +85,7 @@ def build_tensordata_metrics_validation_plan(
     validation_blocks: Optional[int],
     rounding_order: int,
     context: ValidationContext = None,
-) -> TensorMetricsValidationPlan:
+) -> MetricsValidationPlan:
     validated = load_validated(
         TensorMetricsExecutionSchema(),
         {
@@ -145,7 +116,7 @@ def build_tensordata_metrics_validation_plan(
 
     resolved_validation_blocks = validated['validation_blocks'] if in_sample else None
 
-    return TensorMetricsValidationPlan(
+    return MetricsValidationPlan(
         metrics=metrics,
         metric_names=[str(metric) for metric in metrics],
         in_sample=in_sample,
@@ -154,11 +125,11 @@ def build_tensordata_metrics_validation_plan(
     )
 
 
-def build_tensordata_explain_plan(method: str, visualization: bool) -> TensorExplainExecutionPlan:
-    return TensorExplainExecutionPlan(method=method, visualization=visualization)
+def build_explain_plan(method: str, visualization: bool) -> ExplainExecutionPlan:
+    return ExplainExecutionPlan(method=method, visualization=visualization)
 
 
-def build_tune_execution_plan_tensordata(
+def build_tune_execution_plan(
     tensor_data: Optional[TensorData],
     train_data: TensorData,
     requested_cv_folds: Optional[int],

@@ -7,7 +7,7 @@ import torch
 from golem.core.log import default_log
 
 from fedot.api.api_utils.api_data_rules import (
-    build_tensordata_definition_plan,
+    build_definition_plan,
     iter_shared_index_assignments,
     normalize_features_for_definition,
     plan_fit_preprocessing,
@@ -16,8 +16,6 @@ from fedot.api.api_utils.api_data_rules import (
 )
 from fedot.api.api_utils.data_definition import data_strategy_selector, FeaturesType, TargetType
 from fedot.core.data.input_data.data import InputData, OutputData, data_type_is_table
-from fedot.core.data.bridges.input_to_tensor import input_data_to_tensordata
-from fedot.core.data.bridges.tensor_to_input import tensordata_to_input_data
 from fedot.core.data.common.enums import StateEnum
 from fedot.preprocessing.data_preprocessing import convert_into_column
 from fedot.core.data.multimodal.multi_modal import MultiModalData
@@ -63,7 +61,7 @@ class ApiDataProcessor:
 
         self.log = default_log(self)
 
-    def define_predictions_tensordata(self,
+    def define_predictions(self,
                                       current_pipeline: Union[Pipeline, PipelineEnsemble],
                                       test_data: TensorData,
                                       in_sample: bool = False,
@@ -85,7 +83,7 @@ class ApiDataProcessor:
         #     idx = test_data.idx[-prediction_plan.horizon:]
         #     return convert_forecast_to_output(test_data, forecast, idx=idx)
 
-        prediction = current_pipeline.predict_tensordata(test_data)
+        prediction = current_pipeline.predict(test_data)
         if prediction_plan.flatten_prediction:
             prediction.predict = torch.flatten(prediction.predict)
         return prediction
