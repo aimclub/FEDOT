@@ -227,7 +227,7 @@ class PipelineNode(LinkedGraphNode):
                 fold_id=fold_id,
                 descriptive_id=self.descriptive_id,
             )
-
+        # Update parameters after operation fitting (they can be corrected)
         if should_update_node_parameters(self.operation.operation_type, self.operation.metadata.tags):
             self.update_params()
         return operation_predict
