@@ -20,7 +20,6 @@ def test_backend_normalize_name_accepts_mps():
 @pytest.mark.unit
 def test_backend_normalize_name_prefers_cpu_over_gpu_aliases():
     assert Backend.normalize_name('cpu') == 'cpu'
-    assert Backend.is_gpu_name('cpu') is False
 
 
 @pytest.mark.unit
@@ -30,28 +29,28 @@ def test_backend_normalize_name_keeps_explicit_cuda_separate_from_generic_gpu():
 
 
 @pytest.mark.unit
-def test_backend_torch_device_for_name_maps_mps():
-    assert str(Backend.torch_device_for_name('mps')) == 'mps'
+def test_backend_resolve_name_maps_mps():
+    assert Backend.resolve_name('mps') == 'mps'
 
 
 @pytest.mark.unit
-def test_backend_torch_device_for_name_maps_cuda_device(monkeypatch):
+def test_backend_resolve_name_maps_cuda_device(monkeypatch):
     monkeypatch.setattr(Backend, 'is_cuda_stack_compatible', lambda: True)
-    assert str(Backend.torch_device_for_name('cuda:1')) == 'cuda:1'
+    assert Backend.resolve_name('cuda:1') == 'cuda:1'
 
 
 @pytest.mark.unit
-def test_backend_torch_device_for_name_resolves_generic_gpu_to_cuda_when_available(monkeypatch):
+def test_backend_resolve_name_resolves_generic_gpu_to_cuda_when_available(monkeypatch):
     monkeypatch.setattr(Backend, 'is_cuda_stack_compatible', lambda: True)
     monkeypatch.setattr(Backend, 'is_mps_compatible', lambda: True)
-    assert str(Backend.torch_device_for_name('gpu')) == 'cuda'
+    assert Backend.resolve_name('gpu') == 'gpu'
 
 
 @pytest.mark.unit
-def test_backend_torch_device_for_name_resolves_generic_gpu_to_mps_when_cuda_unavailable(monkeypatch):
+def test_backend_resolve_name_resolves_generic_gpu_to_mps_when_cuda_unavailable(monkeypatch):
     monkeypatch.setattr(Backend, 'is_cuda_stack_compatible', lambda: False)
     monkeypatch.setattr(Backend, 'is_mps_compatible', lambda: True)
-    assert str(Backend.torch_device_for_name('gpu')) == 'mps'
+    assert Backend.resolve_name('gpu') == 'mps'
 
 
 @pytest.mark.unit
@@ -80,7 +79,7 @@ def test_backend_detect_compatible_gpu_backend_raises_when_unavailable(monkeypat
 def test_backend_explicit_cuda_requires_cuda_stack(monkeypatch):
     monkeypatch.setattr(Backend, 'is_cuda_stack_compatible', lambda: False)
     with pytest.raises(RuntimeError, match='CUDA stack is not available'):
-        Backend.torch_device_for_name('cuda')
+        Backend.resolve_name('cuda')
 
 
 @pytest.mark.unit
