@@ -1,5 +1,6 @@
 import pytest
 
+from fedot.validation.errors import FedotValidationError
 from fedot.core.common.registry import Registry
 from fedot.core.data.tensor_data.rules import (
     DataReaderNotFoundError,
@@ -32,6 +33,8 @@ from fedot.core.repository.tasks import TaskTypesEnum
         ('cpu', 'cpu'),
         ('CPU', 'cpu'),
         (' gpu ', 'gpu'),
+        ('cuda', 'gpu'),
+        ('CUDA:1', 'cuda:1'),
     ],
 )
 def test_normalize_backend_name_accepts_supported_values(backend_name, expected):
@@ -208,7 +211,7 @@ def test_build_tabular_file_load_plan_normalizes_defaults_for_tsv(tmp_path):
 def test_build_tabular_file_load_plan_rejects_missing_file(tmp_path):
     missing_path = tmp_path / 'missing.csv'
 
-    with pytest.raises(ValueError, match='does not exist'):
+    with pytest.raises(FedotValidationError, match='does not exist'):
         build_tabular_file_load_plan(
             file_path=str(missing_path),
             delimiter=',',

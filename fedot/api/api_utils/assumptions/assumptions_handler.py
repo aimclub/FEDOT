@@ -10,17 +10,18 @@ from fedot.api.api_utils.assumptions.assumptions_handler_rules import (
     resolve_initial_assumption,
 )
 from fedot.api.api_utils.presets import change_preset_based_on_initial_fit
+from fedot.api.api_utils.schemas import raise_from_assumption_fit_error
 from fedot.api.time import ApiTime
 from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
-from fedot.core.data.input_data.data import InputData
-from fedot.core.data.split.data_split import train_test_data_setup
+from fedot.core.data.tensor_data import TensorData
+from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.utilities.memory import MemoryAnalytics
 
-
+# TODO @romankuklo: refactor this class
 class AssumptionsHandler:
-    def __init__(self, data: InputData):
+    def __init__(self, data: TensorData):
         """
         Class for handling operations related with assumptions
 
@@ -30,22 +31,13 @@ class AssumptionsHandler:
         self.log = default_log(self)
         self.data = data
 
-    def propose_assumptions(self,
-                            initial_assumption: Union[List[Pipeline], Pipeline, None],
-                            available_operations: List,
-                            use_input_preprocessing: bool = True) -> List[Pipeline]:
-        """
-        Method to propose initial assumptions if needed
-
-        Args:
-            initial_assumption: initial assumption given by user
-            available_operations: list of available operations defined by user
-            use_input_preprocessing: whether to do preprocessing of initial data
-
-        Returns:
-            list of initial assumption pipelines
-        """
-
+    def propose_assumptions(
+            self,
+            initial_assumption: Union[List[Pipeline], Pipeline, None],
+            available_operations: Optional[List] = None,
+            use_input_preprocessing: bool = False) -> List[Pipeline]:
+        """Return user-provided or automatically built initial assumptions for TensorData."""
+        use_input_preprocessing = False
         return resolve_initial_assumption(
             initial_assumption,
             builder=lambda: AssumptionsBuilder
@@ -54,13 +46,14 @@ class AssumptionsHandler:
             .build(use_input_preprocessing=use_input_preprocessing),
         )
 
-    def fit_assumption_and_check_correctness(self,
-                                             pipeline: Pipeline,
-                                             operations_cache: Optional[OperationsCache] = None,
-                                             preprocessing_cache: Optional[PreprocessingCache] = None,
-                                             eval_n_jobs: int = -1) -> Pipeline:
+    def fit_assumption_and_check_correctness(
+            self,
+            pipeline: Pipeline,
+            operations_cache: Optional[OperationsCache] = None,
+            preprocessing_cache: Optional[PreprocessingCache] = None,
+            eval_n_jobs: int = -1) -> Pipeline:
         """
-        Check if initial pipeline can be fitted on a presented data
+        Check if initial pipeline can be fitted on TensorData.
 
         :param pipeline: pipeline for checking
         :param operations_cache: Cache manager for fitted models, optional.
@@ -76,18 +69,19 @@ class AssumptionsHandler:
         if fit_result.is_left():
             fit_error = fit_result.monoid[0] if getattr(
                 fit_result, 'monoid', None) else fit_result.value
-            self._raise_evaluating_exception(fit_error)
+            raise_from_assumption_fit_error(fit_error)
         return fit_result.value
 
-    def try_fit_assumption(self,
-                           pipeline: Pipeline,
-                           operations_cache: Optional[OperationsCache] = None,
-                           preprocessing_cache: Optional[PreprocessingCache] = None,
-                           eval_n_jobs: int = -1):
+    def try_fit_assumption(
+            self,
+            pipeline: Pipeline,
+            operations_cache: Optional[OperationsCache] = None,
+            preprocessing_cache: Optional[PreprocessingCache] = None,
+            eval_n_jobs: int = -1):
         try:
-            data_train, data_test = train_test_data_setup(self.data)
+            data_source = DataSourceSplitter().build(self.data)
+            data_train, data_test = next(data_source())
             self.log.info('Initial pipeline fitting started')
-            # load preprocessing
             pipeline.try_load_from_cache(operations_cache, preprocessing_cache)
             pipeline.fit(data_train, n_jobs=eval_n_jobs)
 
@@ -108,11 +102,6 @@ class AssumptionsHandler:
             self.log.exception(
                 f'Initial pipeline fit was failed due to: {fit_error.cause}.')
             return Left(fit_error)
-
-    def _raise_evaluating_exception(self, fit_error):
-        message = getattr(fit_error, 'message', str(fit_error))
-        original_error = getattr(fit_error, 'exception', None)
-        raise ValueError(message) from original_error
 
     def propose_preset(self, preset: Union[str, None], timer: ApiTime, n_jobs: int) -> str:
         """

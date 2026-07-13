@@ -1,17 +1,21 @@
 from functools import partial
-from typing import Optional, Union
+from typing import Any, Generator, Optional, Union
 
 from golem.core.log import default_log
 
 from fedot.core.constants import default_data_split_ratio_by_task
 from fedot.core.data.input_data.data import InputData
-from fedot.core.data.split.data_split import train_test_data_setup, _are_stratification_allowed
+from fedot.core.data.split.data_split import (
+    train_test_data_setup,
+    train_test_tensor_data_setup,
+    _are_stratification_allowed,
+)
 from fedot.core.data.multimodal.multi_modal import MultiModalData
-from fedot.core.data.bridges.tensor_to_input import tensordata_to_input_data
-from fedot.core.optimisers.objective.data_objective_eval import DataSource
+from fedot.core.optimisers.objective.data_objective_eval import DataSource, TensorDataSource
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
 from fedot.core.data.split.cv_folds import cv_generator
+from fedot.core.data.tensor_data import TensorData
 
 
 class DataSourceSplitter:
@@ -48,66 +52,19 @@ class DataSourceSplitter:
         self.random_seed = random_seed
         self.log = default_log(self)
 
-    def build_tensordata(self, tensor_data) -> DataSource:
-        input_data = tensordata_to_input_data(tensor_data)
-        return self.build(input_data)
-
-    def build(self, data: Union[InputData, MultiModalData]) -> DataSource:
-        # define split_ratio
+    def build(self, tensor_data: TensorData) -> TensorDataSource:
+        # TODO @artemlunev: add native TensorData CV/stratification later.
         self.split_ratio = self.split_ratio or default_data_split_ratio_by_task[
-            data.task.task_type]
-
-        # Check cv_folds
-        if self.cv_folds is not None:
-            try:
-                self.cv_folds = int(self.cv_folds)
-            except ValueError:
-                raise ValueError(f"cv_folds is not integer: {self.cv_folds}")
-            if self.cv_folds < 2:
-                self.cv_folds = None
-            if self.cv_folds > data.target.shape[0] - 1:
-                raise ValueError((f"cv_folds ({self.cv_folds}) is greater than"
-                                  f" the maximum allowed count {data.target.shape[0] - 1}"))
-
-        # Calculate the number of validation blocks for timeseries forecasting
-        if data.task.task_type is TaskTypesEnum.ts_forecasting and self.validation_blocks is None:
-            self._propose_cv_folds_and_validation_blocks(data)
-
-        # Check split_ratio
-        if self.cv_folds is None and not (0 < self.split_ratio < 1):
+            tensor_data.task.task_type]
+        if not 0 < self.split_ratio < 1:
             raise ValueError(
                 f'split_ratio is {self.split_ratio} but should be between 0 and 1')
-
-        if self.stratify:
-            # check that stratification can be done
-            # for cross validation split ratio is defined as validation_size / all_data_size
-            split_ratio = self.split_ratio if self.cv_folds is None else (
-                1 - 1 / (self.cv_folds + 1))
-            self.stratify = _are_stratification_allowed(data, split_ratio)
-            if not self.stratify:
-                self.log.info("Stratificated splitting of data is disabled.")
-
-        # Stratification can not be done without shuffle
-        self.shuffle |= self.stratify
-
-        # Random seed depends on shuffle
-        self.random_seed = (self.random_seed or 42) if self.shuffle else None
-
-        # Split data
         if self.cv_folds is not None:
-            self.log.info("K-folds cross validation is applied.")
-            data_producer = partial(cv_generator,
-                                    data=data,
-                                    shuffle=self.shuffle,
-                                    cv_folds=self.cv_folds,
-                                    random_seed=self.random_seed,
-                                    stratify=self.stratify,
-                                    validation_blocks=self.validation_blocks)
-        else:
-            self.log.info("Hold out validation is applied.")
-            data_producer = self._build_holdout_producer(data)
+            self.log.info('TensorData splitter currently uses hold-out validation; cv_folds is ignored.')
 
-        return data_producer
+        train_data, test_data = train_test_tensor_data_setup(
+            tensor_data, split_ratio=self.split_ratio)
+        return partial(DataSourceSplitter._data_producer, train_data, test_data)
 
     @staticmethod
     def _data_producer(train_data: InputData, test_data: InputData):

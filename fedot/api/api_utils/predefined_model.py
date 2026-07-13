@@ -68,7 +68,4 @@ class PredefinedModel:
         return self.pipeline
 
     def fit(self):
-        return self._fit_pipeline('fit', 'Predefined model fit was failed')
-
-    def fit_tensordata(self):
-        return self._fit_pipeline('fit_tensordata', 'Predefined TensorData model fit was failed')
+        return self._fit_pipeline('fit', 'Predefined TensorData model fit was failed')

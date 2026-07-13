@@ -114,7 +114,6 @@ def read_arff_file(file_path: PathType) -> Tuple[np.ndarray, Optional[List[str]]
           name list).
     """
     xp = Backend().xp
-    backend_name = Backend().name
 
     data, meta = loadarff(file_path)
 
@@ -126,7 +125,7 @@ def read_arff_file(file_path: PathType) -> Tuple[np.ndarray, Optional[List[str]]
 
     features = convert_bytes(data_array)
 
-    if backend_name == "gpu":
+    if xp.__name__ == 'cupy':
         features = xp.asarray(features)
 
     return features, field_names

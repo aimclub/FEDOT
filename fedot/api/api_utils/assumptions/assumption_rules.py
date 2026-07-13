@@ -37,6 +37,7 @@ def normalize_assumption_data_type(data_type: DataTypesEnum) -> DataTypesEnum:
 
 
 def default_repository_name_for_data(data) -> str:
+    # TODO @romankuklo: delete multi_ts?
     if data.data_type == DataTypesEnum.multi_ts:
         return RepositoryKind.all.value
     return RepositoryKind.model.value

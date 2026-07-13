@@ -1,6 +1,8 @@
+from dataclasses import replace
 from typing import List, Iterable, Union, Optional
 
 import numpy as np
+import torch
 
 from golem.core.log import default_log
 from golem.utilities.data_structures import are_same_length
@@ -8,6 +10,8 @@ from golem.utilities.data_structures import are_same_length
 from fedot.core.data.common.array_utils import find_common_elements, atleast_2d, atleast_4d, flatten_extra_dim
 from fedot.core.data.input_data.data import OutputData, InputData
 from fedot.core.data.merge.supplementary_data_merger import SupplementaryDataMerger
+from fedot.core.data.schemas import validate_tensor_data_merge_data_type
+from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 
@@ -155,6 +159,121 @@ class DataMerger:
             i_priority_secondary = np.argmin(flow_lengths)
             priority_output = outputs[i_priority_secondary]
         return priority_output
+
+
+class TensorDataMerger:
+    """
+    Merges TensorData objects from parent nodes into a TensorData for the next node.
+
+    TensorData runtime has no TensorOutputData, so parent outputs are merged by
+    their ``features`` field. The resulting container keeps the metadata from the
+    first parent and clears ``predict`` so only final model predictions are stored
+    in ``predict``.
+    """
+
+    def __init__(self, outputs: List[TensorData]):
+        if not outputs:
+            raise ValueError('No TensorData outputs to merge')
+        self.outputs = outputs
+        self.main_output = self._find_main_output(outputs)
+        self.data_type = DataMerger.get_datatype_for_merge(
+            output.data_type for output in outputs)
+        validate_tensor_data_merge_data_type(self.data_type)
+        self.common_indices = self._find_common_indices()
+
+    def merge(self) -> TensorData:
+        merged_features = self.merge_features(self.find_common_features())
+
+        return replace(
+            self.main_output,
+            idx=self.common_indices,
+            features=merged_features,
+            target=self.merge_target(),
+            predict=None,
+        )
+
+    def _find_common_indices(self):
+        idx_list = [output.idx for output in self.outputs]
+        if any(idx is None for idx in idx_list):
+            self._check_equal_rows([output.features for output in self.outputs])
+            return self.main_output.idx
+
+        common_indices = find_common_elements(*[np.asarray(idx) for idx in idx_list])
+        if len(common_indices) == 0:
+            raise ValueError('There are no common indices for TensorData outputs')
+        return common_indices
+
+    def find_common_features(self) -> List[torch.Tensor]:
+        features = [
+            self._select_common(output, output.features)
+            for output in self.outputs
+        ]
+        self._check_equal_rows(features)
+        return self._normalize_feature_shapes(features)
+
+    def merge_target(self) -> Optional[torch.Tensor]:
+        target = self.main_output.target
+        if target is None:
+            return None
+        if self.main_output.idx is None or len(self.main_output.idx) != len(target):
+            return target
+        return self._select_common(self.main_output, target)
+
+    @staticmethod
+    def merge_features(features: List[torch.Tensor]) -> torch.Tensor:
+        return torch.cat(features, dim=-1)
+
+    def _select_common(self, output: TensorData, tensor: torch.Tensor) -> torch.Tensor:
+        if self.common_indices is None or output.idx is None:
+            return tensor
+        index_mask = np.isin(np.asarray(output.idx), self.common_indices)
+        tensor_mask = torch.as_tensor(index_mask, dtype=torch.bool, device=tensor.device)
+        return tensor[tensor_mask]
+
+    @staticmethod
+    def _check_equal_rows(tensors: List[torch.Tensor]):
+        row_counts = [tensor.shape[0] for tensor in tensors]
+        if len(set(row_counts)) != 1:
+            raise ValueError(
+                f"Can't merge TensorData objects with different row counts: {row_counts}")
+
+    @staticmethod
+    def _normalize_feature_shapes(features: List[torch.Tensor]) -> List[torch.Tensor]:
+        """Normalize TensorData branch outputs before concatenation.
+
+        Contract:
+        - all tensors must have equal sample count in dim 0 (validated earlier);
+        - 1D tensors are promoted to 2D as ``[n_samples, 1]``;
+        - if branch shapes are incompatible for ``torch.cat(..., dim=-1)``,
+          tensors are flattened to ``[n_samples, -1]``.
+        """
+        normalized = [TensorDataMerger._atleast_2d_tensor(tensor) for tensor in features]
+        if TensorDataMerger._can_cat_by_last_axis(normalized):
+            return normalized
+        return [tensor.reshape(tensor.shape[0], -1) for tensor in normalized]
+
+    @staticmethod
+    def _atleast_2d_tensor(tensor: torch.Tensor) -> torch.Tensor:
+        while tensor.ndim < 2:
+            tensor = tensor.unsqueeze(-1)
+        return tensor
+
+    @staticmethod
+    def _can_cat_by_last_axis(features: List[torch.Tensor]) -> bool:
+        if not features:
+            return True
+        base_shape = features[0].shape[:-1]
+        return all(tensor.shape[:-1] == base_shape for tensor in features[1:])
+
+    @staticmethod
+    def _find_main_output(outputs: List[TensorData]) -> TensorData:
+        """Choose branch metadata holder for merged TensorData.
+
+        TensorData runtime has no SupplementaryData, so main output selection
+        falls back to the first branch with available target. If all targets are
+        absent, the first branch is used.
+        """
+        return next((output for output in outputs if output.target is not None), outputs[0])
 
 
 class ImageDataMerger(DataMerger):

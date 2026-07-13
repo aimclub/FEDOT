@@ -1,7 +1,10 @@
 ﻿import numpy as np
+import pytest
+import torch
 
 from fedot.api.api_utils.input_analyser import InputAnalyser
 from fedot.core.data.input_data.data import InputData
+from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -59,3 +62,97 @@ def test_input_analyser_control_helpers_delegate_to_rules():
     assert is_cut_needed is True
     assert border == 2
     assert analyser.control_categorical(input_data) is True
+
+
+def test_input_analyser_tensor_data_uses_only_meta_rule_recommendations(monkeypatch):
+    captured = {}
+
+    def fake_collect_meta_rule_recommendations(**kwargs):
+        captured['input_data'] = kwargs['input_data']
+        captured['input_params'] = kwargs['input_params']
+        return {'cv_folds': 3}
+
+    monkeypatch.setattr(
+        'fedot.api.api_utils.input_analyser.collect_meta_rule_recommendations',
+        fake_collect_meta_rule_recommendations,
+    )
+
+    tensor_data = TensorData(
+        task=Task(TaskTypesEnum.classification),
+        data_type=DataTypesEnum.tabular,
+        features=np.zeros((1000, 3)),
+    )
+    analyser = InputAnalyser(safe_mode=True)
+
+    data_recommendations, params_recommendations = analyser.give_recommendations(
+        tensor_data,
+        input_params={'use_meta_rules': True},
+    )
+
+    assert captured['input_data'] is tensor_data
+    assert captured['input_params'] == {'use_meta_rules': True}
+    assert data_recommendations is None
+    assert params_recommendations == {'cv_folds': 3}
+
+
+def _make_tensor_data(features: torch.Tensor) -> TensorData:
+    return TensorData(
+        task=Task(TaskTypesEnum.classification),
+        data_type=DataTypesEnum.tabular,
+        features=features,
+    )
+
+
+def _capture_warnings():
+    warnings = []
+
+    def capture_warning(message, *args):
+        warnings.append(message % args if args else message)
+
+    return warnings, capture_warning
+
+
+@pytest.mark.parametrize('shape', [(5, 3), (2, 4, 3)])
+def test_warn_if_large_tensor_without_sampling_emits_warning(shape):
+    analyser = InputAnalyser(safe_mode=False)
+    analyser.max_size = 10
+    warnings, capture_warning = _capture_warnings()
+    analyser._log.warning = capture_warning
+
+    features = torch.zeros(shape)
+    analyser.warn_if_large_tensor_without_sampling(
+        _make_tensor_data(features),
+        sampling_config_present=False,
+    )
+
+    assert len(warnings) == 1
+    assert str(features.numel()) in warnings[0]
+    assert 'sampling is not configured' in warnings[0]
+
+
+def test_warn_if_large_tensor_without_sampling_skips_when_sampling_configured():
+    analyser = InputAnalyser(safe_mode=False)
+    analyser.max_size = 10
+    warnings, capture_warning = _capture_warnings()
+    analyser._log.warning = capture_warning
+
+    analyser.warn_if_large_tensor_without_sampling(
+        _make_tensor_data(torch.zeros(5, 3)),
+        sampling_config_present=True,
+    )
+
+    assert warnings == []
+
+
+def test_warn_if_large_tensor_without_sampling_skips_for_small_tensor():
+    analyser = InputAnalyser(safe_mode=False)
+    analyser.max_size = 10
+    warnings, capture_warning = _capture_warnings()
+    analyser._log.warning = capture_warning
+
+    analyser.warn_if_large_tensor_without_sampling(
+        _make_tensor_data(torch.zeros(2, 3)),
+        sampling_config_present=False,
+    )
+
+    assert warnings == []

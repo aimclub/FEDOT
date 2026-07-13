@@ -117,7 +117,7 @@ def replace_missing_with_np_nan(arr: ArrayType) -> ArrayType:
     """
     Replace missing values with `NaN` and normalize dtype for CPU backends.
 
-    For GPU backend (`backend.name == "gpu"`) this function returns `arr` unchanged.
+    For the CUDA stack (`cupy` / `cudf` backend) this function returns `arr` unchanged.
     For CPU it attempts to:
     - Cast numeric dtypes to float32.
     - For object dtype, treat `None` and pandas/cudf missing values as `xp.nan`.
@@ -134,9 +134,8 @@ def replace_missing_with_np_nan(arr: ArrayType) -> ArrayType:
 
     xp = Backend().xp
     pd_backend = Backend().pd
-    backend_name = Backend().name
 
-    if backend_name == "gpu":
+    if xp.__name__ == 'cupy':
         return arr
 
     try:

@@ -1,5 +1,5 @@
 import torch
-from typing import Optional, Dict, List
+from typing import Dict, List, Optional, Sequence
 
 from fedot.core.backend.backend import Backend
 from fedot.core.data.common.types import ArrayType, IndexType
@@ -10,10 +10,11 @@ from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStep,
 from fedot.core.data.tensor_data.tools import get_idx_from_features_names, convert_idx_to_list
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.preprocessing.planner.planner import PreprocessingPlan
+from fedot.preprocessing.planner.auto_create_step import auto_encoding_steps
 
 
-def get_embedding_steps(parameters: Optional[List],
-                        features_names: Optional[List[str]] = None,
+def get_embedding_steps(parameters: Optional[Sequence[Dict]],
+                        features_names: Optional[Sequence[str]] = None,
                         feature_type: Optional[DataTypesEnum] = None) -> PreprocessingStep:
     """Build embedding preprocessing steps from embedding strategy config.
 
@@ -130,7 +131,7 @@ def force_categorical_determination(table: ArrayType) -> IndexType:
 
 def preprocess_encoding_params(params: Dict,
                                features: ArrayType,
-                               features_names: Optional[List[str]]
+                               features_names: Optional[Sequence[str]]
                                ) -> PreprocessingStep:
     """Normalize encoding config and convert feature selectors to indices.
 
@@ -174,15 +175,15 @@ def preprocess_encoding_params(params: Dict,
 
 
 def get_encoding_steps(features: ArrayType,
-                       parameters: Optional[List],
-                       features_names: Optional[List[str]] = None,
+                       parameters: Optional[Sequence[Optional[Dict]]] = None,
+                       features_names: Optional[Sequence[str]] = None,
                        feature_type: Optional[DataTypesEnum] = None,
-                       used_idx: Optional[List[int]] = None) -> List[PreprocessingStep]:
+                       used_idx: Optional[Sequence[int]] = None) -> List[PreprocessingStep]:
     """Build encoding steps for all categorical columns not used by prior steps.
 
     Args:
         features: Feature matrix used for categorical detection.
-        parameters: User encoding strategy list, or `None` for default encoding.
+        parameters: User encoding strategy configs, or `None` for default encoding.
         features_names: Optional feature names for name-to-index conversion.
         feature_type: Input data type; encoding is skipped for time series.
         used_idx: Feature indices already consumed by previous preprocessing
@@ -195,24 +196,23 @@ def get_encoding_steps(features: ArrayType,
     if feature_type == DataTypesEnum.ts:
         return None
 
-    if parameters is None:
-        parameters = list()
-    parameters.append(None)
+    encoding_parameters = () if parameters is None else tuple(parameters)
+    consumed_idx = list(used_idx) if used_idx is not None else []
 
-    if len(parameters) > 2:
+    if len(encoding_parameters) > 1:
         features_idx_detected = all(
             param.get("features_idx") is not None
-            for param in parameters
+            for param in encoding_parameters
             if param is not None
         )
-        if (not features_idx_detected or features_idx_detected is None) and len(parameters) > 1:
+        if not features_idx_detected or features_idx_detected is None:
             raise ValueError(
                 "More than one encoding step should have features_idx parameter")
 
     cat_idx = force_categorical_determination(features)
     steps = []
-    for param in parameters:
-        remainder_idx = list(set(cat_idx) - set(used_idx))
+    for param in encoding_parameters:
+        remainder_idx = tuple(idx for idx in cat_idx if idx not in consumed_idx)
 
         DEFAULT_PARAMS = {
             "method": EncodingMethodEnum.label,
@@ -235,9 +235,17 @@ def get_encoding_steps(features: ArrayType,
                 method=params["method"],
                 features_idx=features_idx,
             )
-            used_idx.extend(features_idx)
+            consumed_idx.extend(features_idx)
 
         steps.append(step)
+
+    remainder_idx = tuple(idx for idx in cat_idx if idx not in consumed_idx)
+    auto_steps = auto_encoding_steps(features, remainder_idx)
+    if len(auto_steps) > 0:
+        steps.extend(auto_steps)
+        for step in auto_steps:
+            consumed_idx.extend(step.features_idx)
+
     return steps
 
 
@@ -334,15 +342,15 @@ def check_idx(steps: List[PreprocessingStep], new_steps: List[PreprocessingStep]
     Raises:
         ValueError: If any feature index is reused across steps.
     """
-    old_idx = [idx for step in steps for idx in step.features_idx]
+    old_idx = tuple(idx for step in steps for idx in step.features_idx)
 
     new_idx = set()
     for step in new_steps:
-        if len(new_idx.intersection(set(step.features_idx))) != 0:
+        if new_idx.intersection(step.features_idx):
             raise ValueError("Features idx should be unique")
-        new_idx.update(set(step.features_idx))
+        new_idx.update(step.features_idx)
 
-    if len(new_idx.intersection(set(old_idx))) != 0:
+    if new_idx.intersection(old_idx):
         raise ValueError("Features idx should be unique")
 
 
@@ -372,7 +380,8 @@ def add_steps(steps: List[PreprocessingStep], new_steps: List[PreprocessingStep]
     return steps
 
 
-def get_custom_steps(parameters: List, features_names: Optional[List[str]] = None) -> List[PreprocessingStep]:
+def get_custom_steps(parameters: Optional[Sequence[Dict]],
+                     features_names: Optional[Sequence[str]] = None) -> List[PreprocessingStep]:
     """Build custom preprocessing steps from user-defined strategy.
 
     Args:
@@ -440,7 +449,7 @@ def build_obligatory_plan(features: ArrayType,
         params['data_type'])
     steps = add_steps(steps, embedding_steps)
 
-    used_idx = [idx for step in steps for idx in step.features_idx]
+    used_idx = tuple(idx for step in steps for idx in step.features_idx)
     encoding_steps = get_encoding_steps(
         features,
         params['encoding_strategy'],

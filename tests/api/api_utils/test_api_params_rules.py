@@ -1,5 +1,6 @@
 ﻿import pytest
 
+from fedot.validation.errors import FedotValidationError
 from fedot.api.api_utils.api_params_rules import (
     build_label_encoded_preset_name,
     merge_param_recommendations,
@@ -21,7 +22,7 @@ def test_resolve_task_adds_default_ts_params_and_warning():
 
 
 def test_resolve_task_rejects_unknown_problem():
-    with pytest.raises(ValueError, match='Wrong type name of the given task'):
+    with pytest.raises(FedotValidationError, match='Wrong type name of the given task'):
         resolve_task('clustering', None)
 
 
@@ -36,10 +37,10 @@ def test_normalize_timeout_and_generations_handles_infinite_and_default_cases():
 
 
 def test_normalize_timeout_and_generations_rejects_invalid_values():
-    with pytest.raises(ValueError, match='num_of_generations'):
+    with pytest.raises(FedotValidationError, match='num_of_generations'):
         normalize_timeout_and_generations(None, None)
 
-    with pytest.raises(ValueError, match='invalid "timeout" value'):
+    with pytest.raises(FedotValidationError, match='invalid "timeout" value'):
         normalize_timeout_and_generations(0, 5)
 
 
