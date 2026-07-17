@@ -47,7 +47,8 @@ def plot_forecast(data: [InputData, MultiModalData], prediction: OutputData, in_
     first_idx = pred_start - padding
 
     plt.plot(np.arange(pred_start, pred_start + len(predict)),
-             predict, label='Predicted', c='blue')
+             predict, label='Predicted', c='blue',
+             marker='o' if len(predict) == 1 else None)
     plt.plot(np.arange(first_idx, len(actual_time_series)),
              actual_time_series[first_idx:], label='Actual values', c='green')
 
