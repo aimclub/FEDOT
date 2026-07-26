@@ -472,7 +472,7 @@ class ImputationImplementation(DataOperationImplementation):
             filled_column = filled_numerical_features[:, bin_id]
             min_value = self.ids_binary_integer_features[bin_id]['min']
             max_value = self.ids_binary_integer_features[bin_id]['max']
-            mean_value = (max_value - min_value) / 2
+            mean_value = (max_value + min_value) / 2
 
             filled_column[filled_column > mean_value] = max_value
             filled_column[filled_column < mean_value] = min_value
