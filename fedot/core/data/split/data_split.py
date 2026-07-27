@@ -1,11 +1,14 @@
 from copy import deepcopy
+from dataclasses import replace
 from typing import Tuple, Optional, Union
 
 import numpy as np
+import torch
 from sklearn.model_selection import train_test_split
 
 from fedot.core.data.input_data.data import InputData
 from fedot.core.data.multimodal.multi_modal import MultiModalData
+from fedot.core.data.tensor_data import TensorData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 
@@ -60,6 +63,58 @@ def _split_input_data_by_indexes(origin_input_data: Union[InputData, MultiModalD
         return data
     else:
         raise TypeError(f'Unknown data type {type(origin_input_data)}')
+
+
+def _take_tensor_data_value(value, index: torch.Tensor):
+    if value is None:
+        return None
+    max_index = int(index.max().item()) if len(index) else -1
+    if isinstance(value, torch.Tensor):
+        if value.ndim == 0 or value.shape[0] <= max_index:
+            return value.clone()
+        return value.index_select(0, index.to(value.device))
+    if isinstance(value, np.ndarray):
+        if value.ndim == 0 or value.shape[0] <= max_index:
+            return value.copy()
+        return np.take(value, index.cpu().numpy(), axis=0)
+    try:
+        if len(value) <= max_index:
+            return deepcopy(value)
+        return [value[int(i)] for i in index.cpu().tolist()]
+    except (TypeError, IndexError):
+        return deepcopy(value)
+
+
+def _split_tensor_data_by_indexes(origin_tensor_data: TensorData, index: torch.Tensor) -> TensorData:
+    """Return TensorData with sample-wise tensor fields sliced by first dimension."""
+    return replace(
+        origin_tensor_data,
+        idx=_take_tensor_data_value(origin_tensor_data.idx, index),
+        features=_take_tensor_data_value(origin_tensor_data.features, index),
+        target=_take_tensor_data_value(origin_tensor_data.target, index),
+        predict=_take_tensor_data_value(origin_tensor_data.predict, index),
+        categorical_idx=deepcopy(origin_tensor_data.categorical_idx),
+        numerical_idx=deepcopy(origin_tensor_data.numerical_idx),
+        features_names=deepcopy(origin_tensor_data.features_names),
+        idx_mapping=deepcopy(origin_tensor_data.idx_mapping),
+        dataloader_kwargs=deepcopy(origin_tensor_data.dataloader_kwargs),
+    )
+
+
+def train_test_tensor_data_setup(tensor_data: TensorData,
+                                 split_ratio: float = 0.8) -> Tuple[TensorData, TensorData]:
+    """Minimal sequential hold-out split for TensorData."""
+    samples_count = tensor_data.target.shape[0] if tensor_data.target is not None else tensor_data.features.shape[0]
+    train_size = int(samples_count * split_ratio)
+    if not 0 < train_size < samples_count:
+        raise ValueError(
+            f'split_ratio is {split_ratio} but should produce non-empty train and test parts')
+
+    train_index = torch.arange(0, train_size)
+    test_index = torch.arange(train_size, samples_count)
+    train_data = _split_tensor_data_by_indexes(tensor_data, train_index)
+    test_data = _split_tensor_data_by_indexes(tensor_data, test_index)
+    return train_data, test_data
 
 
 def _split_time_series(data: InputData,

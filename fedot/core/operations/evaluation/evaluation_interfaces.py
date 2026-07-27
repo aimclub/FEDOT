@@ -1,5 +1,6 @@
 import warnings
 from abc import abstractmethod
+from dataclasses import replace
 from typing import Optional
 
 import numpy as np
@@ -28,6 +29,7 @@ from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
 
 from fedot.core.data.input_data.data import InputData, OutputData
+from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operation_type_from_id
@@ -85,6 +87,7 @@ class EvaluationStrategy:
         raise AbstractMethodNotImplementError
 
     def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
+
         """Method to predict the target data for fit stage.
         Allows to implement predict method different from main predict method
         if another behaviour for fit graph stage is needed.
@@ -134,6 +137,16 @@ class EvaluationStrategy:
             converted = prediction
 
         return converted
+
+    @staticmethod
+    def _replace_predict_in_tensor_data(prediction, predict_data: TensorData) -> TensorData:
+        """Attach model prediction to TensorData, analogous to OutputData wrapping."""
+        return replace(predict_data, predict=prediction)
+
+    @staticmethod
+    def _replace_features_in_tensor_data(features, tensor_data: TensorData) -> TensorData:
+        """Attach transformed features to TensorData and keep predict empty."""
+        return replace(tensor_data, features=features, predict=None)
 
 
 class SkLearnEvaluationStrategy(EvaluationStrategy):

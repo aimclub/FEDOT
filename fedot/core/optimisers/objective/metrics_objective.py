@@ -3,6 +3,7 @@ from typing import Union, Iterable
 from golem.core.optimisers.objective import Objective
 from golem.utilities.data_structures import ensure_wrapped_in_sequence
 
+from fedot.core.optimisers.schemas import validate_registered_metric
 from fedot.core.repository.metrics_repository import MetricIDType, MetricsRepository, ComplexityMetricsEnum
 
 
@@ -25,6 +26,6 @@ class MetricsObjective(Objective):
                     else:
                         quality_metrics[metric] = metric_func
                 else:
-                    raise ValueError(f'Incorrect metric {metric}')
+                    validate_registered_metric(metric)
 
         super().__init__(quality_metrics, complexity_metrics, is_multi_objective)

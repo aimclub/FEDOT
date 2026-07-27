@@ -3,8 +3,11 @@ requires = ["setuptools>=61", "wheel"]
 build-backend = "setuptools.build_meta"
 
 # PEP 735 dependency groups (see https://peps.python.org/pep-0735/ ).
-# Install with uv, e.g.: uv sync --group sampling-zoo --group gpu
+# Validation (Marshmallow): uv pip install --group validation
+# Full runtime deps: uv pip install -r requirements.txt  (or pip install -e .)
+# Optional extras: uv pip install --group sampling-zoo --group gpu
 [dependency-groups]
+validation = ["marshmallow>=3.20,<4"]
 sampling-zoo = ["sampling-zoo>=0.1.0"]
 # CUDA 12.x stack for Backend("gpu") and GPU tests (CuPy + cuDF).
 gpu = [

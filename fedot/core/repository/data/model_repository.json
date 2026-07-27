@@ -54,6 +54,25 @@
       ],
       "tasks": "[TaskTypesEnum.classification]"
     },
+    "simple_class": {
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "Lightweight classification models for TensorData runtime",
+      "forbidden_node_types": "[]",
+      "input_type": "[DataTypesEnum.tabular]",
+      "output_type": "[DataTypesEnum.tabular]",
+      "strategies": [
+        "fedot.core.operations.evaluation.simple_classification",
+        "SimpleClassificationStrategy"
+      ],
+      "tags": [
+        "ml",
+        "torch",
+        "neural"
+      ],
+      "tasks": "[TaskTypesEnum.classification]"
+    },
     "sklearn_clust": {
       "accepted_node_types": [
         "any"
@@ -414,6 +433,17 @@
         "simple",
         "linear",
         "interpretable",
+        "non_multi"
+      ]
+    },
+    "torch_linear": {
+      "meta": "simple_class",
+      "presets": ["fast_train"],
+      "tags": [
+        "simple",
+        "linear",
+        "neural",
+        "torch",
         "non_multi"
       ]
     },

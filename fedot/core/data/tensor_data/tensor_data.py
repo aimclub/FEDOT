@@ -39,7 +39,7 @@ class TensorData:
             pipeline is fitted or reused for transform-like processing.
         idx: Sample or feature index metadata. During current creator preprocessing
             it is initialized from the final feature tensor width.
-        features: Prepared feature tensor. Raw arrays/dataframes/files are read by
+        features: Prepared feature tensor. This field is required. Raw arrays/dataframes/files are read by
             `DataReader`, cleaned, optionally reshaped for time series, transformed
             by obligatory services, converted to `torch.Tensor`, and finally moved
             to the selected backend device.
@@ -88,10 +88,10 @@ class TensorData:
     """
     task: Union[Task, str]
     data_type: Union[DataTypesEnum, str]
+    features: torch.Tensor
 
     state: Union[str, StateEnum] = StateEnum.FIT
     idx: IndexType = None
-    features: Optional[torch.Tensor] = None
     target: Optional[torch.Tensor] = None
     predict: TensorLike = None
     target_idx: IndexType = None

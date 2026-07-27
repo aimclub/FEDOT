@@ -16,21 +16,6 @@ class PipelinePostprocessPlan:
     should_flatten_prediction: bool
 
 
-@dataclass(frozen=True)
-class PipelineTensorRuntimePlan:
-    state: StateEnum
-    index_method_name: str
-    should_update_time_series_indices: bool
-
-
-def build_pipeline_tensordata_runtime_plan(is_fit_stage: bool) -> PipelineTensorRuntimePlan:
-    return PipelineTensorRuntimePlan(
-        state=StateEnum.FIT if is_fit_stage else StateEnum.PREDICT,
-        index_method_name='convert_indexes_for_fit' if is_fit_stage else 'convert_indexes_for_predict',
-        should_update_time_series_indices=not is_fit_stage,
-    )
-
-
 def build_pipeline_preprocess_plan(is_fit_stage: bool, is_input_auto_preprocessed: bool) -> PipelinePreprocessPlan:
     return PipelinePreprocessPlan(
         should_preprocess=not is_input_auto_preprocessed,

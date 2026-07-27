@@ -1,6 +1,7 @@
 ﻿import datetime
 from collections import UserDict
 from copy import deepcopy, copy
+from dataclasses import dataclass
 from typing import Any, Dict, Optional, Union
 
 from golem.core.log import LoggerAdapter, default_log
@@ -8,6 +9,7 @@ from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.optimizer import GraphGenerationParams
 from golem.utilities.utilities import determine_n_jobs
 
+from fedot.api.api_utils.api_data_rules import TensorDataCreationRequest
 from fedot.api.api_utils.api_params_repository import ApiParamsRepository
 from fedot.api.api_utils.api_params_rules import (
     build_label_encoded_preset_name,
@@ -17,6 +19,9 @@ from fedot.api.api_utils.api_params_rules import (
     should_update_available_operations,
 )
 from fedot.api.api_utils.presets import OperationsPreset
+from fedot.api.api_utils.schemas import validate_creation_trace
+from fedot.api.api_utils.tensor_data_config import resolve_tensor_data_config
+from fedot.core.data.common.enums import StateEnum
 from fedot.core.data.input_data.data import InputData
 from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.pipelines.adapters import PipelineAdapter
@@ -27,6 +32,8 @@ from fedot.core.pipelines.verification import rules_by_task
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TaskParams
+from fedot.core.data.tensor_data.tensor_data import TensorData
+from fedot.validation.context import ValidationContext
 
 
 class ApiParams(UserDict):
@@ -34,7 +41,8 @@ class ApiParams(UserDict):
     def __init__(self, input_params: Dict[str, Any], problem: str, task_params: Optional[TaskParams] = None,
                  n_jobs: int = -1, timeout: float = 5, seed=None):
         self.log: LoggerAdapter = default_log(self)
-        task_resolution = resolve_task(problem, task_params)
+        self._validation_context = ValidationContext(logger=self.log)
+        task_resolution = resolve_task(problem, task_params, context=self._validation_context)
         if task_resolution.warning_message:
             self.log.warning(task_resolution.warning_message)
         self.task: Task = task_resolution.task
@@ -42,26 +50,63 @@ class ApiParams(UserDict):
         self.timeout = timeout
 
         self._params_repository = ApiParamsRepository(self.task.task_type)
-        parameters: dict = self._params_repository.check_and_set_default_params(
-            input_params)
+
+        parameters: dict = self._params_repository.apply_default_params(
+            input_params, context=self._validation_context)
+
         parameters['seed'] = seed
         super().__init__(parameters)
         self._check_timeout_vs_generations()
+
+        self.tensor_data_config = resolve_tensor_data_config(
+            self.get('tensor_data_config'),
+            use_preprocessing_cache=self.get('use_preprocessing_cache', True),
+        )
 
         self.composer_requirements = None
         self.graph_generation_params = None
         self.optimizer_params = None
 
-    def update_available_operations_by_preset(self, data: InputData):
+    # TODO @romankuklo: use it when TDCreator will be in API
+    def prepare_creation(
+        self,
+        *,
+        target=None,
+        is_predict: bool = False,
+        trace_uuid: Optional[str] = None,
+    ) -> TensorDataCreationRequest:
+        config = dict(self.tensor_data_config)
+        backend_name = config.pop('backend_name', 'cpu')
+        config.pop('optional_strategy', None)
+
+        spec_kwargs = {
+            **config,
+            'task': self.task,
+            'state': StateEnum.PREDICT if is_predict else StateEnum.FIT,
+        }
+        validate_creation_trace(is_predict=is_predict, trace_uuid=trace_uuid)
+        if is_predict:
+            if trace_uuid is not None:
+                spec_kwargs['trace_uuid'] = trace_uuid
+        else:
+            if target is not None:
+                spec_kwargs['target'] = target
+
+        return TensorDataCreationRequest(backend_name=backend_name, spec_kwargs=spec_kwargs)
+
+    def update_available_operations_by_preset(self, data: Union[InputData, TensorData]):
         """ Updates available_operations by preset and data type"""
+        # TODO romankuklo: update presets according to backend (cpu/gpu)
         preset = self.get('preset')
         if should_update_available_operations(preset):
             preset_operations = OperationsPreset(
                 task=self.task, preset_name=preset)
+            # TODO romankuklo: create a new data_operation_repository.json for TD
             self.data = preset_operations.composer_params_based_on_preset(
                 self.data, data.data_type)
 
-    def accept_and_apply_recommendations(self, input_data: Union[InputData, MultiModalData], recommendations: Dict):
+    def accept_and_apply_recommendations(self, input_data: Union[InputData, MultiModalData, TensorData],
+                                         recommendations: Dict):
         """
         Accepts recommendations for api params from DataAnalyser
 
@@ -102,7 +147,7 @@ class ApiParams(UserDict):
 
     def _check_timeout_vs_generations(self):
         timeout_resolution = normalize_timeout_and_generations(
-            self.timeout, self.get('num_of_generations'))
+            self.timeout, self.get('num_of_generations'), context=self._validation_context)
         self.timeout = timeout_resolution.timeout
         self['num_of_generations'] = timeout_resolution.num_of_generations
 

@@ -19,11 +19,12 @@ from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.utilities.custom_errors import AbstractMethodNotImplementError
+from fedot.core.data.tensor_data import TensorData
 
 
 class AssumptionsBuilder:
 
-    def __init__(self, data: Union[InputData, MultiModalData], repository_name: str = 'model'):
+    def __init__(self, data: TensorData, repository_name: str = 'model'):
         self.logger = default_log(prefix='FEDOT logger')
         self.data = data
         self.repo = OperationTypesRepository(repository_name)
@@ -31,17 +32,13 @@ class AssumptionsBuilder:
             self.data.task, self.repo)
 
     @staticmethod
-    def get(data: Union[InputData, MultiModalData], repository_name: Optional[str] = None):
+    def get(data: TensorData, repository_name: Optional[str] = None):
         if not repository_name:
             repository_name = default_repository_name_for_data(data)
 
-        if isinstance(data, InputData):
-            cls = UniModalAssumptionsBuilder
-        elif isinstance(data, MultiModalData):
-            cls = MultiModalAssumptionsBuilder
-        else:
-            raise NotImplementedError(
-                f"Can't build assumptions for data type: {type(data).__name__}")
+        cls = UniModalAssumptionsBuilder
+        # TODO @romankuklo: add MultiModalAssumptionsBuilder
+
         return cls(data, repository_name=repository_name)
 
     @abstractmethod
@@ -64,7 +61,7 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
     UNSUITABLE_AVAILABLE_OPERATIONS_MSG = "Unable to construct an initial assumption from the passed " \
                                           "available operations, default initial assumption will be used"
 
-    def __init__(self, data: Union[InputData, MultiModalData],
+    def __init__(self, data: TensorData,
                  data_type: DataTypesEnum = None, repository_name: str = "model"):
         """ Construct builder from task and data.
         :param data: data that will be passed to the pipeline
@@ -101,7 +98,7 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
         """ Return a list of valid builders satisfying internal
         OperationsFilter or a single fallback builder. """
         preprocessing = \
-            PreprocessingBuilder.builder_for_data(self.data.task.task_type, self.data, initial_node,
+            PreprocessingBuilder.builder(self.data.task.task_type, self.data, initial_node,
                                                   use_input_preprocessing=use_input_preprocessing)
         valid_builders = []
         for processing in self.assumptions_generator.processing_builders():
@@ -111,6 +108,7 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
         return valid_builders or [self.assumptions_generator.fallback_builder(self.ops_filter)]
 
 
+# TODO: refactor for TensorData if needed
 class MultiModalAssumptionsBuilder(AssumptionsBuilder):
     def __init__(self, data: MultiModalData, repository_name: str = "model"):
         super().__init__(data, repository_name)

@@ -6,6 +6,7 @@ from fedot.api.api_utils.assumptions.assumptions_handler_rules import (
     normalize_initial_assumption,
     resolve_initial_assumption,
 )
+from fedot.api.api_utils.schemas import raise_from_assumption_fit_error
 from fedot.core.pipelines.pipeline import Pipeline
 
 
@@ -60,3 +61,16 @@ def test_decide_preset_changes_only_for_auto_like_values():
     assert unchanged.preset == 'best_quality'
     assert unchanged.was_changed is False
     assert calls['count'] == 1
+
+
+def test_raise_from_assumption_fit_error_raises_value_error_with_cause():
+    original_error = RuntimeError('fit failed')
+    fit_error = build_assumption_fit_error(original_error)
+
+    try:
+        raise_from_assumption_fit_error(fit_error)
+    except ValueError as error:
+        assert 'fit failed' in str(error)
+        assert error.__cause__ is original_error
+    else:
+        raise AssertionError('Expected ValueError from assumption fit error schema')

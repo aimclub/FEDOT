@@ -41,7 +41,7 @@ def _make_manifest():
                 ),
                 hyperparams_schema=ModelHyperparamsSchema(
                     required=(),
-                    optional=('beta',),
+                    optional=('alpha', 'beta'),
                     defaults={'beta': 0.5},
                 ),
             ),

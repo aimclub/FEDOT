@@ -175,10 +175,10 @@ class SamplingZooProvider(SamplingProvider):
 
     @staticmethod
     def _inject_required_kwargs(factory: Any,
-                               strategy_name: str,
-                               strategy_kwargs: Dict[str, Any],
-                               n_rows: int,
-                               injectable_params: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+                                strategy_name: str,
+                                strategy_kwargs: Dict[str, Any],
+                                n_rows: int,
+                                injectable_params: Optional[Dict[str, Any]]) -> Dict[str, Any]:
         updated_kwargs = dict(strategy_kwargs)
         if injectable_params is None:
             return updated_kwargs
@@ -186,8 +186,8 @@ class SamplingZooProvider(SamplingProvider):
         signature = inspect.signature(factory.strategy_map[strategy_name])
 
         if 'sample_size' in signature.parameters \
-            and 'sample_size' not in updated_kwargs \
-            and injectable_params.get('ratio'):
+                and 'sample_size' not in updated_kwargs \
+                and injectable_params.get('ratio'):
             updated_kwargs['sample_size'] = max(1, round(injectable_params.get('ratio') * n_rows))
 
         return updated_kwargs

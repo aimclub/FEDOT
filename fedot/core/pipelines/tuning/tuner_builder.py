@@ -11,10 +11,11 @@ from golem.core.tuning.tuner_interface import BaseTuner
 from golem.utilities.data_structures import ensure_wrapped_in_sequence
 
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
-from fedot.core.data.input_data.data import InputData
-from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
+from fedot.core.data.tensor_data import TensorData
+from fedot.core.optimisers.objective import PipelineObjectiveEvaluateWithTensorData
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
+from fedot.core.optimisers.schemas import validate_multi_objective_tuner
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
@@ -97,18 +98,16 @@ class TunerBuilder:
     def with_additional_params(self, **parameters):
         self.additional_params.update(parameters)
         return self
-
+    
     def _build_tuner(self, data_producer, validation_blocks: int) -> BaseTuner:
+        validate_multi_objective_tuner(self.tuner_class, len(self.metric))
         if len(self.metric) > 1:
             if self.tuner_class in [OptunaTuner, IOptTuner]:
                 self.additional_params.update(
                     {'objectives_number': len(self.metric)})
-            else:
-                raise ValueError(
-                    'Multi objective tuning applicable only for OptunaTuner and IOptTuner.')
         objective = MetricsObjective(
             self.metric, is_multi_objective=len(self.metric) > 1)
-        objective_evaluate = PipelineObjectiveEvaluate(
+        objective_evaluate = PipelineObjectiveEvaluateWithTensorData(
             objective,
             data_producer,
             time_constraint=self.eval_time_constraint,
@@ -124,15 +123,10 @@ class TunerBuilder:
                                  n_jobs=self.n_jobs,
                                  **self.additional_params)
         return tuner
-
-    def build(self, data: InputData) -> BaseTuner:
+    
+    def build(self, tensor_data: TensorData) -> BaseTuner:
+        # TODO @artemlunev: refactor data_splitter to use tensor data
         data_splitter = DataSourceSplitter(
             self.cv_folds, validation_blocks=self.validation_blocks)
-        data_producer = data_splitter.build(data)
-        return self._build_tuner(data_producer, data_splitter.validation_blocks)
-
-    def build_tensordata(self, tensor_data) -> BaseTuner:
-        data_splitter = DataSourceSplitter(
-            self.cv_folds, validation_blocks=self.validation_blocks)
-        data_producer = data_splitter.build_tensordata(tensor_data)
+        data_producer = data_splitter.build(tensor_data)
         return self._build_tuner(data_producer, data_splitter.validation_blocks)

@@ -381,7 +381,12 @@ def test_sampling_stage_runs_when_predefined_model(monkeypatch):
         stage_was_run['value'] = True
         return SamplingStageOutput(
             train_data=train_data_input,
-            metadata={'status': 'applied', 'rows_before': len(train_data_input.idx), 'rows_after': len(train_data_input.idx)},
+            metadata={
+                'status': 'applied',
+                'rows_before': len(
+                    train_data_input.idx),
+                'rows_after': len(
+                    train_data_input.idx)},
             elapsed_seconds=0.0,
             updated_timeout_minutes=self.total_timeout_minutes,
         )

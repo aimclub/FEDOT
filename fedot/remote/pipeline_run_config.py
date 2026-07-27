@@ -9,6 +9,7 @@ from pymonad.either import Left, Right
 
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
+from fedot.validation.errors import FedotValidationError
 
 _TASK_PATTERN = re.compile(
     r'^Task\(TaskTypesEnum\.(?P<task_type>[a-z_]+)'
@@ -55,7 +56,7 @@ class PipelineRunConfig:
     def from_dict(cls, config_dict: Dict[str, Dict[str, str]]):
         result = cls.try_from_dict(config_dict)
         if result.is_left():
-            raise ValueError(result.value.message)
+            raise FedotValidationError(result.value.message, field_name='_schema')
         return result.value
 
     @classmethod
@@ -69,7 +70,7 @@ class PipelineRunConfig:
     def from_parser(cls, config: configparser.ConfigParser):
         result = cls.try_from_parser(config)
         if result.is_left():
-            raise ValueError(result.value.message)
+            raise FedotValidationError(result.value.message, field_name='_schema')
         return result.value
 
     @classmethod
@@ -83,7 +84,7 @@ class PipelineRunConfig:
     def from_file(cls, file: Union[str, bytes]):
         result = cls.try_from_file(file)
         if result.is_left():
-            raise ValueError(result.value.message)
+            raise FedotValidationError(result.value.message, field_name='_schema')
         return result.value
 
     def load_from_file(self, file: Union[str, bytes]):

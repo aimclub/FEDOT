@@ -4,7 +4,11 @@ from typing import Sequence
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
 
-from fedot.api.api_utils.api_params_repository_rules import apply_default_params, build_default_api_params
+from fedot.api.api_utils.api_params_repository_rules import (
+    apply_default_params as apply_default_params_rules,
+    build_default_api_params,
+)
+from fedot.api.api_utils.tensor_data_config import validate_tensor_data_config
 from fedot.api.sampling_stage.config import validate_sampling_config
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation, add_resample_mutation
 from fedot.core.pipelines.ensembling.config import validate_chunked_ensemble_config
@@ -36,15 +40,20 @@ class ApiParamsRepository:
         """ Returns a dict with default parameters"""
         return build_default_api_params(task_type, default_fedot_data_dir())
 
-    def check_and_set_default_params(self, params: dict) -> dict:
-        """ Sets default values for parameters which were not set by the user
-        and raises KeyError for invalid parameter keys"""
-        return apply_default_params(
+    def apply_default_params(self, params: dict, context=None) -> dict:
+        """Validate keys, normalize nested configs, and fill defaults for unset parameters."""
+        return apply_default_params_rules(
             params=params,
             default_params=self.default_params,
             sampling_validator=validate_sampling_config,
             chunked_ensemble_validator=validate_chunked_ensemble_config,
+            tensor_data_validator=validate_tensor_data_config,
+            context=context,
         )
+
+    def check_and_set_default_params(self, params: dict, context=None) -> dict:
+        """Backward-compatible alias for :meth:`apply_default_params`."""
+        return self.apply_default_params(params, context=context)
 
     @staticmethod
     def get_params_for_composer_requirements(params: dict) -> dict:

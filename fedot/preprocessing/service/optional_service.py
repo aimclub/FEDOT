@@ -102,6 +102,8 @@ class OptionalService:
                     method=step.method.value if hasattr(step.method, "value") else str(step.method),
                     features_idx=step.features_idx,
                 )
+        else:
+            return data
 
         result_tensor_data = update_tensor_data(data, prepared_data)
 

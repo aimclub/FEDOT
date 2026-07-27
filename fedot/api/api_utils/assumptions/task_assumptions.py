@@ -17,7 +17,7 @@ class TaskAssumptions:
     @staticmethod
     def for_task(task: Task, repository: OperationTypesRepository) -> 'TaskAssumptions':
         assumptions_by_task = {
-            TaskTypesEnum.classification: ClassificationAssumptions,
+            TaskTypesEnum.classification: TensorClassificationAssumptions,
             TaskTypesEnum.regression: RegressionAssumptions,
             TaskTypesEnum.ts_forecasting: TSForecastingAssumptions,
         }
@@ -133,3 +133,22 @@ class ClassificationAssumptions(TaskAssumptions):
     def fallback_builder(self, operations_filter: OperationsFilter) -> PipelineBuilder:
         random_choice_node = operations_filter.sample()
         return PipelineBuilder().add_node(random_choice_node)
+
+
+class TensorClassificationAssumptions(TaskAssumptions):
+
+    @property
+    def builders(self):
+        return {
+            'torch_linear': PipelineBuilder(use_input_preprocessing=False).add_node('torch_linear'),
+        }
+
+    def ensemble_operation(self) -> str:
+        return 'torch_linear'
+
+    def processing_builders(self) -> List[PipelineBuilder]:
+        return list(self.builders.values())
+
+    def fallback_builder(self, operations_filter: OperationsFilter) -> PipelineBuilder:
+        random_choice_node = operations_filter.sample()
+        return PipelineBuilder(use_input_preprocessing=False).add_node(random_choice_node)

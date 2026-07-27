@@ -20,14 +20,18 @@ from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.data.multimodal.multi_modal import MultiModalData
+from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.bridges.tensor_to_input import tensordata_to_input_data
 from fedot.core.operations.data_operation import DataOperation
 from fedot.core.operations.model import Model
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline_rules import (
     build_pipeline_postprocess_plan,
-    build_pipeline_preprocess_plan,
-    build_pipeline_tensordata_runtime_plan,
+    build_pipeline_preprocess_plan
+)
+from fedot.core.pipelines.schemas import (
+    validate_pipeline_is_fitted,
+    validate_single_root_node,
 )
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -59,7 +63,7 @@ class Pipeline(GraphDelegate, Serializable):
         self.preprocessor = DataPreprocessor(
         ) if use_input_preprocessing else DummyPreprocessor()
 
-    def fit_from_scratch(self, input_data: Union[InputData, MultiModalData] = None):
+    def fit_from_scratch(self, tensor_data: TensorData = None):
         """[Obsolete] Method used for training the pipeline without using saved information
 
         Args:
@@ -68,30 +72,21 @@ class Pipeline(GraphDelegate, Serializable):
 
         # Clean all saved states and fit all operations
         self.unfit()
-        self.fit(input_data)
+        self.fit(tensor_data)
 
     def _fit_with_time_limit(self,
-                             input_data: Optional[InputData],
-                             time: timedelta,
-                             predictions_cache: Optional[PredictionsCache] = None,
-                             fold_id: Optional[int] = None) -> OutputData:
-        """Runs training process in all the pipeline nodes starting with root with time limit.
-
-        Args:
-            input_data: data used for operations training
-            time: time constraint for operations fitting process (in minutes)
-
-        Returns:
-            OutputData: values predicted on the provided ``input_data``
-        """
-
+                                        tensor_data: Optional[TensorData],
+                                        time: timedelta,
+                                        predictions_cache: Optional[PredictionsCache] = None,
+                                        fold_id: Optional[int] = None) -> TensorData:
+        """Runs TensorData training process in all pipeline nodes with time limit."""
         time = int(time.total_seconds())
         process_state_dict = {}
         fitted_operations = []
         try:
             func_timeout.func_timeout(
                 time, self._fit,
-                args=(input_data, process_state_dict,
+                args=(tensor_data, process_state_dict,
                       fitted_operations, predictions_cache, fold_id)
             )
         except func_timeout.FunctionTimedOut:
@@ -102,30 +97,23 @@ class Pipeline(GraphDelegate, Serializable):
         for node_num, _ in enumerate(self.nodes):
             self.nodes[node_num].fitted_operation = fitted_operations[node_num]
         return process_state_dict['train_predicted']
+    
+    # TODO romankuklo: add preprocessing after new features creating
 
     def _fit(self,
-             input_data: Optional[InputData] = None,
-             process_state_dict: dict = None,
-             fitted_operations: list = None,
-             predictions_cache: Optional[PredictionsCache] = None,
-             fold_id: Optional[int] = None) -> Optional[OutputData]:
-        """Runs training process in all the pipeline nodes starting with root
-
-        Args:
-            input_data: data used for operation training
-            process_state_dict: dictionary used for saving required pipeline parameters
-                (which were changed inside the process) in case of operations fit time control (when process created)
-            fitted_operations: list used for saving fitted operations of pipeline nodes
-
-        Returns:
-            Optional[OutputData]: values predicted on the provided ``input_data`` or nothing
-            in case of the time controlled call
-        """
-
+                        tensor_data: Optional[TensorData] = None,
+                        process_state_dict: dict = None,
+                        fitted_operations: list = None,
+                        predictions_cache: Optional[PredictionsCache] = None,
+                        fold_id: Optional[int] = None) -> Optional[TensorData]:
+        """Runs training process in all the pipeline nodes starting with root on TensorData."""
         with Timer() as t:
             computation_time_update = not self.root_node.fitted_operation or self.computation_time is None
             train_predicted = self.root_node.fit(
-                input_data=input_data, predictions_cache=predictions_cache, fold_id=fold_id)
+                tensor_data=tensor_data,
+                predictions_cache=predictions_cache,
+                fold_id=fold_id,
+            )
             if computation_time_update:
                 self.computation_time = round(t.minutes_from_start, 3)
 
@@ -137,71 +125,7 @@ class Pipeline(GraphDelegate, Serializable):
             for node in self.nodes:
                 fitted_operations.append(node.fitted_operation)
 
-    def _preprocess(self, input_data: Union[InputData, MultiModalData], *, is_fit_stage: bool = True) -> \
-            Union[InputData, MultiModalData]:
-        """
-        Makes obligatory and optional (if needed) steps of data preprocessing
-
-        Args:
-            input_data: to be copied and preprocessed
-            is_fit_stage: True when it's fitting stage
-
-        Returns:
-            preprocessed copy of the original data
-        """
-        copied_input_data = deepcopy(input_data)
-        if is_fit_stage:
-            copied_input_data = self.preprocessor.obligatory_prepare_for_fit(
-                copied_input_data)
-            # Make additional preprocessing if it is needed
-            copied_input_data = self.preprocessor.optional_prepare_for_fit(
-                pipeline=self, data=copied_input_data)
-            copied_input_data = self.preprocessor.convert_indexes_for_fit(
-                pipeline=self, data=copied_input_data)
-            copied_input_data = self.preprocessor.reduce_memory_size(
-                data=copied_input_data)
-        else:
-            copied_input_data = self.preprocessor.obligatory_prepare_for_predict(
-                copied_input_data)
-            # Make additional preprocessing if it is needed
-            copied_input_data = self.preprocessor.optional_prepare_for_predict(
-                pipeline=self, data=copied_input_data)
-            copied_input_data = self.preprocessor.convert_indexes_for_predict(
-                pipeline=self, data=copied_input_data)
-            copied_input_data = self.preprocessor.update_indices_for_time_series(
-                copied_input_data)
-            copied_input_data = self.preprocessor.reduce_memory_size(
-                data=copied_input_data)
-
-        return copied_input_data
-
-    def _preprocess_tensordata(self, tensor_data, *, is_fit_stage: bool = True) -> InputData:
-        runtime_plan = build_pipeline_tensordata_runtime_plan(
-            is_fit_stage=is_fit_stage)
-
-        prepared_tensordata = self.preprocessor.prepare_tensordata(
-            tensor_data,
-            is_fit_stage=is_fit_stage,
-            is_optional=False,
-        )
-        prepared_tensordata = self.preprocessor.prepare_tensordata(
-            prepared_tensordata,
-            is_fit_stage=is_fit_stage,
-            is_optional=True,
-            pipeline=self,
-        )
-
-        copied_input_data = tensordata_to_input_data(prepared_tensordata)
-        index_method = getattr(
-            self.preprocessor, runtime_plan.index_method_name)
-        copied_input_data = index_method(pipeline=self, data=copied_input_data)
-        if runtime_plan.should_update_time_series_indices:
-            copied_input_data = self.preprocessor.update_indices_for_time_series(
-                copied_input_data)
-        copied_input_data = self.preprocessor.reduce_memory_size(
-            data=copied_input_data)
-        return copied_input_data
-
+    # TODO romankuklo: refactor this method to use tensordata
     def _postprocess(self, copied_input_data: Optional[InputData], result: OutputData,
                      output_mode: str = 'default') -> OutputData:
         """
@@ -226,62 +150,24 @@ class Pipeline(GraphDelegate, Serializable):
         return result
 
     def fit(self,
-            input_data: Union[InputData, MultiModalData],
-            time_constraint: Optional[timedelta] = None,
-            n_jobs: int = 1,
-            predictions_cache: Optional[PredictionsCache] = None,
-            fold_id: Optional[int] = None) -> OutputData:
-        """
-        Runs training process in all the pipeline nodes starting with root
-
-        Args:
-            input_data: data used for operations training
-            time_constraint: time constraint for operations fitting (in seconds)
-            n_jobs: number of threads for nodes fitting
-
-        Returns:
-            OutputData: values predicted on the provided ``input_data``
-        """
-        self.replace_n_jobs_in_nodes(n_jobs)
-
-        preprocess_plan = build_pipeline_preprocess_plan(
-            is_fit_stage=True, is_input_auto_preprocessed=isinstance(
-                input_data, InputData) and input_data.supplementary_data.is_auto_preprocessed, )
-        if preprocess_plan.should_preprocess:
-            with fedot_composer_timer.launch_preprocessing():
-                copied_input_data = self._preprocess(input_data)
-        else:
-            copied_input_data = deepcopy(input_data)
-
-        copied_input_data = self._assign_data_to_nodes(copied_input_data)
-
-        if time_constraint is None:
-            train_predicted = self._fit(input_data=copied_input_data,
-                                        predictions_cache=predictions_cache, fold_id=fold_id)
-        else:
-            train_predicted = self._fit_with_time_limit(
-                input_data=copied_input_data, time=time_constraint, predictions_cache=predictions_cache,
-                fold_id=fold_id)
-
-        return train_predicted
-
-    def fit_tensordata(self,
-                       tensor_data,
+                       tensor_data: TensorData,
                        time_constraint: Optional[timedelta] = None,
                        n_jobs: int = 1,
                        predictions_cache: Optional[PredictionsCache] = None,
-                       fold_id: Optional[int] = None) -> OutputData:
+                       fold_id: Optional[int] = None) -> TensorData:
         self.replace_n_jobs_in_nodes(n_jobs)
-        with fedot_composer_timer.launch_preprocessing():
-            copied_input_data = self._preprocess_tensordata(
-                tensor_data, is_fit_stage=True)
 
-        copied_input_data = self._assign_data_to_nodes(copied_input_data)
+        copied_tensor_data = deepcopy(tensor_data)
+        copied_tensor_data = self._assign_data_to_nodes(copied_tensor_data)
 
         if time_constraint is None:
-            return self._fit(input_data=copied_input_data, predictions_cache=predictions_cache, fold_id=fold_id)
+            return self._fit(
+                tensor_data=tensor_data,
+                predictions_cache=predictions_cache,
+                fold_id=fold_id,
+            )
         return self._fit_with_time_limit(
-            input_data=copied_input_data,
+            tensor_data=tensor_data,
             time=time_constraint,
             predictions_cache=predictions_cache,
             fold_id=fold_id,
@@ -356,67 +242,26 @@ class Pipeline(GraphDelegate, Serializable):
             preprocessing_cache.try_load_preprocessor(self, fold_id)
 
     def predict(self,
-                input_data: Union[InputData, MultiModalData],
-                output_mode: str = 'default',
-                predictions_cache: Optional[PredictionsCache] = None,
-                fold_id: Optional[int] = None) -> OutputData:
-        """Runs the predict process in all the pipeline nodes starting with root
-
-        input_data: data for prediction
-        output_mode: desired form of output for operations
-
-            .. details:: possible ``output_mode`` options:
-
-                - ``default`` -> (as is, default)
-                - ``labels`` -> (numbers of classes - for classification)
-                - ``probs`` -> (probabilities - for classification == default)
-                - ``full_probs`` -> (return all probabilities - for binary classification)
-
-        Returns:
-            OutputData: values predicted on the provided ``input_data``
-        """
-
-        if not self.is_fitted:
-            ex = 'Pipeline is not fitted yet'
-            self.log.error(ex)
-            raise ValueError(ex)
-
-        preprocess_plan = build_pipeline_preprocess_plan(
-            is_fit_stage=False, is_input_auto_preprocessed=isinstance(
-                input_data, InputData) and input_data.supplementary_data.is_auto_preprocessed, )
-        if preprocess_plan.should_preprocess:
-            copied_input_data = self._preprocess(
-                input_data, is_fit_stage=False)
-        else:
-            copied_input_data = deepcopy(input_data)
-
-        copied_input_data = self._assign_data_to_nodes(copied_input_data)
-        result = self.root_node.predict(input_data=copied_input_data,
-                                        output_mode=output_mode, predictions_cache=predictions_cache, fold_id=fold_id)
-
-        result = self._postprocess(copied_input_data, result, output_mode)
-        return result
-
-    def predict_tensordata(self,
-                           tensor_data,
+                           tensor_data: TensorData,
                            output_mode: str = 'default',
                            predictions_cache: Optional[PredictionsCache] = None,
-                           fold_id: Optional[int] = None) -> OutputData:
-        if not self.is_fitted:
-            ex = 'Pipeline is not fitted yet'
-            self.log.error(ex)
-            raise ValueError(ex)
+                           fold_id: Optional[int] = None) -> TensorData:
+        validate_pipeline_is_fitted(self.is_fitted)
 
-        copied_input_data = self._preprocess_tensordata(
-            tensor_data, is_fit_stage=False)
-        copied_input_data = self._assign_data_to_nodes(copied_input_data)
+        output_mode = output_mode if output_mode is not None else 'default'
+        
+        copied_tensor_data = deepcopy(tensor_data)
+
+        copied_tensor_data = self._assign_data_to_nodes(copied_tensor_data)
         result = self.root_node.predict(
-            input_data=copied_input_data,
+            tensor_data=copied_tensor_data,
             output_mode=output_mode,
             predictions_cache=predictions_cache,
             fold_id=fold_id,
         )
-        return self._postprocess(copied_input_data, result, output_mode)
+        # TODO romankuklo: add postprocess for tensor data
+        result = self._postprocess(copied_tensor_data, result, output_mode)
+        return result
 
     def save(self, path: str = None, create_subdir: bool = True, is_datetime_in_path: bool = False) -> Tuple[str, dict]:
         """
@@ -464,9 +309,7 @@ class Pipeline(GraphDelegate, Serializable):
             return None
         root = [node for node in self.nodes
                 if not any(self.node_children(node))]
-        if len(root) > 1:
-            raise ValueError(
-                f'{ERROR_PREFIX} More than 1 root_nodes in pipeline')
+        validate_single_root_node(len(root))
         return root[0]
 
     @property
@@ -513,7 +356,8 @@ class Pipeline(GraphDelegate, Serializable):
         pipeline.preprocessor = self.preprocessor
         return pipeline
 
-    def _assign_data_to_nodes(self, input_data: Union[InputData, MultiModalData]) -> Optional[InputData]:
+    def _assign_data_to_nodes(self, input_data: Union[InputData, MultiModalData, TensorData]
+                              ) -> Optional[Union[InputData, TensorData]]:
         """In case of provided ``input_data`` is of type :class:`MultiModalData`
         assigns :attr:`PipelineNode.node_data` from the ``input_data`` if ``PipelineNode.nodes_from`` is None
 

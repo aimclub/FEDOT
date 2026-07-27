@@ -1,6 +1,8 @@
-﻿from types import SimpleNamespace
+﻿from contextlib import nullcontext
+from types import SimpleNamespace
 
 import numpy as np
+import pytest
 
 import fedot.api.api_utils.api_composer as composer_module
 from fedot.api.api_utils.api_composer import ApiComposer
@@ -59,6 +61,10 @@ class _FakeChunkPipeline:
         self.fit_calls = []
 
     def fit(self, data, n_jobs):
+        self.fit_calls.append((data, n_jobs))
+        self.is_fitted = True
+
+    def fit_tensordata(self, data, n_jobs):
         self.fit_calls.append((data, n_jobs))
         self.is_fitted = True
 
@@ -124,7 +130,7 @@ def test_obtain_ensemble_model_uses_predefined_model_for_chunks(monkeypatch):
     def _forbidden_obtain_model(*args, **kwargs):
         raise AssertionError('obtain_model must not be called when predefined_model is set')
 
-    monkeypatch.setattr(composer, 'obtain_model', _forbidden_obtain_model)
+    monkeypatch.setattr(composer, 'obtain_model', _forbidden_obtain_model, raising=False)
 
     chunks = [_FakeChunk(), _FakeChunk()]
     ensemble, best_models, histories = composer.obtain_ensemble_model(
@@ -163,7 +169,7 @@ def test_obtain_ensemble_model_uses_external_validation_for_chunk_composition(mo
         return _FakePipeline(), [_FakePipeline()], None
 
     monkeypatch.setattr(composer, 'obtain_model_with_external_validation',
-                        _fake_obtain_model_with_external_validation)
+                        _fake_obtain_model_with_external_validation, raising=False)
 
     chunks = [_FakeChunk(), _FakeChunk()]
     validation_data = _FakeChunk(size=2)
@@ -197,7 +203,7 @@ def test_obtain_ensemble_model_raises_when_successful_chunk_threshold_is_not_met
         return _FakePipeline(), [_FakePipeline()], None
 
     monkeypatch.setattr(composer, 'obtain_model_with_external_validation',
-                        _fake_obtain_model_with_external_validation)
+                        _fake_obtain_model_with_external_validation, raising=False)
 
     first_chunk = _FakeChunk()
     second_chunk = _FakeChunk()
@@ -239,7 +245,7 @@ def test_obtain_ensemble_model_accepts_single_success_when_threshold_is_met(monk
         return _FakePipeline(), [_FakePipeline()], None
 
     monkeypatch.setattr(composer, 'obtain_model_with_external_validation',
-                        _fake_obtain_model_with_external_validation)
+                        _fake_obtain_model_with_external_validation, raising=False)
 
     first_chunk = _FakeChunk()
     second_chunk = _FakeChunk()
@@ -264,6 +270,23 @@ def _dummy_composer():
     return composer
 
 
+def _dummy_tensor_composer(initial_assumption=None):
+    composer = _dummy_composer()
+    composer.params['initial_assumption'] = initial_assumption
+    composer.params['available_operations'] = ['torch_linear']
+    composer.params['preset'] = 'auto'
+    composer.params.data = {'cv_folds': 3}
+    composer.operations_cache = 'operations-cache'
+    composer.preprocessing_cache = 'preprocessing-cache'
+    composer.log = SimpleNamespace(message=lambda *_args, **_kwargs: None)
+    composer.timer = SimpleNamespace(
+        launch_assumption_fit=lambda n_folds: nullcontext(),
+        assumption_fit_spend_time_single_fold=SimpleNamespace(total_seconds=lambda: 1.2),
+        assumption_fit_spend_time=SimpleNamespace(total_seconds=lambda: 3.6),
+    )
+    return composer
+
+
 def _classification_input(n_samples: int = 4) -> InputData:
     return InputData(
         idx=np.arange(n_samples),
@@ -272,6 +295,94 @@ def _classification_input(n_samples: int = 4) -> InputData:
         task=Task(TaskTypesEnum.classification),
         data_type=DataTypesEnum.table,
     )
+
+
+def test_tensor_initial_assumption_can_be_built_automatically(monkeypatch):
+    captured = {}
+    auto_pipeline = SimpleNamespace(name='auto')
+    fitted_pipeline = SimpleNamespace(name='fitted')
+
+    class _FakeAssumptionsHandler:
+        def __init__(self, data):
+            captured['data'] = data
+
+        def propose_assumptions_with_tensordata(self, initial_assumption, available_operations=None):
+            captured['initial_assumption'] = initial_assumption
+            captured['available_operations'] = available_operations
+            return [auto_pipeline]
+
+        def fit_assumption_and_check_correctness_with_tensordata(
+                self, pipeline, operations_cache=None, preprocessing_cache=None, eval_n_jobs=-1):
+            captured['fit_pipeline'] = pipeline
+            return fitted_pipeline
+
+        def propose_preset(self, preset, timer, n_jobs):
+            return preset
+
+    monkeypatch.setattr(composer_module, 'AssumptionsHandler', _FakeAssumptionsHandler)
+
+    tensor_data = SimpleNamespace(name='tensor-data')
+    composer = _dummy_tensor_composer(initial_assumption=None)
+
+    initial_assumptions, fitted_assumption = composer.propose_and_fit_initial_assumption(tensor_data)
+
+    assert captured['data'] is tensor_data
+    assert captured['initial_assumption'] is None
+    assert captured['available_operations'] == ['torch_linear']
+    assert captured['fit_pipeline'] is not auto_pipeline
+    assert captured['fit_pipeline'].name == 'auto'
+    assert initial_assumptions == [auto_pipeline]
+    assert fitted_assumption is fitted_pipeline
+
+
+def test_tensor_initial_assumption_uses_user_pipeline_without_auto_builder(monkeypatch):
+    captured = {}
+    initial_pipeline = SimpleNamespace(name='initial')
+    fitted_pipeline = SimpleNamespace(name='fitted')
+
+    class _FakeAssumptionsHandler:
+        def __init__(self, data):
+            captured['data'] = data
+
+        def propose_assumptions_with_tensordata(self, initial_assumption, available_operations=None):
+            captured['initial_assumption'] = initial_assumption
+            captured['available_operations'] = available_operations
+            return [initial_assumption]
+
+        def fit_assumption_and_check_correctness_with_tensordata(
+                self, pipeline, operations_cache=None, preprocessing_cache=None, eval_n_jobs=-1):
+            captured['fit_pipeline'] = pipeline
+            captured['operations_cache'] = operations_cache
+            captured['preprocessing_cache'] = preprocessing_cache
+            captured['eval_n_jobs'] = eval_n_jobs
+            return fitted_pipeline
+
+        def propose_preset(self, preset, timer, n_jobs):
+            captured['preset'] = preset
+            captured['preset_n_jobs'] = n_jobs
+            return 'fast_train'
+
+    monkeypatch.setattr(composer_module, 'AssumptionsHandler', _FakeAssumptionsHandler)
+
+    tensor_data = SimpleNamespace(name='tensor-data')
+    composer = _dummy_tensor_composer(initial_assumption=initial_pipeline)
+    composer.params.n_jobs = 4
+
+    initial_assumptions, fitted_assumption = composer.propose_and_fit_initial_assumption(tensor_data)
+
+    assert captured['data'] is tensor_data
+    assert captured['initial_assumption'] is initial_pipeline
+    assert captured['available_operations'] == ['torch_linear']
+    assert captured['fit_pipeline'] is not initial_pipeline
+    assert captured['fit_pipeline'].name == 'initial'
+    assert captured['operations_cache'] == 'operations-cache'
+    assert captured['preprocessing_cache'] == 'preprocessing-cache'
+    assert captured['eval_n_jobs'] == 4
+    assert captured['preset'] == 'auto'
+    assert captured['preset_n_jobs'] == 4
+    assert composer.params['preset'] == 'fast_train'
+    assert initial_assumptions == [initial_pipeline]
+    assert fitted_assumption is fitted_pipeline
 
 
 def test_chunk_pipeline_is_fitted_after_successful_composition_history():

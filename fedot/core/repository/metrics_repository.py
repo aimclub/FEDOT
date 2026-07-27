@@ -5,7 +5,7 @@ from golem.utilities.data_structures import ComparableEnum
 from fedot.core.composer.metrics import (Accuracy, ComplexityMetric, ComputationTime, F1, Logloss, MAE, MAPE, MASE, MSE,
                                          MSLE, NodeNum, Precision, QualityMetric, R2, RMSE, ROCAUC, SMAPE, Silhouette,
                                          StructuralComplexity)
-from fedot.core.data.input_data.data import InputData
+from fedot.core.data.tensor_data import TensorData
 from fedot.core.pipelines.pipeline import Pipeline
 
 
@@ -69,7 +69,7 @@ PipelineType = TypeVar('PipelineType', bound=Pipeline, covariant=True)
 
 
 class QualityMetricCallable(Protocol):
-    def __call__(self, pipeline: PipelineType, reference_data: InputData,
+    def __call__(self, pipeline: PipelineType, reference_data: TensorData,
                  validation_blocks: Optional[int] = None) -> NumberType: pass
 
 

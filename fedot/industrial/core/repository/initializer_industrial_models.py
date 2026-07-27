@@ -8,7 +8,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
     LaggedImplementation, TsSmoothingImplementation
 from fedot.core.operations.operation import Operation
-from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective import PipelineObjectiveEvaluateWithTensorData
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
@@ -39,7 +39,7 @@ from fedot.industrial.core.repository.model_repository import SKLEARN_REG_MODELS
 from fedot.industrial.core.repository.model_repository import overload_model_implementation
 from fedot.industrial.core.tuning.search_space import get_industrial_search_space
 
-FEDOT_METHOD_TO_REPLACE = [(PipelineObjectiveEvaluate, "evaluate"),
+FEDOT_METHOD_TO_REPLACE = [(PipelineObjectiveEvaluateWithTensorData, "evaluate"),
                            (PipelineSearchSpace, "get_parameters_dict"),
                            (ApiParamsRepository, "_get_default_mutations"),
                            (DataMerger, "find_main_output"),
