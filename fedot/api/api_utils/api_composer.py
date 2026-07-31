@@ -27,6 +27,7 @@ from fedot.core.optimisers.objective.data_source_context import (
 )
 from fedot.core.pipelines.ensembling.config import ChunkedEnsembleConfig
 from fedot.core.pipelines.ensembling.pipeline_ensemble import PipelineEnsemble, PipelineInfo
+from fedot.core.pipelines.ensembling.reuse_rules import plan_chunk_initial_population
 from fedot.core.pipelines.ensembling.utils import (
     calculate_validation_metrics,
     ensure_all_classes_in_chunk,
@@ -72,15 +73,21 @@ class ApiComposer:
                 cache_dir=cache_plan.cache_dir, use_stats=cache_plan.use_stats)
             self.predictions_cache.reset()
 
-    def obtain_model(self, train_data: TensorData) -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
+    def obtain_model(self,
+                     train_data: TensorData,
+                     initial_pipelines: Optional[Sequence[Pipeline]] = None) -> Tuple[
+                         Pipeline, Sequence[Pipeline], OptHistory
+                     ]:
         return self._obtain_model(
             train_data=train_data,
             context_builder=build_internal_composer_tensor_data_source_context,
+            initial_pipelines=initial_pipelines,
         )
 
     def obtain_model_with_external_validation(self,
                                               train_data: TensorData,
-                                              validation_data: TensorData) -> Tuple[
+                                              validation_data: TensorData,
+                                              initial_pipelines: Optional[Sequence[Pipeline]] = None) -> Tuple[
                                                   Pipeline, Sequence[Pipeline], OptHistory
     ]:
         return self._obtain_model(
@@ -89,16 +96,18 @@ class ApiComposer:
                 train_data=data,
                 validation_data=validation_data,
             ),
+            initial_pipelines=initial_pipelines,
         )
 
-    def _obtain_model(
-        self,
-        train_data: TensorData,
-        context_builder: Callable[
-            [TensorData, Optional[int]],
-            ComposerTensorDataSourceContext,
-        ]
-    ) -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
+    def _obtain_model(self,
+                      train_data: TensorData,
+                      context_builder: Callable[
+                          [TensorData, Optional[int]],
+                          ComposerTensorDataSourceContext,
+                      ],
+                      initial_pipelines: Optional[Sequence[Pipeline]] = None) -> Tuple[
+                          Pipeline, Sequence[Pipeline], OptHistory
+                      ]:
         """ Function for composing FEDOT pipeline model """
 
         with fedot_composer_timer.launch_composing():
@@ -125,6 +134,7 @@ class ApiComposer:
                 initial_assumption=initial_assumption,
                 fitted_assumption=fitted_assumption,
                 data_source_context=data_source_context,
+                initial_pipelines=initial_pipelines,
             )
 
         timeout_for_tuning = abs(
@@ -175,6 +185,7 @@ class ApiComposer:
         best_models: List[Sequence[Pipeline]] = []
         histories: List[OptHistory] = []
         chunk_failures = []
+        previous_best_initial_pipelines: Sequence[Pipeline] = ()
         initial_timeout = self.params.timeout
         started_at = time.perf_counter()
 
@@ -210,9 +221,19 @@ class ApiComposer:
                     best_pipeline_candidates = [pipeline]
                     history = None
                 else:
+                    reuse_plan = plan_chunk_initial_population(
+                        reuse_enabled=chunked_ensemble_config.reuse_previous_best_initial_population,
+                        previous_best_count=len(previous_best_initial_pipelines),
+                    )
+                    reused_initial_pipelines = (
+                        previous_best_initial_pipelines
+                        if reuse_plan.use_previous_best
+                        else None
+                    )
                     pipeline, best_pipeline_candidates, history = self.obtain_model_with_external_validation(
                         train_data=current_chunk,
                         validation_data=validation_data,
+                        initial_pipelines=reused_initial_pipelines,
                     )
             except Exception as ex:
                 error_message = (
@@ -250,6 +271,7 @@ class ApiComposer:
 
             pipelines.append(pipeline)
             best_models.append(best_pipeline_candidates)
+            previous_best_initial_pipelines = self._prepare_reused_initial_pipelines(best_pipeline_candidates)
             if history is not None:
                 histories.append(history)
 
@@ -359,17 +381,19 @@ class ApiComposer:
 
         return initial_assumption, fitted_assumption
 
-    def compose_pipeline(
-        self,
-        train_data: TensorData,
-        initial_assumption: Sequence[Pipeline],
-        fitted_assumption: Pipeline,
-        data_source_context: ComposerTensorDataSourceContext
-    ) -> Tuple[Pipeline, List[Pipeline], GPComposer]:
+    def compose_pipeline(self,
+                         train_data: TensorData,
+                         initial_assumption: Sequence[Pipeline],
+                         fitted_assumption: Pipeline,
+                         data_source_context: ComposerTensorDataSourceContext,
+                         initial_pipelines: Optional[Sequence[Pipeline]] = None) -> Tuple[
+                             Pipeline, List[Pipeline], GPComposer
+                         ]:
+        initial_population = self._merge_initial_pipelines(initial_assumption, initial_pipelines)
 
         gp_composer: GPComposer = (ComposerBuilder(task=self.params.task)
                                    .with_requirements(self.params.composer_requirements)
-                                   .with_initial_pipelines(initial_assumption)
+                                   .with_initial_pipelines(initial_population)
                                    .with_optimizer(self.params.get('optimizer'))
                                    .with_optimizer_params(parameters=self.params.optimizer_params)
                                    .with_metrics(self.metrics)
@@ -441,3 +465,20 @@ class ApiComposer:
             self.log.message('Hyperparameters tuning finished')
         self.was_tuned = tuner.was_tuned
         return tuned_pipeline
+
+    @staticmethod
+    def _merge_initial_pipelines(initial_assumption: Sequence[Pipeline],
+                                 initial_pipelines: Optional[Sequence[Pipeline]]) -> List[Pipeline]:
+        merged = [deepcopy(pipeline) for pipeline in initial_assumption]
+        if initial_pipelines:
+            merged.extend(deepcopy(pipeline) for pipeline in initial_pipelines)
+        return merged
+
+    @staticmethod
+    def _prepare_reused_initial_pipelines(pipelines: Sequence[Pipeline]) -> List[Pipeline]:
+        reusable_pipelines = []
+        for pipeline in pipelines:
+            reusable_pipeline = deepcopy(pipeline)
+            reusable_pipeline.unfit()
+            reusable_pipelines.append(reusable_pipeline)
+        return reusable_pipelines
