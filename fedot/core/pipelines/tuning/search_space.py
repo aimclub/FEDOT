@@ -481,6 +481,24 @@ class PipelineSearchSpace(SearchSpace):
                     'sampling-scope': [0.1, 0.99],
                     'type': 'continuous'}
             },
+            'optional_preprocessing': {
+                'use_imputation': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[True, False]],
+                    'type': 'categorical'},
+                'imputation_method': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [['auto', 'mean', 'median', 'mode', 'none']],
+                    'type': 'categorical'},
+                'use_scaling': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[True, False]],
+                    'type': 'categorical'},
+                'scaling_method': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [['auto', 'standard', 'min_max', 'robust', 'none']],
+                    'type': 'categorical'},
+            },
             'dask_pca': {
                 'n_components': {
                     'hyperopt-dist': hp.uniformint,

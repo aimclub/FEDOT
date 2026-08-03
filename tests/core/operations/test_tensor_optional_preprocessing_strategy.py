@@ -19,6 +19,7 @@ from fedot.preprocessing.service.tabular_optional_service import OptionalTabular
 from fedot.preprocessing.tools.preprocessor_types import (
     ImputationMethodEnum,
     PreprocessingStepEnum,
+    ScalingMethodEnum,
 )
 from fedot.validation.errors import FedotValidationError
 
@@ -197,3 +198,44 @@ def test_fit_raises_for_unsupported_data_type():
 
     with pytest.raises(FedotValidationError, match='Optional preprocessing is not supported'):
         strategy.fit(unsupported)
+
+
+@pytest.mark.unit
+def test_fit_uses_flat_imputation_and_scaling_params(train_td):
+    strategy = TensorOptionalPreprocessingStrategy(
+        'optional_preprocessing',
+        OperationParameters(
+            use_imputation=True,
+            imputation_method='mean',
+            use_scaling=False,
+            scaling_method='none',
+        ),
+    )
+
+    fitted = strategy.fit(train_td)
+
+    assert len(fitted.plan.steps) == 1
+    assert fitted.plan.steps[0].step == PreprocessingStepEnum.imputation
+    assert fitted.plan.steps[0].method == ImputationMethodEnum.mean
+
+
+@pytest.mark.unit
+def test_build_optional_strategy_from_flat_params(train_td):
+    from fedot.core.operations.evaluation.optional_preprocessing_strategy_builder import (
+        build_optional_strategy_from_node_params,
+    )
+
+    strategy = build_optional_strategy_from_node_params(
+        train_td,
+        {
+            'use_imputation': True,
+            'imputation_method': 'median',
+            'use_scaling': True,
+            'scaling_method': 'standard',
+        },
+    )
+
+    assert PreprocessingStepEnum.imputation in strategy
+    assert strategy[PreprocessingStepEnum.imputation] == ImputationMethodEnum.median
+    assert PreprocessingStepEnum.scaling in strategy
+    assert strategy[PreprocessingStepEnum.scaling] == ScalingMethodEnum.standard

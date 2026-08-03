@@ -2,6 +2,9 @@ from typing import Optional
 
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
+from fedot.core.operations.evaluation.optional_preprocessing_strategy_builder import (
+    build_optional_strategy_from_node_params,
+)
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.preprocessing.service.optional_service import OptionalService
 from fedot.preprocessing.service.tensor_optional_runtime import (
@@ -18,10 +21,10 @@ class TensorOptionalPreprocessingStrategy(EvaluationStrategy):
     ``fit`` via ``get_optional_runtime_spec_for_tensor_data``.
 
     Expected params:
-        - ``strategy``: optional preprocessing strategy mapping, or
-          ``None`` for runtime defaults / empty plan depending on ``auto``;
-        - ``auto``: when ``True`` and ``strategy`` is ``None``, use
-          runtime default steps; when ``False``, use an empty plan;
+        - ``strategy``: full OptionalService strategy override;
+        - ``auto``: when ``False`` and step flags are unset, build an empty plan;
+        - ``use_imputation`` / ``imputation_method``: ``auto|mean|median|mode|none``;
+        - ``use_scaling`` / ``scaling_method``: ``auto|standard|min_max|robust|none``;
         - ``use_cache``: whether the optional service should use cache
           (default ``True``).
     """
@@ -31,14 +34,7 @@ class TensorOptionalPreprocessingStrategy(EvaluationStrategy):
 
     def fit(self, train_data: TensorData) -> OptionalService:
         runtime_spec = get_optional_runtime_spec_for_tensor_data(train_data)
-
-        strategy = self.params_for_fit.get('strategy')
-        auto_select_strategy = self.params_for_fit.get('auto', True)
-        if strategy is None:
-            # Auto mode uses runtime defaults; otherwise keep an empty plan.
-            strategy = (
-                runtime_spec.default_steps if auto_select_strategy else {}
-            )
+        strategy = build_optional_strategy_from_node_params(train_data, self.params_for_fit)
 
         use_cache = bool(self.params_for_fit.get('use_cache', True))
         service = runtime_spec.service_cls(use_cache=use_cache)

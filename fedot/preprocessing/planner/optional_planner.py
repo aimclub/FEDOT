@@ -1,10 +1,15 @@
 import torch
 import logging
+from enum import Enum
 
-from fedot.preprocessing.planner.auto_create_step import AUTO_CREATE_STEP_MAPPING
+from fedot.preprocessing.planner.auto_create_step import AUTO_CREATE_STEP_MAPPING, find_nan_idx
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.tensor_data.tools import get_idx_from_features_names
-from fedot.preprocessing.tools.preprocessor_types import PreprocessingStep, PreprocessingStepEnum
+from fedot.preprocessing.tools.preprocessor_types import (
+    PreprocessingStep,
+    PreprocessingStepEnum,
+    ScalingMethodEnum,
+)
 from fedot.preprocessing.planner.planner import PreprocessingPlan
 from fedot.preprocessing.tools.index_mapping_tools import update_indices
 
@@ -40,6 +45,29 @@ def get_steps_from_params(data: TensorData, step_name: PreprocessingStepEnum, pa
     return steps
 
 
+def _steps_from_method_only(step_name: PreprocessingStepEnum, data: TensorData, method):
+    """Build steps when stage config is a single method; columns are selected automatically."""
+    if not isinstance(method, (Enum, str)):
+        return None
+
+    if step_name == PreprocessingStepEnum.imputation:
+        features_idx = find_nan_idx(data.features)
+        if not features_idx:
+            return None
+        return [PreprocessingStep(step_name, method, features_idx)]
+
+    if step_name == PreprocessingStepEnum.scaling:
+        features_idx = list(data.numerical_idx or [])
+        if not features_idx:
+            return None
+        step = PreprocessingStep(step_name, method, features_idx)
+        if method == ScalingMethodEnum.seasonal:
+            step.step_args = {'period': 5}
+        return [step]
+
+    return None
+
+
 def is_imputation_needed(features: torch.Tensor) -> bool:
     """Check whether feature tensor contains at least one missing value.
 
@@ -59,7 +87,8 @@ def get_imputation_step(step_name: PreprocessingStepEnum, data: TensorData, para
         step_name: Optional preprocessing stage name (`imputation`).
         data: Input tensor data used for automatic rule checks.
         params: User-defined imputation strategy parameters, or `None` for
-            automatic step creation.
+            automatic step creation. A single method enum/str is also accepted;
+            then columns with NaN are selected automatically.
 
     Returns:
         List of imputation steps, or `None` when imputation is not required.
@@ -68,11 +97,11 @@ def get_imputation_step(step_name: PreprocessingStepEnum, data: TensorData, para
         if params is None:
             logger.info(f'Getting default params for step {step_name}')
             return AUTO_CREATE_STEP_MAPPING[step_name](data)
-        else:
-            steps = get_steps_from_params(data, step_name, params)
-            return steps
-    else:
-        return None
+        method_only_steps = _steps_from_method_only(step_name, data, params)
+        if method_only_steps is not None:
+            return method_only_steps
+        return get_steps_from_params(data, step_name, params)
+    return None
 
 
 def get_scaling_step(step_name: PreprocessingStepEnum, data: TensorData, params=None) -> PreprocessingStep:
@@ -82,7 +111,8 @@ def get_scaling_step(step_name: PreprocessingStepEnum, data: TensorData, params=
         step_name: Optional preprocessing stage name (`scaling`).
         data: Input tensor data with feature type indices.
         params: User-defined scaling strategy parameters, or `None` for
-            automatic step creation.
+            automatic step creation. A single method enum/str is also accepted;
+            then numerical columns are selected automatically.
 
     Returns:
         List of scaling steps, or `None` when no numerical features exist.
@@ -93,9 +123,10 @@ def get_scaling_step(step_name: PreprocessingStepEnum, data: TensorData, params=
     if params is None:
         logger.info(f'Getting default params for step {step_name}')
         return AUTO_CREATE_STEP_MAPPING[step_name](data)
-    else:
-        steps = get_steps_from_params(data, step_name, params)
-        return steps
+    method_only_steps = _steps_from_method_only(step_name, data, params)
+    if method_only_steps is not None:
+        return method_only_steps
+    return get_steps_from_params(data, step_name, params)
 
 
 def universal_step_creating(step_name: PreprocessingStepEnum, data: TensorData, params=None) -> PreprocessingStep:
@@ -112,9 +143,10 @@ def universal_step_creating(step_name: PreprocessingStepEnum, data: TensorData, 
     if params is None:
         logger.info(f'Getting default params for step {step_name}')
         return AUTO_CREATE_STEP_MAPPING[step_name](data)
-    else:
-        steps = get_steps_from_params(data, step_name, params)
-        return steps
+    method_only_steps = _steps_from_method_only(step_name, data, params)
+    if method_only_steps is not None:
+        return method_only_steps
+    return get_steps_from_params(data, step_name, params)
 
 
 RESOLVE_STEP_MAPPING = {

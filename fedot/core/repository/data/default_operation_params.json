@@ -1,6 +1,10 @@
 {
   "optional_preprocessing": {
-    "auto": true
+    "auto": true,
+    "use_imputation": true,
+    "imputation_method": "auto",
+    "use_scaling": true,
+    "scaling_method": "auto"
   },
   "torch_linear": {
     "learning_rate": 0.05,
