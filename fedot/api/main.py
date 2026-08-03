@@ -59,7 +59,6 @@ from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
 from fedot.core.utils import set_random_seed
 from fedot.explainability.explainer_template import Explainer
 from fedot.explainability.explainers import explain_pipeline
-from fedot.preprocessing.base_preprocessing import BasePreprocessor
 from fedot.remote.remote_evaluator import RemoteEvaluator
 from fedot.utilities.composer_timer import fedot_composer_timer
 from fedot.utilities.define_metric_by_task import MetricByTask
@@ -156,8 +155,7 @@ class Fedot:
         self.api_composer = ApiComposer(self.params, self.metrics)
 
         # Initialize data processors for data preprocessing and preliminary data analysis
-        self.data_processor = ApiDataProcessor(task=self.params.task,
-                                               use_input_preprocessing=self.params.get('use_input_preprocessing'))
+        self.data_processor = ApiDataProcessor(task=self.params.task)
         self.data_analyser = InputAnalyser(safe_mode=safe_mode)
 
         self.target: Optional[TargetType] = None
@@ -285,23 +283,6 @@ class Fedot:
     def _finalize_pipeline_ensemble(self, validation_data: Optional[InputData] = None):
         self.current_pipeline.finalize(validation_data=validation_data)
 
-    def _merge_current_pipeline_preprocessors(self):
-        if isinstance(self.current_pipeline, PipelineEnsemble):
-            for pipeline in self.current_pipeline.pipelines:
-                pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
-                    api_preprocessor=deepcopy(self.data_processor.preprocessor),
-                    pipeline_preprocessor=pipeline.preprocessor,
-                    use_auto_preprocessing=self.params.get('use_auto_preprocessing')
-                )
-            return
-
-        self.current_pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
-            api_preprocessor=self.data_processor.preprocessor,
-            pipeline_preprocessor=self.current_pipeline.preprocessor,
-            use_auto_preprocessing=self.params.get('use_auto_preprocessing')
-        )
-
-
     def fit_transform_tensor_optional(
         self,
         tensor_data: TensorData
@@ -335,15 +316,14 @@ class Fedot:
             self.params.update_available_operations_by_preset(self.train_data)
 
             recommendations_for_data = None
-            if self.params.get('use_input_preprocessing'):
-                _, recommendations_for_params = self.data_analyser.give_recommendations(
-                    input_data=self.train_data,
-                    input_params=self.params,
-                )
-                self.params.accept_and_apply_recommendations(
-                    input_data=self.train_data,
-                    recommendations=recommendations_for_params,
-                )
+            _, recommendations_for_params = self.data_analyser.give_recommendations(
+                input_data=self.train_data,
+                input_params=self.params,
+            )
+            self.params.accept_and_apply_recommendations(
+                input_data=self.train_data,
+                recommendations=recommendations_for_params,
+            )
 
             self._init_remote_if_necessary(self.train_data)
 
@@ -385,8 +365,6 @@ class Fedot:
                     predefined_model,
                     self.train_data,
                     self.log,
-                    use_input_preprocessing=False,
-                    api_preprocessor=None,
                 )
                 self.current_pipeline = predefined.fit()
                 self.best_models = ()
@@ -628,10 +606,8 @@ class Fedot:
         Args:
             path: path to ``json`` file with model.
         """
-        self.current_pipeline = Pipeline(
-            use_input_preprocessing=self.params.get('use_input_preprocessing'))
+        self.current_pipeline = Pipeline()
         self.current_pipeline.load(path)
-        self.data_processor.preprocessor = self.current_pipeline.preprocessor
 
     def plot_pareto(self):
         metric_names = [str(metric) for metric in self.metrics]

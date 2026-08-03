@@ -10,7 +10,6 @@ from golem.core.optimisers.optimizer import GraphOptimizer
 
 from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.predictions_cache import PredictionsCache
-from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.composer.composer import Composer
 from fedot.core.optimisers.objective.data_objective_eval import (
     PipelineObjectiveEvaluateWithTensorData,
@@ -31,19 +30,16 @@ class GPComposer(Composer):
     :param optimizer: optimizer generated in ComposerBuilder.
     :param composer_requirements: requirements for composition process.
     :param operations_cache: Cache manager for fitted models, optional.
-    :param preprocessing_cache: Cache manager for optional preprocessing encoders and imputers, optional.
     :param predictions_cache: Cache manager for fit/predict node's predictions, optional.
     """
     # TODO @romankuklo: refactor with new caching system
     def __init__(self, optimizer: GraphOptimizer,
                  composer_requirements: PipelineComposerRequirements,
                  operations_cache: Optional[OperationsCache] = None,
-                 preprocessing_cache: Optional[PreprocessingCache] = None,
                  predictions_cache: Optional[PredictionsCache] = None):
         super().__init__(optimizer, composer_requirements)
         self.composer_requirements = composer_requirements
         self.operations_cache: Optional[OperationsCache] = operations_cache
-        self.preprocessing_cache: Optional[PreprocessingCache] = preprocessing_cache
         self.predictions_cache: Optional[PredictionsCache] = predictions_cache
 
         self.best_models: Collection[Pipeline] = ()
@@ -65,7 +61,6 @@ class GPComposer(Composer):
             data_producer=data_source_context.data_producer,
             time_constraint=self.composer_requirements.max_graph_fit_time,
             operations_cache=self.operations_cache,
-            preprocessing_cache=self.preprocessing_cache,
             predictions_cache=self.predictions_cache,
             validation_blocks=data_source_context.validation_blocks,
             eval_n_jobs=n_jobs_for_evaluation)

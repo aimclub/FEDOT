@@ -2,7 +2,6 @@ import json
 import os
 from collections import Counter
 from datetime import datetime
-from io import BytesIO
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
 from uuid import uuid4
 
@@ -18,8 +17,6 @@ if TYPE_CHECKING:
     from fedot.core.pipelines.pipeline import Pipeline
 
 from fedot.core.repository.operation_types_repository import atomized_model_type
-from fedot.preprocessing.dummy_preprocessing import DummyPreprocessor
-from fedot.preprocessing.preprocessing import DataPreprocessor
 
 
 class NumpyIntEncoder(json.JSONEncoder):
@@ -45,13 +42,8 @@ class PipelineTemplate:
         if pipeline is not None:
             self.depth = pipeline.depth
             self.metadata['computation_time_in_seconds'] = pipeline.computation_time
-            self.metadata['use_input_preprocessing'] = pipeline.use_input_preprocessing
-
-            # Save preprocessing operations
-            self.data_preprocessor = pipeline.preprocessor
         else:
             self.depth = 0
-            self.data_preprocessor = None
 
         self.log = default_log(self)
 
@@ -154,14 +146,10 @@ class PipelineTemplate:
                     if isinstance(node['custom_params'][key], Callable):
                         node['custom_params'][key] = None
 
-        # Store information about preprocessing
-        preprocessing_path = ['preprocessing', 'data_preprocessor.pkl']
-
         json_object = {
             "total_pipeline_operations": list(self.total_pipeline_operations),
             "depth": self.depth,
             "nodes": json_nodes,
-            "preprocessing": preprocessing_path
         }
         if root_node:
             json_object['descriptive_id'] = root_node.descriptive_id
@@ -178,13 +166,6 @@ class PipelineTemplate:
         if all(val is None for val in dict_fitted_operations.values()):
             return None
 
-        # Save preprocessing module
-        preprocessing_path = self.export_preprocessing(path)
-        if isinstance(preprocessing_path, str):
-            preprocessing_splitted = os.path.split(preprocessing_path)
-            preprocessing_path = [
-                preprocessing_splitted[-2], preprocessing_splitted[-1]]
-        dict_fitted_operations['preprocessing'] = preprocessing_path
         return dict_fitted_operations
 
     @staticmethod
@@ -319,24 +300,6 @@ class PipelineTemplate:
         pipeline.nodes.clear()
         pipeline.add_node(root_node)
 
-        preprocessor_file = None
-        if path is not None and 'preprocessing' in os.listdir(path):
-            # Load data preprocessor and store it into the
-            preprocessor_file = os.path.join(
-                path, 'preprocessing', 'data_preprocessor.pkl')
-        elif dict_fitted_operations and 'preprocessing' in dict_fitted_operations:
-            preprocessor_file = dict_fitted_operations['preprocessing']
-        if preprocessor_file:
-            try:
-                pipeline.preprocessor = joblib.load(preprocessor_file)
-            except ModuleNotFoundError as ex:
-                self.log.warning(f'Could not load preprocessor from file `{preprocessor_file}` '
-                                 f'due to legacy incompatibility. Please refit the preprocessor.')
-        else:
-            pipeline.preprocessor = \
-                DataPreprocessor(
-                ) if self.metadata['use_input_preprocessing'] else DummyPreprocessor()
-
     def roll_pipeline_structure(self, operation_object: Union['OperationTemplate', 'AtomizedModelTemplate'],
                                 visited_nodes: dict, path: str = None, dict_fitted_operations: dict = None):
         """
@@ -393,24 +356,6 @@ class PipelineTemplate:
 
         visited_nodes[operation_object.operation_id] = node
         return node
-
-    def export_preprocessing(self, path: str = None):
-        """ Save preprocessing operations in pkl files and store full paths into dictionary """
-        if path:
-            path_fitted_preprocessing = os.path.join(path, 'preprocessing')
-            check_existing_path(path_fitted_preprocessing)
-
-            data_preprocessor_path = os.path.join(
-                path_fitted_preprocessing, 'data_preprocessor.pkl')
-            if self.data_preprocessor is not None:
-                joblib.dump(self.data_preprocessor, data_preprocessor_path)
-                return data_preprocessor_path
-        else:
-            # dictionary with bytes of fitted operations
-            if self.data_preprocessor is not None:
-                bytes_container = BytesIO()
-                joblib.dump(self.data_preprocessor, bytes_container)
-                return bytes_container
 
 
 def extract_subtree_root(root_operation_id: int, pipeline_template: PipelineTemplate):

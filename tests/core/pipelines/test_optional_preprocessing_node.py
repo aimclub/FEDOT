@@ -109,7 +109,7 @@ def test_pipeline_fit_with_optional_preprocessing_node(train_td, test_td):
             }]
         }
     }
-    pipeline = Pipeline(node, use_input_preprocessing=False)
+    pipeline = Pipeline(node)
 
     fitted_output = pipeline.fit(train_td)
 

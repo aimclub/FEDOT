@@ -38,8 +38,6 @@ class _FakeChunk:
 
 class _FakePipeline:
     is_fitted = True
-    use_input_preprocessing = False
-    preprocessor = None
 
     def fit(self, data, n_jobs):
         self.is_fitted = True
@@ -79,14 +77,11 @@ class _FakeHistory:
 
 def test_api_composer_init_cache_uses_typed_cache_plan(monkeypatch):
     monkeypatch.setattr(composer_module, 'OperationsCache', _FakeCache)
-    monkeypatch.setattr(composer_module, 'PreprocessingCache', _FakeCache)
     monkeypatch.setattr(composer_module, 'PredictionsCache', _FakeCache)
 
     params = _FakeParams(
         use_operations_cache=True,
-        use_preprocessing_cache=True,
         use_predictions_cache=True,
-        use_input_preprocessing=False,
         cache_dir='cache_dir',
         use_stats=True,
     )
@@ -95,7 +90,6 @@ def test_api_composer_init_cache_uses_typed_cache_plan(monkeypatch):
 
     assert isinstance(composer.operations_cache, _FakeCache)
     assert composer.operations_cache.was_reset is True
-    assert composer.preprocessing_cache is None
     assert isinstance(composer.predictions_cache, _FakeCache)
     assert composer.predictions_cache.was_reset is True
 
@@ -108,14 +102,12 @@ def test_obtain_ensemble_model_uses_predefined_model_for_chunks(monkeypatch):
             self.validation_metric = validation_metric
 
     captured_calls = []
-    api_preprocessor = SimpleNamespace(name='api-preprocessor')
 
     class _FakePredefinedModel:
-        def __init__(self, predefined_model, data, log, use_input_preprocessing=True, api_preprocessor=None):
+        def __init__(self, predefined_model, data, log):
             captured_calls.append(SimpleNamespace(
                 predefined_model=predefined_model,
                 data=data,
-                api_preprocessor=api_preprocessor,
             ))
 
         def fit(self):
@@ -124,7 +116,7 @@ def test_obtain_ensemble_model_uses_predefined_model_for_chunks(monkeypatch):
     monkeypatch.setattr(composer_module, 'PipelineEnsemble', _FakeEnsemble)
     monkeypatch.setattr(composer_module, 'PredefinedModel', _FakePredefinedModel)
 
-    params = _FakeParams(use_input_preprocessing=True)
+    params = _FakeParams()
     composer = ApiComposer(params, metrics=['f1'])
 
     def _forbidden_obtain_model(*args, **kwargs):
@@ -136,14 +128,11 @@ def test_obtain_ensemble_model_uses_predefined_model_for_chunks(monkeypatch):
     ensemble, best_models, histories = composer.obtain_ensemble_model(
         chunks,
         predefined_model='logit',
-        api_preprocessor=api_preprocessor,
     )
 
     assert len(captured_calls) == len(chunks)
     assert [call.predefined_model for call in captured_calls] == ['logit', 'logit']
     assert [call.data for call in captured_calls] == chunks
-    assert all(call.api_preprocessor is not api_preprocessor for call in captured_calls)
-    assert captured_calls[0].api_preprocessor is not captured_calls[1].api_preprocessor
     assert len(ensemble.pipelines) == len(chunks)
     assert ensemble.validation_metric == 'f1'
     assert len(best_models) == len(chunks)
@@ -160,7 +149,7 @@ def test_obtain_ensemble_model_uses_external_validation_for_chunk_composition(mo
     monkeypatch.setattr(composer_module, 'PipelineEnsemble', _FakeEnsemble)
     monkeypatch.setattr(composer_module, 'calculate_validation_metrics', lambda **kwargs: {'f1': -1.0})
 
-    params = _FakeParams(use_input_preprocessing=False)
+    params = _FakeParams()
     composer = ApiComposer(params, metrics=['f1'])
     captured_calls = []
 
@@ -194,7 +183,7 @@ def test_obtain_ensemble_model_raises_when_successful_chunk_threshold_is_not_met
 
     monkeypatch.setattr(composer_module, 'PipelineEnsemble', _FakeEnsemble)
 
-    params = _FakeParams(use_input_preprocessing=False)
+    params = _FakeParams()
     composer = ApiComposer(params, metrics=['f1'])
 
     def _fake_obtain_model_with_external_validation(train_data, validation_data):
@@ -236,7 +225,7 @@ def test_obtain_ensemble_model_accepts_single_success_when_threshold_is_met(monk
     monkeypatch.setattr(composer_module, 'PipelineEnsemble', _FakeEnsemble)
     monkeypatch.setattr(composer_module, 'calculate_validation_metrics', lambda **kwargs: {'f1': -1.0})
 
-    params = _FakeParams(use_input_preprocessing=False)
+    params = _FakeParams()
     composer = ApiComposer(params, metrics=['f1'])
 
     def _fake_obtain_model_with_external_validation(train_data, validation_data):
@@ -277,7 +266,6 @@ def _dummy_tensor_composer(initial_assumption=None):
     composer.params['preset'] = 'auto'
     composer.params.data = {'cv_folds': 3}
     composer.operations_cache = 'operations-cache'
-    composer.preprocessing_cache = 'preprocessing-cache'
     composer.log = SimpleNamespace(message=lambda *_args, **_kwargs: None)
     composer.timer = SimpleNamespace(
         launch_assumption_fit=lambda n_folds: nullcontext(),
@@ -306,13 +294,13 @@ def test_tensor_initial_assumption_can_be_built_automatically(monkeypatch):
         def __init__(self, data):
             captured['data'] = data
 
-        def propose_assumptions_with_tensordata(self, initial_assumption, available_operations=None):
+        def propose_assumptions(self, initial_assumption, available_operations=None):
             captured['initial_assumption'] = initial_assumption
             captured['available_operations'] = available_operations
             return [auto_pipeline]
 
-        def fit_assumption_and_check_correctness_with_tensordata(
-                self, pipeline, operations_cache=None, preprocessing_cache=None, eval_n_jobs=-1):
+        def fit_assumption_and_check_correctness(
+                self, pipeline, operations_cache=None, eval_n_jobs=-1):
             captured['fit_pipeline'] = pipeline
             return fitted_pipeline
 
@@ -344,16 +332,15 @@ def test_tensor_initial_assumption_uses_user_pipeline_without_auto_builder(monke
         def __init__(self, data):
             captured['data'] = data
 
-        def propose_assumptions_with_tensordata(self, initial_assumption, available_operations=None):
+        def propose_assumptions(self, initial_assumption, available_operations=None):
             captured['initial_assumption'] = initial_assumption
             captured['available_operations'] = available_operations
             return [initial_assumption]
 
-        def fit_assumption_and_check_correctness_with_tensordata(
-                self, pipeline, operations_cache=None, preprocessing_cache=None, eval_n_jobs=-1):
+        def fit_assumption_and_check_correctness(
+                self, pipeline, operations_cache=None, eval_n_jobs=-1):
             captured['fit_pipeline'] = pipeline
             captured['operations_cache'] = operations_cache
-            captured['preprocessing_cache'] = preprocessing_cache
             captured['eval_n_jobs'] = eval_n_jobs
             return fitted_pipeline
 
@@ -376,7 +363,6 @@ def test_tensor_initial_assumption_uses_user_pipeline_without_auto_builder(monke
     assert captured['fit_pipeline'] is not initial_pipeline
     assert captured['fit_pipeline'].name == 'initial'
     assert captured['operations_cache'] == 'operations-cache'
-    assert captured['preprocessing_cache'] == 'preprocessing-cache'
     assert captured['eval_n_jobs'] == 4
     assert captured['preset'] == 'auto'
     assert captured['preset_n_jobs'] == 4

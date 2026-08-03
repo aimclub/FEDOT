@@ -46,15 +46,13 @@ class AssumptionsBuilder:
         raise AbstractMethodNotImplementError
 
     @abstractmethod
-    def to_builders(self, initial_node: Optional[PipelineNode] = None,
-                    use_input_preprocessing: bool = True) -> List[PipelineBuilder]:
+    def to_builders(self, initial_node: Optional[PipelineNode] = None) -> List[PipelineBuilder]:
         raise AbstractMethodNotImplementError
 
-    def build(self, initial_node: Optional[PipelineNode] = None,
-              use_input_preprocessing: bool = True) -> List[Pipeline]:
+    def build(self, initial_node: Optional[PipelineNode] = None) -> List[Pipeline]:
         return [
             builder.build()
-            for builder in self.to_builders(initial_node, use_input_preprocessing=use_input_preprocessing)]
+            for builder in self.to_builders(initial_node)]
 
 
 class UniModalAssumptionsBuilder(AssumptionsBuilder):
@@ -93,13 +91,11 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
                 self.logger.info(self.UNSUITABLE_AVAILABLE_OPERATIONS_MSG)
         return self
 
-    def to_builders(self, initial_node: Optional[PipelineNode] = None,
-                    use_input_preprocessing: bool = True) -> List[PipelineBuilder]:
+    def to_builders(self, initial_node: Optional[PipelineNode] = None) -> List[PipelineBuilder]:
         """ Return a list of valid builders satisfying internal
         OperationsFilter or a single fallback builder. """
         preprocessing = \
-            PreprocessingBuilder.builder(self.data.task.task_type, self.data, initial_node,
-                                                  use_input_preprocessing=use_input_preprocessing)
+            PreprocessingBuilder.builder(self.data.task.task_type, self.data, initial_node)
         valid_builders = []
         for processing in self.assumptions_generator.processing_builders():
             candidate_builder = preprocessing.merge_with(processing)
@@ -128,16 +124,14 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
                 subbuilder.from_operations(available_ts_tensor_operations)
         return self
 
-    def to_builders(self, initial_node: Optional[PipelineNode] = None,
-                    use_input_preprocessing: bool = True) -> List[PipelineBuilder]:
+    def to_builders(self, initial_node: Optional[PipelineNode] = None) -> List[PipelineBuilder]:
         # For each data source build its own list of alternatives of initial pipelines.
         subpipelines: List[List[Pipeline]] = []
         initial_node_operation = initial_node.operation.operation_type if initial_node is not None else None
         for data_source_name, subbuilder in self._subbuilders:
-            first_node = PipelineBuilder(use_input_preprocessing=use_input_preprocessing) \
+            first_node = PipelineBuilder() \
                 .add_node(data_source_name).add_node(initial_node_operation).to_nodes()[0]
-            data_pipeline_alternatives = subbuilder.build(
-                first_node, use_input_preprocessing=use_input_preprocessing)
+            data_pipeline_alternatives = subbuilder.build(first_node)
             subpipelines.append(data_pipeline_alternatives)
 
         # TODO: fix this workaround during the improvement of multi-modality
@@ -153,7 +147,6 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
             ensemble_operation = self.assumptions_generator.ensemble_operation()
             ensemble_nodes = map(
                 lambda pipeline: pipeline.root_node, pre_ensemble)
-            ensemble_builder = PipelineBuilder(*ensemble_nodes, use_input_preprocessing=use_input_preprocessing) \
-                .join_branches(ensemble_operation)
+            ensemble_builder = PipelineBuilder(*ensemble_nodes).join_branches(ensemble_operation)
             ensemble_builders.append(ensemble_builder)
         return ensemble_builders

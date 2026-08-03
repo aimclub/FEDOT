@@ -10,9 +10,6 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
 class _FakePipeline:
-    use_input_preprocessing = False
-    preprocessor = None
-
     def __init__(self, prediction, is_fitted=True, probabilities=None):
         self.prediction = np.asarray(prediction)
         self.probabilities = None if probabilities is None else np.asarray(probabilities)

@@ -502,7 +502,6 @@ def _run_fedot_mode(dataset: LoadedDataset,
         'seed': config.seed,
         'n_jobs': 1,  # config.n_jobs
         'preset': config.preset,
-        'use_input_preprocessing': False,
         'logging_level': 10,
         'with_tuning': config.with_tuning,
         'history_dir': str(history_dir),

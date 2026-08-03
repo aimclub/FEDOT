@@ -97,6 +97,10 @@ def resolve_tensor_data_config(
 
     User options from ``tensor_data_config`` are validated first. Missing ``backend_name``
     defaults to ``'cpu'``; missing ``use_cache`` follows ``use_preprocessing_cache``.
+
+    Note: despite its name, ``use_preprocessing_cache`` here only controls the default for the
+    ``TensorData`` ``Cacher``'s ``use_cache`` flag (tensor optional-preprocessing caching) -
+    it has no relation to the (legacy) ``InputData`` ``PreprocessingCache``/``DataPreprocessor``.
     """
     validated = validate_tensor_data_config(user_config) or {}
     config = dict(validated)

@@ -9,19 +9,6 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 
-class _StubPreprocessor:
-    def __init__(self):
-        self.calls = []
-
-    def restore_index(self, copied_input_data, result):
-        self.calls.append('restore_index')
-        return result
-
-    def apply_inverse_target_encoding(self, prediction):
-        self.calls.append('inverse_target_encoding')
-        return prediction + 1
-
-
 def _make_ts_output():
     return OutputData(
         idx=np.arange(2),
@@ -34,19 +21,15 @@ def _make_ts_output():
 
 
 def test_pipeline_postprocess_uses_typed_postprocess_plan():
-    pipeline = Pipeline(use_input_preprocessing=False)
-    pipeline.preprocessor = _StubPreprocessor()
+    pipeline = Pipeline()
 
-    result = pipeline._postprocess(
-        None, _make_ts_output(), output_mode='labels')
+    result = pipeline._postprocess(_make_ts_output(), output_mode='labels')
 
-    assert pipeline.preprocessor.calls == [
-        'restore_index', 'inverse_target_encoding']
-    assert result.predict.tolist() == [2.0, 3.0]
+    assert result.predict.tolist() == [1.0, 2.0]
 
 
 def test_pipeline_fit_assigns_data_and_delegates_to_internal_fit():
-    pipeline = Pipeline(use_input_preprocessing=False)
+    pipeline = Pipeline()
     assigned = []
     pipeline._assign_data_to_nodes = lambda data: assigned.append(data) or data
     pipeline._fit = lambda tensor_data=None, **kwargs: ('fitted', tensor_data)
@@ -60,12 +43,12 @@ def test_pipeline_fit_assigns_data_and_delegates_to_internal_fit():
 
 
 def test_pipeline_predict_assigns_data_and_delegates_to_root_node():
-    pipeline = Pipeline(use_input_preprocessing=False)
+    pipeline = Pipeline()
     assigned = []
     captured = {}
     pipeline._assign_data_to_nodes = lambda data: assigned.append(data) or data
-    pipeline._postprocess = lambda copied_input_data, result, output_mode: (
-        'postprocessed', copied_input_data, result, output_mode)
+    pipeline._postprocess = lambda result, output_mode: (
+        'postprocessed', result, output_mode)
 
     original_is_fitted = Pipeline.is_fitted
     original_root_node = Pipeline.root_node
@@ -92,4 +75,4 @@ def test_pipeline_predict_assigns_data_and_delegates_to_root_node():
     assert captured['tensor_data'] is assigned[0]
     assert captured['output_mode'] == 'labels'
     assert result[0] == 'postprocessed'
-    assert result[3] == 'labels'
+    assert result[2] == 'labels'

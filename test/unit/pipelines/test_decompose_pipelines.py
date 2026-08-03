@@ -9,10 +9,8 @@ from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.preprocessing.preprocessing import DataPreprocessor
 from test.unit.tasks.test_classification import get_iris_data
 from test.unit.tasks.test_forecasting import get_ts_data
-from test.unit.preprocessing.test_preprocessors import data_with_complicated_types
 
 
 def generate_pipeline_with_decomposition(primary_operation, secondary_operation):
@@ -134,25 +132,6 @@ def test_finding_side_root_node():
     assert reg_pipeline.root_node.operation.operation_type == reg_root_node
 
 
-def test_pipeline_for_side_task_predict():
-    """ Checks whether the pipeline for the side task gives correct predictions """
-
-    pipeline = generate_pipeline_with_decomposition('scaling', 'logit')
-
-    train_data, test_data = data_with_complicated_types()
-    pipeline.fit_from_scratch(train_data)
-    predicted_labels = pipeline.predict(test_data)
-    preds = predicted_labels.predict
-
-    reg_pipeline = pipeline.pipeline_for_side_task(
-        task_type=TaskTypesEnum.regression)
-    reg_predicted_labels = reg_pipeline.predict(test_data)
-    reg_preds = reg_predicted_labels.predict
-
-    assert reg_predicted_labels is not None
-    assert not (preds == reg_preds).all()
-
-
 def test_order_by_data_flow_len_correct():
     """ The function checks whether the current version of data flow length
     counters can allow for decompose implementation to determine how the nodes
@@ -164,7 +143,6 @@ def test_order_by_data_flow_len_correct():
 
     for data_operation, model_operation in list_with_operations:
         input_data = get_iris_data()
-        input_data = DataPreprocessor().obligatory_prepare_for_fit(input_data)
 
         # Generate pipeline with different operations in the nodes with decomposition
         pipeline = generate_pipeline_with_decomposition(data_operation,

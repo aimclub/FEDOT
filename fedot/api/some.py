@@ -24,7 +24,7 @@ if __name__ == '__main__':
         target=target, 
         backend_name='cpu',
     )
-    model = Fedot(problem='classification', use_input_preprocessing=True)
+    model = Fedot(problem='classification')
     pipeline = model.fit(
         tensor_data=tensor_data,
         predefined_model='torch_linear',

@@ -63,6 +63,7 @@ def test_api_params_repository_preserves_valid_tensor_data_config():
     assert result['tensor_data_config'] == {
         'backend_name': 'gpu',
         'use_cache': False,
+        'optional_strategy': None,
     }
 
 
@@ -105,7 +106,6 @@ def test_params_for_composer_requirements_excludes_runtime_cv_folds():
     result = ApiParamsRepository.get_params_for_composer_requirements({
         'cv_folds': 5,
         'max_depth': 3,
-        'use_input_preprocessing': True,
     })
 
     assert result['max_depth'] == 3

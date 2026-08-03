@@ -14,7 +14,7 @@ class _FakePipeline:
         self.fitted = False
         self.predicted = False
 
-    def try_load_from_cache(self, operations_cache, preprocessing_cache):
+    def try_load_from_cache(self, operations_cache):
         self.loaded = True
 
     def fit(self, data_train, n_jobs=-1):
@@ -83,8 +83,8 @@ def test_propose_assumptions_with_tensordata_builds_auto_assumption(monkeypatch)
             captured['available_operations'] = available_operations
             return self
 
-        def build(self, use_input_preprocessing=True):
-            captured['use_input_preprocessing'] = use_input_preprocessing
+        def build(self):
+            captured['built'] = True
             return [pipeline]
 
     monkeypatch.setattr(handler_module, 'AssumptionsBuilder', _FakeAssumptionsBuilder)
@@ -94,7 +94,7 @@ def test_propose_assumptions_with_tensordata_builds_auto_assumption(monkeypatch)
     assert result == [pipeline]
     assert captured['data'] is handler.data
     assert captured['available_operations'] == ['torch_linear']
-    assert captured['use_input_preprocessing'] is False
+    assert captured['built'] is True
 
 
 def test_propose_assumptions_with_tensordata_accepts_user_pipeline_list():

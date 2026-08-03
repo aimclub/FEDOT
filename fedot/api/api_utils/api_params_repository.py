@@ -24,11 +24,11 @@ class ApiParamsRepository:
 
     COMPOSER_REQUIREMENTS_KEYS = {'max_arity', 'max_depth', 'num_of_generations',
                                   'early_stopping_iterations', 'early_stopping_timeout',
-                                  'parallelization_mode', 'use_input_preprocessing',
+                                  'parallelization_mode',
                                   'show_progress', 'collect_intermediate_metric', 'keep_n_best',
                                   'keep_history', 'history_dir'}
 
-    STATIC_INDIVIDUAL_METADATA_KEYS = {'use_input_preprocessing'}
+    STATIC_INDIVIDUAL_METADATA_KEYS = set()
 
     def __init__(self, task_type: TaskTypesEnum):
         self.task_type = task_type

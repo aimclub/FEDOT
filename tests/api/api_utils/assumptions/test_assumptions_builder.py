@@ -60,7 +60,6 @@ def test_tensordata_assumption_does_not_add_legacy_preprocessing_nodes():
 
     assert 'scaling' not in _pipeline_operations(pipeline)
     assert 'optional_preprocessing' in _pipeline_operations(pipeline)
-    assert pipeline.use_input_preprocessing is False
 
 
 def test_assumptions_builder_unsuitable_available_operations():

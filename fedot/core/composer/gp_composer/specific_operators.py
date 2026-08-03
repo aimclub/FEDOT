@@ -92,8 +92,7 @@ def boosting_mutation(pipeline: Pipeline, requirements, graph_gen_params, **kwar
 
     node_final = PipelineNode(choice(requirements.secondary),
                               nodes_from=[existing_pipeline.root_node, node_boost])
-    pipeline = Pipeline(
-        node_final, use_input_preprocessing=pipeline.use_input_preprocessing)
+    pipeline = Pipeline(node_final)
     return pipeline
 
 

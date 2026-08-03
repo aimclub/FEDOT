@@ -227,7 +227,7 @@ def test_main_facade_fit_uses_predefined_runtime_path(monkeypatch):
     tensor_data = _minimal_tensordata_for_fit()
 
     class FakePredefinedModel:
-        def __init__(self, predefined_model, data, log, use_input_preprocessing=True, api_preprocessor=None):
+        def __init__(self, predefined_model, data, log):
             assert predefined_model == 'logit'
             assert data is tensor_data
 
@@ -247,7 +247,7 @@ def test_main_facade_fit_stores_train_data(monkeypatch):
     tensor_data = _minimal_tensordata_for_fit()
 
     class FakePredefinedModel:
-        def __init__(self, predefined_model, data, log, use_input_preprocessing=True, api_preprocessor=None):
+        def __init__(self, predefined_model, data, log):
             pass
 
         def fit(self):
@@ -349,32 +349,6 @@ def test_main_facade_tune_uses_tensor_tuner_runtime_path(monkeypatch):
     assert captured['tune_pipeline'].__class__ is _StubPipeline
     assert captured['refit_tensor_data'] is model.train_data
     assert model.api_composer.was_tuned is True
-
-
-def test_main_facade_merges_ensemble_preprocessors_per_pipeline(monkeypatch):
-    model = Fedot(problem='classification')
-    model.data_processor.preprocessor = type('ApiPreprocessor', (), {'name': 'api'})()
-    pipeline_a = type('PipelineStub', (), {'use_input_preprocessing': True, 'preprocessor': 'preprocessor-a'})()
-    pipeline_b = type('PipelineStub', (), {'use_input_preprocessing': True, 'preprocessor': 'preprocessor-b'})()
-    model.current_pipeline = PipelineEnsemble(
-        pipelines=[pipeline_a, pipeline_b],
-        validation_metric='rmse',
-    )
-    captured = []
-
-    def fake_merge_preprocessors(api_preprocessor, pipeline_preprocessor, use_auto_preprocessing):
-        captured.append((api_preprocessor, pipeline_preprocessor, use_auto_preprocessing))
-        return f'merged-{pipeline_preprocessor}'
-
-    monkeypatch.setattr('fedot.api.main.BasePreprocessor.merge_preprocessors', fake_merge_preprocessors)
-
-    model._merge_current_pipeline_preprocessors()
-
-    assert [item[1] for item in captured] == ['preprocessor-a', 'preprocessor-b']
-    assert all(item[0] is not model.data_processor.preprocessor for item in captured)
-    assert captured[0][0] is not captured[1][0]
-    assert pipeline_a.preprocessor == 'merged-preprocessor-a'
-    assert pipeline_b.preprocessor == 'merged-preprocessor-b'
 
 
 def test_main_facade_explain_uses_data_definition_boundary(monkeypatch):

@@ -13,25 +13,21 @@ class PreprocessingBuilder:
     Builder for constructing preprocessing part of pipeline during the preparation of an initial assumption.
     """
 
-    def __init__(self, task_type: TaskTypesEnum, data_type: DataTypesEnum, *initial_nodes: PipelineNode,
-                 use_input_preprocessing: bool = False):
+    def __init__(self, task_type: TaskTypesEnum, data_type: DataTypesEnum, *initial_nodes: PipelineNode):
         self.task_type = task_type
         self.data_type = data_type
-        self._builder = PipelineBuilder(
-            *initial_nodes, use_input_preprocessing=use_input_preprocessing)
+        self._builder = PipelineBuilder(*initial_nodes)
 
     @classmethod
     def builder(cls,
                 task_type: TaskTypesEnum,
                 data: TensorData,
                 *initial_nodes: Optional[PipelineNode],
-                use_input_preprocessing: bool = False,
                 ) -> PipelineBuilder:
         preprocessing_builder = cls(
             task_type,
             data.data_type,
             *initial_nodes,
-            use_input_preprocessing=use_input_preprocessing,
         )
         return preprocessing_builder.with_optional_preprocessing()._builder
 

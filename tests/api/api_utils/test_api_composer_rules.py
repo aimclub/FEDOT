@@ -1,18 +1,15 @@
 ﻿from fedot.api.api_utils.api_composer_rules import build_cache_init_plan, build_tuner_plan
 
 
-def test_build_cache_init_plan_respects_input_preprocessing_boundary():
+def test_build_cache_init_plan_normalizes_flags_and_carries_dir():
     plan = build_cache_init_plan(
         use_operations_cache=True,
-        use_preprocessing_cache=True,
         use_predictions_cache=True,
-        use_input_preprocessing=False,
         cache_dir='cache',
         use_stats=True,
     )
 
     assert plan.use_operations_cache is True
-    assert plan.use_preprocessing_cache is False
     assert plan.use_predictions_cache is True
     assert plan.cache_dir == 'cache'
     assert plan.use_stats is True
