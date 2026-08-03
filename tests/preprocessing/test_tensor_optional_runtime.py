@@ -12,6 +12,7 @@ from fedot.preprocessing.service.tensor_optional_runtime import (
     get_optional_runtime_spec_for_tensor_data,
 )
 from fedot.preprocessing.tools.preprocessor_types import PreprocessingStepEnum
+from fedot.validation.errors import FedotValidationError
 
 
 def _tabular_tensor_data() -> TensorData:
@@ -75,7 +76,7 @@ def test_get_optional_runtime_spec_for_tensor_data_raises_for_unsupported_type()
     tensor_data = _tabular_tensor_data()
     tensor_data.data_type = DataTypesEnum.image
 
-    with pytest.raises(ValueError, match='Optional preprocessing is not supported'):
+    with pytest.raises(FedotValidationError, match='Optional preprocessing is not supported'):
         get_optional_runtime_spec_for_tensor_data(tensor_data)
 
 

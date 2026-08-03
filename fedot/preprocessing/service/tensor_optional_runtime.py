@@ -4,6 +4,7 @@ from typing import Any, Dict, Mapping, Type
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.industrial.core.architecture.preprocessing.ts_optional_service import OptionalTSService
+from fedot.preprocessing.schemas import validate_optional_preprocessing_data_type
 from fedot.preprocessing.service.optional_service import OptionalService
 from fedot.preprocessing.service.tabular_optional_service import OptionalTabularService
 from fedot.preprocessing.tools.preprocessor_types import PreprocessingStepEnum
@@ -36,10 +37,5 @@ TENSOR_OPTIONAL_RUNTIME_BY_DATA_TYPE: Dict[DataTypesEnum, TensorOptionalRuntimeS
 def get_optional_runtime_spec_for_tensor_data(
     tensor_data: TensorData,
 ) -> TensorOptionalRuntimeSpec:
-    runtime_spec = TENSOR_OPTIONAL_RUNTIME_BY_DATA_TYPE.get(tensor_data.data_type)
-    if runtime_spec is None:
-        raise ValueError(
-            f'Optional preprocessing is not supported for data type '
-            f'{tensor_data.data_type!r}.'
-        )
-    return runtime_spec
+    data_type = validate_optional_preprocessing_data_type(tensor_data.data_type)
+    return TENSOR_OPTIONAL_RUNTIME_BY_DATA_TYPE[data_type]
