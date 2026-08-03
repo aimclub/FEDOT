@@ -657,7 +657,7 @@ def test_custom_preprocessing():
 
 
 @pytest.mark.unit
-def test_optional_fit_predict_uses_train_trace_after_obligatory_predict():
+def test_optional_fit_predict_uses_in_memory_handlers_without_trace():
     train = np.array([
         [0.0, 10.0, "A", 0.0],
         [1.0, 10.0, "B", 1.0],
@@ -671,20 +671,18 @@ def test_optional_fit_predict_uses_train_trace_after_obligatory_predict():
 
     train_td = TensorDataCreator.create(train, backend_name="cpu")
     service = OptionalTabularService()
-    fitted_td = service.fit_transform(train_td, {PreprocessingStepEnum.imputation: None})
+    service.fit(train_td, {PreprocessingStepEnum.imputation: None})
 
     test_td = TensorDataCreator.create(
         test,
         backend_name="cpu",
         state="predict",
         without_target=True,
-        trace_uuid=fitted_td.trace_uuid,
+        trace_uuid=train_td.trace_uuid,
     )
-    predicted_td = service.transform(test_td)
+    predicted_td = service.predict(test_td)
 
-    assert isinstance(fitted_td, TensorData)
     assert isinstance(predicted_td, TensorData)
-    assert predicted_td.trace_uuid == fitted_td.trace_uuid
     assert predicted_td.features.shape == test_td.features.shape
     assert predicted_td.features[0, 1] == 10.0
     assert not torch.isnan(predicted_td.features[:, 1]).any()
