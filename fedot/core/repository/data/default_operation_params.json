@@ -1,4 +1,7 @@
 {
+  "optional_preprocessing": {
+    "auto": true
+  },
   "torch_linear": {
     "learning_rate": 0.05,
     "epochs": 200
