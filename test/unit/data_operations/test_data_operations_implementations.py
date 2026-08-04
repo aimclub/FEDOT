@@ -494,6 +494,41 @@ def test_imputation_binary_features_with_equal_categories_correct():
     assert np.isclose(predicted.predict[1, 1], 5.0)
 
 
+def test_imputation_binary_features_with_non_zero_categories_correct():
+    """
+    Check filling gaps in binary integer columns whose two categories do not
+    include zero (e.g. {1, 2}). The imputed value must be discretized to the
+    nearest category and the original values must stay unchanged.
+    """
+    supp_data = SupplementaryData(col_type_ids={'features': np.array([TYPE_TO_ID[int]])})
+    task = Task(TaskTypesEnum.classification)
+    features = np.array([[1],
+                         [2],
+                         [1],
+                         [np.nan],
+                         [1]])
+    target = np.array([['no'], ['yes'], ['no'], ['no'], ['no']])
+    nan_data = InputData(
+        idx=np.arange(len(features)),
+        features=features,
+        target=target,
+        numerical_idx=np.array([0]),
+        categorical_idx=np.array([]),
+        task=task,
+        data_type=DataTypesEnum.table,
+        supplementary_data=supp_data
+    )
+
+    imputation_node = PipelineNode('simple_imputation')
+    imputation_node.fit(nan_data)
+    predicted = imputation_node.predict(nan_data)
+
+    # Mean of known values is 1.25 -> the gap must be filled with category 1
+    assert np.isclose(predicted.predict[3, 0], 1)
+    # Original values must not be changed by the discretization
+    assert np.allclose(predicted.predict[[0, 1, 2, 4], 0], [1, 2, 1, 1])
+
+
 def test_label_encoding_correct():
     """
     Check if LabelEncoder can perform transformations correctly. Also the dataset
