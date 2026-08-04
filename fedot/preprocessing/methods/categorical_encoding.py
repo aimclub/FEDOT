@@ -120,7 +120,42 @@ class LabelEncoder(AbstractPreprocessingHandler):
         data.features = features
 
         return data
+    
+    def inverse_transform(self, data: PreparedData) -> PreparedData:
+        """
+        Inverse transform label-encoded numeric IDs to categorical values.
 
+        Known labels are mapped back with fitted ``categories_``.
+        Missing values stay ``NaN``. Unknown labels (unseen at fit) become ``NaN``.
+
+        Args:
+            data: Feature matrix wrapper with label-encoded categorical columns.
+
+        Returns:
+            PreparedData: Data with decoded categorical columns.
+        """
+        if self.categorical_idx_ is None:
+            raise RuntimeError('LabelEncoder is not fitted yet.')
+
+        xp = Backend().xp
+        features = data.features
+        n_rows = features.shape[0]
+
+        for idx in self.categorical_idx_:
+            column = features[:, idx]
+            categories = self.categories_[idx]
+
+            nan_mask = column != column
+            decoded = xp.full(n_rows, xp.nan, dtype=object)
+
+            for label_id in range(int(categories.size)):
+                mask = ~nan_mask & (column == float(label_id))
+                decoded[mask] = categories[label_id]
+
+            features[:, idx] = decoded
+
+        data.features = features
+        return data
 
 class OneHotEncoder(AbstractPreprocessingHandler):
     """

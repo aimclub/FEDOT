@@ -112,18 +112,16 @@ class Pipeline(GraphDelegate, Serializable):
                 fitted_operations.append(node.fitted_operation)
 
     # TODO romankuklo: refactor this method to use tensordata
-    def _postprocess(self, copied_input_data: Optional[InputData], result: OutputData,
-                     output_mode: str = 'default') -> OutputData:
+    def _postprocess(self, result: TensorData, output_mode: str = 'default') -> TensorData:
         """
         Postprocesses output of the model
 
         Args:
-            copied_input_data: preprocessed copy of the original data
-            result: output of the model
+            result: preprocessed copy of the original data
             output_mode: desired form of output for operations
 
         Returns:
-            OutputData: postprocessed ``result`` parameter
+            TensorData: postprocessed ``result`` parameter
         """
         postprocess_plan = build_pipeline_postprocess_plan(
             output_mode, result.task.task_type)
