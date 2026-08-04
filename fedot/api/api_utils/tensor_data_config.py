@@ -3,10 +3,8 @@ from typing import Any, Dict, Optional, Set
 
 from fedot.core.backend.backend import Backend
 from fedot.core.data.tensor_data.data_spec import DataSpec
-from fedot.preprocessing.tools.preprocessor_types import PreprocessingStepEnum
 
 _CREATOR_ONLY_KEYS: Set[str] = {'backend_name'}
-_API_ONLY_KEYS: Set[str] = {'optional_strategy'}
 
 # Injected at fit/predict time or filled during TensorDataCreator pipeline.
 _RUNTIME_KEYS: Set[str] = {
@@ -24,14 +22,7 @@ _USER_CONFIGURABLE_DATA_SPEC_KEYS: Set[str] = {
     field.name for field in fields(DataSpec)
 } - _RUNTIME_KEYS
 
-_ALLOWED_KEYS: Set[str] = _USER_CONFIGURABLE_DATA_SPEC_KEYS | _CREATOR_ONLY_KEYS | _API_ONLY_KEYS
-
-
-# TODO romankuklo: how to validate optional strategy?
-def _normalize_optional_strategy(
-    optional_strategy: Dict,
-) -> Dict[PreprocessingStepEnum, Any]:
-    ...
+_ALLOWED_KEYS: Set[str] = _USER_CONFIGURABLE_DATA_SPEC_KEYS | _CREATOR_ONLY_KEYS
 
 
 def validate_tensor_data_config(config: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
@@ -71,18 +62,12 @@ def validate_tensor_data_config(config: Optional[Dict[str, Any]]) -> Optional[Di
             f'"tensor_data_config": {sorted(forbidden_keys)}'
         )
 
-    # TODO romankuklo: should remove from here?
     normalized = dict(config)
     if 'backend_name' in normalized:
         normalized['backend_name'] = Backend.normalize_name(normalized['backend_name'])
 
     if 'use_cache' in normalized and not isinstance(normalized['use_cache'], bool):
         raise ValueError('"tensor_data_config.use_cache" must be a boolean.')
-
-    if 'optional_strategy' in normalized:
-        normalized['optional_strategy'] = _normalize_optional_strategy(normalized['optional_strategy'])
-    else:
-        normalized['optional_strategy'] = None
 
     return normalized
 
@@ -99,7 +84,7 @@ def resolve_tensor_data_config(
     defaults to ``'cpu'``; missing ``use_cache`` follows ``use_preprocessing_cache``.
 
     Note: despite its name, ``use_preprocessing_cache`` here only controls the default for the
-    ``TensorData`` ``Cacher``'s ``use_cache`` flag (tensor optional-preprocessing caching) -
+    ``TensorData`` ``Cacher``'s ``use_cache`` flag (tensor obligatory-preprocessing caching) -
     it has no relation to the (legacy) ``InputData`` ``PreprocessingCache``/``DataPreprocessor``.
     """
     validated = validate_tensor_data_config(user_config) or {}

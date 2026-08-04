@@ -39,7 +39,6 @@ def build_default_api_params(task_type: TaskTypesEnum, default_data_dir: str) ->
         use_preprocessing_cache=True,
         use_predictions_cache=True,
         use_stats=False,
-        use_auto_preprocessing=False,
         use_meta_rules=False,
         cache_dir=default_data_dir,
         keep_history=True,

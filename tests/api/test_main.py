@@ -127,7 +127,7 @@ def test_main_facade_uses_service_rule_for_predict_proba_mode_selection():
 
 
 def test_main_facade_predict_skips_shared_auto_preprocessing_for_pipeline_ensemble():
-    model = Fedot(problem='classification', use_auto_preprocessing=True)
+    model = Fedot(problem='classification')
     model.current_pipeline = PipelineEnsemble(
         pipelines=[_StubPipeline()],
         validation_metric='f1',

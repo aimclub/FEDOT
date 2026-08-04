@@ -77,7 +77,6 @@ class ApiParams(UserDict):
     ) -> TensorDataCreationRequest:
         config = dict(self.tensor_data_config)
         backend_name = config.pop('backend_name', 'cpu')
-        config.pop('optional_strategy', None)
 
         spec_kwargs = {
             **config,

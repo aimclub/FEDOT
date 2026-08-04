@@ -256,29 +256,3 @@ def test_correct_api_dataset_with_pseudo_text_preprocessing():
     node_tags = [node.tags for node in fedot_model.current_pipeline.nodes]
     assert not any('text' in current_tags for current_tags in node_tags)
     assert fedot_model.prediction.features.shape[0] == input_data.features.shape[0]
-
-
-def test_auto_preprocessing_mode():
-    funcs = [data_with_only_categorical_features, data_with_too_much_nans,
-             data_with_spaces_and_nans_in_features, data_with_nans_in_target_column,
-             data_with_nans_in_multi_target]
-
-    # Check for all datasets
-    for data_generator in funcs:
-        input_data = data_generator()
-        single_processing = Fedot(
-            problem='regression', use_auto_preprocessing=True)
-        multi_processing = Fedot(problem='regression',
-                                 use_auto_preprocessing=False)
-
-        pipeline_single = single_processing.fit(
-            input_data, predefined_model='auto')
-        pipeline_multi = multi_processing.fit(
-            input_data, predefined_model='auto')
-
-        prediction_single = pipeline_single.predict(input_data)
-        prediction_multi = pipeline_multi.predict(input_data)
-
-        assert prediction_single.features.shape == prediction_multi.features.shape
-        assert (prediction_single.features == prediction_single.features).all()
-        assert (prediction_single.predict == prediction_single.predict).all()

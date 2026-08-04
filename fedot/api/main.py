@@ -65,9 +65,6 @@ from fedot.utilities.define_metric_by_task import MetricByTask
 from fedot.utilities.memory import MemoryAnalytics
 from fedot.utilities.project_import_export import export_project_to_zip, import_project_from_zip
 from fedot.core.data.tensor_data.tensor_data import TensorData
-from fedot.preprocessing.service.tensor_optional_runtime import (
-    get_optional_runtime_spec_for_tensor_data,
-)
 
 
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
@@ -283,31 +280,6 @@ class Fedot:
     def _finalize_pipeline_ensemble(self, validation_data: Optional[InputData] = None):
         self.current_pipeline.finalize(validation_data=validation_data)
 
-    def fit_transform_tensor_optional(
-        self,
-        tensor_data: TensorData
-    ) -> TensorData:
-    # TODO romankuklo: if no imputation in user strategy and no auto preprocessing, 
-    # we should show it for pipeline models, but all preprocesing only through services.
-
-        use_auto_preprocessing = self.params.get('use_auto_preprocessing')
-        user_optional_strategy = self.params.tensor_data_config.get('optional_strategy')
-
-        if not use_auto_preprocessing and user_optional_strategy is None:
-            return tensor_data
-
-        runtime_spec = get_optional_runtime_spec_for_tensor_data(tensor_data)
-
-        if use_auto_preprocessing:
-            optional_strategy = runtime_spec.default_steps
-        else:
-            optional_strategy = user_optional_strategy
-
-        service = runtime_spec.service_cls(use_cache=self.use_cache)
-
-        return service.fit_transform(tensor_data, optional_strategy)
-
-
     def _prepare_fit_context(self) -> FitDataContext:
 
         with fedot_composer_timer.launch_data_definition('fit'):
@@ -326,9 +298,6 @@ class Fedot:
             )
 
             self._init_remote_if_necessary(self.train_data)
-
-            with fedot_composer_timer.launch_preprocessing():
-                self.train_data = self.fit_transform_tensor_optional(self.train_data)
 
             # TODO romankuklo: add sampling stage and chunked ensemble for TD
 
@@ -437,8 +406,6 @@ class Fedot:
         if isinstance(self.current_pipeline, PipelineEnsemble):
             self.log.warning('Tuning for pipeline ensembles is not supported yet. Existing ensemble is returned.')
             return self.current_pipeline
-        
-        # TODO romankuklo: add optional preprocessing
 
         with fedot_composer_timer.launch_tuning('post'):
             tune_plan = build_tune_execution_plan(
