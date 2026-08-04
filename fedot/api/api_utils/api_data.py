@@ -6,15 +6,9 @@ import numpy as np
 import torch
 from golem.core.log import default_log
 
-from fedot.api.api_utils.api_data_rules import (
-    build_definition_plan,
-    iter_shared_index_assignments,
-    normalize_features_for_definition,
-    plan_prediction,
-)
+from fedot.api.api_utils.api_data_rules import plan_prediction
 from fedot.api.api_utils.data_definition import data_strategy_selector, FeaturesType, TargetType
 from fedot.core.data.input_data.data import InputData, OutputData, data_type_is_table
-from fedot.core.data.common.enums import StateEnum
 from fedot.preprocessing.data_preprocessing import convert_into_column
 from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.pipelines.ensembling.pipeline_ensemble import PipelineEnsemble

@@ -120,10 +120,14 @@ class Fedot:
             :class:`~fedot.api.builder.FedotBuilder`.
 
             ``tensor_data_config`` is a dictionary of options for
+            :func:`~fedot.api.create_data.create_data` /
             :class:`~fedot.core.data.tensor_data.tensor_data_creator.TensorDataCreator`
             (for example ``backend_name``, ``use_cache``, ``encoding_strategy``,
             ``custom_strategy``, ``data_type``, ``ts_orientation``). It is validated
             during initialization and stored on :attr:`~fedot.api.api_utils.params.ApiParams.tensor_data_config`.
+            Prefer :meth:`create_data` (or the module-level :func:`~fedot.api.create_data.create_data`)
+            to build :class:`~fedot.core.data.tensor_data.tensor_data.TensorData` before
+            :meth:`fit` / :meth:`predict`.
     """
 
     def __init__(self,
@@ -348,6 +352,66 @@ class Fedot:
             if self.current_pipeline is None:
                 raise ValueError('No models were found')
 
+    def create_data(
+        self,
+        features,
+        target=None,
+        *,
+        from_data: Optional[TensorData] = None,
+        **options,
+    ) -> TensorData:
+        """
+        Build :class:`~fedot.core.data.tensor_data.tensor_data.TensorData` using this
+        model's ``problem`` and ``tensor_data_config``.
+
+        Typical flow::
+
+            train = model.create_data(X_train, target=y_train)
+            model.fit(train)
+            test = model.create_data(X_test, from_data=train)
+            pred = model.predict(test)
+
+        Args:
+            features: Features matrix, dataframe, or path.
+            target: Target values, or a column name (``str``) to extract from ``features``.
+            from_data: Train :class:`TensorData` for predict-time creation
+                (sets predict state and reuses ``trace_uuid``).
+            **options: Extra creator options; override ``tensor_data_config`` keys.
+
+        Returns:
+            Prepared :class:`TensorData`.
+        """
+        from fedot.api.create_data import create_data as _create_data
+
+        is_predict = from_data is not None
+        trace_uuid = from_data.trace_uuid if from_data is not None else options.get('trace_uuid')
+        request = self.params.prepare_creation(
+            is_predict=is_predict,
+            trace_uuid=trace_uuid if is_predict else None,
+        )
+
+        config_kwargs = dict(request.spec_kwargs)
+        config_kwargs.update(options)
+        config_kwargs.pop('target', None)
+        config_kwargs.pop('backend', None)
+        config_kwargs.pop('backend_name', None)
+
+        task = options.get('task') if from_data is not None else config_kwargs.pop('task', None)
+        data_type = options.get('data_type') if from_data is not None else config_kwargs.pop('data_type', None)
+        if from_data is not None:
+            config_kwargs.pop('task', None)
+            config_kwargs.pop('data_type', None)
+
+        return _create_data(
+            features,
+            target=target,
+            backend=options.get('backend', request.backend_name),
+            task=task,
+            data_type=data_type,
+            from_data=from_data,
+            **config_kwargs,
+        )
+
     def fit(self,
             tensor_data: TensorData,
             predefined_model: Union[str, Pipeline] = None) -> Pipeline:
@@ -451,9 +515,8 @@ class Fedot:
         """Runs prediction on a prepared :class:`TensorData` instance.
 
         Args:
-            tensor_data: test data already converted to ``TensorData`` (e.g. via
-                :class:`~fedot.core.data.tensor_data.tensor_data_creator.TensorDataCreator`).
-            output_mode: prediction format for classification models.
+            tensor_data: test data from :func:`~fedot.api.create_data.create_data` or
+                :meth:`create_data` (typically with ``from_data=train``).
             path_to_save: if specified, path to save prediction to.
         """
         if self.current_pipeline is None:

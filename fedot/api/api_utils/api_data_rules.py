@@ -1,7 +1,6 @@
 ﻿from dataclasses import dataclass
 from typing import Any, Iterable, Optional, Tuple
 
-from fedot.core.data.common.enums import StateEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
@@ -23,24 +22,11 @@ class PredictionPlan:
 class StrategyResolution:
     strategy_factory: Any
 
-# TODO @romankuklo: needed for TD creation API
-@dataclass(frozen=True)
-class TensorDataDefinitionPlan:
-    backend_name: str
-    state: StateEnum
-
 
 @dataclass(frozen=True)
 class TensorDataCreationRequest:
     backend_name: str
     spec_kwargs: dict
-
-
-def build_definition_plan(backend_name: str, is_predict: bool) -> TensorDataDefinitionPlan:
-    return TensorDataDefinitionPlan(
-        backend_name=backend_name,
-        state=StateEnum.PREDICT if is_predict else StateEnum.FIT,
-    )
 
 
 class DataDefinitionResolutionError(TypeError):

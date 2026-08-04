@@ -4,6 +4,7 @@ from fedot.core.pipelines.pipeline_rules import (
     OutputModeEnum,
     build_pipeline_postprocess_plan,
     normalize_output_mode,
+    resolve_pipeline_predict_modes,
 )
 from fedot.core.pipelines.schemas import validate_pipeline_output_mode
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -17,7 +18,22 @@ def test_normalize_output_mode_accepts_enum_and_string():
 
 def test_validate_pipeline_output_mode_rejects_unknown_value():
     with pytest.raises(FedotValidationError, match='Invalid output mode'):
-        validate_pipeline_output_mode('labels')
+        validate_pipeline_output_mode('unknown_mode')
+
+
+def test_resolve_pipeline_predict_modes_auto_classification_uses_labels():
+    modes = resolve_pipeline_predict_modes(
+        OutputModeEnum.AUTO, TaskTypesEnum.classification)
+
+    assert modes.operation_output_mode == 'labels'
+    assert modes.pipeline_output_mode is OutputModeEnum.AUTO
+
+
+def test_resolve_pipeline_predict_modes_keeps_legacy_operation_modes():
+    modes = resolve_pipeline_predict_modes('probs', TaskTypesEnum.classification)
+
+    assert modes.operation_output_mode == 'probs'
+    assert modes.pipeline_output_mode is OutputModeEnum.RAW
 
 
 def test_build_pipeline_postprocess_plan_for_auto_modes():
