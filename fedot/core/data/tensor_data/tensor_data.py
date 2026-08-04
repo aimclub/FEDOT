@@ -73,18 +73,15 @@ class TensorData:
         trace_uuid: UUID of the trace used for tracing.
 
     Examples:
-        Create `TensorData` from a numpy array using the creator:
+        Prefer the public helper:
 
-        >>> from fedot.core.data.tensor_data.td_creator import TensorDataCreator
-        >>> td = TensorDataCreator.create(array, backend_name='cpu')
+        >>> from fedot import create_data
+        >>> train = create_data(array, target=y)
+        >>> test = create_data(x_test, from_data=train)
 
-        Create `TensorData` from a CSV file and extract a target column:
+        Or extract a target column from a CSV / dataframe:
 
-        >>> td = TensorDataCreator.create(
-        ...     'path/to/file.csv',
-        ...     backend_name='cpu',
-        ...     target_idx='target',
-        ... )
+        >>> train = create_data('path/to/file.csv', target='target')
     """
     task: Union[Task, str]
     data_type: Union[DataTypesEnum, str]

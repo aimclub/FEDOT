@@ -66,7 +66,12 @@ def test_pipeline_predict_assigns_data_and_delegates_to_root_node():
     ))
 
     try:
-        tensor_data = SimpleNamespace(name='tensor-data')
+        tensor_data = TensorData(
+            task=Task(TaskTypesEnum.classification),
+            data_type=DataTypesEnum.tabular,
+            features=torch.zeros((2, 2)),
+            target=torch.tensor([0, 1]),
+        )
         result = pipeline.predict(tensor_data, output_mode='labels')
     finally:
         Pipeline.is_fitted = original_is_fitted
@@ -77,4 +82,42 @@ def test_pipeline_predict_assigns_data_and_delegates_to_root_node():
     assert captured['tensor_data'] is assigned[0]
     assert captured['output_mode'] == 'labels'
     assert result[0] == 'postprocessed'
-    assert result[2] == 'labels'
+    assert result[2] is OutputModeEnum.RAW
+
+
+def test_pipeline_predict_auto_classification_passes_labels_to_node():
+    pipeline = Pipeline()
+    captured = {}
+    pipeline._assign_data_to_nodes = lambda data: data
+    pipeline._postprocess = lambda result, output_mode: (
+        'postprocessed', result, output_mode)
+
+    original_is_fitted = Pipeline.is_fitted
+    original_root_node = Pipeline.root_node
+    Pipeline.is_fitted = property(lambda self: True)
+    Pipeline.root_node = property(lambda self: SimpleNamespace(
+        predict=lambda tensor_data, output_mode, predictions_cache, fold_id: (
+            captured.update({'output_mode': output_mode}),
+            TensorData(
+                task=Task(TaskTypesEnum.classification),
+                data_type=DataTypesEnum.tabular,
+                features=torch.zeros((2, 2)),
+                predict=torch.tensor([0, 1]),
+            ),
+        )[1]
+    ))
+
+    try:
+        tensor_data = TensorData(
+            task=Task(TaskTypesEnum.classification),
+            data_type=DataTypesEnum.tabular,
+            features=torch.zeros((2, 2)),
+            target=torch.tensor([0, 1]),
+        )
+        result = pipeline.predict(tensor_data, output_mode=OutputModeEnum.AUTO)
+    finally:
+        Pipeline.is_fitted = original_is_fitted
+        Pipeline.root_node = original_root_node
+
+    assert captured['output_mode'] == 'labels'
+    assert result[2] is OutputModeEnum.AUTO
