@@ -11,10 +11,17 @@ from fedot.core.pipelines.verification import verify_pipeline
 
 
 class PredefinedModel:
-    def __init__(self, predefined_model: Union[str, Pipeline], data: Any, log: LoggerAdapter):
+    def __init__(
+        self,
+        predefined_model: Union[str, Pipeline],
+        data: Any,
+        log: LoggerAdapter,
+        use_optional_preprocessing: bool = True,
+    ):
         self.predefined_model = predefined_model
         self.data = data
         self.log = log
+        self.use_optional_preprocessing = use_optional_preprocessing
         self.pipeline = self._get_pipeline()
 
     def _get_pipeline(self) -> Pipeline:
@@ -22,7 +29,10 @@ class PredefinedModel:
             pipelines = self.predefined_model
         elif self.predefined_model == 'auto':
             # Generate initial assumption automatically
-            pipelines = AssumptionsBuilder.get(self.data).from_operations().build()[0]
+            pipelines = AssumptionsBuilder.get(
+                self.data,
+                use_optional_preprocessing=self.use_optional_preprocessing,
+            ).from_operations().build()[0]
         elif isinstance(self.predefined_model, str):
             model = PipelineNode(self.predefined_model)
             pipelines = Pipeline(model)

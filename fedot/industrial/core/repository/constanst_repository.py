@@ -373,6 +373,7 @@ class FedotOperationConstant(Enum):
         preset=None,
         use_pipelines_cache=True,
         use_preprocessing_cache=True,
+        use_optional_preprocessing=True,
         use_meta_rules=False,
         cache_dir=None,
         keep_history=True,

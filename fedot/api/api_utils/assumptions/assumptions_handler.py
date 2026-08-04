@@ -33,12 +33,17 @@ class AssumptionsHandler:
     def propose_assumptions(
             self,
             initial_assumption: Union[List[Pipeline], Pipeline, None],
-            available_operations: Optional[List] = None) -> List[Pipeline]:
+            available_operations: Optional[List] = None,
+            use_optional_preprocessing: bool = True,
+    ) -> List[Pipeline]:
         """Return user-provided or automatically built initial assumptions for TensorData."""
         return resolve_initial_assumption(
             initial_assumption,
             builder=lambda: AssumptionsBuilder
-            .get(self.data)
+            .get(
+                self.data,
+                use_optional_preprocessing=use_optional_preprocessing,
+            )
             .from_operations(available_operations)
             .build(),
         )

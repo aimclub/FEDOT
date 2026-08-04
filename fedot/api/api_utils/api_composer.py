@@ -203,6 +203,8 @@ class ApiComposer:
                         chunk_predefined_model,
                         current_chunk,
                         self.log,
+                        use_optional_preprocessing=self.params.get(
+                            'use_optional_preprocessing', True),
                     ).fit()
                     best_pipeline_candidates = [pipeline]
                     history = None
@@ -332,6 +334,7 @@ class ApiComposer:
         initial_assumption = assumption_handler.propose_assumptions(
             self.params.get('initial_assumption'),
             available_operations=self.params.get('available_operations'),
+            use_optional_preprocessing=self.params.get('use_optional_preprocessing', True),
         )
 
         with self.timer.launch_assumption_fit(n_folds=self.params.data['cv_folds']):

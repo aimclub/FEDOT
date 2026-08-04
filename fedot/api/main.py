@@ -334,6 +334,8 @@ class Fedot:
                     predefined_model,
                     self.train_data,
                     self.log,
+                    use_optional_preprocessing=self.params.get(
+                        'use_optional_preprocessing', True),
                 )
                 self.current_pipeline = predefined.fit()
                 self.best_models = ()

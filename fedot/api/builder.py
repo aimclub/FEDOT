@@ -434,6 +434,7 @@ class FedotBuilder:
             self,
             safe_mode: bool = DEFAULT_VALUE,
             use_preprocessing_cache: bool = DEFAULT_VALUE,
+            use_optional_preprocessing: bool = DEFAULT_VALUE,
             sampling_config: Dict[str, Any] = DEFAULT_VALUE,
             chunked_ensemble_config: Dict[str, Any] = DEFAULT_VALUE,
     ) -> FedotBuilder:
@@ -447,6 +448,9 @@ class FedotBuilder:
             use_preprocessing_cache: bool indicating whether to use TensorData Cacher for
                 obligatory preprocessing. Defaults to ``True``.
 
+            use_optional_preprocessing: if ``True`` (default), initial assumptions include the
+                ``optional_preprocessing`` pipeline node. Set ``False`` to skip it.
+
             sampling_config: optional configuration of pre-fit sampling stage.
                 If ``None`` or unset, sampling stage is disabled.
 
@@ -459,6 +463,7 @@ class FedotBuilder:
         self.__update_params(
             safe_mode=safe_mode,
             use_preprocessing_cache=use_preprocessing_cache,
+            use_optional_preprocessing=use_optional_preprocessing,
             sampling_config=sampling_config,
             chunked_ensemble_config=chunked_ensemble_config,
         )

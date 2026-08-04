@@ -24,22 +24,36 @@ from fedot.core.data.tensor_data import TensorData
 
 class AssumptionsBuilder:
 
-    def __init__(self, data: TensorData, repository_name: str = 'model'):
+    def __init__(
+        self,
+        data: TensorData,
+        repository_name: str = 'model',
+        use_optional_preprocessing: bool = True,
+    ):
         self.logger = default_log(prefix='FEDOT logger')
         self.data = data
+        self.use_optional_preprocessing = use_optional_preprocessing
         self.repo = OperationTypesRepository(repository_name)
         self.assumptions_generator = TaskAssumptions.for_task(
             self.data.task, self.repo)
 
     @staticmethod
-    def get(data: TensorData, repository_name: Optional[str] = None):
+    def get(
+        data: TensorData,
+        repository_name: Optional[str] = None,
+        use_optional_preprocessing: bool = True,
+    ):
         if not repository_name:
             repository_name = default_repository_name_for_data(data)
 
         cls = UniModalAssumptionsBuilder
         # TODO @romankuklo: add MultiModalAssumptionsBuilder
 
-        return cls(data, repository_name=repository_name)
+        return cls(
+            data,
+            repository_name=repository_name,
+            use_optional_preprocessing=use_optional_preprocessing,
+        )
 
     @abstractmethod
     def from_operations(self, available_operations: List[str]):
@@ -59,13 +73,22 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
     UNSUITABLE_AVAILABLE_OPERATIONS_MSG = "Unable to construct an initial assumption from the passed " \
                                           "available operations, default initial assumption will be used"
 
-    def __init__(self, data: TensorData,
-                 data_type: DataTypesEnum = None, repository_name: str = "model"):
+    def __init__(
+        self,
+        data: TensorData,
+        data_type: DataTypesEnum = None,
+        repository_name: str = "model",
+        use_optional_preprocessing: bool = True,
+    ):
         """ Construct builder from task and data.
         :param data: data that will be passed to the pipeline
         :param data_type: allows specifying data_type of particular column for MultiModalData case
         """
-        super().__init__(data, repository_name)
+        super().__init__(
+            data,
+            repository_name,
+            use_optional_preprocessing=use_optional_preprocessing,
+        )
         self.data_type = data_type or data.data_type
         self.ops_filter = OperationsFilter()
 
@@ -94,8 +117,12 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
     def to_builders(self, initial_node: Optional[PipelineNode] = None) -> List[PipelineBuilder]:
         """ Return a list of valid builders satisfying internal
         OperationsFilter or a single fallback builder. """
-        preprocessing = \
-            PreprocessingBuilder.builder(self.data.task.task_type, self.data, initial_node)
+        preprocessing = PreprocessingBuilder.builder(
+            self.data.task.task_type,
+            self.data,
+            initial_node,
+            use_optional_preprocessing=self.use_optional_preprocessing,
+        )
         valid_builders = []
         for processing in self.assumptions_generator.processing_builders():
             candidate_builder = preprocessing.merge_with(processing)
@@ -106,12 +133,29 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
 
 # TODO: refactor for TensorData if needed
 class MultiModalAssumptionsBuilder(AssumptionsBuilder):
-    def __init__(self, data: MultiModalData, repository_name: str = "model"):
-        super().__init__(data, repository_name)
+    def __init__(
+        self,
+        data: MultiModalData,
+        repository_name: str = "model",
+        use_optional_preprocessing: bool = True,
+    ):
+        super().__init__(
+            data,
+            repository_name,
+            use_optional_preprocessing=use_optional_preprocessing,
+        )
         _subbuilders = []
         for data_type, (data_source_name, _) in zip(self.data.data_type, self.data.items()):
             _subbuilders.append(
-                (data_source_name, UniModalAssumptionsBuilder(self.data, data_type)))
+                (
+                    data_source_name,
+                    UniModalAssumptionsBuilder(
+                        self.data,
+                        data_type,
+                        use_optional_preprocessing=use_optional_preprocessing,
+                    ),
+                )
+            )
         self._subbuilders: Tuple[Tuple[str, UniModalAssumptionsBuilder]] = tuple(
             _subbuilders)
 

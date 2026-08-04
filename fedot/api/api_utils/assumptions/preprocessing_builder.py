@@ -23,24 +23,29 @@ class PreprocessingBuilder:
                 task_type: TaskTypesEnum,
                 data: TensorData,
                 *initial_nodes: Optional[PipelineNode],
+                use_optional_preprocessing: bool = True,
                 ) -> PipelineBuilder:
         preprocessing_builder = cls(
             task_type,
             data.data_type,
             *initial_nodes,
         )
-        return preprocessing_builder.with_optional_preprocessing()._builder
+        if use_optional_preprocessing:
+            return preprocessing_builder.with_optional_preprocessing()._builder
+        return preprocessing_builder._builder
 
     def with_optional_preprocessing(self):
         """Add Tensor optional preprocessing node used by composer assumptions."""
         self._builder.add_node('optional_preprocessing')
         return self
 
-    def to_pipeline(self) -> Optional[Pipeline]:
+    def to_pipeline(self, use_optional_preprocessing: bool = True) -> Optional[Pipeline]:
         """
-        Returns result as Pipeline with optional preprocessing node.
+        Returns result as Pipeline, optionally with optional preprocessing node.
 
         Returns:
             adapted graph as pipeline
         """
-        return self.with_optional_preprocessing()._builder.build()
+        if use_optional_preprocessing:
+            return self.with_optional_preprocessing()._builder.build()
+        return self._builder.build()

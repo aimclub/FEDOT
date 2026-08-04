@@ -20,6 +20,19 @@ def test_preprocessing_builder_adds_optional_preprocessing_for_tensor_data():
 
 
 @pytest.mark.unit
+def test_preprocessing_builder_skips_optional_preprocessing_when_disabled():
+    td = _tensor_data(np.array([[1.0, 2.0, 0.0], [3.0, 4.0, 1.0]], dtype=np.float32))
+    builder = PreprocessingBuilder.builder(
+        TaskTypesEnum.classification,
+        td,
+        use_optional_preprocessing=False,
+    )
+
+    assert builder.to_nodes() == []
+    assert builder.build() is None
+
+
+@pytest.mark.unit
 @pytest.mark.parametrize(
     'task_type, features',
     [

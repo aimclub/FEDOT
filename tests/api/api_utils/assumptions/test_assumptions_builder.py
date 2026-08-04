@@ -55,6 +55,16 @@ def test_tensordata_classification_assumption_uses_torch_linear():
     assert _pipeline_operations(pipeline) == ['torch_linear', 'optional_preprocessing']
 
 
+def test_tensordata_assumption_skips_optional_preprocessing_when_disabled():
+    pipeline = AssumptionsBuilder.get(
+        _tensor_classification_data(),
+        use_optional_preprocessing=False,
+    ).build()[0]
+
+    assert pipeline.root_node.operation.operation_type == 'torch_linear'
+    assert 'optional_preprocessing' not in _pipeline_operations(pipeline)
+
+
 def test_tensordata_assumption_does_not_add_legacy_preprocessing_nodes():
     pipeline = AssumptionsBuilder.get(_tensor_classification_data()).build()[0]
 
