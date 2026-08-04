@@ -1,5 +1,8 @@
+from typing import Any
+
 from marshmallow import INCLUDE, Schema, ValidationError, fields, validates
 
+from fedot.core.pipelines.pipeline_rules import SUPPORTED_PIPELINE_OUTPUT_MODES
 from fedot.validation.boundaries import load_validated
 from fedot.validation.context import ValidationContext
 
@@ -115,3 +118,29 @@ def validate_pipeline_node_parent_operation(
         prefix='pipeline_node',
     )
     return result['parent_operation']
+
+
+class PipelineOutputModeSchema(Schema):
+    class Meta:
+        unknown = INCLUDE
+
+    output_mode = fields.Raw(required=True)
+
+    @validates('output_mode')
+    def validate_output_mode(self, value: Any) -> None:
+        mode_name = value.value if hasattr(value, 'value') else value
+        if mode_name not in SUPPORTED_PIPELINE_OUTPUT_MODES:
+            raise ValidationError(f'Invalid output mode: {value!r}')
+
+
+def validate_pipeline_output_mode(
+    output_mode: Any,
+    context: ValidationContext = None,
+) -> Any:
+    validated = load_validated(
+        PipelineOutputModeSchema(),
+        {'output_mode': output_mode},
+        context,
+        prefix='pipeline',
+    )
+    return validated['output_mode']

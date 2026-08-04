@@ -1,6 +1,9 @@
 from dataclasses import dataclass
-from typing import Optional, TYPE_CHECKING
+from typing import Any, Optional, TYPE_CHECKING
 
+import torch
+
+from fedot.core.backend.backend import Backend, torch_to_xp
 from fedot.core.data.prepared_data.prepared_data import PreparedData
 from fedot.preprocessing.tools.index_mapping_tools import update_index_mapping, update_indices
 from fedot.preprocessing.planner.planner import PreprocessingPlan
@@ -213,6 +216,59 @@ class ObligatoryService:
             plan_hash=train_stage.operation_hash,
             raw_fingerprint=raw_fingerprint,
         )
+
+    @staticmethod
+    def inverse_transform_target(predict: Any, trace_uuid: Optional[str]) -> Any:
+        """Decode label-encoded target predictions via cached target encoder.
+
+        Looks up the fitted ``target_encoding`` handler in the obligatory
+        preprocessing stage of ``trace_uuid`` and applies ``inverse_transform``.
+        When ``trace_uuid`` is missing, the stage/model is absent, or loading
+        fails, ``predict`` is returned unchanged.
+
+        Args:
+            predict: Model predictions (typically encoded class ids).
+            trace_uuid: Trace id produced during train-time obligatory preprocess.
+
+        Returns:
+            Decoded predictions, or the original ``predict`` when decode is
+            not possible.
+        """
+        if predict is None or trace_uuid is None:
+            return predict
+
+        try:
+            trace_builder = TraceBuilder.from_trace_uuid(trace_uuid)
+            train_stage = ObligatoryService._get_train_obligatory_stage(trace_builder)
+        except (OSError, ValueError, KeyError):
+            return predict
+
+        target_step_name = PreprocessingStepEnum.target_encoding.value
+        model_ref = next(
+            (ref for ref in train_stage.models if ref.step_name == target_step_name),
+            None,
+        )
+        if model_ref is None:
+            return predict
+
+        handler = Loader.load(
+            model_ref.model_path,
+            model_ref.model_hash,
+            kind='preprocessing_model',
+        )
+
+        xp = Backend().xp
+        if isinstance(predict, torch.Tensor):
+            predict_xp = torch_to_xp(predict, xp)
+        else:
+            predict_xp = xp.asarray(predict)
+
+        squeeze = predict_xp.ndim == 1
+        features = predict_xp.reshape(-1, 1) if squeeze else predict_xp
+        decoded = handler.inverse_transform(PreparedData(features=features)).features
+        if squeeze or decoded.shape[1] == 1:
+            return decoded.reshape(-1)
+        return decoded
 
     @staticmethod
     def _get_train_obligatory_stage(trace_builder: TraceBuilder) -> TraceStage:

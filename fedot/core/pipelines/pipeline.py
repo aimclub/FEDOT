@@ -23,7 +23,7 @@ from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.operations.data_operation import DataOperation
 from fedot.core.operations.model import Model
 from fedot.core.pipelines.node import PipelineNode
-from fedot.core.pipelines.pipeline_rules import build_pipeline_postprocess_plan
+from fedot.core.pipelines.pipeline_rules import build_pipeline_postprocess_plan, OutputModeEnum
 from fedot.core.pipelines.schemas import (
     validate_pipeline_is_fitted,
     validate_single_root_node,
@@ -31,6 +31,7 @@ from fedot.core.pipelines.schemas import (
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.visualisation.pipeline_specific_visuals import PipelineVisualizer
+from fedot.preprocessing.service.obligatory_service import ObligatoryService
 from fedot.utilities.composer_timer import fedot_composer_timer
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
@@ -111,13 +112,12 @@ class Pipeline(GraphDelegate, Serializable):
             for node in self.nodes:
                 fitted_operations.append(node.fitted_operation)
 
-    # TODO romankuklo: refactor this method to use tensordata
-    def _postprocess(self, result: TensorData, output_mode: str = 'default') -> TensorData:
+    def _postprocess(self, result: TensorData, output_mode: Union[OutputModeEnum, str] = OutputModeEnum.AUTO) -> TensorData:
         """
         Postprocesses output of the model
 
         Args:
-            result: preprocessed copy of the original data
+            result: model prediction as ``TensorData``
             output_mode: desired form of output for operations
 
         Returns:
@@ -125,11 +125,10 @@ class Pipeline(GraphDelegate, Serializable):
         """
         postprocess_plan = build_pipeline_postprocess_plan(
             output_mode, result.task.task_type)
-        result = self.preprocessor.restore_index(copied_input_data, result)
         if postprocess_plan.should_restore_inverse_target_encoding:
-            result.predict = self.preprocessor.apply_inverse_target_encoding(
-                result.predict)
-        if postprocess_plan.should_flatten_prediction:
+            result.predict = ObligatoryService.inverse_transform_target(
+                result.predict, result.trace_uuid)
+        if postprocess_plan.should_flatten_prediction and result.predict is not None:
             result.predict = result.predict.ravel()
         return result
 
@@ -201,12 +200,12 @@ class Pipeline(GraphDelegate, Serializable):
 
     def predict(self,
                            tensor_data: TensorData,
-                           output_mode: str = 'default',
+                           output_mode: Union[OutputModeEnum, str] = OutputModeEnum.AUTO,
                            predictions_cache: Optional[PredictionsCache] = None,
                            fold_id: Optional[int] = None) -> TensorData:
         validate_pipeline_is_fitted(self.is_fitted)
 
-        output_mode = output_mode if output_mode is not None else 'default'
+        output_mode = output_mode if output_mode is not None else OutputModeEnum.AUTO
         
         copied_tensor_data = deepcopy(tensor_data)
 
@@ -217,8 +216,7 @@ class Pipeline(GraphDelegate, Serializable):
             predictions_cache=predictions_cache,
             fold_id=fold_id,
         )
-        # TODO romankuklo: add postprocess for tensor data
-        result = self._postprocess(copied_tensor_data, result, output_mode)
+        result = self._postprocess(result, output_mode)
         return result
 
     def save(self, path: str = None, create_subdir: bool = True, is_datetime_in_path: bool = False) -> Tuple[str, dict]:

@@ -1,31 +1,27 @@
 from types import SimpleNamespace
 
-import numpy as np
+import torch
 
-from fedot.core.data.input_data.data import OutputData
-from fedot.core.data.multimodal.supplementary_data import SupplementaryData
+from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_rules import OutputModeEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 
-def _make_ts_output():
-    return OutputData(
-        idx=np.arange(2),
-        predict=np.array([[1.0], [2.0]]),
-        target=None,
-        task=Task(TaskTypesEnum.ts_forecasting,
-                  TsForecastingParams(forecast_length=2)),
-        data_type=DataTypesEnum.ts,
-    )
-
-
 def test_pipeline_postprocess_uses_typed_postprocess_plan():
     pipeline = Pipeline()
+    result = TensorData(
+        task=Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=2)),
+        data_type=DataTypesEnum.ts,
+        features=torch.zeros((2, 1)),
+        target=torch.zeros((2, 1)),
+        predict=torch.tensor([[1.0], [2.0]]),
+    )
 
-    result = pipeline._postprocess(_make_ts_output(), output_mode='labels')
+    postprocessed = pipeline._postprocess(result, output_mode=OutputModeEnum.AUTO)
 
-    assert result.predict.tolist() == [1.0, 2.0]
+    assert postprocessed.predict.tolist() == [1.0, 2.0]
 
 
 def test_pipeline_fit_assigns_data_and_delegates_to_internal_fit():
@@ -59,7 +55,13 @@ def test_pipeline_predict_assigns_data_and_delegates_to_root_node():
                 'tensor_data': tensor_data,
                 'output_mode': output_mode,
             }),
-            _make_ts_output(),
+            TensorData(
+                task=Task(TaskTypesEnum.ts_forecasting,
+                          TsForecastingParams(forecast_length=2)),
+                data_type=DataTypesEnum.ts,
+                features=torch.zeros((2, 1)),
+                predict=torch.tensor([[1.0], [2.0]]),
+            ),
         )[1]
     ))
 

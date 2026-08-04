@@ -141,6 +141,10 @@ class LabelEncoder(AbstractPreprocessingHandler):
         features = data.features
         n_rows = features.shape[0]
 
+        # Decoded categories may be strings; promote numeric matrices to object.
+        if getattr(features.dtype, 'kind', None) in ('f', 'i', 'u', 'b'):
+            features = features.astype(object)
+
         for idx in self.categorical_idx_:
             column = features[:, idx]
             categories = self.categories_[idx]
