@@ -139,6 +139,13 @@ class IndustrialModels:
             for model_impl, new_backend_impl in zip(DEFAULT_MODELS_TO_REPLACE, overloaded_model):
                 setattr(model_impl[0], model_impl[1], new_backend_impl)
 
+    @staticmethod
+    def _register_optional_preprocessing_spi() -> None:
+        # Side effect: OptionalTSService registers itself in core via SPI.
+        from fedot.industrial.core.architecture.preprocessing.ts_optional_service import (  # noqa: F401
+            OptionalTSService,
+        )
+
     def setup_repository(self, backend: str = 'default'):
         OperationTypesRepository.__repository_dict__.update(
             {'data_operation': {'file': self.industrial_data_operation_path,
@@ -156,6 +163,7 @@ class IndustrialModels:
             'model', self.industrial_model_path)
         # replace mutations
         self._replace_operation(to_industrial=True, backend=backend)
+        self._register_optional_preprocessing_spi()
 
         class_rules.append(has_no_data_flow_conflicts_in_industrial_pipeline)
         ts_rules.append(has_no_lagged_conflicts_in_ts_pipeline)
@@ -179,6 +187,7 @@ class IndustrialModels:
                        'default_tags': []}})
         OperationTypesRepository.assign_repo('model', self.base_model_path)
         self._replace_operation(to_industrial=False, backend=backend)
+        self._register_optional_preprocessing_spi()
         common_rules.append(has_no_resample)
         return OperationTypesRepository
 
@@ -200,6 +209,7 @@ class IndustrialModels:
                        'default_tags': []}})
         OperationTypesRepository.assign_repo(
             'model', self.industrial_model_path)
+        self._register_optional_preprocessing_spi()
 
         setattr(PipelineSearchSpace, "get_parameters_dict",
                 get_industrial_search_space)

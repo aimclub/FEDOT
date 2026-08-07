@@ -42,12 +42,17 @@ def test_validate_optional_service_fitted_state_rejects_invalid_state(
         )
 
 
-@pytest.mark.parametrize(
-    'data_type',
-    [DataTypesEnum.tabular, DataTypesEnum.ts],
-)
-def test_validate_optional_preprocessing_data_type_accepts_supported(data_type):
-    assert validate_optional_preprocessing_data_type(data_type) is data_type
+def test_validate_optional_preprocessing_data_type_accepts_tabular():
+    assert validate_optional_preprocessing_data_type(DataTypesEnum.tabular) is DataTypesEnum.tabular
+
+
+def test_validate_optional_preprocessing_data_type_accepts_ts_after_industrial_spi():
+    # Importing OptionalTSService registers TS optional runtime via SPI.
+    from fedot.industrial.core.architecture.preprocessing.ts_optional_service import (  # noqa: F401
+        OptionalTSService,
+    )
+
+    assert validate_optional_preprocessing_data_type(DataTypesEnum.ts) is DataTypesEnum.ts
 
 
 def test_validate_optional_preprocessing_data_type_rejects_unsupported():

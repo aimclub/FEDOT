@@ -1,9 +1,8 @@
 from dataclasses import dataclass
-from typing import Any, Dict, Mapping, Type
+from typing import Any, Dict, Mapping, Optional, Type
 
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.industrial.core.architecture.preprocessing.ts_optional_service import OptionalTSService
 from fedot.preprocessing.schemas import validate_optional_preprocessing_data_type
 from fedot.preprocessing.service.optional_service import OptionalService
 from fedot.preprocessing.service.tabular_optional_service import OptionalTabularService
@@ -27,11 +26,23 @@ TENSOR_OPTIONAL_RUNTIME_BY_DATA_TYPE: Dict[DataTypesEnum, TensorOptionalRuntimeS
         service_cls=OptionalTabularService,
         default_steps=_DEFAULT_OPTIONAL_STEPS,
     ),
-    DataTypesEnum.ts: TensorOptionalRuntimeSpec(
-        service_cls=OptionalTSService,
-        default_steps=_DEFAULT_OPTIONAL_STEPS,
-    ),
 }
+
+
+def register_optional_runtime(
+    data_type: DataTypesEnum,
+    service_cls: Type[OptionalService],
+    default_steps: Optional[Mapping[PreprocessingStepEnum, Any]] = None,
+) -> None:
+    """Register an optional-preprocessing runtime for ``data_type``.
+
+    Core ships tabular only. Industrial (and other extensions) should call this
+    at their init to plug in additional data types without an eager import from core.
+    """
+    TENSOR_OPTIONAL_RUNTIME_BY_DATA_TYPE[data_type] = TensorOptionalRuntimeSpec(
+        service_cls=service_cls,
+        default_steps=_DEFAULT_OPTIONAL_STEPS if default_steps is None else default_steps,
+    )
 
 
 def get_optional_runtime_spec_for_tensor_data(
