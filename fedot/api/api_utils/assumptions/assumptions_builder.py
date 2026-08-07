@@ -56,7 +56,7 @@ class AssumptionsBuilder:
         )
 
     @abstractmethod
-    def from_operations(self, available_operations: List[str]):
+    def from_operations(self, available_operations: Optional[List[str]] = None):
         raise AbstractMethodNotImplementError
 
     @abstractmethod
@@ -78,18 +78,14 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
         data: TensorData,
         repository_name: str = "model",
         use_optional_preprocessing: bool = True,
-        data_type: Optional[DataTypesEnum] = None,
     ):
-        """ Construct builder from task and data.
-        :param data: data that will be passed to the pipeline
-        :param data_type: allows specifying data_type of particular column for MultiModalData case
-        """
+        """Construct builder from task and data."""
         super().__init__(
             data,
             repository_name,
             use_optional_preprocessing=use_optional_preprocessing,
         )
-        self.data_type = data_type or data.data_type
+        self.data_type = data.data_type
         self.ops_filter = OperationsFilter()
 
     def from_operations(self, available_operations: Optional[List[str]] = None):
@@ -146,16 +142,14 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
         )
         _subbuilders = []
         for data_type, (data_source_name, _) in zip(self.data.data_type, self.data.items()):
-            _subbuilders.append(
-                (
-                    data_source_name,
-                    UniModalAssumptionsBuilder(
-                        self.data,
-                        use_optional_preprocessing=use_optional_preprocessing,
-                        data_type=data_type,
-                    ),
-                )
+            # Per-modality data_type override: UniModal ctor always takes data.data_type,
+            # but multimodal sources can differ by column.
+            subbuilder = UniModalAssumptionsBuilder(
+                self.data,
+                use_optional_preprocessing=use_optional_preprocessing,
             )
+            subbuilder.data_type = data_type
+            _subbuilders.append((data_source_name, subbuilder))
         self._subbuilders: Tuple[Tuple[str, UniModalAssumptionsBuilder]] = tuple(
             _subbuilders)
 
