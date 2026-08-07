@@ -21,12 +21,14 @@ class TensorOptionalPreprocessingStrategy(EvaluationStrategy):
     ``fit`` via ``get_optional_runtime_spec_for_tensor_data``.
 
     Expected params:
-        - ``strategy``: full OptionalService strategy override;
+        - ``strategy``: full OptionalService strategy override (validated);
         - ``auto``: when ``False`` and step flags are unset, build an empty plan;
         - ``use_imputation`` / ``imputation_method``: ``auto|mean|median|mode|none``;
         - ``use_scaling`` / ``scaling_method``: ``auto|standard|min_max|robust|none``;
         - ``use_cache``: whether the optional service should use cache
           (default ``True``).
+
+    All entry paths are normalized into a validated :class:`OptionalStrategySpec`.
     """
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):

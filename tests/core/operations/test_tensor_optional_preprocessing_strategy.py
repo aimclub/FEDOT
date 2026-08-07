@@ -57,7 +57,7 @@ def test_td() -> TensorData:
 def test_fit_returns_fitted_tabular_service_with_default_strategy(train_td):
     strategy = TensorOptionalPreprocessingStrategy(
         'optional_preprocessing',
-        OperationParameters(),
+        OperationParameters(use_cache=False),
     )
 
     fitted = strategy.fit(train_td)
@@ -151,6 +151,7 @@ def test_predict_applies_fitted_handlers_without_refit(train_td, test_td):
     strategy = TensorOptionalPreprocessingStrategy(
         'optional_preprocessing',
         OperationParameters(
+            use_cache=False,
             strategy={PreprocessingStepEnum.imputation: None},
         ),
     )
@@ -222,6 +223,7 @@ def test_fit_uses_flat_imputation_and_scaling_params(train_td):
 @pytest.mark.unit
 def test_build_optional_strategy_from_flat_params(train_td):
     from fedot.core.operations.evaluation.optional_preprocessing_strategy_builder import (
+        OptionalStrategySpec,
         build_optional_strategy_from_node_params,
     )
 
@@ -235,7 +237,59 @@ def test_build_optional_strategy_from_flat_params(train_td):
         },
     )
 
+    assert isinstance(strategy, OptionalStrategySpec)
     assert PreprocessingStepEnum.imputation in strategy
     assert strategy[PreprocessingStepEnum.imputation] == ImputationMethodEnum.median
     assert PreprocessingStepEnum.scaling in strategy
     assert strategy[PreprocessingStepEnum.scaling] == ScalingMethodEnum.standard
+
+
+@pytest.mark.unit
+def test_build_optional_strategy_rejects_unknown_step(train_td):
+    from fedot.core.operations.evaluation.optional_preprocessing_strategy_builder import (
+        build_optional_strategy_from_node_params,
+    )
+
+    with pytest.raises(FedotValidationError, match='Unknown optional preprocessing step'):
+        build_optional_strategy_from_node_params(
+            train_td,
+            {'strategy': {PreprocessingStepEnum.encoding: None}},
+        )
+
+
+@pytest.mark.unit
+def test_build_optional_strategy_rejects_unknown_method(train_td):
+    from fedot.core.operations.evaluation.optional_preprocessing_strategy_builder import (
+        build_optional_strategy_from_node_params,
+    )
+
+    with pytest.raises(FedotValidationError, match='Unsupported method'):
+        build_optional_strategy_from_node_params(
+            train_td,
+            {'strategy': {PreprocessingStepEnum.imputation: 'not-a-method'}},
+        )
+
+
+@pytest.mark.unit
+def test_build_optional_strategy_validates_explicit_override(train_td):
+    from fedot.core.operations.evaluation.optional_preprocessing_strategy_builder import (
+        OptionalStrategySpec,
+        build_optional_strategy_from_node_params,
+    )
+
+    strategy = build_optional_strategy_from_node_params(
+        train_td,
+        {
+            'strategy': {
+                PreprocessingStepEnum.imputation: [{
+                    'method': ImputationMethodEnum.mean,
+                    'features_idx': [1],
+                    'step_args': None,
+                }]
+            }
+        },
+    )
+
+    assert isinstance(strategy, OptionalStrategySpec)
+    assert PreprocessingStepEnum.imputation in strategy
+    assert strategy[PreprocessingStepEnum.imputation][0]['method'] == ImputationMethodEnum.mean
