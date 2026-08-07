@@ -764,7 +764,7 @@ def test_optional_predict_restores_local_custom_handler_from_trace():
 
 
 @pytest.mark.unit
-def test_optional_fit_predict_without_tensor_cache_keeps_trace_plan_and_model(isolated_cache_dir):
+def test_optional_fit_predict_without_cache_keeps_trace_plan_not_model(isolated_cache_dir):
     train = np.array([
         [0.0, 10.0, "A", 0.0],
         [1.0, 10.0, "B", 1.0],
@@ -797,6 +797,26 @@ def test_optional_fit_predict_without_tensor_cache_keeps_trace_plan_and_model(is
     optional_stage = next(stage for stage in trace["stages"] if stage["stage"] == "optional_preprocessing")
     assert optional_stage["tensor_data_path"] is None
     assert optional_stage["operation_path"].endswith(".pkl")
-    assert optional_stage["models"][0]["model_path"].endswith(".pkl")
+    assert optional_stage["models"][0]["model_path"] is None
     assert predicted_td.trace_uuid == fitted_td.trace_uuid
     assert not torch.isnan(predicted_td.features[:, 1]).any()
+
+
+@pytest.mark.unit
+def test_optional_service_use_cache_keeps_handlers_on_disk_not_memory(isolated_cache_dir):
+    train = np.array([
+        [1.0, np.nan, 0.0],
+        [2.0, 2.0, 1.0],
+        [3.0, np.nan, 0.0],
+    ], dtype=object)
+    train_td = TensorDataCreator.create(train, backend_name='cpu')
+
+    service = OptionalTabularService(use_cache=True)
+    service.fit(train_td, {PreprocessingStepEnum.imputation: None})
+
+    assert service.fitted_handlers is None
+    assert len(service._cached_handler_paths) >= 1
+    assert all(path.exists() for path in service._cached_handler_paths)
+
+    predicted = service.predict(train_td)
+    assert not torch.isnan(predicted.features[:, 1]).any()

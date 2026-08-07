@@ -44,7 +44,7 @@ class Cacher:
             index_db: SQLite index instance. When omitted, a default index under
                 `CACHE_DIR` is created.
             use_cache: When ``False``, index rows may be written without saving
-                tensor artifacts to disk (trace-only mode).
+                tensor or preprocessing-model artifacts to disk (trace-only mode).
         """
         self.index_db = index_db or CacheIndexDB()
         self.use_cache = use_cache
@@ -185,7 +185,9 @@ class Cacher:
         Save a fitted preprocessing model and index it by content hashes.
 
         Reuses an existing on-disk model file when the same ``model_hash`` is
-        already indexed and the path still exists.
+        already indexed and the path still exists. When ``use_cache`` is
+        ``False``, the model is indexed with ``path=None`` and no artifact is
+        written (same pattern as :meth:`cache_tensor_data`).
 
         Args:
             input_data: Input used to derive ``input_hash`` when omitted.
@@ -200,7 +202,8 @@ class Cacher:
             features_idx: Optional feature index metadata stored in the index.
 
         Returns:
-            Index record pointing to the cached ``.pkl`` artifact.
+            Index record pointing to the cached ``.pkl`` artifact, or with
+            ``path=None`` when disk cache is disabled.
         """
         if input_hash is None:
             input_hash = Hasher.hash(input_data)
@@ -209,12 +212,20 @@ class Cacher:
         if model_hash is None:
             model_hash = Hasher.hash(model)
 
-        cached_record = self.index_db.get_preprocessing_model_by_model_hash(model_hash)
-        if cached_record is not None and cached_record.path.exists():
-            model_path = cached_record.path
+        if self.use_cache:
+            cached_record = self.index_db.get_preprocessing_model_by_model_hash(model_hash)
+            if (
+                cached_record is not None
+                and cached_record.path is not None
+                and cached_record.path.exists()
+            ):
+                model_path = cached_record.path
+            else:
+                response = Saver.save(model, model_hash)
+                model_path = response.path
         else:
-            response = Saver.save(model, model_hash)
-            model_path = response.path
+            model_path = None
+
         return self.index_db.add_preprocessing_model(
             model_hash=model_hash,
             operation_hash=operation_hash,
@@ -252,7 +263,7 @@ class Cacher:
 
         record = self.index_db.get_preprocessing_model(input_hash, operation_hash)
 
-        if record is None or not record.path.exists():
+        if record is None or record.path is None or not record.path.exists():
             return DataCacherLoaderResponse(
                 model=None,
                 input_hash=input_hash,

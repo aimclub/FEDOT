@@ -283,6 +283,63 @@ def test_cacher_indexes_and_traces_tensor_data_without_saving_tensor_artifact(is
 
 
 @pytest.mark.unit
+def test_cacher_indexes_preprocessing_model_without_saving_artifact(isolated_cache_dir):
+    index_db = CacheIndexDB()
+    cacher = Cacher(index_db=index_db, use_cache=False)
+    model = {"fitted": True, "method": "mean"}
+
+    record = cacher.cache_preprocessing_model(
+        input_hash="input-hash",
+        model=model,
+        model_hash="model-hash",
+        operation_hash="operation-hash",
+        step_order=0,
+        step_name="imputation",
+        method="mean",
+    )
+    load_response = cacher.load_preprocessing_model(
+        input_hash="input-hash",
+        operation_hash="operation-hash",
+    )
+    indexed_record = index_db.get_preprocessing_model("input-hash", "operation-hash")
+
+    assert record.path is None
+    assert indexed_record.path is None
+    assert not list((isolated_cache_dir / "preprocessing_models").glob("*.pkl"))
+    assert load_response.success is False
+
+
+@pytest.mark.unit
+def test_cacher_with_enabled_cache_saves_preprocessing_model(isolated_cache_dir):
+    from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
+
+    class _StubHandler(AbstractPreprocessingHandler):
+        def fit(self, data, features_idx):
+            return self
+
+        def transform(self, data):
+            return data
+
+    index_db = CacheIndexDB()
+    cacher = Cacher(index_db=index_db, use_cache=True)
+    model = _StubHandler()
+
+    record = cacher.cache_preprocessing_model(
+        input_hash="input-hash",
+        model=model,
+        model_hash="model-hash",
+        operation_hash="operation-hash",
+        step_order=0,
+        step_name="imputation",
+        method="mean",
+    )
+
+    assert record.path is not None
+    assert record.path.exists()
+    assert index_db.get_preprocessing_model("input-hash", "operation-hash").path == record.path
+
+
+@pytest.mark.unit
 def test_cacher_clears_cache(isolated_cache_dir):
     index_db = CacheIndexDB()
     cacher = Cacher(index_db=index_db, use_cache=False)

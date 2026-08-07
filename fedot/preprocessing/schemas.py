@@ -12,10 +12,12 @@ class OptionalServiceFittedStateSchema(Schema):
 
     has_plan = fields.Bool(required=True)
     has_handlers = fields.Bool(required=True)
+    has_cached_handlers = fields.Bool(load_default=False)
 
     @validates_schema
     def validate_fitted_state(self, data, **kwargs) -> None:
-        if not data['has_plan'] or not data['has_handlers']:
+        has_runtime_handlers = data['has_handlers'] or data.get('has_cached_handlers', False)
+        if not data['has_plan'] or not has_runtime_handlers:
             raise ValidationError('Optional preprocessing service is not fitted yet')
 
 
@@ -40,6 +42,7 @@ class OptionalPreprocessingDataTypeSchema(Schema):
 def validate_optional_service_is_fitted(
     has_plan: bool,
     has_handlers: bool,
+    has_cached_handlers: bool = False,
     context: ValidationContext = None,
 ) -> None:
     load_validated(
@@ -47,6 +50,7 @@ def validate_optional_service_is_fitted(
         {
             'has_plan': has_plan,
             'has_handlers': has_handlers,
+            'has_cached_handlers': has_cached_handlers,
         },
         context,
         prefix='optional_preprocessing',

@@ -15,6 +15,14 @@ def test_validate_optional_service_fitted_state_accepts_consistent_state():
     )
 
 
+def test_validate_optional_service_fitted_state_accepts_cached_handlers_without_memory():
+    validate_optional_service_is_fitted(
+        has_plan=True,
+        has_handlers=False,
+        has_cached_handlers=True,
+    )
+
+
 @pytest.mark.parametrize(
     'has_plan, has_handlers',
     [

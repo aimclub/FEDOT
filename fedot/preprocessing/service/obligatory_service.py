@@ -121,7 +121,10 @@ class ObligatoryService:
                     )
                     prepared_data.target = prepared_data_target.features
 
-                    cacher.cache_preprocessing_model(
+                    # Models must stay on disk for predict-via-trace, even when
+                    # TensorData artifacts themselves are not cached.
+                    self._cache_fitted_model(
+                        cacher=cacher,
                         input_hash=raw_fingerprint,
                         model=handler,
                         operation_hash=plan_hash,
@@ -147,7 +150,8 @@ class ObligatoryService:
                     prepared_data.new_cols_dict
                 )
 
-                cacher.cache_preprocessing_model(
+                self._cache_fitted_model(
+                    cacher=cacher,
                     input_hash=raw_fingerprint,
                     model=handler,
                     operation_hash=plan_hash,
@@ -269,6 +273,37 @@ class ObligatoryService:
         if squeeze or decoded.shape[1] == 1:
             return decoded.reshape(-1)
         return decoded
+
+    # TODO @romankuklo: make as optional service 
+    def _cache_fitted_model(
+        self,
+        cacher: Cacher,
+        input_hash: str,
+        model: Any,
+        operation_hash: str,
+        step_order: int,
+        step_name: str,
+        method: str,
+        features_idx: Any,
+    ) -> None:
+        """Persist a fitted obligatory handler for later predict-via-trace.
+
+        Models are always written to disk, even when ``use_cache`` is ``False``
+        and TensorData artifacts are index-only. Trace-based ``transform`` loads
+        handlers through ``Loader`` and has no in-memory fitted state.
+        """
+        model_cacher = cacher
+        if not self.use_cache:
+            model_cacher = Cacher(use_cache=True, index_db=cacher.index_db)
+        model_cacher.cache_preprocessing_model(
+            input_hash=input_hash,
+            model=model,
+            operation_hash=operation_hash,
+            step_order=step_order,
+            step_name=step_name,
+            method=method,
+            features_idx=features_idx,
+        )
 
     @staticmethod
     def _get_train_obligatory_stage(trace_builder: TraceBuilder) -> TraceStage:
