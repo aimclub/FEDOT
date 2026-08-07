@@ -40,8 +40,8 @@ class AssumptionsBuilder:
     @staticmethod
     def get(
         data: TensorData,
-        repository_name: Optional[str] = None,
         use_optional_preprocessing: bool = True,
+        repository_name: Optional[str] = None,
     ):
         if not repository_name:
             repository_name = default_repository_name_for_data(data)
@@ -76,9 +76,9 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
     def __init__(
         self,
         data: TensorData,
-        data_type: DataTypesEnum = None,
         repository_name: str = "model",
         use_optional_preprocessing: bool = True,
+        data_type: Optional[DataTypesEnum] = None,
     ):
         """ Construct builder from task and data.
         :param data: data that will be passed to the pipeline
@@ -151,8 +151,8 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
                     data_source_name,
                     UniModalAssumptionsBuilder(
                         self.data,
-                        data_type,
                         use_optional_preprocessing=use_optional_preprocessing,
+                        data_type=data_type,
                     ),
                 )
             )

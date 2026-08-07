@@ -75,8 +75,9 @@ def test_propose_assumptions_with_tensordata_builds_auto_assumption(monkeypatch)
 
     class _FakeAssumptionsBuilder:
         @classmethod
-        def get(cls, data):
+        def get(cls, data, use_optional_preprocessing=True, repository_name=None):
             captured['data'] = data
+            captured['use_optional_preprocessing'] = use_optional_preprocessing
             return cls()
 
         def from_operations(self, available_operations):
@@ -89,11 +90,16 @@ def test_propose_assumptions_with_tensordata_builds_auto_assumption(monkeypatch)
 
     monkeypatch.setattr(handler_module, 'AssumptionsBuilder', _FakeAssumptionsBuilder)
 
-    result = handler.propose_assumptions(None, available_operations=['torch_linear'])
+    result = handler.propose_assumptions(
+        None,
+        available_operations=['torch_linear'],
+        use_optional_preprocessing=False,
+    )
 
     assert result == [pipeline]
     assert captured['data'] is handler.data
     assert captured['available_operations'] == ['torch_linear']
+    assert captured['use_optional_preprocessing'] is False
     assert captured['built'] is True
 
 

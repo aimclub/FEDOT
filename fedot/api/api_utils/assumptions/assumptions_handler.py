@@ -33,8 +33,8 @@ class AssumptionsHandler:
     def propose_assumptions(
             self,
             initial_assumption: Union[List[Pipeline], Pipeline, None],
-            available_operations: Optional[List] = None,
             use_optional_preprocessing: bool = True,
+            available_operations: Optional[List] = None,
     ) -> List[Pipeline]:
         """Return user-provided or automatically built initial assumptions for TensorData."""
         return resolve_initial_assumption(
@@ -51,14 +51,15 @@ class AssumptionsHandler:
     def fit_assumption_and_check_correctness(
             self,
             pipeline: Pipeline,
+            eval_n_jobs: int = -1,
             operations_cache: Optional[OperationsCache] = None,
-            eval_n_jobs: int = -1) -> Pipeline:
+    ) -> Pipeline:
         """
         Check if initial pipeline can be fitted on TensorData.
 
         :param pipeline: pipeline for checking
-        :param operations_cache: Cache manager for fitted models, optional.
         :param eval_n_jobs: number of jobs to fit the initial pipeline
+        :param operations_cache: Cache manager for fitted models, optional.
         """
         fit_result = self.try_fit_assumption(
             pipeline=pipeline,
@@ -74,8 +75,9 @@ class AssumptionsHandler:
     def try_fit_assumption(
             self,
             pipeline: Pipeline,
+            eval_n_jobs: int = -1,
             operations_cache: Optional[OperationsCache] = None,
-            eval_n_jobs: int = -1):
+    ):
         try:
             data_source = DataSourceSplitter().build(self.data)
             data_train, data_test = next(data_source())
