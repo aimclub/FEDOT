@@ -128,7 +128,13 @@ def test_fit_with_auto_false_and_no_strategy_builds_empty_plan(train_td):
     assert isinstance(fitted, OptionalService)
     assert fitted.plan is not None
     assert fitted.fitted_handlers == []
+    assert fitted._cached_handler_paths == []
+    assert fitted._input_hash is None
+    assert fitted._plan_hash is None
     assert len(fitted.plan.steps) == 0
+
+    predicted = strategy.predict(fitted, train_td)
+    assert predicted is train_td
 
 
 @pytest.mark.unit

@@ -35,16 +35,18 @@ class OptionalService:
 
     Processing sequence:
     1. Build optional preprocessing plan for the provided data and strategy.
-    2. Initialize `PreparedData` from source tensor data.
-    3. Resolve preprocessing handlers required by plan steps.
-    4. During `fit`, train each handler in execution order and either store it in
+    2. If the plan has no steps, short-circuit as identity: mark fitted with empty
+       handlers and skip PreparedData / cacher work; ``predict`` returns input as-is.
+    3. Initialize `PreparedData` from source tensor data.
+    4. Resolve preprocessing handlers required by plan steps.
+    5. During `fit`, train each handler in execution order and either store it in
        memory or cache it to disk (depending on ``use_cache``).
-    5. During `predict`, resolve handlers (memory or cache) and apply them without
+    6. During `predict`, resolve handlers (memory or cache) and apply them without
        refitting. For each step:
        - remap feature indices according to current index mapping;
        - apply the fitted step handler;
        - refresh index mapping after feature space changes.
-    6. Return a new transformed `TensorData`.
+    7. Return a new transformed `TensorData`.
     """
     handler_mapping = {}
 
@@ -67,6 +69,14 @@ class OptionalService:
             optional_steps = [PreprocessingStepEnum.imputation, PreprocessingStepEnum.scaling]
 
         self.plan = build_optional_plan(data, optional_steps)
+
+        # Empty plan is a no-op: do not build PreparedData or touch the cacher.
+        if not self.plan.steps:
+            self.fitted_handlers = []
+            self._cached_handler_paths = []
+            self._input_hash = None
+            self._plan_hash = None
+            return self
 
         cacher = Cacher(use_cache=self.use_cache)
         cached_data = cacher.load_tensor_data(input_data=data, operation=self.plan)
@@ -123,6 +133,9 @@ class OptionalService:
             fitted_handlers=self.fitted_handlers,
             cached_handler_paths=self._cached_handler_paths,
         )
+
+        if not self.plan.steps:
+            return data
 
         init_fingerprint = data.fingerprint
         prepared_data = self._create_prepared_data(data)

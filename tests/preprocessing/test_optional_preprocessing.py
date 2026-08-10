@@ -91,6 +91,28 @@ def test_build_optional_plan_keeps_imputation_without_train_nans():
 
 
 @pytest.mark.unit
+def test_empty_optional_plan_is_identity_short_circuit():
+    """Empty plan fit skips cacher/PreparedData; predict returns the same object."""
+    td = TensorDataCreator.create(
+        np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32),
+        backend_name='cpu',
+        without_target=True,
+    )
+    service = OptionalTabularService(use_cache=True)
+    fitted = service.fit(td, {})
+
+    assert fitted.plan is not None
+    assert len(fitted.plan.steps) == 0
+    assert fitted.fitted_handlers == []
+    assert fitted._cached_handler_paths == []
+    assert fitted._input_hash is None
+    assert fitted._plan_hash is None
+
+    predicted = fitted.predict(td)
+    assert predicted is td
+
+
+@pytest.mark.unit
 def test_optional_imputation_predicts_nans_absent_in_train():
     """Fitted imputation must fill NaNs that appear only in predict data."""
     train = np.array(
