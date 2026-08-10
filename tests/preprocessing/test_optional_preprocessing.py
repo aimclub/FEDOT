@@ -670,6 +670,45 @@ def test_custom_preprocessing():
 
 
 @pytest.mark.unit
+def test_optional_handler_mapping_is_instance_local():
+    """Class-/module-level handler mapping must not be mutated by instance updates."""
+    from fedot.preprocessing.tools.methods_mapping import PREPROCESSING_OPTIONAL_MAPPING
+    from fedot.preprocessing.tools.preprocessor_types import PreprocessingStep
+    from fedot.preprocessing.tools.tools import update_handler_mapping
+
+    class _DummyCustom(AbstractPreprocessingHandler):
+        def fit(self, data, features_idx):
+            return self
+
+        def transform(self, data):
+            return data
+
+    service = OptionalTabularService(use_cache=False)
+    assert service.handler_mapping is not OptionalTabularService.handler_mapping
+    assert service.handler_mapping is not PREPROCESSING_OPTIONAL_MAPPING
+
+    plan = PreprocessingPlan()
+    plan.add_step([
+        PreprocessingStep(
+            PreprocessingStepEnum.custom,
+            'DummyCustom',
+            [0],
+            implementation=_DummyCustom,
+        )
+    ])
+    updated = update_handler_mapping(plan, PREPROCESSING_OPTIONAL_MAPPING)
+
+    assert PreprocessingStepEnum.custom in updated
+    assert PreprocessingStepEnum.custom not in PREPROCESSING_OPTIONAL_MAPPING
+    assert PreprocessingStepEnum.custom not in OptionalTabularService.handler_mapping
+
+    service.handler_mapping = update_handler_mapping(plan, service.handler_mapping)
+    assert PreprocessingStepEnum.custom in service.handler_mapping
+    assert PreprocessingStepEnum.custom not in PREPROCESSING_OPTIONAL_MAPPING
+    assert PreprocessingStepEnum.custom not in OptionalTabularService.handler_mapping
+
+
+@pytest.mark.unit
 def test_optional_fit_predict_uses_in_memory_handlers_without_trace():
     train = np.array([
         [0.0, 10.0, "A", 0.0],

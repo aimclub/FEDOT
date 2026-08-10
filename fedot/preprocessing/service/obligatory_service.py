@@ -9,7 +9,7 @@ from fedot.preprocessing.tools.index_mapping_tools import update_index_mapping, 
 from fedot.preprocessing.planner.planner import PreprocessingPlan
 from fedot.preprocessing.planner.obligatory_planner import build_obligatory_plan
 from fedot.preprocessing.tools.preprocessor_types import PreprocessingStepEnum
-from fedot.preprocessing.tools.tools import update_handler_mapping
+from fedot.preprocessing.tools.tools import copy_handler_mapping, update_handler_mapping
 from fedot.preprocessing.tools.methods_mapping import PREPROCESSING_OBLIGATORY_MAPPING
 from fedot.core.data.common.types import ArrayType
 from fedot.core.caching.cacher import Cacher
@@ -65,6 +65,8 @@ class ObligatoryService:
 
     def __init__(self, use_cache: bool = True):
         self.use_cache = use_cache
+        # Instance copy so fit/custom steps cannot mutate the class-/module-level mapping.
+        self.handler_mapping = copy_handler_mapping(type(self).handler_mapping)
 
     def fit_transform(self, features: ArrayType, target: ArrayType, params: dict) -> ObligatoryPreprocessResult:
         """Build and execute obligatory preprocessing plan.

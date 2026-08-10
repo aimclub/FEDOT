@@ -9,7 +9,11 @@ from fedot.preprocessing.tools.index_mapping_tools import (update_index_mapping,
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.preprocessing.planner.optional_planner import build_optional_plan
 from fedot.preprocessing.schemas import validate_optional_service_is_fitted
-from fedot.preprocessing.tools.tools import update_handler_mapping, update_tensor_data
+from fedot.preprocessing.tools.tools import (
+    copy_handler_mapping,
+    update_handler_mapping,
+    update_tensor_data,
+)
 from fedot.core.caching.cache_loader import Loader
 
 
@@ -50,6 +54,8 @@ class OptionalService:
         self._cached_handler_paths: List[Path] = []
         self._input_hash = None
         self._plan_hash = None
+        # Instance copy so fit/custom steps cannot mutate the class-/module-level mapping.
+        self.handler_mapping = copy_handler_mapping(type(self).handler_mapping)
 
     def fit(self, data: TensorData, optional_steps) -> 'OptionalService':
         self.plan = build_optional_plan(data, optional_steps)
