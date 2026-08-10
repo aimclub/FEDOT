@@ -46,6 +46,90 @@ def test_build_optional_plan():
 
 
 @pytest.mark.unit
+def test_build_optional_plan_keeps_imputation_without_train_nans():
+    """User-requested imputation must stay in plan even if train has no NaNs."""
+    train = np.array(
+        [
+            [1.0, 2.0, 3.0],
+            [4.0, 5.0, 6.0],
+            [7.0, 8.0, 9.0],
+        ],
+        dtype=np.float32,
+    )
+    train_td = TensorDataCreator.create(train, backend_name='cpu', without_target=True)
+
+    auto_plan = build_optional_plan(
+        train_td,
+        {PreprocessingStepEnum.imputation: None},
+    )
+    assert len(auto_plan.steps) >= 1
+    assert all(step.step == PreprocessingStepEnum.imputation for step in auto_plan.steps)
+    assert sorted(
+        idx for step in auto_plan.steps for idx in step.features_idx
+    ) == [0, 1, 2]
+
+    mean_plan = build_optional_plan(
+        train_td,
+        {PreprocessingStepEnum.imputation: ImputationMethodEnum.mean},
+    )
+    assert len(mean_plan.steps) == 1
+    assert mean_plan.steps[0].method == ImputationMethodEnum.mean
+    assert sorted(mean_plan.steps[0].features_idx) == [0, 1, 2]
+
+    explicit_plan = build_optional_plan(
+        train_td,
+        {
+            PreprocessingStepEnum.imputation: [{
+                'method': ImputationMethodEnum.mean,
+                'features_idx': [1],
+                'step_args': None,
+            }]
+        },
+    )
+    assert len(explicit_plan.steps) == 1
+    assert explicit_plan.steps[0].features_idx == [1]
+
+
+@pytest.mark.unit
+def test_optional_imputation_predicts_nans_absent_in_train():
+    """Fitted imputation must fill NaNs that appear only in predict data."""
+    train = np.array(
+        [
+            [1.0, 2.0, 3.0],
+            [4.0, 5.0, 6.0],
+            [7.0, 8.0, 9.0],
+        ],
+        dtype=np.float32,
+    )
+    test = np.array(
+        [
+            [10.0, np.nan, 12.0],
+            [13.0, 14.0, 15.0],
+        ],
+        dtype=np.float32,
+    )
+
+    train_td = TensorDataCreator.create(train, backend_name='cpu', without_target=True)
+    service = OptionalTabularService(use_cache=False)
+    service.fit(
+        train_td,
+        {PreprocessingStepEnum.imputation: ImputationMethodEnum.mean},
+    )
+
+    test_td = TensorDataCreator.create(
+        test,
+        backend_name='cpu',
+        state='predict',
+        without_target=True,
+        trace_uuid=train_td.trace_uuid,
+    )
+    predicted = service.predict(test_td)
+
+    assert not torch.isnan(predicted.features).any()
+    assert predicted.features[0, 1] == pytest.approx(5.0)
+
+
+@pytest.mark.unit
 def test_mean_imputation():
     """Test direct mean imputation handler behavior.
 
