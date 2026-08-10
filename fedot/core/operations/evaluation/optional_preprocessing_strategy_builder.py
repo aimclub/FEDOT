@@ -7,8 +7,7 @@ from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.operations.rules import (
     is_optional_auto_method,
     is_optional_none_method,
-    resolve_optional_imputation_method,
-    resolve_optional_scaling_method,
+    resolve_optional_method,
 )
 from fedot.core.operations.schemas import (
     validate_optional_imputation_method,
@@ -64,14 +63,22 @@ def _build_strategy_from_flat_params(
     strategy: Dict[PreprocessingStepEnum, Any] = {}
 
     if use_imputation:
-        resolved = resolve_optional_imputation_method(imputation_method, data.data_type)
+        resolved = resolve_optional_method(
+            imputation_method,
+            data.data_type,
+            PreprocessingStepEnum.imputation,
+        )
         if not is_optional_none_method(resolved):
             strategy[PreprocessingStepEnum.imputation] = (
                 None if is_optional_auto_method(resolved) else resolved
             )
 
     if use_scaling:
-        resolved = resolve_optional_scaling_method(scaling_method, data.data_type)
+        resolved = resolve_optional_method(
+            scaling_method,
+            data.data_type,
+            PreprocessingStepEnum.scaling,
+        )
         if not is_optional_none_method(resolved):
             strategy[PreprocessingStepEnum.scaling] = (
                 None if is_optional_auto_method(resolved) else resolved
@@ -96,8 +103,9 @@ def build_optional_strategy_from_node_params(
     Method values:
         - ``auto`` → planner default step creation (``None`` stage config);
         - ``none`` → skip stage;
-        - concrete names (``mean``, ``standard``, ...) → method-only stage config;
-          planner selects columns automatically.
+        - concrete names from handler mapping for the data type
+          (``mean``, ``ts_mean``, ``standard``, ``seasonal``, ...) → method-only
+          stage config; planner selects columns automatically.
 
     Both entry paths go through the same fail-fast strategy validation.
     """

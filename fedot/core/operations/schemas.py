@@ -8,8 +8,7 @@ from fedot.core.operations.rules import (
     is_optional_auto_method,
     is_optional_none_method,
     normalize_optional_method_name,
-    resolve_optional_imputation_method,
-    resolve_optional_scaling_method,
+    resolve_optional_method,
     supported_optional_imputation_method_names,
     supported_optional_scaling_method_names,
     supported_optional_strategy_steps,
@@ -159,12 +158,12 @@ def _normalize_optional_method_only_config(
     if step == PreprocessingStepEnum.imputation:
         if isinstance(method, ImputationMethodEnum):
             return method
-        return resolve_optional_imputation_method(method, data_type)
+        return resolve_optional_method(method, data_type, step)
 
     if step == PreprocessingStepEnum.scaling:
         if isinstance(method, ScalingMethodEnum):
             return method
-        return resolve_optional_scaling_method(method, data_type)
+        return resolve_optional_method(method, data_type, step)
 
     return method
 
