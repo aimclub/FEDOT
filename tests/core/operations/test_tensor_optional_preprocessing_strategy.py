@@ -168,10 +168,16 @@ def test_predict_applies_fitted_handlers_without_refit(train_td, test_td):
 
 
 @pytest.mark.unit
-def test_predict_for_fit_matches_predict(train_td):
+def test_predict_for_fit_matches_predict_invariant(train_td):
+    """Guard: predict_for_fit must stay equivalent to predict for impute/scale.
+
+    If optional preprocessing later adds leakage-prone steps, replace this
+    invariant with an explicit predict_for_fit implementation and update the test.
+    """
     strategy = TensorOptionalPreprocessingStrategy(
         'optional_preprocessing',
         OperationParameters(
+            use_cache=False,
             strategy={PreprocessingStepEnum.imputation: None},
         ),
     )

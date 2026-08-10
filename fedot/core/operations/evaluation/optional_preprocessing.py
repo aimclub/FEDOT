@@ -31,6 +31,13 @@ class TensorOptionalPreprocessingStrategy(EvaluationStrategy):
           (default ``True``).
 
     All entry paths are normalized into a validated :class:`OptionalStrategySpec`.
+
+    Invariant:
+        ``predict_for_fit`` is intentionally identical to ``predict`` for the
+        current optional steps (imputation / scaling): fitted statistics are
+        applied the same way on train and inference batches. If leakage-prone
+        steps (e.g. target-aware encoding) are added later, override
+        ``predict_for_fit`` instead of inheriting this equivalence.
     """
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
@@ -48,4 +55,5 @@ class TensorOptionalPreprocessingStrategy(EvaluationStrategy):
         return trained_operation.predict(predict_data)
 
     def predict_for_fit(self, trained_operation: OptionalService, predict_data: TensorData) -> TensorData:
+        # Documented class invariant: same path as ``predict`` for impute/scale.
         return self.predict(trained_operation, predict_data)
