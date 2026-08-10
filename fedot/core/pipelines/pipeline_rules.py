@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Union
+from typing import Any, Callable, Dict, Union
 
 from golem.utilities.data_structures import ComparableEnum as Enum
 
@@ -31,6 +31,29 @@ def normalize_output_mode(output_mode: Union[OutputModeEnum, str, Any]) -> Outpu
     return OutputModeEnum(output_mode)
 
 
+_POSTPROCESS_PLAN_BY_MODE: Dict[
+    OutputModeEnum,
+    Callable[[TaskTypesEnum], PipelinePostprocessPlan],
+] = {
+    OutputModeEnum.RAW: lambda _task_type: PipelinePostprocessPlan(
+        should_flatten_prediction=False,
+        should_restore_inverse_target_encoding=False,
+    ),
+    OutputModeEnum.AUTO: lambda task_type: PipelinePostprocessPlan(
+        should_flatten_prediction=task_type is TaskTypesEnum.ts_forecasting,
+        should_restore_inverse_target_encoding=task_type is TaskTypesEnum.classification,
+    ),
+    OutputModeEnum.DECODED: lambda _task_type: PipelinePostprocessPlan(
+        should_flatten_prediction=False,
+        should_restore_inverse_target_encoding=True,
+    ),
+    OutputModeEnum.FLATTENED: lambda _task_type: PipelinePostprocessPlan(
+        should_flatten_prediction=True,
+        should_restore_inverse_target_encoding=False,
+    ),
+}
+
+
 def build_pipeline_postprocess_plan(
     output_mode: Union[OutputModeEnum, str],
     task_type: TaskTypesEnum,
@@ -38,23 +61,4 @@ def build_pipeline_postprocess_plan(
     from fedot.core.pipelines.schemas import validate_pipeline_output_mode
 
     mode = normalize_output_mode(validate_pipeline_output_mode(output_mode))
-
-    if mode is OutputModeEnum.RAW:
-        return PipelinePostprocessPlan(
-            should_flatten_prediction=False,
-            should_restore_inverse_target_encoding=False,
-        )
-    if mode is OutputModeEnum.AUTO:
-        return PipelinePostprocessPlan(
-            should_flatten_prediction=task_type is TaskTypesEnum.ts_forecasting,
-            should_restore_inverse_target_encoding=task_type is TaskTypesEnum.classification,
-        )
-    if mode is OutputModeEnum.DECODED:
-        return PipelinePostprocessPlan(
-            should_flatten_prediction=False,
-            should_restore_inverse_target_encoding=True,
-        )
-    return PipelinePostprocessPlan(
-        should_flatten_prediction=True,
-        should_restore_inverse_target_encoding=False,
-    )
+    return _POSTPROCESS_PLAN_BY_MODE[mode](task_type)
