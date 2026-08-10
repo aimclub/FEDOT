@@ -116,6 +116,8 @@ class Fedot:
 
         n_jobs: num of ``n_jobs`` for parallelization (set to ``-1`` to use all cpu's). Defaults to ``-1``.
 
+        use_cache: whether TensorData / caching helpers may use disk cache. Defaults to ``True``.
+
         composer_tuner_params: Additional optional parameters. See their documentation at the methods of
             :class:`~fedot.api.builder.FedotBuilder`.
 
@@ -453,8 +455,12 @@ class Fedot:
         Args:
             tensor_data: test data already converted to ``TensorData`` (e.g. via
                 :class:`~fedot.core.data.tensor_data.tensor_data_creator.TensorDataCreator`).
-            output_mode: prediction format for classification models.
+            in_sample: whether to use in-sample forecast for time series.
+            validation_blocks: number of validation blocks for time series.
             path_to_save: if specified, path to save prediction to.
+
+        Returns:
+            :class:`TensorData` with prediction.
         """
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
@@ -625,7 +631,8 @@ class Fedot:
         """Gets quality metrics for a fitted graph
 
         Args:
-            target: an array with target values of test data. If ``None``, target specified for fit is used.
+            tensor_data: test data already converted to ``TensorData``.
+                If it has ``target``, that target is used for metric evaluation.
             metric_names: names of required metrics.
             in_sample: used for time series forecasting.
                 If True prediction will be obtained as ``.predict(..., in_sample=True)``.
