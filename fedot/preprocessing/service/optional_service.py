@@ -8,7 +8,7 @@ from fedot.preprocessing.tools.index_mapping_tools import (update_index_mapping,
                                                            update_indices, create_index_mapping)
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.preprocessing.planner.optional_planner import build_optional_plan
-from fedot.preprocessing.schemas import validate_optional_service_is_fitted
+from fedot.preprocessing.schemas import validate_optional_service_predict_ready
 from fedot.preprocessing.tools.tools import (
     copy_handler_mapping,
     update_handler_mapping,
@@ -110,17 +110,17 @@ class OptionalService:
         return self
 
     def predict(self, data: TensorData) -> TensorData:
-        validate_optional_service_is_fitted(
-            has_plan=self.plan is not None,
-            has_handlers=self.fitted_handlers is not None,
-            has_cached_handlers=bool(self._cached_handler_paths),
+        validate_optional_service_predict_ready(
+            plan=self.plan,
+            fitted_handlers=self.fitted_handlers,
+            cached_handler_paths=self._cached_handler_paths,
         )
 
         init_fingerprint = data.fingerprint
         prepared_data = self._create_prepared_data(data)
         handlers = self._resolve_handlers()
 
-        for step, handler in zip(self.plan.steps, handlers):
+        for step, handler in zip(self.plan.steps, handlers, strict=True):
             actual_mapping = prepared_data.idx_mapping
             prepared_data.new_cols_dict = None
             prepared_data = handler.transform(prepared_data)

@@ -1,44 +1,81 @@
 import pytest
 
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.preprocessing.planner.planner import PreprocessingPlan
 from fedot.preprocessing.schemas import (
     validate_optional_preprocessing_data_type,
-    validate_optional_service_is_fitted,
+    validate_optional_service_predict_ready,
+)
+from fedot.preprocessing.tools.preprocessor_types import (
+    ImputationMethodEnum,
+    PreprocessingStep,
+    PreprocessingStepEnum,
 )
 from fedot.validation.errors import FedotValidationError
 
 
-def test_validate_optional_service_fitted_state_accepts_consistent_state():
-    validate_optional_service_is_fitted(
-        has_plan=True,
-        has_handlers=True,
+def _plan_with_steps(n_steps: int) -> PreprocessingPlan:
+    plan = PreprocessingPlan()
+    for _ in range(n_steps):
+        plan.add_step(
+            PreprocessingStep(
+                PreprocessingStepEnum.imputation,
+                ImputationMethodEnum.mean,
+                [0],
+            )
+        )
+    return plan
+
+
+def test_validate_optional_service_predict_ready_accepts_empty_plan():
+    validate_optional_service_predict_ready(
+        plan=PreprocessingPlan(),
+        fitted_handlers=[],
     )
 
 
-def test_validate_optional_service_fitted_state_accepts_cached_handlers_without_memory():
-    validate_optional_service_is_fitted(
-        has_plan=True,
-        has_handlers=False,
-        has_cached_handlers=True,
+def test_validate_optional_service_predict_ready_accepts_matching_memory_handlers():
+    validate_optional_service_predict_ready(
+        plan=_plan_with_steps(2),
+        fitted_handlers=[object(), object()],
     )
 
 
-@pytest.mark.parametrize(
-    'has_plan, has_handlers',
-    [
-        (False, False),
-        (True, False),
-        (False, True),
-    ],
-)
-def test_validate_optional_service_fitted_state_rejects_invalid_state(
-    has_plan,
-    has_handlers,
-):
+def test_validate_optional_service_predict_ready_accepts_matching_cached_handlers():
+    validate_optional_service_predict_ready(
+        plan=_plan_with_steps(2),
+        fitted_handlers=None,
+        cached_handler_paths=['a.pkl', 'b.pkl'],
+    )
+
+
+def test_validate_optional_service_predict_ready_rejects_missing_plan():
     with pytest.raises(FedotValidationError, match='not fitted yet'):
-        validate_optional_service_is_fitted(
-            has_plan=has_plan,
-            has_handlers=has_handlers,
+        validate_optional_service_predict_ready(
+            plan=None,
+            fitted_handlers=[],
+        )
+
+
+def test_validate_optional_service_predict_ready_rejects_missing_handlers_for_steps():
+    with pytest.raises(
+        FedotValidationError,
+        match='All required optional preprocessing handlers must be trained',
+    ):
+        validate_optional_service_predict_ready(
+            plan=_plan_with_steps(2),
+            fitted_handlers=[],
+        )
+
+
+def test_validate_optional_service_predict_ready_rejects_length_mismatch():
+    with pytest.raises(
+        FedotValidationError,
+        match='All required optional preprocessing handlers must be trained',
+    ):
+        validate_optional_service_predict_ready(
+            plan=_plan_with_steps(2),
+            fitted_handlers=[object()],
         )
 
 
