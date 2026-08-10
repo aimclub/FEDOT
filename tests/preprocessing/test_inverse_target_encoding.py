@@ -98,10 +98,14 @@ def test_postprocess_decoded_noop_when_target_was_numeric(isolated_cache_dir):
 @pytest.mark.unit
 def test_postprocess_flattened_ravels_prediction(isolated_cache_dir):
     train = np.array([
-        [1.0, 0.1, 0],
-        [2.0, 0.2, 1],
-    ], dtype=object)
-    train_td = TensorDataCreator.create(train, backend_name='cpu')
+        [1.0, 0.1, 0.0],
+        [2.0, 0.2, 1.0],
+    ], dtype=np.float32)
+    train_td = TensorDataCreator.create(
+        train,
+        backend_name='cpu',
+        task=Task(TaskTypesEnum.regression),
+    )
 
     result = _result_from_train_td(
         train_td,

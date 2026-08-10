@@ -45,3 +45,17 @@ def test_build_pipeline_postprocess_plan_for_explicit_modes():
     assert decoded_plan.should_flatten_prediction is False
     assert flat_plan.should_flatten_prediction is True
     assert flat_plan.should_restore_inverse_target_encoding is False
+
+
+def test_build_pipeline_postprocess_plan_rejects_flattened_for_classification():
+    with pytest.raises(FedotValidationError, match='FLATTENED is numeric-only'):
+        build_pipeline_postprocess_plan(
+            OutputModeEnum.FLATTENED, TaskTypesEnum.classification)
+
+
+def test_validate_pipeline_output_mode_rejects_flattened_for_classification():
+    with pytest.raises(FedotValidationError, match='FLATTENED is numeric-only'):
+        validate_pipeline_output_mode(
+            OutputModeEnum.FLATTENED,
+            task_type=TaskTypesEnum.classification,
+        )

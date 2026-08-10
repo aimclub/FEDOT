@@ -7,6 +7,16 @@ from fedot.core.repository.tasks import TaskTypesEnum
 
 
 class OutputModeEnum(Enum):
+    """Pipeline predict output shaping modes.
+
+    - ``RAW``: leave model output as-is (no flatten, no inverse target decode).
+    - ``AUTO``: task-dependent defaults (decode for classification, flatten for
+      TS forecasting).
+    - ``DECODED``: restore original target labels via inverse target encoding.
+    - ``FLATTENED``: ravel prediction to 1-D. Numeric-only (regression / TS);
+      rejected for classification because it would keep encoded class ids.
+    """
+
     RAW = 'raw'
     AUTO = 'auto'
     DECODED = 'decoded'
@@ -60,5 +70,7 @@ def build_pipeline_postprocess_plan(
 ) -> PipelinePostprocessPlan:
     from fedot.core.pipelines.schemas import validate_pipeline_output_mode
 
-    mode = normalize_output_mode(validate_pipeline_output_mode(output_mode))
+    mode = normalize_output_mode(
+        validate_pipeline_output_mode(output_mode, task_type=task_type)
+    )
     return _POSTPROCESS_PLAN_BY_MODE[mode](task_type)
