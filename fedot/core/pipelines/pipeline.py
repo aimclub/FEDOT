@@ -145,12 +145,12 @@ class Pipeline(GraphDelegate, Serializable):
 
         if time_constraint is None:
             return self._fit(
-                tensor_data=tensor_data,
+                tensor_data=copied_tensor_data,
                 predictions_cache=predictions_cache,
                 fold_id=fold_id,
             )
         return self._fit_with_time_limit(
-            tensor_data=tensor_data,
+            tensor_data=copied_tensor_data,
             time=time_constraint,
             predictions_cache=predictions_cache,
             fold_id=fold_id,
