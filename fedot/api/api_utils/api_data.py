@@ -82,9 +82,21 @@ class ApiDataProcessor:
                 real.target = convert_into_column(np.array(real.target))
 
     def accept_and_apply_recommendations(self, input_data: Union[InputData, MultiModalData], recommendations: Dict):
+        """Ignore InputAnalyser preprocessing recommendations and warn when any are given.
+
+        ``ApiDataProcessor`` no longer owns a ``DataPreprocessor``/``DummyPreprocessor``,
+        so actions like ``cut`` / ``label_encoded`` cannot be applied here. Callers still
+        invoke this hook during fit; emit an explicit warning instead of a silent no-op.
         """
-        No-op: ``ApiDataProcessor`` no longer owns a preprocessor (``DataPreprocessor``/
-        ``DummyPreprocessor``), so preprocessing recommendations (e.g. ``cut``, ``label_encoded``)
-        coming from ``InputAnalyser`` are not applied here anymore.
-        """
-        return
+        if not recommendations:
+            return
+
+        keys = (
+            sorted(recommendations.keys())
+            if isinstance(recommendations, dict)
+            else recommendations
+        )
+        self.log.warning(
+            f'Ignoring preprocessing recommendations {keys}: ApiDataProcessor no longer '
+            'owns a DataPreprocessor; InputAnalyser recommendations are not applied.'
+        )

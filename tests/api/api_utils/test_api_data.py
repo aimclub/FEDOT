@@ -50,21 +50,41 @@ def test_define_predictions_flattens_out_of_sample_forecast():
     assert torch.equal(prediction.predict, torch.tensor([0.0, 1.0]))
 
 
-def test_accept_and_apply_recommendations_is_a_noop_for_input_data():
+def test_accept_and_apply_recommendations_warns_and_does_not_mutate_input_data(caplog):
     # ``ApiDataProcessor`` no longer owns a ``DataPreprocessor``/``DummyPreprocessor``,
-    # so recommendations from ``InputAnalyser`` are not applied to the data anymore.
+    # so recommendations from ``InputAnalyser`` are ignored with an explicit warning.
     processor = ApiDataProcessor(Task(TaskTypesEnum.classification))
     features = np.array([['a', 1], ['b', 2]], dtype=object)
     data = SimpleNamespace(features=features)
 
-    result = processor.accept_and_apply_recommendations(
-        data, {'label_encoded': {}})
+    with caplog.at_level('WARNING'):
+        result = processor.accept_and_apply_recommendations(
+            data, {'label_encoded': {}})
 
     assert result is None
     assert data.features is features
+    assert any(
+        'Ignoring preprocessing recommendations' in record.message
+        for record in caplog.records
+    )
 
 
-def test_accept_and_apply_recommendations_is_a_noop_for_multimodal_data():
+def test_accept_and_apply_recommendations_skips_warning_for_empty_recommendations(caplog):
+    processor = ApiDataProcessor(Task(TaskTypesEnum.classification))
+    features = np.array([[1], [2]])
+    data = SimpleNamespace(features=features)
+
+    with caplog.at_level('WARNING'):
+        processor.accept_and_apply_recommendations(data, {})
+
+    assert data.features is features
+    assert not any(
+        'Ignoring preprocessing recommendations' in record.message
+        for record in caplog.records
+    )
+
+
+def test_accept_and_apply_recommendations_warns_for_multimodal_data(caplog):
     processor = ApiDataProcessor(Task(TaskTypesEnum.classification))
     inner = InputData(
         idx=np.array([0, 1]),
@@ -75,7 +95,12 @@ def test_accept_and_apply_recommendations_is_a_noop_for_multimodal_data():
     )
     multimodal = MultiModalData({'source': inner})
 
-    processor.accept_and_apply_recommendations(
-        multimodal, {'source': {}})
+    with caplog.at_level('WARNING'):
+        processor.accept_and_apply_recommendations(
+            multimodal, {'source': {}})
 
     assert multimodal['source'] is inner
+    assert any(
+        'Ignoring preprocessing recommendations' in record.message
+        for record in caplog.records
+    )
