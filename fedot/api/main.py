@@ -442,7 +442,7 @@ class Fedot:
             self.current_pipeline.fit(self.train_data)
 
         return self.current_pipeline
-    
+
     def predict(
         self,
         tensor_data: TensorData,
@@ -516,9 +516,9 @@ class Fedot:
 
     # TODO @romankuklo: refactor for TensorData
     def forecast(self,
-                            tensor_data: TensorData,
-                            horizon: Optional[int] = None,
-                            path_to_save: Optional[PathType] = None) -> np.ndarray:
+                 tensor_data: TensorData,
+                 horizon: Optional[int] = None,
+                 path_to_save: Optional[PathType] = None) -> np.ndarray:
         self._check_forecast_applicable()
 
         forecast_plan = build_forecast_plan(
@@ -545,10 +545,10 @@ class Fedot:
                 'Forecasting can be used only for the time series')
 
     def get_metrics(self,
-                               tensor_data,
-                               target: Union[np.ndarray, pd.Series] = None,
-                               metric_names: Union[str, List[str]] = None,
-                               rounding_order: int = 3) -> dict:
+                    tensor_data,
+                    target: Union[np.ndarray, pd.Series] = None,
+                    metric_names: Union[str, List[str]] = None,
+                    rounding_order: int = 3) -> dict:
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
@@ -563,7 +563,7 @@ class Fedot:
 
     # TODO @romankuklo: refactor for TensorData
     def explain(self, tensor_data,
-                           method: str = 'surrogate_dt', visualization: bool = True, **kwargs) -> Explainer:
+                method: str = 'surrogate_dt', visualization: bool = True, **kwargs) -> Explainer:
         explain_plan = build_explain_plan(
             method=method, visualization=visualization)
         data = self.data_processor.to_input_data(tensor_data)
@@ -621,7 +621,7 @@ class Fedot:
         else:
             self.log.error('No prediction to visualize')
             raise ValueError('Prediction from model is empty')
-    
+
     def get_metrics(self,
                     tensor_data: TensorData,
                     metric_names: Union[str, List[str]] = None,
@@ -661,11 +661,11 @@ class Fedot:
 
         objective = MetricsObjective(metrics_plan.metrics)
         obj_eval = PipelineObjectiveEvaluateWithTensorData(objective=objective,
-                                                          data_producer=lambda: (
-                                                              yield self.train_data, self.test_data),
-                                                          validation_blocks=metrics_plan.validation_blocks,
-                                                          eval_n_jobs=self.params.n_jobs,
-                                                          do_unfit=False)
+                                                           data_producer=lambda: (
+                                                               yield self.train_data, self.test_data),
+                                                           validation_blocks=metrics_plan.validation_blocks,
+                                                           eval_n_jobs=self.params.n_jobs,
+                                                           do_unfit=False)
 
         metrics = obj_eval.evaluate(self.current_pipeline).values
         metrics = {metric_name: round(abs(metric), metrics_plan.rounding_order) for (metric_name, metric) in

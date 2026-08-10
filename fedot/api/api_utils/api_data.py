@@ -42,10 +42,10 @@ class ApiDataProcessor:
         self.log = default_log(self)
 
     def define_predictions(self,
-                                      current_pipeline: Union[Pipeline, PipelineEnsemble],
-                                      test_data: TensorData,
-                                      in_sample: bool = False,
-                                      validation_blocks: int = None) -> TensorData:
+                           current_pipeline: Union[Pipeline, PipelineEnsemble],
+                           test_data: TensorData,
+                           in_sample: bool = False,
+                           validation_blocks: int = None) -> TensorData:
         """ Prepare predictions """
         forecast_length = getattr(
             self.task.task_params, 'forecast_length', None)

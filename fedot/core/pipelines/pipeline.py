@@ -62,10 +62,10 @@ class Pipeline(GraphDelegate, Serializable):
         self.fit(tensor_data)
 
     def _fit_with_time_limit(self,
-                                        tensor_data: Optional[TensorData],
-                                        time: timedelta,
-                                        predictions_cache: Optional[PredictionsCache] = None,
-                                        fold_id: Optional[int] = None) -> TensorData:
+                             tensor_data: Optional[TensorData],
+                             time: timedelta,
+                             predictions_cache: Optional[PredictionsCache] = None,
+                             fold_id: Optional[int] = None) -> TensorData:
         """Runs TensorData training process in all pipeline nodes with time limit."""
         time = int(time.total_seconds())
         process_state_dict = {}
@@ -84,15 +84,15 @@ class Pipeline(GraphDelegate, Serializable):
         for node_num, _ in enumerate(self.nodes):
             self.nodes[node_num].fitted_operation = fitted_operations[node_num]
         return process_state_dict['train_predicted']
-    
+
     # TODO romankuklo: add preprocessing after new features creating
 
     def _fit(self,
-                        tensor_data: Optional[TensorData] = None,
-                        process_state_dict: dict = None,
-                        fitted_operations: list = None,
-                        predictions_cache: Optional[PredictionsCache] = None,
-                        fold_id: Optional[int] = None) -> Optional[TensorData]:
+             tensor_data: Optional[TensorData] = None,
+             process_state_dict: dict = None,
+             fitted_operations: list = None,
+             predictions_cache: Optional[PredictionsCache] = None,
+             fold_id: Optional[int] = None) -> Optional[TensorData]:
         """Runs training process in all the pipeline nodes starting with root on TensorData."""
         with Timer() as t:
             computation_time_update = not self.root_node.fitted_operation or self.computation_time is None
@@ -112,7 +112,11 @@ class Pipeline(GraphDelegate, Serializable):
             for node in self.nodes:
                 fitted_operations.append(node.fitted_operation)
 
-    def _postprocess(self, result: TensorData, output_mode: Union[OutputModeEnum, str] = OutputModeEnum.AUTO) -> TensorData:
+    def _postprocess(
+        self,
+        result: TensorData,
+        output_mode: Union[OutputModeEnum, str] = OutputModeEnum.AUTO,
+    ) -> TensorData:
         """
         Postprocesses output of the model
 
@@ -133,11 +137,11 @@ class Pipeline(GraphDelegate, Serializable):
         return result
 
     def fit(self,
-                       tensor_data: TensorData,
-                       time_constraint: Optional[timedelta] = None,
-                       n_jobs: int = 1,
-                       predictions_cache: Optional[PredictionsCache] = None,
-                       fold_id: Optional[int] = None) -> TensorData:
+            tensor_data: TensorData,
+            time_constraint: Optional[timedelta] = None,
+            n_jobs: int = 1,
+            predictions_cache: Optional[PredictionsCache] = None,
+            fold_id: Optional[int] = None) -> TensorData:
         self.replace_n_jobs_in_nodes(n_jobs)
 
         copied_tensor_data = deepcopy(tensor_data)
@@ -199,14 +203,14 @@ class Pipeline(GraphDelegate, Serializable):
             operations_cache.try_load_into_pipeline(self, fold_id)
 
     def predict(self,
-                           tensor_data: TensorData,
-                           output_mode: Union[OutputModeEnum, str] = OutputModeEnum.AUTO,
-                           predictions_cache: Optional[PredictionsCache] = None,
-                           fold_id: Optional[int] = None) -> TensorData:
+                tensor_data: TensorData,
+                output_mode: Union[OutputModeEnum, str] = OutputModeEnum.AUTO,
+                predictions_cache: Optional[PredictionsCache] = None,
+                fold_id: Optional[int] = None) -> TensorData:
         validate_pipeline_is_fitted(self.is_fitted)
 
         output_mode = output_mode if output_mode is not None else OutputModeEnum.AUTO
-        
+
         copied_tensor_data = deepcopy(tensor_data)
 
         copied_tensor_data = self._assign_data_to_nodes(copied_tensor_data)
