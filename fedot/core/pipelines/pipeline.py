@@ -23,7 +23,11 @@ from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.operations.data_operation import DataOperation
 from fedot.core.operations.model import Model
 from fedot.core.pipelines.node import PipelineNode
-from fedot.core.pipelines.pipeline_rules import build_pipeline_postprocess_plan, OutputModeEnum
+from fedot.core.pipelines.pipeline_rules import (
+    build_pipeline_postprocess_plan,
+    resolve_pipeline_predict_modes,
+    OutputModeEnum,
+)
 from fedot.core.pipelines.schemas import (
     validate_pipeline_is_fitted,
     validate_single_root_node,
@@ -209,18 +213,18 @@ class Pipeline(GraphDelegate, Serializable):
                 fold_id: Optional[int] = None) -> TensorData:
         validate_pipeline_is_fitted(self.is_fitted)
 
-        output_mode = output_mode if output_mode is not None else OutputModeEnum.AUTO
+        modes = resolve_pipeline_predict_modes(output_mode, tensor_data.task.task_type)
 
         copied_tensor_data = deepcopy(tensor_data)
 
         copied_tensor_data = self._assign_data_to_nodes(copied_tensor_data)
         result = self.root_node.predict(
             tensor_data=copied_tensor_data,
-            output_mode=output_mode,
+            output_mode=modes.operation_output_mode,
             predictions_cache=predictions_cache,
             fold_id=fold_id,
         )
-        result = self._postprocess(result, output_mode)
+        result = self._postprocess(result, modes.pipeline_output_mode)
         return result
 
     def save(self, path: str = None, create_subdir: bool = True, is_datetime_in_path: bool = False) -> Tuple[str, dict]:

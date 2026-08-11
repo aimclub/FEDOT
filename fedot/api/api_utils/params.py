@@ -1,4 +1,4 @@
-﻿import datetime
+import datetime
 from collections import UserDict
 from copy import deepcopy, copy
 from dataclasses import dataclass
@@ -67,7 +67,6 @@ class ApiParams(UserDict):
         self.graph_generation_params = None
         self.optimizer_params = None
 
-    # TODO @romankuklo: use it when TDCreator will be in API
     def prepare_creation(
         self,
         *,
@@ -75,6 +74,11 @@ class ApiParams(UserDict):
         is_predict: bool = False,
         trace_uuid: Optional[str] = None,
     ) -> TensorDataCreationRequest:
+        """
+        Build creator kwargs from ``tensor_data_config`` plus runtime task/state.
+
+        Used by :meth:`~fedot.api.main.Fedot.create_data`.
+        """
         config = dict(self.tensor_data_config)
         backend_name = config.pop('backend_name', 'cpu')
 
