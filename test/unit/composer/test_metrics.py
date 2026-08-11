@@ -9,7 +9,7 @@ import torch
 from sklearn.datasets import load_breast_cancer, load_diabetes, load_linnerud, load_wine
 
 from fedot.core.composer.metrics import (Accuracy, F1, Logloss, MAE, MAPE, MASE, MSE,
-    MSLE, Precision, QualityMetric, R2, RMSE, ROCAUC, SMAPE, Silhouette,)
+                                         MSLE, Precision, QualityMetric, R2, RMSE, ROCAUC, SMAPE, Silhouette,)
 from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.data.tensor_data import TensorData

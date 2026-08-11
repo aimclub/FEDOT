@@ -24,6 +24,8 @@ class StrategyResolution:
     strategy_factory: Any
 
 # TODO @romankuklo: needed for TD creation API
+
+
 @dataclass(frozen=True)
 class TensorDataDefinitionPlan:
     backend_name: str

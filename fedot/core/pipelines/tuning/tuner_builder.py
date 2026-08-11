@@ -98,7 +98,7 @@ class TunerBuilder:
     def with_additional_params(self, **parameters):
         self.additional_params.update(parameters)
         return self
-    
+
     def _build_tuner(self, data_producer, validation_blocks: int) -> BaseTuner:
         validate_multi_objective_tuner(self.tuner_class, len(self.metric))
         if len(self.metric) > 1:
@@ -123,7 +123,7 @@ class TunerBuilder:
                                  n_jobs=self.n_jobs,
                                  **self.additional_params)
         return tuner
-    
+
     def build(self, tensor_data: TensorData) -> BaseTuner:
         # TODO @artemlunev: refactor data_splitter to use tensor data
         data_splitter = DataSourceSplitter(

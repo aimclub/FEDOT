@@ -9,6 +9,7 @@ from fedot.core.backend.schemas import (
     validate_backend_name,
 )
 
+
 class Backend:
     """Singleton object for managing the compute backend (CPU/GPU).
 

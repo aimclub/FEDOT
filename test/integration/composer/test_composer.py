@@ -1,3 +1,26 @@
+from test.unit.pipelines.test_pipeline_comparison import pipeline_first, pipeline_second
+from fedot.core.utils import fedot_project_root
+from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
+from fedot.core.repository.metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PipelineNode
+from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
+from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
+from fedot.core.optimisers.objective.data_source_context import build_internal_composer_data_source_context
+from fedot.core.optimisers.objective import PipelineObjectiveEvaluateWithTensorData
+from fedot.core.data.input_data.data import InputData
+from fedot.core.composer.random_composer import RandomSearchComposer
+from fedot.core.composer.composer_builder import ComposerBuilder
+from fedot.core.caching.operations_cache import OperationsCache
+from fedot import Fedot
+from sklearn.metrics import roc_auc_score as roc_auc
+from golem.core.optimisers.random.random_search import RandomSearchOptimizer
+from golem.core.optimisers.genetic.operators.selection import SelectionTypesEnum
+from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 import datetime
 from pathlib import Path
 
@@ -9,31 +32,6 @@ from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 # TODO: refactor this tests for tensor data after refactor of composer.
 pytest.skip('Legacy InputData composer tests are not supported in TensorData-only path',
             allow_module_level=True)
-
-from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
-from golem.core.optimisers.genetic.operators.selection import SelectionTypesEnum
-from golem.core.optimisers.random.random_search import RandomSearchOptimizer
-from sklearn.metrics import roc_auc_score as roc_auc
-
-from fedot import Fedot
-from fedot.core.caching.operations_cache import OperationsCache
-from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.composer.random_composer import RandomSearchComposer
-from fedot.core.data.input_data.data import InputData
-from fedot.core.optimisers.objective import PipelineObjectiveEvaluateWithTensorData
-from fedot.core.optimisers.objective.data_source_context import build_internal_composer_data_source_context
-from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
-from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
-from fedot.core.pipelines.node import PipelineNode
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
-from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
-from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.utils import fedot_project_root
-from test.unit.pipelines.test_pipeline_comparison import pipeline_first, pipeline_second
 
 
 def _composer_context(data, cv_folds=None):

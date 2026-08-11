@@ -1,8 +1,7 @@
+from fedot.industrial.api.utils.api_init import ApiManager, AutomlConfig, ComputationalConfig, IndustrialConfig, LearningConfig
 import pytest
 
 pytest.importorskip("fastcore", exc_type=ImportError)
-
-from fedot.industrial.api.utils.api_init import ApiManager, AutomlConfig, ComputationalConfig, IndustrialConfig, LearningConfig
 
 
 def test_industrial_config_uses_rule_based_context_and_initial_problem(monkeypatch):

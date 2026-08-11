@@ -222,6 +222,7 @@ def test_main_facade_predict_uses_tensor_pipeline_entrypoint():
     assert prediction.predict.shape == (2, 2)
     assert model.current_pipeline.calls == [('predict', 'default')]
 
+
 def test_main_facade_fit_uses_predefined_runtime_path(monkeypatch):
     model = Fedot(problem='classification')
     tensor_data = _minimal_tensordata_for_fit()

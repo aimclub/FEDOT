@@ -41,7 +41,7 @@ from fedot.core.data.tensor_data import TensorData
 
 
 class ApiComposer:
-# TODO @romankuklo: refactor this with new caching system
+    # TODO @romankuklo: refactor this with new caching system
     def __init__(self, api_params: ApiParams, metrics: Union[MetricIDType, Sequence[MetricIDType]]):
         self.log = default_log(self)
         self.params = api_params

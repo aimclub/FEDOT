@@ -1,3 +1,22 @@
+from test.unit.validation.test_table_cv import get_classification_data
+from test.unit.tasks.test_forecasting import get_ts_data
+from fedot.core.utils import fedot_project_root
+from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.repository.metrics_repository import (ClassificationMetricsEnum, MetricIDType,
+                                                      RegressionMetricsEnum)
+from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PipelineNode
+from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
+from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
+from fedot.core.optimisers.objective import PipelineObjectiveEvaluateWithTensorData
+from fedot.core.operations.model import Model
+from fedot.core.data.input_data.data import InputData
+from fedot import Fedot
+from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
+from golem.core.optimisers.opt_history_objects.individual import Individual
+from golem.core.optimisers.genetic.evaluation import MultiprocessingDispatcher
+from golem.core.optimisers.fitness import SingleObjFitness
 from itertools import chain
 from pathlib import Path
 
@@ -8,27 +27,6 @@ from golem.core.dag.graph import Graph
 # TODO: refactor this tests for tensor data after refactor of composer history.
 pytest.skip('Legacy InputData composer history tests are not supported in TensorData-only path',
             allow_module_level=True)
-
-from golem.core.optimisers.fitness import SingleObjFitness
-from golem.core.optimisers.genetic.evaluation import MultiprocessingDispatcher
-from golem.core.optimisers.opt_history_objects.individual import Individual
-from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
-
-from fedot import Fedot
-from fedot.core.data.input_data.data import InputData
-from fedot.core.operations.model import Model
-from fedot.core.optimisers.objective import PipelineObjectiveEvaluateWithTensorData
-from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
-from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
-from fedot.core.pipelines.node import PipelineNode
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
-from fedot.core.repository.metrics_repository import (ClassificationMetricsEnum, MetricIDType,
-                                                      RegressionMetricsEnum)
-from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.utils import fedot_project_root
-from test.unit.tasks.test_forecasting import get_ts_data
-from test.unit.validation.test_table_cv import get_classification_data
 
 
 def scaling_logit_rf_pipeline():
@@ -134,8 +132,8 @@ def test_collect_intermediate_metric(pipeline: Pipeline, input_data: InputData, 
     data_source = DataSourceSplitter(
         validation_blocks=validation_blocks).build(input_data)
     objective_eval = PipelineObjectiveEvaluateWithTensorData(MetricsObjective(metrics),
-                                                            data_source,
-                                                            validation_blocks=validation_blocks)
+                                                             data_source,
+                                                             validation_blocks=validation_blocks)
     dispatcher = MultiprocessingDispatcher(graph_gen_params.adapter)
     dispatcher.set_graph_evaluation_callback(
         objective_eval.evaluate_intermediate_metrics)

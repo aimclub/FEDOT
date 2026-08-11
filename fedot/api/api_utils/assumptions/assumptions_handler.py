@@ -19,6 +19,8 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.utilities.memory import MemoryAnalytics
 
 # TODO @romankuklo: refactor this class
+
+
 class AssumptionsHandler:
     def __init__(self, data: TensorData):
         """

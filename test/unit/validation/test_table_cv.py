@@ -1,3 +1,19 @@
+from test.unit.tasks.test_classification import get_iris_data, pipeline_simple
+from test.integration.models.test_model import classification_dataset
+from fedot.core.utils import fedot_project_root
+from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.repository.metrics_repository import ClassificationMetricsEnum
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PipelineNode
+from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
+from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
+from fedot.core.optimisers.objective import PipelineObjectiveEvaluateWithTensorData
+from fedot.core.data.split.data_split import train_test_data_setup
+from fedot.core.data.input_data.data import InputData
+from fedot import Fedot
 import logging
 from datetime import timedelta
 
@@ -8,22 +24,6 @@ from golem.core.tuning.simultaneous import SimultaneousTuner
 pytest.skip('Legacy InputData table CV tests are not supported in TensorData-only path',
             allow_module_level=True)
 
-from fedot import Fedot
-from fedot.core.data.input_data.data import InputData
-from fedot.core.data.split.data_split import train_test_data_setup
-from fedot.core.optimisers.objective import PipelineObjectiveEvaluateWithTensorData
-from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
-from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
-from fedot.core.pipelines.node import PipelineNode
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.repository.metrics_repository import ClassificationMetricsEnum
-from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.utils import fedot_project_root
-from test.integration.models.test_model import classification_dataset
-from test.unit.tasks.test_classification import get_iris_data, pipeline_simple
 
 _ = classification_dataset
 
@@ -51,7 +51,7 @@ def test_cv_multiple_metrics_evaluated_correct(classification_dataset):
                ClassificationMetricsEnum.accuracy,
                ClassificationMetricsEnum.logloss]
     objective_eval = PipelineObjectiveEvaluateWithTensorData(MetricsObjective(metrics),
-                                                            data_producer=data_producer)
+                                                             data_producer=data_producer)
     actual_values = objective_eval(pipeline).values
     all_metrics_correct = all(0 < abs(x) <= 1 for x in actual_values)
 

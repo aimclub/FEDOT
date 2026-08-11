@@ -33,6 +33,7 @@ class GPComposer(Composer):
     :param predictions_cache: Cache manager for fit/predict node's predictions, optional.
     """
     # TODO @romankuklo: refactor with new caching system
+
     def __init__(self, optimizer: GraphOptimizer,
                  composer_requirements: PipelineComposerRequirements,
                  operations_cache: Optional[OperationsCache] = None,

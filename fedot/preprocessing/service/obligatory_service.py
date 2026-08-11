@@ -276,7 +276,7 @@ class ObligatoryService:
             return decoded.reshape(-1)
         return decoded
 
-    # TODO @romankuklo: make as optional service 
+    # TODO @romankuklo: make as optional service
     def _cache_fitted_model(
         self,
         cacher: Cacher,

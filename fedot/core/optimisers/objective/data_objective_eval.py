@@ -107,7 +107,7 @@ class PipelineObjectiveEvaluateWithTensorData(ObjectiveEvaluate[Pipeline]):
         return to_fitness(folds_metrics, self._objective.is_multi_objective)
 
     def prepare_graph(self, graph: Pipeline, train_data: TensorData,
-                                      fold_id: Optional[int] = None, n_jobs: int = -1) -> Pipeline:
+                      fold_id: Optional[int] = None, n_jobs: int = -1) -> Pipeline:
         """
         Fit pipeline before metric evaluation can be performed.
         :param graph: pipeline for train & validation

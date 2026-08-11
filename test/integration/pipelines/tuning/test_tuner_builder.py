@@ -1,3 +1,16 @@
+from test.unit.validation.test_table_cv import get_classification_data
+from test.unit.optimizer.test_pipeline_objective_eval import pipeline_first_test
+from test.integration.pipelines.tuning.test_pipeline_tuning import get_not_default_search_space
+from fedot.core.repository.metrics_repository import ClassificationMetricsEnum, MetricIDType
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
+from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
+from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
+from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
+from fedot.core.optimisers.objective import PipelineObjectiveEvaluateWithTensorData
+from fedot.core.data.input_data.data import InputData
+from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
+from hyperopt import tpe
+from golem.core.tuning.simultaneous import SimultaneousTuner
 from datetime import timedelta
 from typing import Optional
 
@@ -10,21 +23,6 @@ from golem.core.tuning.sequential import SequentialTuner
 pytest.skip('Legacy InputData tuner builder tests are not supported in TensorData-only path',
             allow_module_level=True)
 # TODO: refactor this tests for tensor data after refactor of tuner builder.
-
-from golem.core.tuning.simultaneous import SimultaneousTuner
-from hyperopt import tpe
-
-from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
-from fedot.core.data.input_data.data import InputData
-from fedot.core.optimisers.objective import PipelineObjectiveEvaluateWithTensorData
-from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
-from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
-from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
-from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.repository.metrics_repository import ClassificationMetricsEnum, MetricIDType
-from test.integration.pipelines.tuning.test_pipeline_tuning import get_not_default_search_space
-from test.unit.optimizer.test_pipeline_objective_eval import pipeline_first_test
-from test.unit.validation.test_table_cv import get_classification_data
 
 
 def get_objective_evaluate(metric: MetricIDType, data: InputData,

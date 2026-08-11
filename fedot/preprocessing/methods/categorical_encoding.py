@@ -120,7 +120,7 @@ class LabelEncoder(AbstractPreprocessingHandler):
         data.features = features
 
         return data
-    
+
     def inverse_transform(self, data: PreparedData) -> PreparedData:
         """
         Inverse transform label-encoded numeric IDs to categorical values.
@@ -160,6 +160,7 @@ class LabelEncoder(AbstractPreprocessingHandler):
 
         data.features = features
         return data
+
 
 class OneHotEncoder(AbstractPreprocessingHandler):
     """

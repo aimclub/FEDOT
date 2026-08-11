@@ -31,6 +31,7 @@ class Metric:
         """ Get metrics value based on pipeline and other optional arguments. """
         raise AbstractMethodNotImplementError
 
+
 class QualityMetric(Metric):
     max_penalty_part = 0.01
     output_mode = 'default'
@@ -132,7 +133,7 @@ class QualityMetric(Metric):
         metric_with_penalty = (quality_metric +
                                min(penalty, abs(quality_metric * cls.max_penalty_part)))
         return metric_with_penalty
-    
+
     # TODO @romankuklo: add in-sample prediction for tensor data
     # @staticmethod
     # def _in_sample_prediction(pipeline: Pipeline,

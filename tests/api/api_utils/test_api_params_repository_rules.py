@@ -74,4 +74,3 @@ def test_normalize_tensor_data_config_uses_validator_result():
         lambda config: {'backend_name': 'gpu', 'use_cache': False},
     ) == {'backend_name': 'gpu', 'use_cache': False}
     assert normalize_tensor_data_config(None, lambda config: {'backend_name': 'cpu'}) is None
-

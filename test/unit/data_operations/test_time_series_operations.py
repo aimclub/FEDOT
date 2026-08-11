@@ -1,3 +1,19 @@
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PipelineNode
+from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
+from fedot.core.optimisers.objective import MetricsObjective, PipelineObjectiveEvaluateWithTensorData
+from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import (
+    _sparse_matrix,
+    prepare_target,
+    ts_to_table
+)
+from fedot.core.data.multimodal.multi_modal import MultiModalData
+from fedot.core.data.split.data_split import train_test_data_setup
+from fedot.core.data.input_data.data import InputData
 import logging
 from copy import deepcopy
 
@@ -9,22 +25,6 @@ from golem.core.log import default_log
 pytest.skip('Legacy InputData objective evaluation tests are not supported in TensorData-only path',
             allow_module_level=True)
 
-from fedot.core.data.input_data.data import InputData
-from fedot.core.data.split.data_split import train_test_data_setup
-from fedot.core.data.multimodal.multi_modal import MultiModalData
-from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import (
-    _sparse_matrix,
-    prepare_target,
-    ts_to_table
-)
-from fedot.core.optimisers.objective import MetricsObjective, PipelineObjectiveEvaluateWithTensorData
-from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
-from fedot.core.pipelines.node import PipelineNode
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.pipeline_builder import PipelineBuilder
-from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 _WINDOW_SIZE = 4
 _FORECAST_LENGTH = 4
@@ -338,9 +338,9 @@ def test_evaluation_correctly_work_with_window_size_selector(n_jobs):
     data_producer = data_splitter.build(ts)
     objective = MetricsObjective('rmse', False)
     objective_evaluator = PipelineObjectiveEvaluateWithTensorData(objective=objective,
-                                                                 data_producer=data_producer,
-                                                                 validation_blocks=data_splitter.validation_blocks,
-                                                                 eval_n_jobs=n_jobs)
+                                                                  data_producer=data_producer,
+                                                                  validation_blocks=data_splitter.validation_blocks,
+                                                                  eval_n_jobs=n_jobs)
     objective_function = objective_evaluator.evaluate
 
     pipeline = PipelineBuilder().add_sequence('lagged', 'ridge').build()
