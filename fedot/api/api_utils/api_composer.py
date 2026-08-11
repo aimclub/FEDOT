@@ -15,7 +15,6 @@ from fedot.api.api_utils.params import ApiParams
 from fedot.api.api_utils.predefined_model import PredefinedModel
 from fedot.api.time import ApiTime
 from fedot.core.caching.operations_cache import OperationsCache
-from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
@@ -42,13 +41,12 @@ from fedot.core.data.tensor_data import TensorData
 
 
 class ApiComposer:
-# TODO @romankuklo: refactor this with new caching system
+    # TODO @romankuklo: refactor this with new caching system
     def __init__(self, api_params: ApiParams, metrics: Union[MetricIDType, Sequence[MetricIDType]]):
         self.log = default_log(self)
         self.params = api_params
         self.metrics = metrics
         self.operations_cache: Optional[OperationsCache] = None
-        self.preprocessing_cache: Optional[PreprocessingCache] = None
         self.predictions_cache: Optional[PredictionsCache] = None
         self.timer = None
         # status flag indicating that composer step was applied
@@ -60,9 +58,7 @@ class ApiComposer:
     def init_cache(self):
         cache_plan = build_cache_init_plan(
             use_operations_cache=self.params.get('use_operations_cache'),
-            use_preprocessing_cache=self.params.get('use_preprocessing_cache'),
             use_predictions_cache=self.params.get('use_predictions_cache'),
-            use_input_preprocessing=self.params.get('use_input_preprocessing'),
             cache_dir=self.params.get('cache_dir'),
             use_stats=self.params.get('use_stats'),
         )
@@ -71,10 +67,6 @@ class ApiComposer:
             self.operations_cache = OperationsCache(
                 cache_dir=cache_plan.cache_dir, use_stats=cache_plan.use_stats)
             self.operations_cache.reset()
-        if cache_plan.use_preprocessing_cache:
-            self.preprocessing_cache = PreprocessingCache(
-                cache_dir=cache_plan.cache_dir, use_stats=cache_plan.use_stats)
-            self.preprocessing_cache.reset()
         if cache_plan.use_predictions_cache:
             self.predictions_cache = PredictionsCache(
                 cache_dir=cache_plan.cache_dir, use_stats=cache_plan.use_stats)
@@ -169,7 +161,6 @@ class ApiComposer:
                               predefined_model: Optional[Union[str, Pipeline]] = None,
                               validation_data: Optional[InputData] = None,
                               class_representatives: Optional[dict] = None,
-                              api_preprocessor=None,
                               chunked_ensemble_config: Optional[ChunkedEnsembleConfig] = None,
                               routing_context: Optional[SamplingRoutingContext] = None) -> \
             Tuple[PipelineEnsemble, Sequence[Sequence[Pipeline]], List[OptHistory]]:
@@ -212,8 +203,8 @@ class ApiComposer:
                         chunk_predefined_model,
                         current_chunk,
                         self.log,
-                        use_input_preprocessing=self.params.get('use_input_preprocessing'),
-                        api_preprocessor=deepcopy(api_preprocessor) if api_preprocessor is not None else None,
+                        use_optional_preprocessing=self.params.get(
+                            'use_optional_preprocessing', True),
                     ).fit()
                     best_pipeline_candidates = [pipeline]
                     history = None
@@ -343,13 +334,13 @@ class ApiComposer:
         initial_assumption = assumption_handler.propose_assumptions(
             self.params.get('initial_assumption'),
             available_operations=self.params.get('available_operations'),
+            use_optional_preprocessing=self.params.get('use_optional_preprocessing', True),
         )
 
         with self.timer.launch_assumption_fit(n_folds=self.params.data['cv_folds']):
             fitted_assumption = assumption_handler.fit_assumption_and_check_correctness(
                 deepcopy(initial_assumption[0]),
                 operations_cache=self.operations_cache,
-                preprocessing_cache=self.preprocessing_cache,
                 eval_n_jobs=self.params.n_jobs,
             )
 
@@ -380,7 +371,7 @@ class ApiComposer:
                                    .with_optimizer(self.params.get('optimizer'))
                                    .with_optimizer_params(parameters=self.params.optimizer_params)
                                    .with_metrics(self.metrics)
-                                   .with_cache(self.operations_cache, self.preprocessing_cache, self.predictions_cache)
+                                   .with_cache(self.operations_cache, predictions_cache=self.predictions_cache)
                                    .with_graph_generation_param(self.params.graph_generation_params)
                                    .build())
 

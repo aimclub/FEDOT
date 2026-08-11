@@ -1,8 +1,5 @@
-from typing import Optional, Union
+from typing import Optional
 
-from fedot.core.data.input_data.data import InputData
-from fedot.preprocessing.data_preprocessing import data_has_text_features
-from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
@@ -11,67 +8,44 @@ from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.data.tensor_data import TensorData
 
 
-# TODO: think about preprocessing for TensorData
 class PreprocessingBuilder:
     """
     Builder for constructing preprocessing part of pipeline during the preparation of an initial assumption.
-    If data is multimodal, builder makes preprocessing pipeline for each data source iteratively.
     """
 
-    def __init__(self, task_type: TaskTypesEnum, data_type: DataTypesEnum, *initial_nodes: PipelineNode,
-                 use_input_preprocessing: bool = True):
+    def __init__(self, task_type: TaskTypesEnum, data_type: DataTypesEnum, *initial_nodes: PipelineNode):
         self.task_type = task_type
         self.data_type = data_type
-        self._builder = PipelineBuilder(
-            *initial_nodes, use_input_preprocessing=use_input_preprocessing)
+        self._builder = PipelineBuilder(*initial_nodes)
 
     @classmethod
     def builder(cls,
-                                task_type: TaskTypesEnum,
-                                data: TensorData,
-                                *initial_nodes: Optional[PipelineNode],
-                                use_input_preprocessing: bool = False,
-    ) -> PipelineBuilder:
-        return PipelineBuilder(
+                task_type: TaskTypesEnum,
+                data: TensorData,
+                *initial_nodes: Optional[PipelineNode],
+                use_optional_preprocessing: bool = True,
+                ) -> PipelineBuilder:
+        preprocessing_builder = cls(
+            task_type,
+            data.data_type,
             *initial_nodes,
-            use_input_preprocessing=False,
         )
+        if use_optional_preprocessing:
+            return preprocessing_builder.with_optional_preprocessing()._builder
+        return preprocessing_builder._builder
 
-    @classmethod
-    def builder_for_data(cls,
-                         task_type: TaskTypesEnum,
-                         data: Union[InputData, MultiModalData],
-                         *initial_nodes: Optional[PipelineNode],
-                         use_input_preprocessing: bool = True) -> PipelineBuilder:
-        if isinstance(data, MultiModalData):
-            # if the data is unimodal, initial_nodes = tuple of None
-            # if the data is multimodal, initial_nodes = tuple of 1 element (current data_source node)
-            # so the whole data is reduced to the current data_source for an easier preprocessing
-            data = data[str(initial_nodes[0])]
-        preprocessing_builder = cls(task_type, data.data_type, *initial_nodes,
-                                    use_input_preprocessing=use_input_preprocessing)
-        if data_has_text_features(data):
-            preprocessing_builder = preprocessing_builder.with_text_vectorizer()
-        return preprocessing_builder.to_builder()
-
-    def with_scaling(self):
-        if self.task_type is not TaskTypesEnum.ts_forecasting:
-            self._builder.add_node('scaling')
+    def with_optional_preprocessing(self):
+        """Add Tensor optional preprocessing node used by composer assumptions."""
+        self._builder.add_node('optional_preprocessing')
         return self
 
-    def with_text_vectorizer(self):
-        self._builder.add_node('tfidf')
-        return self
-
-    def to_builder(self) -> PipelineBuilder:
-        """ Return result as PipelineBuilder. Scaling is applied final by default. """
-        return self.with_scaling()._builder
-
-    def to_pipeline(self) -> Optional[Pipeline]:
+    def to_pipeline(self, use_optional_preprocessing: bool = True) -> Optional[Pipeline]:
         """
-        Returns result as Pipeline. Scaling is applied final by default.
+        Returns result as Pipeline, optionally with optional preprocessing node.
 
         Returns:
             adapted graph as pipeline
         """
-        return self.to_builder().build()
+        if use_optional_preprocessing:
+            return self.with_optional_preprocessing()._builder.build()
+        return self._builder.build()

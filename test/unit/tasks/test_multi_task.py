@@ -21,8 +21,6 @@ def test_multitask_pipeline_predict_correctly():
     side_pipeline = multitask_pipeline.pipeline_for_side_task(
         task_type=TaskTypesEnum.classification)
 
-    # Replace the name of main "data source" in preprocessor
-    side_pipeline.preprocessor.main_target_source_name = 'logit'
     side_predict = np.ravel(side_pipeline.predict(
         test_multimodal, output_mode='labels').predict)
     main_predict = multitask_pipeline.predict(test_multimodal).predict

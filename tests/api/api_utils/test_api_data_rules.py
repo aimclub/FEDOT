@@ -9,9 +9,7 @@ from fedot.api.api_utils.api_data_rules import (
     build_definition_plan,
     iter_shared_index_assignments,
     normalize_features_for_definition,
-    plan_fit_preprocessing,
     plan_prediction,
-    plan_predict_preprocessing,
     resolve_strategy,
 )
 from fedot.core.data.common.enums import StateEnum
@@ -41,22 +39,6 @@ def test_iter_shared_index_assignments_returns_pairs_for_multimodal_mapping():
     assignments = iter_shared_index_assignments(
         {'first': object(), 'second': object()}, [1, 2])
     assert assignments == (('first', [1, 2]), ('second', [1, 2]))
-
-
-def test_plan_preprocessing_steps_are_explicit_and_stable():
-    assert plan_fit_preprocessing().steps == (
-        'obligatory_prepare_for_fit',
-        'optional_prepare_for_fit',
-        'convert_indexes_for_fit',
-        'reduce_memory_size',
-    )
-    assert plan_predict_preprocessing().steps == (
-        'obligatory_prepare_for_predict',
-        'optional_prepare_for_predict',
-        'convert_indexes_for_predict',
-        'update_indices_for_time_series',
-        'reduce_memory_size',
-    )
 
 
 @pytest.mark.parametrize('task_type,in_sample,validation_blocks,forecast_length,expected', [

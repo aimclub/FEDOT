@@ -12,12 +12,6 @@ class NormalizedFeatures:
 
 
 @dataclass(frozen=True)
-class PreprocessingPlan:
-    steps: Tuple[str, ...]
-    mark_auto_preprocessed: bool
-
-
-@dataclass(frozen=True)
 class PredictionPlan:
     output_mode: Optional[str]
     use_in_sample_forecast: bool
@@ -30,6 +24,8 @@ class StrategyResolution:
     strategy_factory: Any
 
 # TODO @romankuklo: needed for TD creation API
+
+
 @dataclass(frozen=True)
 class TensorDataDefinitionPlan:
     backend_name: str
@@ -53,22 +49,6 @@ class DataDefinitionResolutionError(TypeError):
     pass
 
 
-_FIT_PREPROCESSING_STEPS = (
-    'obligatory_prepare_for_fit',
-    'optional_prepare_for_fit',
-    'convert_indexes_for_fit',
-    'reduce_memory_size',
-)
-
-_PREDICT_PREPROCESSING_STEPS = (
-    'obligatory_prepare_for_predict',
-    'optional_prepare_for_predict',
-    'convert_indexes_for_predict',
-    'update_indices_for_time_series',
-    'reduce_memory_size',
-)
-
-
 def normalize_features_for_definition(features: Any) -> NormalizedFeatures:
     if isinstance(features, dict) and 'idx' in features:
         normalized_features = dict(features)
@@ -81,14 +61,6 @@ def iter_shared_index_assignments(data: Any, shared_index: Optional[Any]) -> Tup
     if shared_index is None or not isinstance(data, dict):
         return tuple()
     return tuple((data_source_name, shared_index) for data_source_name in data)
-
-
-def plan_fit_preprocessing() -> PreprocessingPlan:
-    return PreprocessingPlan(steps=_FIT_PREPROCESSING_STEPS, mark_auto_preprocessed=True)
-
-
-def plan_predict_preprocessing() -> PreprocessingPlan:
-    return PreprocessingPlan(steps=_PREDICT_PREPROCESSING_STEPS, mark_auto_preprocessed=True)
 
 
 def plan_prediction(task_type: TaskTypesEnum,

@@ -7,16 +7,26 @@ from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.prepared_data.prepared_data import PreparedData
 
 
+def copy_handler_mapping(handler_mapping: dict) -> dict:
+    """Return a shallow per-step copy of a handler mapping.
+
+    Outer and inner dicts are copied so instance updates (e.g. custom steps)
+    cannot mutate a shared class-/module-level mapping.
+    """
+    return {step: dict(methods) for step, methods in handler_mapping.items()}
+
+
 def update_handler_mapping(plan: PreprocessingPlan,
                            handler_mapping: dict) -> dict:
     """Inject custom step implementations from plan into handler mapping.
 
     Args:
         plan: Preprocessing plan containing resolved steps.
-        handler_mapping: Global mapping `{step_enum: {method_enum: handler_cls}}`.
+        handler_mapping: Mapping `{step_enum: {method_enum: handler_cls}}`.
 
     Returns:
-        Updated handler mapping with `custom` step methods from current plan.
+        Handler mapping with ``custom`` step methods from the current plan.
+        The input mapping is never mutated.
     """
     custom_dict = {}
     for step in plan.steps:
@@ -26,8 +36,9 @@ def update_handler_mapping(plan: PreprocessingPlan,
     if not custom_dict:
         return handler_mapping
 
-    handler_mapping[PreprocessingStepEnum.custom] = custom_dict
-    return handler_mapping
+    updated = copy_handler_mapping(handler_mapping)
+    updated[PreprocessingStepEnum.custom] = custom_dict
+    return updated
 
 
 def get_used_idx_from_plan(plan: PreprocessingPlan) -> list:

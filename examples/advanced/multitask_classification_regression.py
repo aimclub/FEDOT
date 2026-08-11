@@ -83,8 +83,6 @@ def launch_multitask_example(with_tuning: bool = False):
     side_pipeline = multitask_pipeline.pipeline_for_side_task(
         task_type=TaskTypesEnum.classification)
 
-    # Replace the name of main "data source" in preprocessor
-    side_pipeline.preprocessor.main_target_source_name = 'logit'
     side_output = side_pipeline.predict(test_input, output_mode='labels')
     output = multitask_pipeline.predict(test_input)
 

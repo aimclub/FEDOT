@@ -9,7 +9,6 @@ from golem.core.optimisers.objective.objective import Objective, to_fitness
 from golem.core.optimisers.objective.objective_eval import ObjectiveEvaluate
 
 from fedot.core.caching.operations_cache import OperationsCache
-from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.utilities.debug import is_recording_mode
@@ -30,7 +29,6 @@ class PipelineObjectiveEvaluateWithTensorData(ObjectiveEvaluate[Pipeline]):
     :param time_constraint: Optional time constraint for pipeline.fit.
     :param validation_blocks: Number of validation blocks, optional, used only for time series validation.
     :param operations_cache: Cache manager for fitted models, optional.
-    :param preprocessing_cache: Cache manager for optional preprocessing encoders and imputers.
     :param eval_n_jobs: number of jobs used to evaluate the objective.
     :params do_unfit: unfit graph after evaluation
     """
@@ -41,7 +39,6 @@ class PipelineObjectiveEvaluateWithTensorData(ObjectiveEvaluate[Pipeline]):
                  time_constraint: Optional[timedelta] = None,
                  validation_blocks: Optional[int] = None,
                  operations_cache: Optional[OperationsCache] = None,
-                 preprocessing_cache: Optional[PreprocessingCache] = None,
                  predictions_cache: Optional[PredictionsCache] = None,
                  eval_n_jobs: int = 1,
                  do_unfit: bool = True):
@@ -50,7 +47,6 @@ class PipelineObjectiveEvaluateWithTensorData(ObjectiveEvaluate[Pipeline]):
         self._time_constraint = time_constraint
         self._validation_blocks = validation_blocks
         self._operations_cache = operations_cache
-        self._preprocessing_cache = preprocessing_cache
         self._predictions_cache = predictions_cache
         self._log = default_log(self)
         self._do_unfit = do_unfit
@@ -111,7 +107,7 @@ class PipelineObjectiveEvaluateWithTensorData(ObjectiveEvaluate[Pipeline]):
         return to_fitness(folds_metrics, self._objective.is_multi_objective)
 
     def prepare_graph(self, graph: Pipeline, train_data: TensorData,
-                                      fold_id: Optional[int] = None, n_jobs: int = -1) -> Pipeline:
+                      fold_id: Optional[int] = None, n_jobs: int = -1) -> Pipeline:
         """
         Fit pipeline before metric evaluation can be performed.
         :param graph: pipeline for train & validation
@@ -126,8 +122,7 @@ class PipelineObjectiveEvaluateWithTensorData(ObjectiveEvaluate[Pipeline]):
         graph.unfit()
 
         # TODO: refactor this - cache managers are still tuned for legacy data/preprocessing.
-        # graph.try_load_from_cache(
-        #     self._operations_cache, self._preprocessing_cache, fold_id)
+        # graph.try_load_from_cache(self._operations_cache, fold_id)
         graph.fit(
             train_data,
             n_jobs=n_jobs,
@@ -139,8 +134,6 @@ class PipelineObjectiveEvaluateWithTensorData(ObjectiveEvaluate[Pipeline]):
         # TODO: refactor this - cache saving for TensorData runtime should be checked separately.
         # if self._operations_cache is not None:
         #     self._operations_cache.save_pipeline(graph, fold_id)
-        # if self._preprocessing_cache is not None:
-        #     self._preprocessing_cache.add_preprocessor(graph, fold_id)
 
         return graph
 
@@ -154,13 +147,11 @@ class PipelineObjectiveEvaluateWithTensorData(ObjectiveEvaluate[Pipeline]):
         #     pass
         # And so test only on the last fold
         # train_data, test_data = last_fold
-        # graph.try_load_from_cache(
-        #     self._operations_cache, self._preprocessing_cache, fold_id)
+        # graph.try_load_from_cache(self._operations_cache, fold_id)
         # for node in graph.nodes:
         #     if not isinstance(node.operation, Model):
         #         continue
-        #     intermediate_graph = Pipeline(
-        #         node, use_input_preprocessing=graph.use_input_preprocessing)
+        #     intermediate_graph = Pipeline(node)
         #     intermediate_graph.fit(
         #         train_data,
         #         time_constraint=self._time_constraint,

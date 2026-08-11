@@ -43,7 +43,6 @@ class IndustrialConfig(ConfigTemplate):
                      'forecasting_context': self.with_forecasting_context,
                      'initial_assumption': self.with_industrial_initial_assumption,
                      'optimizer': self.with_industrial_optimizer,
-                     'use_input_preprocessing': self.with_input_preprocessing,
                      'strategy_params': self.with_industrial_strategy_params
                      }
         self.explain_methods = {'point': PointExplainer,
@@ -105,11 +104,6 @@ class IndustrialConfig(ConfigTemplate):
     def with_industrial_optimizer(self, kwargs):
         self.industrial_opt = kwargs.get('optimizer', IndustrialEvoOptimizer)
         return self.industrial_opt
-
-    def with_input_preprocessing(self, kwargs):
-        self.use_input_preprocessing = kwargs.get(
-            'use_input_preprocessing', False)
-        return self.use_input_preprocessing
 
     def build(self, config: dict = None):
         for key, method in self.keys.items():

@@ -46,6 +46,112 @@ def test_build_optional_plan():
 
 
 @pytest.mark.unit
+def test_build_optional_plan_keeps_imputation_without_train_nans():
+    """User-requested imputation must stay in plan even if train has no NaNs."""
+    train = np.array(
+        [
+            [1.0, 2.0, 3.0],
+            [4.0, 5.0, 6.0],
+            [7.0, 8.0, 9.0],
+        ],
+        dtype=np.float32,
+    )
+    train_td = TensorDataCreator.create(train, backend_name='cpu', without_target=True)
+
+    auto_plan = build_optional_plan(
+        train_td,
+        {PreprocessingStepEnum.imputation: None},
+    )
+    assert len(auto_plan.steps) >= 1
+    assert all(step.step == PreprocessingStepEnum.imputation for step in auto_plan.steps)
+    assert sorted(
+        idx for step in auto_plan.steps for idx in step.features_idx
+    ) == [0, 1, 2]
+
+    mean_plan = build_optional_plan(
+        train_td,
+        {PreprocessingStepEnum.imputation: ImputationMethodEnum.mean},
+    )
+    assert len(mean_plan.steps) == 1
+    assert mean_plan.steps[0].method == ImputationMethodEnum.mean
+    assert sorted(mean_plan.steps[0].features_idx) == [0, 1, 2]
+
+    explicit_plan = build_optional_plan(
+        train_td,
+        {
+            PreprocessingStepEnum.imputation: [{
+                'method': ImputationMethodEnum.mean,
+                'features_idx': [1],
+                'step_args': None,
+            }]
+        },
+    )
+    assert len(explicit_plan.steps) == 1
+    assert explicit_plan.steps[0].features_idx == [1]
+
+
+@pytest.mark.unit
+def test_empty_optional_plan_is_identity_short_circuit():
+    """Empty plan fit skips cacher/PreparedData; predict returns the same object."""
+    td = TensorDataCreator.create(
+        np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32),
+        backend_name='cpu',
+        without_target=True,
+    )
+    service = OptionalTabularService(use_cache=True)
+    fitted = service.fit(td, {})
+
+    assert fitted.plan is not None
+    assert len(fitted.plan.steps) == 0
+    assert fitted.fitted_handlers == []
+    assert fitted._cached_handler_paths == []
+    assert fitted._input_hash is None
+    assert fitted._plan_hash is None
+
+    predicted = fitted.predict(td)
+    assert predicted is td
+
+
+@pytest.mark.unit
+def test_optional_imputation_predicts_nans_absent_in_train():
+    """Fitted imputation must fill NaNs that appear only in predict data."""
+    train = np.array(
+        [
+            [1.0, 2.0, 3.0],
+            [4.0, 5.0, 6.0],
+            [7.0, 8.0, 9.0],
+        ],
+        dtype=np.float32,
+    )
+    test = np.array(
+        [
+            [10.0, np.nan, 12.0],
+            [13.0, 14.0, 15.0],
+        ],
+        dtype=np.float32,
+    )
+
+    train_td = TensorDataCreator.create(train, backend_name='cpu', without_target=True)
+    service = OptionalTabularService(use_cache=False)
+    service.fit(
+        train_td,
+        {PreprocessingStepEnum.imputation: ImputationMethodEnum.mean},
+    )
+
+    test_td = TensorDataCreator.create(
+        test,
+        backend_name='cpu',
+        state='predict',
+        without_target=True,
+        trace_uuid=train_td.trace_uuid,
+    )
+    predicted = service.predict(test_td)
+
+    assert not torch.isnan(predicted.features).any()
+    assert predicted.features[0, 1] == pytest.approx(5.0)
+
+
+@pytest.mark.unit
 def test_mean_imputation():
     """Test direct mean imputation handler behavior.
 
@@ -78,8 +184,8 @@ def test_preprocessing_plan_imputation():
 
     td = TensorDataCreator.create(X, backend_name="cpu")
     service = OptionalTabularService()
-    preprocessed_data = service.fit_transform(
-        td, {PreprocessingStepEnum.imputation: None})
+    service.fit(td, {PreprocessingStepEnum.imputation: None})
+    preprocessed_data = service.predict(td)
     assert isinstance(preprocessed_data, TensorData)
     assert preprocessed_data.features[1, 1] == 5
 
@@ -99,10 +205,11 @@ def test_preprocessing_plan_mode_imputation():
 
     td = TensorDataCreator.create(X, backend_name="cpu")
     service = OptionalTabularService()
-    preprocessed_data = service.fit_transform(td, {
+    service.fit(td, {
         PreprocessingStepEnum.imputation: [{"method": ImputationMethodEnum.mode,
                                            "features_idx": [1],
                                             "step_args": None}]})
+    preprocessed_data = service.predict(td)
     assert isinstance(preprocessed_data, TensorData)
     assert preprocessed_data.features[2, 1] == 2
 
@@ -121,10 +228,11 @@ def test_preprocessing_plan_mean_imputation():
 
     td = TensorDataCreator.create(X, backend_name="cpu")
     service = OptionalTabularService()
-    preprocessed_data = service.fit_transform(td, {
+    service.fit(td, {
         PreprocessingStepEnum.imputation: [{"method": ImputationMethodEnum.mean,
                                            "features_idx": [1],
                                             "step_args": None}]})
+    preprocessed_data = service.predict(td)
     assert isinstance(preprocessed_data, TensorData)
     assert preprocessed_data.features[1, 1] == 5
 
@@ -144,10 +252,11 @@ def test_preprocessing_plan_constant_imputation():
 
     td = TensorDataCreator.create(X, backend_name="cpu")
     service = OptionalTabularService()
-    preprocessed_data = service.fit_transform(td, {
+    service.fit(td, {
         PreprocessingStepEnum.imputation: [{"method": ImputationMethodEnum.constant,
                                            "features_idx": [1],
                                             "step_args": {"constant": 3}}]})
+    preprocessed_data = service.predict(td)
     assert isinstance(preprocessed_data, TensorData)
     assert preprocessed_data.features[2, 1] == 3
 
@@ -166,10 +275,11 @@ def test_preprocessing_plan_delete_raw_imputation():
 
     td = TensorDataCreator.create(X, backend_name="cpu")
     service = OptionalTabularService()
-    preprocessed_data = service.fit_transform(td, {
+    service.fit(td, {
         PreprocessingStepEnum.imputation: [{"method": ImputationMethodEnum.delete_raw,
                                            "features_idx": [1],
                                             "step_args": None}]})
+    preprocessed_data = service.predict(td)
     assert isinstance(preprocessed_data, TensorData)
     assert preprocessed_data.features.shape[0] == 2
     assert preprocessed_data.target.shape[0] == 2
@@ -190,7 +300,7 @@ def test_preprocessing_minmax_scaling():
     td = TensorDataCreator.create(X, backend_name="cpu")
 
     service = OptionalTabularService()
-    preprocessed_data = service.fit_transform(
+    service.fit(
         td,
         {
             PreprocessingStepEnum.scaling: [{
@@ -200,6 +310,7 @@ def test_preprocessing_minmax_scaling():
             }]
         }
     )
+    preprocessed_data = service.predict(td)
 
     result = preprocessed_data.features.numpy()
 
@@ -233,7 +344,7 @@ def test_preprocessing_standard_scaling():
     td = TensorDataCreator.create(X, backend_name="cpu")
 
     service = OptionalTabularService()
-    preprocessed_data = service.fit_transform(
+    service.fit(
         td,
         {
             PreprocessingStepEnum.scaling: [{
@@ -243,6 +354,7 @@ def test_preprocessing_standard_scaling():
             }]
         }
     )
+    preprocessed_data = service.predict(td)
 
     result = preprocessed_data.features.numpy()
 
@@ -280,7 +392,7 @@ def test_preprocessing_robust_scaling():
     td = TensorDataCreator.create(X, backend_name="cpu")
 
     service = OptionalTabularService()
-    preprocessed_data = service.fit_transform(
+    service.fit(
         td,
         {
             PreprocessingStepEnum.scaling: [{
@@ -290,6 +402,7 @@ def test_preprocessing_robust_scaling():
             }]
         }
     )
+    preprocessed_data = service.predict(td)
 
     result = preprocessed_data.features.numpy()
 
@@ -342,7 +455,8 @@ def test_imputation_scaling():
         }]
     }
 
-    preprocessed_data = service.fit_transform(td, strategy)
+    service.fit(td, strategy)
+    preprocessed_data = service.predict(td)
 
     assert isinstance(preprocessed_data, TensorData)
 
@@ -389,7 +503,8 @@ def test_encoding_autoscaling_imputation():
     }
 
     service = OptionalTabularService()
-    preprocessed_data = service.fit_transform(td, strategy)
+    service.fit(td, strategy)
+    preprocessed_data = service.predict(td)
 
     assert isinstance(preprocessed_data, TensorData)
 
@@ -446,7 +561,8 @@ def test_ohe_encoding_imputation_uses_original_indices():
     }
 
     service = OptionalTabularService()
-    preprocessed_data = service.fit_transform(td, strategy)
+    service.fit(td, strategy)
+    preprocessed_data = service.predict(td)
 
     assert isinstance(preprocessed_data, TensorData)
     assert preprocessed_data.features.shape[1] == 5
@@ -493,7 +609,8 @@ def test_ohe_encoding_imputation_uses_original_feature_names():
     }
 
     service = OptionalTabularService()
-    preprocessed_data = service.fit_transform(td, strategy)
+    service.fit(td, strategy)
+    preprocessed_data = service.predict(td)
 
     assert isinstance(preprocessed_data, TensorData)
     assert preprocessed_data.features.shape[1] == 5
@@ -527,7 +644,7 @@ def test_preprocessing_clipping():
     td = TensorDataCreator.create(X, backend_name="cpu")
 
     service = OptionalTabularService()
-    preprocessed_data = service.fit_transform(
+    service.fit(
         td,
         {
             PreprocessingStepEnum.filtering: [{
@@ -537,6 +654,7 @@ def test_preprocessing_clipping():
             }]
         }
     )
+    preprocessed_data = service.predict(td)
 
     result = preprocessed_data.features.numpy()
 
@@ -630,7 +748,7 @@ def test_custom_preprocessing():
             return data
 
     service = OptionalTabularService()
-    preprocessed_data = service.fit_transform(
+    service.fit(
         td,
         {
             PreprocessingStepEnum.custom: [{
@@ -648,6 +766,7 @@ def test_custom_preprocessing():
             ]
         }
     )
+    preprocessed_data = service.predict(td)
 
     result = preprocessed_data.features.numpy()
     assert np.allclose(result[:, 1], np.array(
@@ -657,7 +776,46 @@ def test_custom_preprocessing():
 
 
 @pytest.mark.unit
-def test_optional_fit_predict_uses_train_trace_after_obligatory_predict():
+def test_optional_handler_mapping_is_instance_local():
+    """Class-/module-level handler mapping must not be mutated by instance updates."""
+    from fedot.preprocessing.tools.methods_mapping import PREPROCESSING_OPTIONAL_MAPPING
+    from fedot.preprocessing.tools.preprocessor_types import PreprocessingStep
+    from fedot.preprocessing.tools.tools import update_handler_mapping
+
+    class _DummyCustom(AbstractPreprocessingHandler):
+        def fit(self, data, features_idx):
+            return self
+
+        def transform(self, data):
+            return data
+
+    service = OptionalTabularService(use_cache=False)
+    assert service.handler_mapping is not OptionalTabularService.handler_mapping
+    assert service.handler_mapping is not PREPROCESSING_OPTIONAL_MAPPING
+
+    plan = PreprocessingPlan()
+    plan.add_step([
+        PreprocessingStep(
+            PreprocessingStepEnum.custom,
+            'DummyCustom',
+            [0],
+            implementation=_DummyCustom,
+        )
+    ])
+    updated = update_handler_mapping(plan, PREPROCESSING_OPTIONAL_MAPPING)
+
+    assert PreprocessingStepEnum.custom in updated
+    assert PreprocessingStepEnum.custom not in PREPROCESSING_OPTIONAL_MAPPING
+    assert PreprocessingStepEnum.custom not in OptionalTabularService.handler_mapping
+
+    service.handler_mapping = update_handler_mapping(plan, service.handler_mapping)
+    assert PreprocessingStepEnum.custom in service.handler_mapping
+    assert PreprocessingStepEnum.custom not in PREPROCESSING_OPTIONAL_MAPPING
+    assert PreprocessingStepEnum.custom not in OptionalTabularService.handler_mapping
+
+
+@pytest.mark.unit
+def test_optional_fit_predict_uses_in_memory_handlers_without_trace():
     train = np.array([
         [0.0, 10.0, "A", 0.0],
         [1.0, 10.0, "B", 1.0],
@@ -671,20 +829,18 @@ def test_optional_fit_predict_uses_train_trace_after_obligatory_predict():
 
     train_td = TensorDataCreator.create(train, backend_name="cpu")
     service = OptionalTabularService()
-    fitted_td = service.fit_transform(train_td, {PreprocessingStepEnum.imputation: None})
+    service.fit(train_td, {PreprocessingStepEnum.imputation: None})
 
     test_td = TensorDataCreator.create(
         test,
         backend_name="cpu",
         state="predict",
         without_target=True,
-        trace_uuid=fitted_td.trace_uuid,
+        trace_uuid=train_td.trace_uuid,
     )
-    predicted_td = service.transform(test_td)
+    predicted_td = service.predict(test_td)
 
-    assert isinstance(fitted_td, TensorData)
     assert isinstance(predicted_td, TensorData)
-    assert predicted_td.trace_uuid == fitted_td.trace_uuid
     assert predicted_td.features.shape == test_td.features.shape
     assert predicted_td.features[0, 1] == 10.0
     assert not torch.isnan(predicted_td.features[:, 1]).any()
@@ -728,7 +884,7 @@ def test_optional_predict_restores_local_custom_handler_from_trace():
 
     train_td = TensorDataCreator.create(train_features, target=train_target, backend_name="cpu")
     service = OptionalTabularService()
-    fitted_td = service.fit_transform(train_td, {
+    service.fit(train_td, {
         PreprocessingStepEnum.custom: [{
             "method": "max_plus",
             "features_idx": [1],
@@ -736,6 +892,7 @@ def test_optional_predict_restores_local_custom_handler_from_trace():
             "step_args": {"offset": 2.0},
         }]
     })
+    fitted_td = service.predict(train_td)
 
     test_td = TensorDataCreator.create(
         test_features,
@@ -744,7 +901,7 @@ def test_optional_predict_restores_local_custom_handler_from_trace():
         without_target=True,
         trace_uuid=fitted_td.trace_uuid,
     )
-    predicted_td = service.transform(test_td)
+    predicted_td = service.predict(test_td)
 
     assert predicted_td.trace_uuid == fitted_td.trace_uuid
     assert predicted_td.features[0, 1] == 10.0
@@ -752,7 +909,7 @@ def test_optional_predict_restores_local_custom_handler_from_trace():
 
 
 @pytest.mark.unit
-def test_optional_fit_predict_without_tensor_cache_keeps_trace_plan_and_model(isolated_cache_dir):
+def test_optional_fit_predict_without_cache_keeps_trace_plan_not_model(isolated_cache_dir):
     train = np.array([
         [0.0, 10.0, "A", 0.0],
         [1.0, 10.0, "B", 1.0],
@@ -766,7 +923,8 @@ def test_optional_fit_predict_without_tensor_cache_keeps_trace_plan_and_model(is
 
     train_td = TensorDataCreator.create(train, backend_name="cpu", use_cache=False)
     service = OptionalTabularService(use_cache=False)
-    fitted_td = service.fit_transform(train_td, {PreprocessingStepEnum.imputation: None})
+    service.fit(train_td, {PreprocessingStepEnum.imputation: None})
+    fitted_td = service.predict(train_td)
 
     test_td = TensorDataCreator.create(
         test,
@@ -776,7 +934,7 @@ def test_optional_fit_predict_without_tensor_cache_keeps_trace_plan_and_model(is
         trace_uuid=fitted_td.trace_uuid,
         use_cache=False,
     )
-    predicted_td = service.transform(test_td)
+    predicted_td = service.predict(test_td)
 
     with open(isolated_cache_dir / "traces" / f"{fitted_td.trace_uuid}.json", encoding="utf-8") as file:
         trace = json.load(file)
@@ -784,6 +942,26 @@ def test_optional_fit_predict_without_tensor_cache_keeps_trace_plan_and_model(is
     optional_stage = next(stage for stage in trace["stages"] if stage["stage"] == "optional_preprocessing")
     assert optional_stage["tensor_data_path"] is None
     assert optional_stage["operation_path"].endswith(".pkl")
-    assert optional_stage["models"][0]["model_path"].endswith(".pkl")
+    assert optional_stage["models"][0]["model_path"] is None
     assert predicted_td.trace_uuid == fitted_td.trace_uuid
     assert not torch.isnan(predicted_td.features[:, 1]).any()
+
+
+@pytest.mark.unit
+def test_optional_service_use_cache_keeps_handlers_on_disk_not_memory(isolated_cache_dir):
+    train = np.array([
+        [1.0, np.nan, 0.0],
+        [2.0, 2.0, 1.0],
+        [3.0, np.nan, 0.0],
+    ], dtype=object)
+    train_td = TensorDataCreator.create(train, backend_name='cpu')
+
+    service = OptionalTabularService(use_cache=True)
+    service.fit(train_td, {PreprocessingStepEnum.imputation: None})
+
+    assert service.fitted_handlers is None
+    assert len(service._cached_handler_paths) >= 1
+    assert all(path.exists() for path in service._cached_handler_paths)
+
+    predicted = service.predict(train_td)
+    assert not torch.isnan(predicted.features[:, 1]).any()

@@ -1,5 +1,9 @@
-from marshmallow import INCLUDE, Schema, ValidationError, fields, validates
+from typing import Any, Optional
 
+from marshmallow import INCLUDE, Schema, ValidationError, fields, validates, validates_schema
+
+from fedot.core.pipelines.pipeline_rules import SUPPORTED_PIPELINE_OUTPUT_MODES
+from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.validation.boundaries import load_validated
 from fedot.validation.context import ValidationContext
 
@@ -115,3 +119,54 @@ def validate_pipeline_node_parent_operation(
         prefix='pipeline_node',
     )
     return result['parent_operation']
+
+
+class PipelineOutputModeSchema(Schema):
+    class Meta:
+        unknown = INCLUDE
+
+    output_mode = fields.Raw(required=True)
+    task_type = fields.Raw(load_default=None)
+
+    @validates('output_mode')
+    def validate_output_mode(self, value: Any) -> None:
+        mode_name = value.value if hasattr(value, 'value') else value
+        if mode_name not in SUPPORTED_PIPELINE_OUTPUT_MODES:
+            raise ValidationError(f'Invalid output mode: {value!r}')
+
+    @validates_schema
+    def validate_mode_compatible_with_task(self, data, **kwargs) -> None:
+        task_type = data.get('task_type')
+        if task_type is None:
+            return
+
+        mode = data['output_mode']
+        mode_name = mode.value if hasattr(mode, 'value') else mode
+        task_name = task_type.value if hasattr(task_type, 'value') else task_type
+
+        if (
+            mode_name == 'flattened'
+            and task_name == TaskTypesEnum.classification.value
+        ):
+            raise ValidationError(
+                'Output mode FLATTENED is numeric-only and is not supported for '
+                'classification; use AUTO or DECODED to restore class labels, '
+                'or RAW for encoded ids.'
+            )
+
+
+def validate_pipeline_output_mode(
+    output_mode: Any,
+    task_type: Optional[Any] = None,
+    context: ValidationContext = None,
+) -> Any:
+    payload = {'output_mode': output_mode}
+    if task_type is not None:
+        payload['task_type'] = task_type
+    validated = load_validated(
+        PipelineOutputModeSchema(),
+        payload,
+        context,
+        prefix='pipeline',
+    )
+    return validated['output_mode']

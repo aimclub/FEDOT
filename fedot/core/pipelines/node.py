@@ -196,9 +196,9 @@ class PipelineNode(LinkedGraphNode):
             self.node_data = None
 
     def fit(self,
-                       tensor_data: TensorData,
-                       predictions_cache: Optional[PredictionsCache] = None,
-                       fold_id: Optional[int] = None) -> TensorData:
+            tensor_data: TensorData,
+            predictions_cache: Optional[PredictionsCache] = None,
+            fold_id: Optional[int] = None) -> TensorData:
         """Runs training process in the node on TensorData.
 
         Slice 1 supports only primary nodes without parents (e.g. single predefined model).
@@ -233,10 +233,10 @@ class PipelineNode(LinkedGraphNode):
         return operation_predict
 
     def predict(self,
-                           tensor_data: TensorData,
-                           output_mode: str = 'default',
-                           predictions_cache: Optional[PredictionsCache] = None,
-                           fold_id: Optional[int] = None) -> TensorData:
+                tensor_data: TensorData,
+                output_mode: str = 'default',
+                predictions_cache: Optional[PredictionsCache] = None,
+                fold_id: Optional[int] = None) -> TensorData:
         """Runs prediction process in the node on TensorData."""
         self.log.debug(
             f'Trying to predict pipeline node with operation: {self.operation} on TensorData')
@@ -300,7 +300,7 @@ class PipelineNode(LinkedGraphNode):
 
         self.node_data = tensor_data
         return tensor_data
-    
+
     def _tensordata_from_parents(
         self,
         tensor_data: TensorData,
@@ -311,7 +311,7 @@ class PipelineNode(LinkedGraphNode):
         """Processes all the parent nodes via the current operation using ``tensor_data``
         """
         validate_pipeline_node_has_parent_nodes(len(self.nodes_from))
-        
+
         self.log.debug(
             f'Fit all parent nodes in secondary node with operation: {self.operation}')
 

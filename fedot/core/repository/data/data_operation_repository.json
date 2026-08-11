@@ -33,6 +33,23 @@
       ],
       "description": "Implementations of the preprocessing from scikit-learn framework"
     },
+    "tensor_optional_preprocessing": {
+      "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering, TaskTypesEnum.ts_forecasting]",
+      "input_type": "[DataTypesEnum.table, DataTypesEnum.ts]",
+      "output_type": "[DataTypesEnum.table, DataTypesEnum.ts]",
+      "accepted_node_types": [
+        "primary"
+      ],
+      "forbidden_node_types": "[]",
+      "strategies": [
+        "fedot.core.operations.evaluation.optional_preprocessing",
+        "TensorOptionalPreprocessingStrategy"
+      ],
+      "tags": [
+        "optional_preprocessing"
+      ],
+      "description": "TensorData optional preprocessing via OptionalService (imputation, scaling, etc.)"
+    },
     "custom_ts_preprocessing": {
       "tasks": "[TaskTypesEnum.ts_forecasting]",
       "input_type": "[DataTypesEnum.table]",
@@ -275,6 +292,19 @@
         "simple",
         "feature_scaling",
         "non_applicable_for_ts"
+      ]
+    },
+    "optional_preprocessing": {
+      "meta": "tensor_optional_preprocessing",
+      "presets": [
+        "fast_train",
+        "ts",
+        "*tree"
+      ],
+      "tags": [
+        "simple",
+        "imputation",
+        "feature_scaling"
       ]
     },
     "normalization": {

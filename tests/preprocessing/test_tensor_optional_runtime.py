@@ -10,8 +10,10 @@ from fedot.preprocessing.service.tabular_optional_service import OptionalTabular
 from fedot.preprocessing.service.tensor_optional_runtime import (
     TENSOR_OPTIONAL_RUNTIME_BY_DATA_TYPE,
     get_optional_runtime_spec_for_tensor_data,
+    register_optional_runtime,
 )
 from fedot.preprocessing.tools.preprocessor_types import PreprocessingStepEnum
+from fedot.validation.errors import FedotValidationError
 
 
 def _tabular_tensor_data() -> TensorData:
@@ -37,7 +39,33 @@ def _ts_tensor_data() -> TensorData:
 
 
 @pytest.mark.unit
+def test_core_optional_runtime_ships_tabular_only_without_ts_spi():
+    """Core registry must ship tabular only; TS arrives via industrial SPI."""
+    import subprocess
+    import sys
+
+    script = """
+from fedot.core.repository.dataset_types import DataTypesEnum
+import fedot.preprocessing.service.tensor_optional_runtime as runtime
+
+assert DataTypesEnum.tabular in runtime.TENSOR_OPTIONAL_RUNTIME_BY_DATA_TYPE
+assert DataTypesEnum.ts not in runtime.TENSOR_OPTIONAL_RUNTIME_BY_DATA_TYPE
+source = open(runtime.__file__, encoding='utf-8').read()
+assert 'fedot.industrial' not in source
+assert 'OptionalTSService' not in source
+"""
+    completed = subprocess.run(
+        [sys.executable, '-c', script],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert completed.returncode == 0, completed.stderr
+
+
+@pytest.mark.unit
 def test_tensor_optional_runtime_registry_shares_default_steps():
+    # OptionalTSService import above registers TS via SPI.
     tabular_steps = TENSOR_OPTIONAL_RUNTIME_BY_DATA_TYPE[DataTypesEnum.tabular].default_steps
     ts_steps = TENSOR_OPTIONAL_RUNTIME_BY_DATA_TYPE[DataTypesEnum.ts].default_steps
 
@@ -71,11 +99,24 @@ def test_get_optional_runtime_spec_for_tensor_data_returns_registry_entry(
 
 
 @pytest.mark.unit
+def test_register_optional_runtime_plugs_in_custom_data_type():
+    class _CustomOptionalService(OptionalTabularService):
+        pass
+
+    register_optional_runtime(DataTypesEnum.image, _CustomOptionalService)
+    try:
+        assert (
+            TENSOR_OPTIONAL_RUNTIME_BY_DATA_TYPE[DataTypesEnum.image].service_cls
+            is _CustomOptionalService
+        )
+    finally:
+        TENSOR_OPTIONAL_RUNTIME_BY_DATA_TYPE.pop(DataTypesEnum.image, None)
+
+
+@pytest.mark.unit
 def test_get_optional_runtime_spec_for_tensor_data_raises_for_unsupported_type():
     tensor_data = _tabular_tensor_data()
     tensor_data.data_type = DataTypesEnum.image
 
-    with pytest.raises(ValueError, match='Optional preprocessing is not supported'):
+    with pytest.raises(FedotValidationError, match='Optional preprocessing is not supported'):
         get_optional_runtime_spec_for_tensor_data(tensor_data)
-
-

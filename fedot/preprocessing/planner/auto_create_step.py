@@ -174,12 +174,17 @@ def find_nan_idx(features: torch.Tensor):
 
 
 def auto_imputation_steps(data: TensorData):
-    """Build default imputation steps based on data type and missing values.
+    """Build default imputation steps based on data type and feature kinds.
 
-    For tabular data, missing values are split by feature type:
+    For tabular data, columns are split by feature type even when the current
+    train batch has no missing values:
     categorical columns use mode imputation, numerical columns use median
     imputation, and remaining columns fall back to row deletion.
-    For time series data, a single time-series mean imputation step is created.
+    For time series data, a single time-series mean imputation step is created
+    for all feature columns.
+
+    This keeps imputation handlers fitted when the user requested the step, so
+    NaNs that appear only at predict time can still be filled.
 
     Args:
         data: TensorData object with detected feature type indices.
@@ -187,41 +192,45 @@ def auto_imputation_steps(data: TensorData):
     Returns:
         List of automatically created imputation preprocessing steps.
     """
-    nan_idx = find_nan_idx(data.features)
+    if data.features.ndim in (2, 3):
+        all_idx = list(range(data.features.shape[1]))
+    else:
+        raise ValueError(f'Unsupported tensor shape: {data.features.shape}')
 
     if data.data_type == DataTypesEnum.tabular:
         steps = []
+        categorical_idx = list(data.categorical_idx or [])
+        numerical_idx = list(data.numerical_idx or [])
 
-        if len(data.categorical_idx) > 0:
-            cat_nan_idx = list(set(nan_idx) & set(data.categorical_idx))
-            if len(cat_nan_idx) > 0:
-                step = PreprocessingStep(
-                    PreprocessingStepEnum.imputation, ImputationMethodEnum.mode, cat_nan_idx)
-                steps.append(step)
-        else:
-            cat_nan_idx = []
+        if categorical_idx:
+            steps.append(PreprocessingStep(
+                PreprocessingStepEnum.imputation,
+                ImputationMethodEnum.mode,
+                categorical_idx,
+            ))
 
-        if len(data.numerical_idx) > 0:
-            num_nan_idx = list(set(nan_idx) & set(data.numerical_idx))
-            if len(num_nan_idx) > 0:
-                step = PreprocessingStep(
-                    PreprocessingStepEnum.imputation, ImputationMethodEnum.median, num_nan_idx)
-                steps.append(step)
-        else:
-            num_nan_idx = []
+        if numerical_idx:
+            steps.append(PreprocessingStep(
+                PreprocessingStepEnum.imputation,
+                ImputationMethodEnum.median,
+                numerical_idx,
+            ))
 
-        remain = list(set(nan_idx) - set(cat_nan_idx) - set(num_nan_idx))
-        if len(remain) > 0:
-            step = PreprocessingStep(
-                PreprocessingStepEnum.imputation, ImputationMethodEnum.delete_raw, remain)
-            steps.append(step)
+        remain = sorted(set(all_idx) - set(categorical_idx) - set(numerical_idx))
+        if remain:
+            steps.append(PreprocessingStep(
+                PreprocessingStepEnum.imputation,
+                ImputationMethodEnum.delete_raw,
+                remain,
+            ))
 
         return steps
 
-    else:
-        step = PreprocessingStep(
-            PreprocessingStepEnum.imputation, ImputationMethodEnum.ts_mean, nan_idx)
-        return [step]
+    return [PreprocessingStep(
+        PreprocessingStepEnum.imputation,
+        ImputationMethodEnum.ts_mean,
+        all_idx,
+    )]
 
 
 def auto_scaling_steps(data: TensorData):

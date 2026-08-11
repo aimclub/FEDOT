@@ -433,9 +433,8 @@ class FedotBuilder:
     def setup_data_preprocessing(
             self,
             safe_mode: bool = DEFAULT_VALUE,
-            use_input_preprocessing: bool = DEFAULT_VALUE,
             use_preprocessing_cache: bool = DEFAULT_VALUE,
-            use_auto_preprocessing: bool = DEFAULT_VALUE,
+            use_optional_preprocessing: bool = DEFAULT_VALUE,
             sampling_config: Dict[str, Any] = DEFAULT_VALUE,
             chunked_ensemble_config: Dict[str, Any] = DEFAULT_VALUE,
     ) -> FedotBuilder:
@@ -446,11 +445,11 @@ class FedotBuilder:
                 instead of one-hot encoder if summary cardinality of categorical features is high.
                 Default value is ``False``.
 
-            use_input_preprocessing: indicates whether to do preprocessing of further given data.
-                Defaults to ``True``.
+            use_preprocessing_cache: bool indicating whether to use TensorData Cacher for
+                obligatory preprocessing. Defaults to ``True``.
 
-            use_preprocessing_cache: bool indicating whether to use optional preprocessors caching.
-                Defaults to ``True``.
+            use_optional_preprocessing: if ``True`` (default), initial assumptions include the
+                ``optional_preprocessing`` pipeline node. Set ``False`` to skip it.
 
             sampling_config: optional configuration of pre-fit sampling stage.
                 If ``None`` or unset, sampling stage is disabled.
@@ -463,9 +462,8 @@ class FedotBuilder:
         """
         self.__update_params(
             safe_mode=safe_mode,
-            use_input_preprocessing=use_input_preprocessing,
             use_preprocessing_cache=use_preprocessing_cache,
-            use_auto_preprocessing=use_auto_preprocessing,
+            use_optional_preprocessing=use_optional_preprocessing,
             sampling_config=sampling_config,
             chunked_ensemble_config=chunked_ensemble_config,
         )

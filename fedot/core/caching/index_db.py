@@ -27,7 +27,7 @@ class PreprocessingModelCacheIndexRecord:
     model_hash: str
     operation_hash: str
     input_hash: str
-    path: Path
+    path: Optional[Path]
     created_at: str
     step_order: int = 0
     step_name: Optional[str] = None
@@ -199,7 +199,7 @@ class CacheIndexDB:
         model_hash: str,
         operation_hash: str,
         input_hash: str,
-        path: Union[str, Path],
+        path: Optional[Union[str, Path]],
         step_order: int = 0,
         step_name: Optional[str] = None,
         method: Optional[str] = None,
@@ -210,7 +210,8 @@ class CacheIndexDB:
         Insert or update a preprocessing-model index row.
 
         Multiple models may share the same ``input_hash`` and ``operation_hash``
-        when they differ by ``model_hash``.
+        when they differ by ``model_hash``. When ``path`` is ``None``, an existing
+        row is preserved and no update is performed (index-only / cache-disabled).
 
         Returns:
             Persisted index record.
@@ -218,36 +219,73 @@ class CacheIndexDB:
         Raises:
             RuntimeError: When the row cannot be read back after insert.
         """
+        if path is None:
+            existing_record = self.get_preprocessing_model_by_model_hash(model_hash)
+            if (
+                existing_record is not None
+                and existing_record.input_hash == input_hash
+                and existing_record.operation_hash == operation_hash
+            ):
+                return existing_record
+
         features_idx_json = self._features_idx_to_json(features_idx)
         with closing(self._connect()) as conn:
             with conn:
                 cur = conn.cursor()
-                cur.execute(
-                    f"""
-                    INSERT INTO {self.PREPROCESSING_MODELS_TABLE}
+                if path is None:
+                    cur.execute(
+                        f"""
+                        INSERT INTO {self.PREPROCESSING_MODELS_TABLE}
+                            (
+                                model_hash, operation_hash, input_hash, path,
+                                step_order, step_name, method, features_idx, created_at
+                            )
+                        VALUES (?, ?, ?, NULL, ?, ?, ?, ?, COALESCE(?, CURRENT_TIMESTAMP))
+                        ON CONFLICT(input_hash, operation_hash, model_hash) DO NOTHING;
+                        """,
                         (
-                            model_hash, operation_hash, input_hash, path,
-                            step_order, step_name, method, features_idx, created_at
-                        )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, CURRENT_TIMESTAMP))
-                    ON CONFLICT(input_hash, operation_hash, model_hash) DO UPDATE SET
-                        path = excluded.path,
-                        step_order = excluded.step_order,
-                        step_name = excluded.step_name,
-                        method = excluded.method,
-                        features_idx = excluded.features_idx,
-                        created_at = excluded.created_at;
-                    """,
-                    (
-                        model_hash, operation_hash, input_hash, str(path),
-                        step_order, step_name, method, features_idx_json, created_at,
-                    ),
-                )
+                            model_hash, operation_hash, input_hash,
+                            step_order, step_name, method, features_idx_json, created_at,
+                        ),
+                    )
+                else:
+                    cur.execute(
+                        f"""
+                        INSERT INTO {self.PREPROCESSING_MODELS_TABLE}
+                            (
+                                model_hash, operation_hash, input_hash, path,
+                                step_order, step_name, method, features_idx, created_at
+                            )
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, CURRENT_TIMESTAMP))
+                        ON CONFLICT(input_hash, operation_hash, model_hash) DO UPDATE SET
+                            path = excluded.path,
+                            step_order = excluded.step_order,
+                            step_name = excluded.step_name,
+                            method = excluded.method,
+                            features_idx = excluded.features_idx,
+                            created_at = excluded.created_at;
+                        """,
+                        (
+                            model_hash, operation_hash, input_hash, str(path),
+                            step_order, step_name, method, features_idx_json, created_at,
+                        ),
+                    )
 
-        record = self.get_preprocessing_model_by_model_hash(model_hash)
-        if record is None:
-            raise RuntimeError("Preprocessing model cache index record was not saved.")
-        return record
+            record = self.get_preprocessing_model_by_model_hash(model_hash)
+            if record is None:
+                records = self.get_preprocessing_models(input_hash, operation_hash)
+                record = next(
+                    (
+                        item for item in records
+                        if item.model_hash == model_hash
+                    ),
+                    None,
+                )
+            if record is None:
+                raise RuntimeError(
+                    f'Failed to read preprocessing model index row for model_hash={model_hash}'
+                )
+            return record
 
     def get_preprocessing_model(
         self,
@@ -437,7 +475,7 @@ class CacheIndexDB:
                         model_hash TEXT NOT NULL,
                         operation_hash TEXT NOT NULL,
                         input_hash TEXT NOT NULL,
-                        path TEXT NOT NULL,
+                        path TEXT,
                         step_order INTEGER NOT NULL DEFAULT 0,
                         step_name TEXT,
                         method TEXT,
@@ -498,7 +536,7 @@ class CacheIndexDB:
             model_hash=model_hash,
             operation_hash=operation_hash,
             input_hash=input_hash,
-            path=Path(path),
+            path=None if path is None else Path(path),
             created_at=created_at,
             step_order=step_order,
             step_name=step_name,
@@ -540,8 +578,13 @@ class CacheIndexDB:
             name for name, info in columns.items()
             if info["pk"] > 0
         }
+        path_not_null = columns.get("path", {}).get("notnull", 0)
 
-        if required_columns.issubset(columns) and "model_hash" in primary_key_columns:
+        if (
+            required_columns.issubset(columns)
+            and "model_hash" in primary_key_columns
+            and not path_not_null
+        ):
             return
 
         cur.execute(f"DROP TABLE IF EXISTS {self.PREPROCESSING_MODELS_TABLE};")
@@ -551,7 +594,7 @@ class CacheIndexDB:
                 model_hash TEXT NOT NULL,
                 operation_hash TEXT NOT NULL,
                 input_hash TEXT NOT NULL,
-                path TEXT NOT NULL,
+                path TEXT,
                 step_order INTEGER NOT NULL DEFAULT 0,
                 step_name TEXT,
                 method TEXT,

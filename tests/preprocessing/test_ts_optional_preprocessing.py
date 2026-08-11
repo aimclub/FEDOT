@@ -31,7 +31,7 @@ def test_preprocessing_seasonal_normalization():
         X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
-    preprocessed_data = service.fit_transform(
+    service.fit(
         td,
         {
             PreprocessingStepEnum.scaling: [{
@@ -41,6 +41,7 @@ def test_preprocessing_seasonal_normalization():
             }]
         }
     )
+    preprocessed_data = service.predict(td)
 
     result = preprocessed_data.features.numpy()
 
@@ -93,7 +94,7 @@ def test_preprocessing_rolling_normalization():
         X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
-    preprocessed_data = service.fit_transform(
+    service.fit(
         td,
         {
             PreprocessingStepEnum.scaling: [{
@@ -103,6 +104,7 @@ def test_preprocessing_rolling_normalization():
             }]
         }
     )
+    preprocessed_data = service.predict(td)
 
     result = preprocessed_data.features.numpy()
 
@@ -161,7 +163,7 @@ def test_preprocessing_per_channel_normalization():
         X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
-    preprocessed_data = service.fit_transform(
+    service.fit(
         td,
         {
             PreprocessingStepEnum.scaling: [{
@@ -171,6 +173,7 @@ def test_preprocessing_per_channel_normalization():
             }]
         }
     )
+    preprocessed_data = service.predict(td)
 
     result = preprocessed_data.features.numpy()
 
@@ -228,7 +231,7 @@ def test_preprocessing_gamma_correction():
         X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
-    preprocessed_data = service.fit_transform(
+    service.fit(
         td,
         {
             PreprocessingStepEnum.image_preprocessing: [{
@@ -241,6 +244,7 @@ def test_preprocessing_gamma_correction():
             }]
         }
     )
+    preprocessed_data = service.predict(td)
 
     result = preprocessed_data.features.numpy()
 
@@ -282,7 +286,7 @@ def test_preprocessing_log_transform():
         X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
-    preprocessed_data = service.fit_transform(
+    service.fit(
         td,
         {
             PreprocessingStepEnum.image_preprocessing: [{
@@ -295,6 +299,7 @@ def test_preprocessing_log_transform():
             }]
         }
     )
+    preprocessed_data = service.predict(td)
 
     result = preprocessed_data.features.numpy()
 
@@ -343,7 +348,7 @@ def test_preprocessing_mean_imputation():
         X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
-    preprocessed_data = service.fit_transform(
+    service.fit(
         td,
         {
             PreprocessingStepEnum.imputation: [{
@@ -353,6 +358,7 @@ def test_preprocessing_mean_imputation():
             }]
         }
     )
+    preprocessed_data = service.predict(td)
 
     result = preprocessed_data.features.numpy()
 
@@ -411,7 +417,7 @@ def test_preprocessing_median_imputation():
         X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
-    preprocessed_data = service.fit_transform(
+    service.fit(
         td,
         {
             PreprocessingStepEnum.imputation: [{
@@ -421,6 +427,7 @@ def test_preprocessing_median_imputation():
             }]
         }
     )
+    preprocessed_data = service.predict(td)
 
     result = preprocessed_data.features.numpy()
 
@@ -479,7 +486,7 @@ def test_preprocessing_constant_imputation():
         X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
-    preprocessed_data = service.fit_transform(
+    service.fit(
         td,
         {
             PreprocessingStepEnum.imputation: [{
@@ -491,6 +498,7 @@ def test_preprocessing_constant_imputation():
             }]
         }
     )
+    preprocessed_data = service.predict(td)
 
     result = preprocessed_data.features.numpy()
 
@@ -549,7 +557,7 @@ def test_preprocessing_fill_imputation_forward():
         X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
-    preprocessed_data = service.fit_transform(
+    service.fit(
         td,
         {
             PreprocessingStepEnum.imputation: [{
@@ -561,6 +569,7 @@ def test_preprocessing_fill_imputation_forward():
             }]
         }
     )
+    preprocessed_data = service.predict(td)
 
     result = preprocessed_data.features.numpy()
 
@@ -606,7 +615,7 @@ def test_ts_optional_fit_predict_uses_cached_optional_stage():
         data_type="time_series",
     )
     service = OptionalTSService()
-    fitted_td = service.fit_transform(
+    service.fit(
         train_td,
         {
             PreprocessingStepEnum.imputation: [{
@@ -614,8 +623,9 @@ def test_ts_optional_fit_predict_uses_cached_optional_stage():
                 "features_idx": [1],
                 "step_args": {"constant": -5.0},
             }]
-        },
+        }
     )
+    fitted_td = service.predict(train_td)
 
     test_td = TensorDataCreator.create(
         test,
@@ -625,7 +635,7 @@ def test_ts_optional_fit_predict_uses_cached_optional_stage():
         without_target=True,
         trace_uuid=fitted_td.trace_uuid,
     )
-    predicted_td = service.transform(test_td)
+    predicted_td = service.predict(test_td)
 
     assert predicted_td.trace_uuid == fitted_td.trace_uuid
     assert predicted_td.features.shape == test_td.features.shape
@@ -664,7 +674,7 @@ def test_preprocessing_fill_imputation_backward():
         X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
-    preprocessed_data = service.fit_transform(
+    service.fit(
         td,
         {
             PreprocessingStepEnum.imputation: [{
@@ -676,6 +686,7 @@ def test_preprocessing_fill_imputation_backward():
             }]
         }
     )
+    preprocessed_data = service.predict(td)
 
     result = preprocessed_data.features.numpy()
 
@@ -734,7 +745,7 @@ def test_preprocessing_rolling_imputation_mean_center():
         X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
-    preprocessed_data = service.fit_transform(
+    service.fit(
         td,
         {
             PreprocessingStepEnum.imputation: [{
@@ -748,6 +759,7 @@ def test_preprocessing_rolling_imputation_mean_center():
             }]
         }
     )
+    preprocessed_data = service.predict(td)
 
     result = preprocessed_data.features.numpy()
 
@@ -806,7 +818,7 @@ def test_preprocessing_rolling_imputation_median_backward_window():
         X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
-    preprocessed_data = service.fit_transform(
+    service.fit(
         td,
         {
             PreprocessingStepEnum.imputation: [{
@@ -820,6 +832,7 @@ def test_preprocessing_rolling_imputation_median_backward_window():
             }]
         }
     )
+    preprocessed_data = service.predict(td)
 
     result = preprocessed_data.features.numpy()
 
@@ -878,7 +891,7 @@ def test_preprocessing_kalman_imputation():
         X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
-    preprocessed_data = service.fit_transform(
+    service.fit(
         td,
         {
             PreprocessingStepEnum.imputation: [{
@@ -888,6 +901,7 @@ def test_preprocessing_kalman_imputation():
             }]
         }
     )
+    preprocessed_data = service.predict(td)
 
     result = preprocessed_data.features.numpy()
 
@@ -939,7 +953,7 @@ def test_preprocessing_linear_interpolation():
         X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
-    preprocessed_data = service.fit_transform(
+    service.fit(
         td,
         {
             PreprocessingStepEnum.imputation: [{
@@ -949,6 +963,7 @@ def test_preprocessing_linear_interpolation():
             }]
         }
     )
+    preprocessed_data = service.predict(td)
 
     result = preprocessed_data.features.numpy()
 
@@ -1013,7 +1028,7 @@ def test_preprocessing_polynomial_interpolation():
         X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
-    preprocessed_data = service.fit_transform(
+    service.fit(
         td,
         {
             PreprocessingStepEnum.imputation: [{
@@ -1026,6 +1041,7 @@ def test_preprocessing_polynomial_interpolation():
             }]
         }
     )
+    preprocessed_data = service.predict(td)
 
     result = preprocessed_data.features.numpy()
 
@@ -1096,7 +1112,7 @@ def test_preprocessing_spline_interpolation():
         X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
-    preprocessed_data = service.fit_transform(
+    service.fit(
         td,
         {
             PreprocessingStepEnum.imputation: [{
@@ -1108,6 +1124,7 @@ def test_preprocessing_spline_interpolation():
             }]
         }
     )
+    preprocessed_data = service.predict(td)
 
     result = preprocessed_data.features.numpy()
 
@@ -1172,7 +1189,7 @@ def test_multiple_imputation_step():
         X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
-    preprocessed_data = service.fit_transform(
+    service.fit(
         td,
         {
             PreprocessingStepEnum.imputation: [{
@@ -1191,6 +1208,7 @@ def test_multiple_imputation_step():
             }]
         }
     )
+    preprocessed_data = service.predict(td)
 
     result = preprocessed_data.features.numpy()
 

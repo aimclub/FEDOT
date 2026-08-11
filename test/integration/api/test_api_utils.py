@@ -14,7 +14,6 @@ from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from golem.core.dag.graph import ReconnectType
-from fedot.preprocessing.preprocessing import DataPreprocessor
 from test.data.datasets import get_cholesterol_dataset
 from test.integration.api.test_main_api import get_dataset
 from test.unit.tasks.test_classification import get_binary_classification_data
@@ -87,7 +86,6 @@ def test_the_formation_of_initial_assumption():
     """ Checks that the initial assumption is formed based on the given available operations """
 
     train_input, _, _ = get_dataset(task_type='classification')
-    train_input = DataPreprocessor().obligatory_prepare_for_fit(train_input)
     available_operations = ['rf']
 
     initial_assumptions = AssumptionsBuilder \
@@ -102,7 +100,6 @@ def test_init_assumption_with_inappropriate_available_operations():
     """ Checks that if given available operations are not suitable for the task,
     then the default initial assumption will be formed """
     train_input, _, _ = get_dataset(task_type='classification')
-    train_input = DataPreprocessor().obligatory_prepare_for_fit(train_input)
     available_operations = ['linear', 'xgboostreg', 'lagged']
 
     # Receiving initial assumption

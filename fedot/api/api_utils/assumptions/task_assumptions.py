@@ -140,7 +140,7 @@ class TensorClassificationAssumptions(TaskAssumptions):
     @property
     def builders(self):
         return {
-            'torch_linear': PipelineBuilder(use_input_preprocessing=False).add_node('torch_linear'),
+            'torch_linear': PipelineBuilder().add_node('torch_linear'),
         }
 
     def ensemble_operation(self) -> str:
@@ -151,4 +151,4 @@ class TensorClassificationAssumptions(TaskAssumptions):
 
     def fallback_builder(self, operations_filter: OperationsFilter) -> PipelineBuilder:
         random_choice_node = operations_filter.sample()
-        return PipelineBuilder(use_input_preprocessing=False).add_node(random_choice_node)
+        return PipelineBuilder().add_node(random_choice_node)

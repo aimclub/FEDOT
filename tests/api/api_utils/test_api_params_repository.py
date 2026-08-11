@@ -100,12 +100,10 @@ def test_api_params_repository_rejects_unknown_param_key():
         repository.check_and_set_default_params({'unknown': 1})
 
 
-
 def test_params_for_composer_requirements_excludes_runtime_cv_folds():
     result = ApiParamsRepository.get_params_for_composer_requirements({
         'cv_folds': 5,
         'max_depth': 3,
-        'use_input_preprocessing': True,
     })
 
     assert result['max_depth'] == 3

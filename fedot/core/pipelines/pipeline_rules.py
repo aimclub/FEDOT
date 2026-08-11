@@ -1,30 +1,76 @@
 from dataclasses import dataclass
+from typing import Any, Callable, Dict, Union
 
-from fedot.core.data.common.enums import StateEnum
+from golem.utilities.data_structures import ComparableEnum as Enum
+
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
-@dataclass(frozen=True)
-class PipelinePreprocessPlan:
-    should_preprocess: bool
-    should_update_time_series_indices: bool
+class OutputModeEnum(Enum):
+    """Pipeline predict output shaping modes.
+
+    - ``RAW``: leave model output as-is (no flatten, no inverse target decode).
+    - ``AUTO``: task-dependent defaults (decode for classification, flatten for
+      TS forecasting).
+    - ``DECODED``: restore original target labels via inverse target encoding.
+    - ``FLATTENED``: ravel prediction to 1-D. Numeric-only (regression / TS);
+      rejected for classification because it would keep encoded class ids.
+    """
+
+    RAW = 'raw'
+    AUTO = 'auto'
+    DECODED = 'decoded'
+    FLATTENED = 'flattened'
+
+
+SUPPORTED_PIPELINE_OUTPUT_MODES = tuple(mode.value for mode in OutputModeEnum)
 
 
 @dataclass(frozen=True)
 class PipelinePostprocessPlan:
-    should_restore_inverse_target_encoding: bool
     should_flatten_prediction: bool
+    should_restore_inverse_target_encoding: bool
 
 
-def build_pipeline_preprocess_plan(is_fit_stage: bool, is_input_auto_preprocessed: bool) -> PipelinePreprocessPlan:
-    return PipelinePreprocessPlan(
-        should_preprocess=not is_input_auto_preprocessed,
-        should_update_time_series_indices=not is_fit_stage,
-    )
+def normalize_output_mode(output_mode: Union[OutputModeEnum, str, Any]) -> OutputModeEnum:
+    """Normalize raw/enum output mode value to ``OutputModeEnum``."""
+    if isinstance(output_mode, OutputModeEnum):
+        return output_mode
+    if hasattr(output_mode, 'value'):
+        output_mode = output_mode.value
+    return OutputModeEnum(output_mode)
 
 
-def build_pipeline_postprocess_plan(output_mode: str, task_type: TaskTypesEnum) -> PipelinePostprocessPlan:
-    return PipelinePostprocessPlan(
-        should_restore_inverse_target_encoding=output_mode == 'labels',
+_POSTPROCESS_PLAN_BY_MODE: Dict[
+    OutputModeEnum,
+    Callable[[TaskTypesEnum], PipelinePostprocessPlan],
+] = {
+    OutputModeEnum.RAW: lambda _task_type: PipelinePostprocessPlan(
+        should_flatten_prediction=False,
+        should_restore_inverse_target_encoding=False,
+    ),
+    OutputModeEnum.AUTO: lambda task_type: PipelinePostprocessPlan(
         should_flatten_prediction=task_type is TaskTypesEnum.ts_forecasting,
+        should_restore_inverse_target_encoding=task_type is TaskTypesEnum.classification,
+    ),
+    OutputModeEnum.DECODED: lambda _task_type: PipelinePostprocessPlan(
+        should_flatten_prediction=False,
+        should_restore_inverse_target_encoding=True,
+    ),
+    OutputModeEnum.FLATTENED: lambda _task_type: PipelinePostprocessPlan(
+        should_flatten_prediction=True,
+        should_restore_inverse_target_encoding=False,
+    ),
+}
+
+
+def build_pipeline_postprocess_plan(
+    output_mode: Union[OutputModeEnum, str],
+    task_type: TaskTypesEnum,
+) -> PipelinePostprocessPlan:
+    from fedot.core.pipelines.schemas import validate_pipeline_output_mode
+
+    mode = normalize_output_mode(
+        validate_pipeline_output_mode(output_mode, task_type=task_type)
     )
+    return _POSTPROCESS_PLAN_BY_MODE[mode](task_type)

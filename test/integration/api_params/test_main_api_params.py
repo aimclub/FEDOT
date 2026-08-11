@@ -71,7 +71,7 @@ def test_timeout(case: TimeoutParams):
         assert case.test_answer(history)
 
 
-@pytest.mark.parametrize('input_params', [{'use_input_preprocessing': False}])
+@pytest.mark.parametrize('input_params', [{'with_tuning': False}])
 def test_main_api_params_of_type(input_params: dict):
     model = Fedot(problem='ts_forecasting', **input_params)
     parsed_params = model.params

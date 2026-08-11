@@ -1,3 +1,18 @@
+from test.unit.validation.test_time_series_cv import configure_experiment
+from test.unit.validation.test_table_cv import sample_pipeline
+from test.unit.tasks.test_forecasting import get_simple_ts_pipeline
+from test.integration.models.test_model import classification_dataset, classification_dataset_with_str_labels
+from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.repository.metrics_repository import ClassificationMetricsEnum, MetricsRepository, \
+    RegressionMetricsEnum
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
+from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
+from fedot.core.optimisers.objective import PipelineObjectiveEvaluateWithTensorData
+from fedot.core.data.multimodal.supplementary_data import SupplementaryData
+from fedot.core.data.input_data.data import InputData
 import datetime
 from copy import deepcopy
 
@@ -9,21 +24,6 @@ from golem.core.optimisers.fitness import SingleObjFitness
 pytest.skip('Legacy InputData objective evaluation tests are not supported in TensorData-only path',
             allow_module_level=True)
 
-from fedot.core.data.input_data.data import InputData
-from fedot.core.data.multimodal.supplementary_data import SupplementaryData
-from fedot.core.optimisers.objective import PipelineObjectiveEvaluateWithTensorData
-from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
-from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.pipeline_builder import PipelineBuilder
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.metrics_repository import ClassificationMetricsEnum, MetricsRepository, \
-    RegressionMetricsEnum
-from fedot.core.repository.tasks import Task, TaskTypesEnum
-from test.integration.models.test_model import classification_dataset, classification_dataset_with_str_labels
-from test.unit.tasks.test_forecasting import get_simple_ts_pipeline
-from test.unit.validation.test_table_cv import sample_pipeline
-from test.unit.validation.test_time_series_cv import configure_experiment
 
 _ = classification_dataset
 
@@ -82,7 +82,7 @@ def test_pipeline_objective_evaluate_with_different_metrics(classification_datas
             cv_folds=None).build(classification_dataset)
         check_pipeline = deepcopy(pipeline)
         objective_eval = PipelineObjectiveEvaluateWithTensorData(MetricsObjective(metric),
-                                                   data_producer=data_producer)
+                                                                 data_producer=data_producer)
         fitness = objective_eval(pipeline)
         act_fitness = actual_fitness(data_producer, check_pipeline, metric)
         assert fitness.valid
@@ -118,7 +118,7 @@ def test_pipeline_objective_evaluate_with_empty_pipeline(classification_dataset)
     metric = ClassificationMetricsEnum.ROCAUC_penalty
 
     objective_eval = PipelineObjectiveEvaluateWithTensorData(MetricsObjective(metric),
-                                               data_producer=data_producer)
+                                                             data_producer=data_producer)
     with pytest.raises(AttributeError):
         objective_eval(pipeline)
 
@@ -131,7 +131,7 @@ def test_pipeline_objective_evaluate_with_cv_fold(classification_dataset):
     metric = ClassificationMetricsEnum.logloss
 
     objective_eval = PipelineObjectiveEvaluateWithTensorData(MetricsObjective(metric),
-                                               data_producer=data_producer)
+                                                             data_producer=data_producer)
     fitness = objective_eval(pipeline)
     assert fitness.valid
     assert fitness.value is not None
@@ -158,15 +158,15 @@ def test_pipeline_objective_evaluate_with_time_constraint(classification_dataset
 
     time_constraint = datetime.timedelta(seconds=0.0001)
     objective_eval = PipelineObjectiveEvaluateWithTensorData(MetricsObjective(metric),
-                                               data_producer=data_producer,
-                                               time_constraint=time_constraint)
+                                                             data_producer=data_producer,
+                                                             time_constraint=time_constraint)
     fitness = objective_eval(pipeline)
     assert not fitness.valid
 
     time_constraint = datetime.timedelta(seconds=300)
     objective_eval = PipelineObjectiveEvaluateWithTensorData(MetricsObjective(metric),
-                                               data_producer=data_producer,
-                                               time_constraint=time_constraint)
+                                                             data_producer=data_producer,
+                                                             time_constraint=time_constraint)
     fitness = objective_eval(pipeline)
     assert fitness.valid
     assert fitness.value is not None
@@ -184,7 +184,7 @@ def test_pipeline_objective_evaluate_with_invalid_metrics(classification_dataset
         data_producer = DataSourceSplitter(
             cv_folds=None).build(classification_dataset)
         objective_eval = PipelineObjectiveEvaluateWithTensorData(MetricsObjective(metrics),
-                                                   data_producer=data_producer)
+                                                                 data_producer=data_producer)
         objective_eval(pipeline)
 
 

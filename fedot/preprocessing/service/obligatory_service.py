@@ -1,12 +1,15 @@
 from dataclasses import dataclass
-from typing import Optional, TYPE_CHECKING
+from typing import Any, Optional, TYPE_CHECKING
 
+import torch
+
+from fedot.core.backend.backend import Backend, torch_to_xp
 from fedot.core.data.prepared_data.prepared_data import PreparedData
 from fedot.preprocessing.tools.index_mapping_tools import update_index_mapping, update_indices
 from fedot.preprocessing.planner.planner import PreprocessingPlan
 from fedot.preprocessing.planner.obligatory_planner import build_obligatory_plan
 from fedot.preprocessing.tools.preprocessor_types import PreprocessingStepEnum
-from fedot.preprocessing.tools.tools import update_handler_mapping
+from fedot.preprocessing.tools.tools import copy_handler_mapping, update_handler_mapping
 from fedot.preprocessing.tools.methods_mapping import PREPROCESSING_OBLIGATORY_MAPPING
 from fedot.core.data.common.types import ArrayType
 from fedot.core.caching.cacher import Cacher
@@ -62,6 +65,8 @@ class ObligatoryService:
 
     def __init__(self, use_cache: bool = True):
         self.use_cache = use_cache
+        # Instance copy so fit/custom steps cannot mutate the class-/module-level mapping.
+        self.handler_mapping = copy_handler_mapping(type(self).handler_mapping)
 
     def fit_transform(self, features: ArrayType, target: ArrayType, params: dict) -> ObligatoryPreprocessResult:
         """Build and execute obligatory preprocessing plan.
@@ -118,7 +123,10 @@ class ObligatoryService:
                     )
                     prepared_data.target = prepared_data_target.features
 
-                    cacher.cache_preprocessing_model(
+                    # Models must stay on disk for predict-via-trace, even when
+                    # TensorData artifacts themselves are not cached.
+                    self._cache_fitted_model(
+                        cacher=cacher,
                         input_hash=raw_fingerprint,
                         model=handler,
                         operation_hash=plan_hash,
@@ -144,7 +152,8 @@ class ObligatoryService:
                     prepared_data.new_cols_dict
                 )
 
-                cacher.cache_preprocessing_model(
+                self._cache_fitted_model(
+                    cacher=cacher,
                     input_hash=raw_fingerprint,
                     model=handler,
                     operation_hash=plan_hash,
@@ -212,6 +221,90 @@ class ObligatoryService:
             prepared_data=prepared_data,
             plan_hash=train_stage.operation_hash,
             raw_fingerprint=raw_fingerprint,
+        )
+
+    @staticmethod
+    def inverse_transform_target(predict: Any, trace_uuid: Optional[str]) -> Any:
+        """Decode label-encoded target predictions via cached target encoder.
+
+        Looks up the fitted ``target_encoding`` handler in the obligatory
+        preprocessing stage of ``trace_uuid`` and applies ``inverse_transform``.
+        When ``trace_uuid`` is missing, the stage/model is absent, or loading
+        fails, ``predict`` is returned unchanged.
+
+        Args:
+            predict: Model predictions (typically encoded class ids).
+            trace_uuid: Trace id produced during train-time obligatory preprocess.
+
+        Returns:
+            Decoded predictions, or the original ``predict`` when decode is
+            not possible.
+        """
+        if predict is None or trace_uuid is None:
+            return predict
+
+        try:
+            trace_builder = TraceBuilder.from_trace_uuid(trace_uuid)
+            train_stage = ObligatoryService._get_train_obligatory_stage(trace_builder)
+        except (OSError, ValueError, KeyError):
+            return predict
+
+        target_step_name = PreprocessingStepEnum.target_encoding.value
+        model_ref = next(
+            (ref for ref in train_stage.models if ref.step_name == target_step_name),
+            None,
+        )
+        if model_ref is None:
+            return predict
+
+        handler = Loader.load(
+            model_ref.model_path,
+            model_ref.model_hash,
+            kind='preprocessing_model',
+        )
+
+        xp = Backend().xp
+        if isinstance(predict, torch.Tensor):
+            predict_xp = torch_to_xp(predict, xp)
+        else:
+            predict_xp = xp.asarray(predict)
+
+        squeeze = predict_xp.ndim == 1
+        features = predict_xp.reshape(-1, 1) if squeeze else predict_xp
+        decoded = handler.inverse_transform(PreparedData(features=features)).features
+        if squeeze or decoded.shape[1] == 1:
+            return decoded.reshape(-1)
+        return decoded
+
+    # TODO @romankuklo: make as optional service
+    def _cache_fitted_model(
+        self,
+        cacher: Cacher,
+        input_hash: str,
+        model: Any,
+        operation_hash: str,
+        step_order: int,
+        step_name: str,
+        method: str,
+        features_idx: Any,
+    ) -> None:
+        """Persist a fitted obligatory handler for later predict-via-trace.
+
+        Models are always written to disk, even when ``use_cache`` is ``False``
+        and TensorData artifacts are index-only. Trace-based ``transform`` loads
+        handlers through ``Loader`` and has no in-memory fitted state.
+        """
+        model_cacher = cacher
+        if not self.use_cache:
+            model_cacher = Cacher(use_cache=True, index_db=cacher.index_db)
+        model_cacher.cache_preprocessing_model(
+            input_hash=input_hash,
+            model=model,
+            operation_hash=operation_hash,
+            step_order=step_order,
+            step_name=step_name,
+            method=method,
+            features_idx=features_idx,
         )
 
     @staticmethod

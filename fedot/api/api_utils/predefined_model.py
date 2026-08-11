@@ -8,40 +8,34 @@ from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.verification import verify_pipeline
-from fedot.preprocessing.base_preprocessing import BasePreprocessor
 
 
 class PredefinedModel:
-    def __init__(self, predefined_model: Union[str, Pipeline], data: Any, log: LoggerAdapter,
-                 use_input_preprocessing: bool = True, api_preprocessor: BasePreprocessor = None):
+    def __init__(
+        self,
+        predefined_model: Union[str, Pipeline],
+        data: Any,
+        log: LoggerAdapter,
+        use_optional_preprocessing: bool = True,
+    ):
         self.predefined_model = predefined_model
         self.data = data
         self.log = log
-        self.pipeline = self._get_pipeline(
-            use_input_preprocessing, api_preprocessor)
+        self.use_optional_preprocessing = use_optional_preprocessing
+        self.pipeline = self._get_pipeline()
 
-    def _get_pipeline(self, use_input_preprocessing: bool = True,
-                      api_preprocessor: BasePreprocessor = None) -> Pipeline:
+    def _get_pipeline(self) -> Pipeline:
         if isinstance(self.predefined_model, Pipeline):
             pipelines = self.predefined_model
-            pipelines.sync_preprocessing_mode(
-                use_input_preprocessing=use_input_preprocessing)
         elif self.predefined_model == 'auto':
             # Generate initial assumption automatically
-            pipelines = AssumptionsBuilder.get(self.data).from_operations().build(
-                use_input_preprocessing=use_input_preprocessing)[0]
-
-            if use_input_preprocessing and api_preprocessor is not None:
-                pipelines.preprocessor = api_preprocessor
-
+            pipelines = AssumptionsBuilder.get(
+                self.data,
+                use_optional_preprocessing=self.use_optional_preprocessing,
+            ).from_operations().build()[0]
         elif isinstance(self.predefined_model, str):
             model = PipelineNode(self.predefined_model)
-            pipelines = Pipeline(
-                model, use_input_preprocessing=use_input_preprocessing)
-
-            if use_input_preprocessing and api_preprocessor is not None:
-                pipelines.preprocessor = api_preprocessor
-
+            pipelines = Pipeline(model)
         else:
             raise ValueError(
                 f'{type(self.predefined_model)} is not supported as Fedot model')

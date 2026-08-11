@@ -53,7 +53,6 @@ def test_api_params_builds_tensor_data_config_field_on_init():
     assert params.tensor_data_config == {
         'backend_name': 'cpu',
         'use_cache': True,
-        'optional_strategy': None,
     }
 
 
@@ -75,7 +74,6 @@ def test_api_params_tensor_data_config_uses_user_values_from_fedot_kwargs():
         'backend_name': 'gpu',
         'use_cache': False,
         'encoding_strategy': {'kind': 'label'},
-        'optional_strategy': None,
     }
 
 
@@ -98,7 +96,6 @@ def test_prepare_tensordata_creation_uses_tensor_data_config_and_predict_state()
                 'backend_name': 'gpu',
                 'use_cache': False,
                 'encoding_strategy': {'kind': 'label'},
-                'optional_strategy': {'scaling': None},
             },
             'use_preprocessing_cache': True,
         },
@@ -115,7 +112,6 @@ def test_prepare_tensordata_creation_uses_tensor_data_config_and_predict_state()
     assert request.spec_kwargs['task'].task_type is TaskTypesEnum.classification
     assert request.spec_kwargs['trace_uuid'] == 'trace-1'
     assert 'target' not in request.spec_kwargs
-    assert 'optional_strategy' not in request.spec_kwargs
 
 
 def test_prepare_tensordata_creation_requires_trace_uuid_for_predict_state():

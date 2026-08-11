@@ -14,6 +14,7 @@ class TuneExecutionPlan:
     n_jobs: int
     metric: Any
 
+
 @dataclass(frozen=True)
 class PredictExecutionPlan:
     output_mode: str

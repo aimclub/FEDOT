@@ -84,11 +84,11 @@ class Operation:
         return operation_info
 
     def fit(self,
-                       params: Optional[Union[OperationParameters, dict]],
-                       data: TensorData,
-                       predictions_cache: Optional[PredictionsCache] = None,
-                       fold_id: Optional[int] = None,
-                       descriptive_id: Optional[str] = None) -> Tuple[Any, TensorData]:
+            params: Optional[Union[OperationParameters, dict]],
+            data: TensorData,
+            predictions_cache: Optional[PredictionsCache] = None,
+            fold_id: Optional[int] = None,
+            descriptive_id: Optional[str] = None) -> Tuple[Any, TensorData]:
         """Trains the operation on TensorData and returns the node output."""
         self._init(
             data.task,
@@ -111,33 +111,33 @@ class Operation:
         from fedot.core.operations.data_operation import DataOperation
 
         return isinstance(self, DataOperation)
-    
+
     def predict(self,
-                           fitted_operation,
-                           data: TensorData,
-                           params: Optional[OperationParameters] = None,
-                           output_mode: str = 'default',
-                           predictions_cache: Optional[PredictionsCache] = None,
-                           fold_id: Optional[int] = None,
-                           descriptive_id: Optional[str] = None) -> TensorData:
+                fitted_operation,
+                data: TensorData,
+                params: Optional[OperationParameters] = None,
+                output_mode: str = 'default',
+                predictions_cache: Optional[PredictionsCache] = None,
+                fold_id: Optional[int] = None,
+                descriptive_id: Optional[str] = None) -> TensorData:
         return self._predict(
             fitted_operation=fitted_operation,
             data=data, params=params,
-            output_mode=output_mode, 
+            output_mode=output_mode,
             is_fit_stage=False,
             predictions_cache=predictions_cache,
             fold_id=fold_id,
             descriptive_id=descriptive_id,
         )
-    
+
     def predict_for_fit(self,
-                                   fitted_operation,
-                                   data: TensorData,
-                                   params: Optional[OperationParameters] = None,
-                                   output_mode: str = 'default',
-                                   predictions_cache: Optional[PredictionsCache] = None,
-                                   fold_id: Optional[int] = None,
-                                   descriptive_id: Optional[str] = None) -> TensorData:
+                        fitted_operation,
+                        data: TensorData,
+                        params: Optional[OperationParameters] = None,
+                        output_mode: str = 'default',
+                        predictions_cache: Optional[PredictionsCache] = None,
+                        fold_id: Optional[int] = None,
+                        descriptive_id: Optional[str] = None) -> TensorData:
         return self._predict(
             fitted_operation=fitted_operation,
             data=data,
@@ -150,14 +150,14 @@ class Operation:
         )
 
     def _predict(self,
-                           fitted_operation,
-                           data: TensorData,
-                           params: Optional[OperationParameters] = None,
-                           output_mode: str = 'default',
-                           is_fit_stage: bool = False,
-                           predictions_cache: Optional[PredictionsCache] = None,
-                           fold_id: Optional[int] = None,
-                           descriptive_id: Optional[str] = None) -> TensorData:
+                 fitted_operation,
+                 data: TensorData,
+                 params: Optional[OperationParameters] = None,
+                 output_mode: str = 'default',
+                 is_fit_stage: bool = False,
+                 predictions_cache: Optional[PredictionsCache] = None,
+                 fold_id: Optional[int] = None,
+                 descriptive_id: Optional[str] = None) -> TensorData:
         self._init(
             data.task,
             output_mode=output_mode,
@@ -170,7 +170,7 @@ class Operation:
         if predictions_cache is not None:
             result_data = predictions_cache.load_node_prediction(
                 descriptive_id, output_mode, fold_id, is_fit=is_fit_stage)
-        
+
         # TODO @romankuklo: change with new cache implementation (if/else)
         if result_data is None:
             if is_fit_stage:
@@ -181,7 +181,7 @@ class Operation:
                 result_data = self._eval_strategy.predict(
                     trained_operation=fitted_operation,
                     predict_data=data)
-        
+
         if predictions_cache is not None:
             predictions_cache.save_node_prediction(
                 descriptive_id, output_mode, fold_id, result_data, is_fit=is_fit_stage)

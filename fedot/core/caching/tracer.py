@@ -16,7 +16,7 @@ class TraceModelRef:
     """Reference to one cached preprocessing model inside a trace stage."""
     step_order: int
     model_hash: str
-    model_path: str
+    model_path: Optional[str]
     step_name: Optional[str] = None
     method: Optional[str] = None
     features_idx: Optional[Any] = None
@@ -146,7 +146,7 @@ class TraceBuilder:
             TraceModelRef(
                 step_order=record.step_order,
                 model_hash=record.model_hash,
-                model_path=str(record.path),
+                model_path=None if record.path is None else str(record.path),
                 step_name=record.step_name,
                 method=record.method,
                 features_idx=record.features_idx,

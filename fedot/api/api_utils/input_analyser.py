@@ -136,7 +136,7 @@ class InputAnalyser:
             max_size=self.max_size,
             max_cat_cardinality=self.max_cat_cardinality,
         )
-    
+
     def warn_if_large_tensor_without_sampling(self,
                                               train_data: TensorData,
                                               sampling_config_present: bool) -> None:
