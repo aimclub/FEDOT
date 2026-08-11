@@ -9,9 +9,7 @@ from copy import deepcopy
 
 import numpy as np
 
-from fedot import Fedot
-from fedot.core.data.common.enums import StateEnum
-from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
+from fedot import Fedot, create_data
 
 
 def _to_numpy(value):
@@ -40,15 +38,16 @@ def run_tensordata_classification_example():
     )
     target = np.array([0, 1, 0, 1], dtype=np.int64)
 
-    train_data = TensorDataCreator.create(
-        features,
-        target=target,
-        backend_name='cpu',
-    )
+    # Public factory: backend='cpu' by default.
+    # Equivalent when a Fedot instance already exists (injects problem /
+    # tensor_data_config):
+    #   train_data = model.create_data(features, target=target)
+    #   test_data = model.create_data(test_features, from_data=train_data)
+    train_data = create_data(features, target=target)
 
     model = Fedot(problem='classification')
     pipeline = model.fit(
-        tensor_data=train_data,
+        train_data,
         predefined_model='torch_linear',
     )
 
@@ -61,13 +60,7 @@ def run_tensordata_classification_example():
     test_features[0] += 1.0
     test_features[-1] -= 1.0
 
-    test_data = TensorDataCreator.create(
-        test_features,
-        backend_name='cpu',
-        task=train_data.task,
-        state=StateEnum.PREDICT,
-        trace_uuid=train_data.trace_uuid,
-    )
+    test_data = create_data(test_features, from_data=train_data)
 
     # Classification output modes (labels/probs) are handled at the operation layer.
     labels = pipeline.root_node.predict(
