@@ -31,7 +31,7 @@ from fedot.industrial.core.architecture.preprocessing.ts_methods.image_preproces
                                                                                              ContrastStretching,
                                                                                              GammaCorrection,
                                                                                              LogTransform)
-from fedot.preprocessing.methods.filtering import QuantileClipping
+from fedot.preprocessing.methods.filtering import QuantileClipping, VarianceThreshold
 from fedot.preprocessing.methods.embedding import TransformerEmbedder
 from fedot.preprocessing.methods.categorical_encoding import LabelEncoder, OneHotEncoder
 
@@ -68,6 +68,7 @@ PREPROCESSING_OPTIONAL_MAPPING = {
     },
     PreprocessingStepEnum.filtering: {
         FilteringMethodEnum.quantile: QuantileClipping,
+        FilteringMethodEnum.variance: VarianceThreshold,
     }
 }
 

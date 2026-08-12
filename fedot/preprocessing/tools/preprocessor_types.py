@@ -98,6 +98,7 @@ class ImagePreprocessingMethodEnum(Enum):
 class FilteringMethodEnum(Enum):
     """Enumeration of filteringmethod options."""
     quantile = "quantile"
+    variance = "variance"
 
 
 @dataclass

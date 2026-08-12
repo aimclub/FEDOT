@@ -13,6 +13,14 @@ OPTIONAL_STRATEGY_STAGE_PARAM_KEYS: FrozenSet[str] = frozenset({
     'implementation',
 })
 
+# Flat knobs: only ``<step>_method``. When ``auto=True`` and method is unset,
+# ``True`` means enable the step with method ``auto``; ``False`` means skip.
+FLAT_OPTIONAL_STEPS: Mapping[PreprocessingStepEnum, bool] = {
+    PreprocessingStepEnum.imputation: True,
+    PreprocessingStepEnum.scaling: True,
+    PreprocessingStepEnum.filtering: False,
+}
+
 
 def normalize_optional_method_name(method: Any) -> Any:
     if hasattr(method, 'value'):
@@ -62,14 +70,9 @@ def _method_names_from_mappings(step: PreprocessingStepEnum) -> set:
     return names
 
 
-def supported_optional_imputation_method_names() -> FrozenSet[Any]:
+def supported_optional_method_names(step: PreprocessingStepEnum) -> FrozenSet[Any]:
     """Flat-knob allowlist: auto/none + honest method values from handler mappings."""
-    return frozenset({'auto', 'none'} | _method_names_from_mappings(PreprocessingStepEnum.imputation))
-
-
-def supported_optional_scaling_method_names() -> FrozenSet[Any]:
-    """Flat-knob allowlist: auto/none + honest method values from handler mappings."""
-    return frozenset({'auto', 'none'} | _method_names_from_mappings(PreprocessingStepEnum.scaling))
+    return frozenset({'auto', 'none'} | _method_names_from_mappings(step))
 
 
 def resolve_optional_method(
@@ -104,7 +107,7 @@ def allowed_optional_strategy_methods(
     """Methods allowed for a step, derived from handler mapping keys.
 
     ``custom`` accepts any method (implementation is provided by the caller).
-    Imputation/scaling also accept ``auto`` / ``none``.
+    Mapped steps also accept ``auto`` / ``none``.
     """
     if step == PreprocessingStepEnum.custom:
         return None
@@ -117,8 +120,7 @@ def allowed_optional_strategy_methods(
         methods.update(step_methods)
         methods.update(normalize_optional_method_name(method) for method in step_methods)
 
-    if step in {PreprocessingStepEnum.imputation, PreprocessingStepEnum.scaling}:
-        methods.update(OPTIONAL_AUTO_METHOD_ALIASES)
-        methods.update(OPTIONAL_NONE_METHOD_ALIASES)
+    methods.update(OPTIONAL_AUTO_METHOD_ALIASES)
+    methods.update(OPTIONAL_NONE_METHOD_ALIASES)
 
     return frozenset(methods)
