@@ -5,7 +5,7 @@ from typing import Any, Dict, Iterator, Mapping, Optional, Union
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.operations.rules import (
-    FLAT_OPTIONAL_STEPS,
+    flat_optional_steps,
     is_optional_auto_method,
     is_optional_none_method,
     resolve_optional_method,
@@ -44,7 +44,7 @@ def _build_strategy_from_flat_params(
     auto = params.get('auto', True)
     strategy: Dict[PreprocessingStepEnum, Any] = {}
 
-    for step, default_enabled in FLAT_OPTIONAL_STEPS.items():
+    for step, default_enabled in flat_optional_steps(data.data_type).items():
         method = params.get(f'{step.value}_method')
         if method is None:
             if auto and default_enabled:
@@ -70,10 +70,12 @@ def build_optional_strategy_from_node_params(
 
     Supported params:
         - ``strategy``: full override mapping for OptionalService;
-        - ``auto``: when ``True`` (default), unset methods follow ``FLAT_OPTIONAL_STEPS``
+        - ``auto``: when ``True`` (default), unset methods follow
+          ``OptionalStepSpec.flat_auto_default`` for the data type's mapping
           (enabled steps get ``auto``); when ``False``, unset methods are skipped;
-        - ``<step>_method`` for steps in ``FLAT_OPTIONAL_STEPS``
-          (imputation, scaling, filtering, ...).
+        - ``<step>_method`` for steps that declare ``flat_auto_default``
+          on that mapping (tabular: imputation/scaling/filtering; TS:
+          imputation/scaling/image_preprocessing; ...).
 
     Method values:
         - unset → skip (unless ``auto=True`` and step default-enabled → ``auto``);

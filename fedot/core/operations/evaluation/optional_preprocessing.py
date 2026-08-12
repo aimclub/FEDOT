@@ -23,7 +23,8 @@ class TensorOptionalPreprocessingStrategy(EvaluationStrategy):
     Expected params:
         - ``strategy``: full OptionalService strategy override (validated);
         - ``auto``: when ``True`` (default), unset ``<step>_method`` knobs follow
-          ``FLAT_OPTIONAL_STEPS``; when ``False``, unset methods are skipped;
+          ``OptionalStepSpec.flat_auto_default`` from handler mappings; when
+          ``False``, unset methods are skipped;
         - ``<step>_method`` for flat optional steps (imputation, scaling,
           filtering, ...): ``auto|none`` or honest method names from handler
           mapping; omit or ``none`` to skip a step;

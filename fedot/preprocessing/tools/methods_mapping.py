@@ -1,10 +1,13 @@
-from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStepEnum,
-                                                          ImputationMethodEnum,
-                                                          ScalingMethodEnum,
-                                                          EmbeddingMethodEnum,
-                                                          EncodingMethodEnum,
-                                                          FilteringMethodEnum,
-                                                          ImagePreprocessingMethodEnum)
+from fedot.preprocessing.tools.preprocessor_types import (
+    PreprocessingStepEnum,
+    ImputationMethodEnum,
+    ScalingMethodEnum,
+    EmbeddingMethodEnum,
+    EncodingMethodEnum,
+    FilteringMethodEnum,
+    ImagePreprocessingMethodEnum,
+    OptionalStepSpec,
+)
 from fedot.preprocessing.methods.imputation import (MeanImputation, MedianImputation,
                                                     ModeImputation, ConstantImputation,
                                                     DeleteRawImputation)
@@ -51,49 +54,68 @@ PREPROCESSING_OBLIGATORY_MAPPING = {
 
 
 PREPROCESSING_OPTIONAL_MAPPING = {
-    PreprocessingStepEnum.imputation: {
-        ImputationMethodEnum.mean: MeanImputation,
-        ImputationMethodEnum.median: MedianImputation,
-        ImputationMethodEnum.mode: ModeImputation,
-        ImputationMethodEnum.constant: ConstantImputation,
-        ImputationMethodEnum.delete_raw: DeleteRawImputation
-    },
-    PreprocessingStepEnum.scaling: {
-        ScalingMethodEnum.min_max: MinMaxNormalization,
-        ScalingMethodEnum.standard: StandartScaling,
-        ScalingMethodEnum.robust: RobustScaling,
-        ScalingMethodEnum.seasonal: SeasonalNormalization,
-        ScalingMethodEnum.rolling: RollingNormalization,
-        ScalingMethodEnum.standart_per_channel: PerChannelNormalization,
-    },
-    PreprocessingStepEnum.filtering: {
-        FilteringMethodEnum.quantile: QuantileClipping,
-        FilteringMethodEnum.variance: VarianceThreshold,
-    }
+    PreprocessingStepEnum.imputation: OptionalStepSpec(
+        handlers={
+            ImputationMethodEnum.mean: MeanImputation,
+            ImputationMethodEnum.median: MedianImputation,
+            ImputationMethodEnum.mode: ModeImputation,
+            ImputationMethodEnum.constant: ConstantImputation,
+            ImputationMethodEnum.delete_raw: DeleteRawImputation,
+        },
+        flat_auto_default=True,
+    ),
+    PreprocessingStepEnum.scaling: OptionalStepSpec(
+        handlers={
+            ScalingMethodEnum.min_max: MinMaxNormalization,
+            ScalingMethodEnum.standard: StandartScaling,
+            ScalingMethodEnum.robust: RobustScaling,
+            ScalingMethodEnum.seasonal: SeasonalNormalization,
+            ScalingMethodEnum.rolling: RollingNormalization,
+            ScalingMethodEnum.standart_per_channel: PerChannelNormalization,
+        },
+        flat_auto_default=True,
+    ),
+    PreprocessingStepEnum.filtering: OptionalStepSpec(
+        handlers={
+            FilteringMethodEnum.quantile: QuantileClipping,
+            FilteringMethodEnum.variance: VarianceThreshold,
+        },
+        flat_auto_default=False,
+    ),
 }
 
 
+# TS optional steps declare their own flat_auto_default (may differ from tabular).
 TS_PREPROCESSING_MAPPING = {
-    PreprocessingStepEnum.scaling: {
-        ScalingMethodEnum.seasonal: SeasonalNormalization,
-        ScalingMethodEnum.rolling: RollingNormalization,
-        ScalingMethodEnum.standart_per_channel: PerChannelNormalization,
-    },
-    PreprocessingStepEnum.image_preprocessing: {
-        ImagePreprocessingMethodEnum.contrast_equalization: ContrastEqualization,
-        ImagePreprocessingMethodEnum.contrast_stretching: ContrastStretching,
-        ImagePreprocessingMethodEnum.gamma_correction: GammaCorrection,
-        ImagePreprocessingMethodEnum.log_transformation: LogTransform
-    },
-    PreprocessingStepEnum.imputation: {
-        ImputationMethodEnum.ts_mean: TSMeanImputation,
-        ImputationMethodEnum.ts_median: TSMedianImputation,
-        ImputationMethodEnum.ts_constant: TSConstantImputation,
-        ImputationMethodEnum.ts_fill: TSFillImputation,
-        ImputationMethodEnum.ts_rolling: TSRollingImputation,
-        ImputationMethodEnum.ts_kalman: TSKalmanImputation,
-        ImputationMethodEnum.ts_linear_inter: TSLinearInterpolation,
-        ImputationMethodEnum.ts_polynomial_inter: TSPolynomialInterpolation,
-        ImputationMethodEnum.ts_spline_inter: TSSplineInterpolation
-    }
+    PreprocessingStepEnum.scaling: OptionalStepSpec(
+        handlers={
+            ScalingMethodEnum.seasonal: SeasonalNormalization,
+            ScalingMethodEnum.rolling: RollingNormalization,
+            ScalingMethodEnum.standart_per_channel: PerChannelNormalization,
+        },
+        flat_auto_default=True,
+    ),
+    PreprocessingStepEnum.image_preprocessing: OptionalStepSpec(
+        handlers={
+            ImagePreprocessingMethodEnum.contrast_equalization: ContrastEqualization,
+            ImagePreprocessingMethodEnum.contrast_stretching: ContrastStretching,
+            ImagePreprocessingMethodEnum.gamma_correction: GammaCorrection,
+            ImagePreprocessingMethodEnum.log_transformation: LogTransform,
+        },
+        flat_auto_default=False,
+    ),
+    PreprocessingStepEnum.imputation: OptionalStepSpec(
+        handlers={
+            ImputationMethodEnum.ts_mean: TSMeanImputation,
+            ImputationMethodEnum.ts_median: TSMedianImputation,
+            ImputationMethodEnum.ts_constant: TSConstantImputation,
+            ImputationMethodEnum.ts_fill: TSFillImputation,
+            ImputationMethodEnum.ts_rolling: TSRollingImputation,
+            ImputationMethodEnum.ts_kalman: TSKalmanImputation,
+            ImputationMethodEnum.ts_linear_inter: TSLinearInterpolation,
+            ImputationMethodEnum.ts_polynomial_inter: TSPolynomialInterpolation,
+            ImputationMethodEnum.ts_spline_inter: TSSplineInterpolation,
+        },
+        flat_auto_default=True,
+    ),
 }

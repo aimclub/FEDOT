@@ -18,6 +18,7 @@ from fedot.preprocessing.service.optional_service import OptionalService
 from fedot.preprocessing.service.tabular_optional_service import OptionalTabularService
 from fedot.preprocessing.tools.preprocessor_types import (
     FilteringMethodEnum,
+    ImagePreprocessingMethodEnum,
     ImputationMethodEnum,
     PreprocessingStepEnum,
     ScalingMethodEnum,
@@ -236,7 +237,7 @@ def test_fit_uses_flat_imputation_and_scaling_params(train_td):
 @pytest.mark.parametrize(
     'params, expected',
     [
-        # auto=True (default): FLAT_OPTIONAL_STEPS → imputation/scaling auto, filtering skip
+        # auto=True (default): OptionalStepSpec.flat_auto_default → imputation/scaling auto, filtering skip
         (
             {'auto': True},
             {
@@ -327,6 +328,60 @@ def test_build_optional_strategy_flat_knob_variants(train_td, params, expected):
     )
 
     strategy = build_optional_strategy_from_node_params(train_td, params)
+
+    assert isinstance(strategy, OptionalStrategySpec)
+    assert dict(strategy) == expected
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    'params, expected',
+    [
+        # TS flat_auto_default: imputation/scaling on, image_preprocessing off
+        (
+            {'auto': True},
+            {
+                PreprocessingStepEnum.imputation: None,
+                PreprocessingStepEnum.scaling: None,
+            },
+        ),
+        (
+            {
+                'auto': True,
+                'imputation_method': 'ts_mean',
+                'scaling_method': 'seasonal',
+                'image_preprocessing_method': 'gamma_correction',
+            },
+            {
+                PreprocessingStepEnum.imputation: ImputationMethodEnum.ts_mean,
+                PreprocessingStepEnum.scaling: ScalingMethodEnum.seasonal,
+                PreprocessingStepEnum.image_preprocessing: (
+                    ImagePreprocessingMethodEnum.gamma_correction
+                ),
+            },
+        ),
+        # filtering is tabular-only; ignored for TS flat knobs
+        (
+            {'auto': True, 'filtering_method': 'variance'},
+            {
+                PreprocessingStepEnum.imputation: None,
+                PreprocessingStepEnum.scaling: None,
+            },
+        ),
+    ],
+)
+def test_build_optional_strategy_flat_knob_variants_for_ts(params, expected):
+    from fedot.core.operations.evaluation.optional_preprocessing_strategy_builder import (
+        OptionalStrategySpec,
+        build_optional_strategy_from_node_params,
+    )
+
+    ts_td = TensorDataCreator.create(
+        np.array([[1.0, 10.0], [2.0, np.nan], [3.0, 30.0]], dtype=np.float32),
+        backend_name='cpu',
+        data_type='time_series',
+    )
+    strategy = build_optional_strategy_from_node_params(ts_td, params)
 
     assert isinstance(strategy, OptionalStrategySpec)
     assert dict(strategy) == expected

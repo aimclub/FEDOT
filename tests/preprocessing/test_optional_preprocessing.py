@@ -164,7 +164,9 @@ def test_mean_imputation():
     ])
 
     td = TensorDataCreator.create(X, backend_name="cpu")
-    preprocessor = PREPROCESSING_OPTIONAL_MAPPING[PreprocessingStepEnum.imputation][ImputationMethodEnum.mean](
+    preprocessor = PREPROCESSING_OPTIONAL_MAPPING[PreprocessingStepEnum.imputation].handlers[
+        ImputationMethodEnum.mean
+    ](
     )
     preprocessed_data = preprocessor.fit_transform(td, [1])
     assert preprocessed_data.features[1, 1] == 5
