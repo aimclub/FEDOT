@@ -136,24 +136,6 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         return output_data
 
 
-class PCAImplementation(ComponentAnalysisImplementation):
-    """
-    Class for applying PCA from sklearn
-
-    Args:
-        params: OperationParameters with the hyperparameters
-    """
-
-    def __init__(self, params: Optional[OperationParameters] = None):
-        super().__init__(params)
-        if not self.params:
-            # Default parameters
-            default_params = {'svd_solver': 'full', 'n_components': 'mle'}
-            self.params.update(**default_params)
-        self.pca = PCA(**self.params.to_dict())
-        self.number_of_features = None
-
-
 class DaskPCAImplementation(ComponentAnalysisImplementation):
     """
     Class for applying PCA from sklearn

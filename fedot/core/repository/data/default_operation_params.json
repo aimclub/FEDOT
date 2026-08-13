@@ -204,7 +204,6 @@
     "balance_ratio": 1
   },
   "pca": {
-    "svd_solver": "full",
     "n_components": 0.7
   },
   "dask_pca": {

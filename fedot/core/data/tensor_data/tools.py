@@ -451,6 +451,32 @@ def delete_zero_features(features: ArrayType) -> ArrayType:
     return features[:, non_zero_mask]
 
 
+def flatten_if_needed(x) -> torch.Tensor:
+    """Ensure features are 2D ``(n_samples, n_features)``.
+
+    - non-tensor: converted via ``torch.as_tensor``
+    - 1D ``(N,)``: unsqueeze to ``(N, 1)``
+    - 2D ``(N, F)``: unchanged
+    - 3D ``(N, ..., ...)``: reshape to ``(N, -1)``
+    """
+    if not isinstance(x, torch.Tensor):
+        x = torch.as_tensor(x)
+    if x.dim() == 1:
+        x = x.unsqueeze(1)
+    if x.dim() == 2:
+        return x
+    if x.dim() == 3:
+        return x.reshape(x.shape[0], -1)
+    raise ValueError(f'Expected 1D, 2D or 3D tensor, got shape={tuple(x.shape)}')
+
+
+def restore_if_needed(x: torch.Tensor, original_shape) -> torch.Tensor:
+    """Inverse of :func:`flatten_if_needed` when ``original_shape`` is 3D."""
+    if original_shape is None or len(original_shape) == 2:
+        return x
+    return x.reshape(original_shape)
+
+
 def to_tensor(array: ArrayType, dtype=None) -> torch.Tensor:
     """
     Convert an array-like object to a torch tensor on the active backend device.
