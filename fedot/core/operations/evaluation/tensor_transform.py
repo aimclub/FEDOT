@@ -4,7 +4,7 @@ from typing import Optional
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.data_operations.features_reducing import (
-    TensorPCAImplementation,
+    PCAImplementation,
 )
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.utilities.random import ImplementationRandomStateHandler
@@ -19,7 +19,7 @@ class TensorTransformStrategy(EvaluationStrategy):
     end-to-end nodes (not multi-step cleaning like optional preprocessing).
 
     Supported operations:
-        - ``pca`` → :class:`TensorPCAImplementation`
+        - ``pca`` → :class:`PCAImplementation`
 
     Invariant:
         ``predict_for_fit`` is intentionally identical to ``predict`` for current
@@ -29,7 +29,7 @@ class TensorTransformStrategy(EvaluationStrategy):
     """
 
     _operations_by_types = {
-        'pca': TensorPCAImplementation,
+        'pca': PCAImplementation,
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):

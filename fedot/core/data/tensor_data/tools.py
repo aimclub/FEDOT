@@ -470,6 +470,22 @@ def flatten_if_needed(x) -> torch.Tensor:
     raise ValueError(f'Expected 1D, 2D or 3D tensor, got shape={tuple(x.shape)}')
 
 
+def drop_rows_with_nan(features: torch.Tensor) -> Tuple[torch.Tensor, int]:
+    """Drop rows that contain any NaN.
+
+    Returns:
+        Filtered features and the number of dropped rows.
+    """
+    if features.ndim == 1:
+        row_has_nan = torch.isnan(features)
+    else:
+        row_has_nan = torch.isnan(features).any(dim=1)
+    n_dropped = int(row_has_nan.sum().item())
+    if n_dropped == 0:
+        return features, 0
+    return features[~row_has_nan], n_dropped
+
+
 def restore_if_needed(x: torch.Tensor, original_shape) -> torch.Tensor:
     """Inverse of :func:`flatten_if_needed` when ``original_shape`` is 3D."""
     if original_shape is None or len(original_shape) == 2:

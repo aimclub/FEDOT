@@ -7,7 +7,7 @@ from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
 from fedot.core.operations.data_operation import DataOperation
 from fedot.core.operations.evaluation.abstract_node import TensorDataOperationImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.features_reducing import (
-    TensorPCAImplementation,
+    PCAImplementation,
 )
 from fedot.core.operations.evaluation.tensor_transform import TensorTransformStrategy
 from fedot.core.operations.operation_parameters import OperationParameters
@@ -32,7 +32,7 @@ def train_td_with_nan(train_td):
 
 @pytest.mark.unit
 def test_pca_implementation_reduces_features(train_td):
-    impl = TensorPCAImplementation(OperationParameters(n_components=2))
+    impl = PCAImplementation(OperationParameters(n_components=2))
     fitted = impl.fit(train_td)
     assert isinstance(fitted, TensorDataOperationImplementation)
 
@@ -45,7 +45,7 @@ def test_pca_implementation_reduces_features(train_td):
 
 @pytest.mark.unit
 def test_pca_supports_variance_ratio(train_td):
-    impl = TensorPCAImplementation(OperationParameters(n_components=0.9))
+    impl = PCAImplementation(OperationParameters(n_components=0.9))
     impl.fit(train_td)
     out = impl.transform(train_td)
     assert 1 <= out.features.shape[1] <= train_td.features.shape[1]
@@ -53,7 +53,7 @@ def test_pca_supports_variance_ratio(train_td):
 
 @pytest.mark.unit
 def test_pca_init_loads_default_n_components():
-    impl = TensorPCAImplementation(OperationParameters())
+    impl = PCAImplementation(OperationParameters())
     assert impl.params.get('n_components') == 0.7
 
 
@@ -83,7 +83,7 @@ def test_pca_params_schema_fills_missing_n_components():
 
 @pytest.mark.unit
 def test_pca_fit_drops_nan_rows_transform_keeps_them(train_td_with_nan):
-    impl = TensorPCAImplementation(OperationParameters(n_components=2))
+    impl = PCAImplementation(OperationParameters(n_components=2))
     impl.fit(train_td_with_nan)
 
     assert impl.n_samples_ == train_td_with_nan.features.shape[0] - 2
@@ -103,7 +103,7 @@ def test_pca_fit_rejects_too_few_finite_samples(train_td):
     features[0, 0] = float('nan')
     features[1, 1] = float('nan')
     data = replace(train_td, features=features, fingerprint=None)
-    impl = TensorPCAImplementation(OperationParameters(n_components=1))
+    impl = PCAImplementation(OperationParameters(n_components=1))
     with pytest.raises(FedotValidationError, match='at least 2 finite samples'):
         impl.fit(data)
 

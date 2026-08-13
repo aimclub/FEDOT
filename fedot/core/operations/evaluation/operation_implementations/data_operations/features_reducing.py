@@ -4,7 +4,7 @@ from typing import Optional, Union
 import torch
 
 from fedot.core.data.tensor_data.tensor_data import TensorData
-from fedot.core.data.tensor_data.tools import flatten_if_needed
+from fedot.core.data.tensor_data.tools import drop_rows_with_nan, flatten_if_needed
 from fedot.core.operations.evaluation.abstract_node import TensorDataOperationImplementation
 from fedot.core.operations.evaluation.operation_implementations.rules import (
     PCA_MIN_THRESHOLD_TS,
@@ -16,7 +16,7 @@ from fedot.core.operations.evaluation.operation_implementations.schema import (
 from fedot.core.operations.operation_parameters import OperationParameters
 
 
-class TensorPCAImplementation(TensorDataOperationImplementation):
+class PCAImplementation(TensorDataOperationImplementation):
     """PCA for TensorData via torch SVD (sklearn-``pca`` analogue).
 
     ``n_components`` is validated/completed via :func:`validate_pca_params`
@@ -43,7 +43,7 @@ class TensorPCAImplementation(TensorDataOperationImplementation):
         self.n_features_ = features.shape[1]
 
         if self.n_features_ <= 1:
-            clean = self._rows_without_nan(features)
+            clean, _ = drop_rows_with_nan(features)
             self.n_samples_ = clean.shape[0]
             self.mean_ = clean.mean(dim=0) if self.n_samples_ > 0 else features.new_zeros(self.n_features_)
             self.components_ = torch.eye(
@@ -59,7 +59,13 @@ class TensorPCAImplementation(TensorDataOperationImplementation):
             self.n_components_ = self.n_features_
             return self
 
-        clean = self._rows_without_nan(features, warn=True)
+        clean, n_dropped = drop_rows_with_nan(features)
+        if n_dropped:
+            self.log.warning(
+                f'PCA fit: dropping {n_dropped} sample(s) with NaN; '
+                f'they are not used for fitting. Transform still returns all rows '
+                f'(NaN inputs remain NaN after projection).'
+            )
         self.n_samples_ = clean.shape[0]
         validate_pca_fit_samples(self.n_samples_)
 
@@ -129,16 +135,3 @@ class TensorPCAImplementation(TensorDataOperationImplementation):
         if resolved > max_components:
             resolved = max_components
         return max(1, resolved)
-
-    def _rows_without_nan(self, features: torch.Tensor, warn: bool = False) -> torch.Tensor:
-        row_has_nan = torch.isnan(features).any(dim=1)
-        n_dropped = int(row_has_nan.sum().item())
-        if n_dropped and warn:
-            self.log.warning(
-                f'PCA fit: dropping {n_dropped} sample(s) with NaN; '
-                f'they are not used for fitting. Transform still returns all rows '
-                f'(NaN inputs remain NaN after projection).'
-            )
-        if not row_has_nan.any():
-            return features
-        return features[~row_has_nan]
