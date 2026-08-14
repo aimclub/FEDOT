@@ -8,6 +8,8 @@ from fedot.core.data.tensor_data.tools import drop_rows_with_nan, flatten_if_nee
 from fedot.core.operations.evaluation.operation_implementations.rules import (
     SpectrumNComponentsMethod,
     is_auto_n_components,
+    is_integral_number,
+    is_real_number,
     is_spectrum_n_components_method,
 )
 from fedot.core.operations.evaluation.operation_implementations.schema import (
@@ -258,12 +260,15 @@ def resolve_pca_n_components(
         else:
             return max(1, max_components - 1) if max_components > 1 else 1
 
-    if isinstance(n_components, float) and n_components < 1.0:
-        cumsum = torch.cumsum(explained_variance_ratio, dim=0)
-        hits = (cumsum >= n_components).nonzero(as_tuple=False)
-        if hits.numel() == 0:
-            return max_components
-        return int(hits[0].item()) + 1
+    # Non-integral float in (0, 1): explained-variance ratio.
+    if is_real_number(n_components) and not is_integral_number(n_components):
+        ratio = float(n_components)
+        if ratio < 1.0:
+            cumsum = torch.cumsum(explained_variance_ratio, dim=0)
+            hits = (cumsum >= ratio).nonzero(as_tuple=False)
+            if hits.numel() == 0:
+                return max_components
+            return int(hits[0].item()) + 1
 
     resolved = int(n_components)
     if resolved > max_components:
@@ -302,10 +307,12 @@ def resolve_truncated_svd_n_components(
             max_components=max_components,
         )
 
-    if isinstance(n_components, float) and n_components <= 1.0:
-        # Feature fraction, not explained-variance ratio.
-        resolved = int(round(n_components * n_features))
-        return max(1, min(resolved, max_components))
+    # Non-integral float in (0, 1]: feature fraction (not variance ratio).
+    if is_real_number(n_components) and not is_integral_number(n_components):
+        fraction = float(n_components)
+        if fraction <= 1.0:
+            resolved = int(round(fraction * n_features))
+            return max(1, min(resolved, max_components))
 
     return max(1, min(int(n_components), max_components))
 

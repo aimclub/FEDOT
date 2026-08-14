@@ -1,3 +1,4 @@
+import numbers
 from enum import Enum
 from typing import Any
 
@@ -17,6 +18,16 @@ PCA_SUPPORTED_N_COMPONENTS_STR = frozenset({'mle', 'auto'}) | SPECTRUM_N_COMPONE
 TRUNCATED_SVD_SUPPORTED_N_COMPONENTS_STR = frozenset({'auto'}) | SPECTRUM_N_COMPONENTS_METHODS
 DECOMPOSITION_MIN_FIT_SAMPLES = 2
 AUTO_N_COMPONENTS_ALIASES = frozenset({None, 'auto'})
+
+
+def is_integral_number(value: Any) -> bool:
+    """Return True for integral numbers, excluding ``bool``."""
+    return isinstance(value, numbers.Integral) and not isinstance(value, bool)
+
+
+def is_real_number(value: Any) -> bool:
+    """Return True for real numbers, excluding ``bool``."""
+    return isinstance(value, numbers.Real) and not isinstance(value, bool)
 
 
 def is_spectrum_n_components_method(value: Any) -> bool:
@@ -43,13 +54,12 @@ def is_valid_pca_n_components(value: Any) -> bool:
         return True
     if isinstance(value, str):
         return value in PCA_SUPPORTED_N_COMPONENTS_STR
-    if isinstance(value, bool):
-        return False
-    if isinstance(value, int):
-        return value >= 1
-    if isinstance(value, float):
-        if value < 1.0:
-            return value > 0.0
+    if is_integral_number(value):
+        return int(value) >= 1
+    if is_real_number(value):
+        # Float in (0, 1) is variance ratio; float >= 1 is treated as an int.
+        if float(value) < 1.0:
+            return float(value) > 0.0
         return True
     return False
 
@@ -62,12 +72,11 @@ def is_valid_truncated_svd_n_components(value: Any) -> bool:
         return True
     if isinstance(value, str):
         return value in TRUNCATED_SVD_SUPPORTED_N_COMPONENTS_STR
-    if isinstance(value, bool) or value is None:
-        return False
-    if isinstance(value, int):
-        return value >= 1
-    if isinstance(value, float):
-        return 0.0 < value <= 1.0
+    if is_integral_number(value):
+        return int(value) >= 1
+    if is_real_number(value):
+        # Non-integral float must be a feature-fraction in (0, 1].
+        return 0.0 < float(value) <= 1.0
     return False
 
 
@@ -104,11 +113,7 @@ def broken_stick_n_error_message(n: Any) -> str:
 
 
 def has_enough_decomposition_fit_samples(n_samples: Any) -> bool:
-    return (
-        isinstance(n_samples, int)
-        and not isinstance(n_samples, bool)
-        and n_samples >= DECOMPOSITION_MIN_FIT_SAMPLES
-    )
+    return is_integral_number(n_samples) and int(n_samples) >= DECOMPOSITION_MIN_FIT_SAMPLES
 
 
 def decomposition_fit_samples_error_message(n_samples: Any, op_name: str = 'decomposition') -> str:

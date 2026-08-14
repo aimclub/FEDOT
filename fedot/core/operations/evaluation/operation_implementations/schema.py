@@ -19,6 +19,8 @@ from fedot.core.operations.evaluation.operation_implementations.rules import (
     broken_stick_n_error_message,
     decomposition_fit_samples_error_message,
     has_enough_decomposition_fit_samples,
+    is_integral_number,
+    is_real_number,
     is_valid_pca_n_components,
     is_valid_truncated_svd_n_components,
     pca_n_components_error_message,
@@ -54,6 +56,15 @@ class PCAParamsSchema(Schema):
         if not is_valid_pca_n_components(value):
             raise ValidationError(pca_n_components_error_message(value))
 
+    @post_load
+    def coerce_n_components(self, data, **kwargs):
+        n_components = data.get('n_components')
+        if is_integral_number(n_components):
+            data['n_components'] = int(n_components)
+        elif is_real_number(n_components):
+            data['n_components'] = float(n_components)
+        return data
+
 
 class TruncatedSVDParamsSchema(Schema):
     """Marshmallow schema for TruncatedSVD hyperparameters."""
@@ -62,8 +73,8 @@ class TruncatedSVDParamsSchema(Schema):
         unknown = INCLUDE
 
     n_components = fields.Raw(required=True)
-    n_iter = fields.Integer(load_default=5)
-    n_oversamples = fields.Integer(load_default=10)
+    n_iter = fields.Raw(load_default=5)
+    n_oversamples = fields.Raw(load_default=10)
 
     @pre_load
     def fill_missing_n_components(self, data, **kwargs):
@@ -81,15 +92,27 @@ class TruncatedSVDParamsSchema(Schema):
 
     @validates('n_iter')
     def validate_n_iter(self, value: Any) -> None:
-        if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+        if not is_integral_number(value) or int(value) < 0:
             raise ValidationError(f'TruncatedSVD n_iter must be a non-negative int, got {value!r}')
 
     @validates('n_oversamples')
     def validate_n_oversamples(self, value: Any) -> None:
-        if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+        if not is_integral_number(value) or int(value) < 0:
             raise ValidationError(
                 f'TruncatedSVD n_oversamples must be a non-negative int, got {value!r}'
             )
+
+    @post_load
+    def coerce_numeric_params(self, data, **kwargs):
+        # Normalize hyperopt/numpy scalars to plain Python numbers.
+        n_components = data.get('n_components')
+        if is_integral_number(n_components):
+            data['n_components'] = int(n_components)
+        elif is_real_number(n_components):
+            data['n_components'] = float(n_components)
+        data['n_iter'] = int(data['n_iter'])
+        data['n_oversamples'] = int(data['n_oversamples'])
+        return data
 
 
 class DecompositionFitSamplesSchema(Schema):
@@ -107,6 +130,11 @@ class DecompositionFitSamplesSchema(Schema):
             op_name = self.context.get('op_name', 'decomposition')
             raise ValidationError(decomposition_fit_samples_error_message(value, op_name=op_name))
 
+    @post_load
+    def coerce_n_samples(self, data, **kwargs):
+        data['n_samples'] = int(data['n_samples'])
+        return data
+
 
 class BrokenStickNSchema(Schema):
     """Marshmallow schema for broken-stick length ``n``."""
@@ -115,8 +143,13 @@ class BrokenStickNSchema(Schema):
 
     @validates('n')
     def validate_n(self, value: Any) -> None:
-        if not isinstance(value, int) or isinstance(value, bool) or value < 1:
+        if not is_integral_number(value) or int(value) < 1:
             raise ValidationError(broken_stick_n_error_message(value))
+
+    @post_load
+    def coerce_n(self, data, **kwargs):
+        data['n'] = int(data['n'])
+        return data
 
 
 class SpectrumRankSelectionSchema(Schema):

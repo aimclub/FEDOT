@@ -105,6 +105,31 @@ def test_resolve_spectrum_rejects_unknown_method_and_missing_input():
         resolve_spectrum_n_components('elbow', max_components=3)
 
 
+@pytest.mark.unit
+def test_params_accept_numpy_scalars(train_td):
+    validated_pca = validate_pca_params({'n_components': np.int64(3)})
+    assert validated_pca['n_components'] == 3
+    assert type(validated_pca['n_components']) is int
+
+    validated_svd = validate_truncated_svd_params({
+        'n_components': np.float64(0.5),
+        'n_iter': np.int64(4),
+        'n_oversamples': np.int64(8),
+    })
+    assert validated_svd['n_components'] == 0.5
+    assert type(validated_svd['n_components']) is float
+    assert validated_svd['n_iter'] == 4
+    assert validated_svd['n_oversamples'] == 8
+
+    impl = TruncatedSVDImplementation(OperationParameters(
+        n_components=np.int64(2),
+        n_iter=np.int64(3),
+        n_oversamples=np.int64(5),
+    ))
+    impl.fit(train_td)
+    assert impl.n_components_ == 2
+
+
 # --- PCA ---
 
 
