@@ -121,6 +121,7 @@ class ApiComposer:
                              f" Set of candidate models: {self.params.get('available_operations')}.")
 
             best_pipeline, best_pipeline_candidates, gp_composer = self.compose_pipeline(
+                train_data=train_data,
                 initial_assumption=initial_assumption,
                 fitted_assumption=fitted_assumption,
                 data_source_context=data_source_context,
@@ -360,6 +361,7 @@ class ApiComposer:
 
     def compose_pipeline(
         self,
+        train_data: TensorData,
         initial_assumption: Sequence[Pipeline],
         fitted_assumption: Pipeline,
         data_source_context: ComposerTensorDataSourceContext
@@ -389,6 +391,7 @@ class ApiComposer:
                 self.log.message('Pipeline composition started.')
                 self.was_optimised = False
                 best_pipelines = gp_composer.compose_pipeline_with_tensor_data(
+                    train_data=train_data,
                     data_source_context=data_source_context,
                 )
                 best_pipeline_candidates = gp_composer.best_models

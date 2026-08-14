@@ -26,7 +26,7 @@ class ApiParamsRepository:
                                   'early_stopping_iterations', 'early_stopping_timeout',
                                   'parallelization_mode',
                                   'show_progress', 'collect_intermediate_metric', 'keep_n_best',
-                                  'keep_history', 'history_dir'}
+                                  'keep_history', 'history_dir', 'cv_folds', 'evaluation_mode'}
 
     STATIC_INDIVIDUAL_METADATA_KEYS = set()
 

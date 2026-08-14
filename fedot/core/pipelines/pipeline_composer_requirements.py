@@ -4,6 +4,10 @@ from typing import Optional, Sequence
 from golem.core.optimisers.optimization_parameters import GraphRequirements
 
 from fedot.core.pipelines.schemas import validate_cv_folds
+from fedot.core.pipelines.pipeline_composer_requirements_rules import (
+    PipelineEvaluationMode,
+    resolve_pipeline_evaluation_mode,
+)
 
 
 @dataclass
@@ -21,7 +25,9 @@ class PipelineComposerRequirements(GraphRequirements):
     primary: Sequence[str] = tuple()
     secondary: Sequence[str] = tuple()
     cv_folds: Optional[int] = None
+    evaluation_mode: PipelineEvaluationMode = PipelineEvaluationMode.default
 
     def __post_init__(self):
         super().__post_init__()
         validate_cv_folds(self.cv_folds)
+        self.evaluation_mode = resolve_pipeline_evaluation_mode(self.evaluation_mode)

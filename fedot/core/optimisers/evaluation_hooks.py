@@ -10,16 +10,19 @@ from golem.core.optimisers.fitness import Fitness
 from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.data.tensor_data import TensorData
 
 from fedot.core.optimisers.objective.data_objective_eval import (
     PipelineObjectiveEvaluateWithTensorData, TensorDataSource,
 )
+from fedot.core.optimisers.objective.oof_objective_eval import PipelineOOFObjectiveEvaluate
 from fedot.core.optimisers.objective.evaluation_contracts import (
     PipelineValidator, RetryPolicy, validate_pipeline,
 )
 from fedot.core.optimisers.population import (
     BoundedReproduction, ContractEvaluationDispatcher, ReproductionPolicy, UniqueEvaluationDispatcher,
 )
+from fedot.core.pipelines.pipeline_composer_requirements_rules import PipelineEvaluationMode
 
 
 @dataclass(frozen=True)
@@ -36,6 +39,16 @@ class EvaluationRequest:
     validator: PipelineValidator = validate_pipeline
     expected_folds: Optional[int] = None
     cache_namespace: str = 'fedot-evaluation-v1'
+    evaluation_mode: PipelineEvaluationMode = PipelineEvaluationMode.default
+    tensor_data: Optional[TensorData] = None
+    cv_folds: Optional[int] = None
+
+    def __post_init__(self):
+        if self.evaluation_mode is PipelineEvaluationMode.oof:
+            if not isinstance(self.tensor_data, TensorData):
+                raise TypeError('OOF evaluation requires the source TensorData')
+            if isinstance(self.cv_folds, bool) or not isinstance(self.cv_folds, int) or self.cv_folds < 2:
+                raise ValueError('OOF evaluation requires cv_folds >= 2')
 
 
 class EvaluationService(Protocol):
@@ -54,7 +67,18 @@ class EvaluatorFactory(Protocol):
         ...
 
 
-def build_evaluator(request: EvaluationRequest) -> PipelineObjectiveEvaluateWithTensorData:
+def build_evaluator(request: EvaluationRequest) -> EvaluationService:
+    if request.evaluation_mode is PipelineEvaluationMode.oof:
+        return PipelineOOFObjectiveEvaluate(
+            objective=request.objective,
+            tensor_data=request.tensor_data,
+            cv_folds=request.cv_folds,
+            time_constraint=request.time_constraint,
+            eval_n_jobs=request.eval_n_jobs,
+            retry_policy=request.retry_policy,
+            validator=request.validator,
+            cache_namespace=request.cache_namespace,
+        )
     return PipelineObjectiveEvaluateWithTensorData(
         request.objective, request.data_producer, time_constraint=request.time_constraint,
         validation_blocks=request.validation_blocks, operations_cache=request.operations_cache,

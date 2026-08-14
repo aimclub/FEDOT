@@ -10,12 +10,14 @@ from fedot import create_data
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.optimisers.evaluation_hooks import EvaluationRequest, EvolutionHooks, build_evaluator
+from fedot.core.optimisers.objective.oof_objective_eval import PipelineOOFObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_context import build_external_holdout_composer_tensor_data_source_context
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.optimisers.population import ReproductionPolicy, UniqueEvaluationDispatcher
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.pipelines.pipeline_composer_requirements_rules import PipelineEvaluationMode
 
 
 def training_data():
@@ -78,6 +80,19 @@ def test_public_request_factory_applies_retry_and_count_contract():
     evaluator = build_evaluator(request)
     assert evaluator.retry_policy == RetryPolicy(3)
     assert evaluator.expected_folds == 2
+
+
+def test_public_request_factory_selects_oof_evaluator():
+    train = training_data()
+    request = EvaluationRequest(
+        MetricsObjective([lambda *a, **kw: 1.]),
+        lambda: (),
+        evaluation_mode=PipelineEvaluationMode.oof,
+        tensor_data=train,
+        cv_folds=2,
+    )
+
+    assert isinstance(build_evaluator(request), PipelineOOFObjectiveEvaluate)
 
 
 def test_builder_rejects_untyped_hook_configuration():

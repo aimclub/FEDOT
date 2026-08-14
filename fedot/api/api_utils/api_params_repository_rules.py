@@ -27,6 +27,7 @@ def build_default_api_params(task_type: TaskTypesEnum, default_data_dir: str) ->
         available_operations=None,
         metric=None,
         cv_folds=default_cv_folds_for_task(task_type),
+        evaluation_mode='default',
         genetic_scheme=None,
         early_stopping_iterations=None,
         early_stopping_timeout=10,
