@@ -66,7 +66,7 @@
         "tensor",
         "feature_reduction"
       ],
-      "description": "TensorData dimensionality / feature-engineering transforms (e.g. PCA)"
+      "description": "TensorData dimensionality / feature-engineering transforms (e.g. PCA, TruncatedSVD)"
     },
     "custom_ts_preprocessing": {
       "tasks": "[TaskTypesEnum.ts_forecasting]",
@@ -352,6 +352,21 @@
       ]
     },
     "pca": {
+      "meta": "tensor_dimension_transformation",
+      "presets": [
+        "fast_train",
+        "*tree"
+      ],
+      "tags": [
+        "linear",
+        "dimensionality_transforming",
+        "correct_params",
+        "non_applicable_for_ts",
+        "feature_reduction",
+        "tensor"
+      ]
+    },
+    "truncated_svd": {
       "meta": "tensor_dimension_transformation",
       "presets": [
         "fast_train",

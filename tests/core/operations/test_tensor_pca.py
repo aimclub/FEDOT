@@ -54,7 +54,7 @@ def test_pca_supports_variance_ratio(train_td):
 @pytest.mark.unit
 def test_pca_init_loads_default_n_components():
     impl = PCAImplementation(OperationParameters())
-    assert impl.params.get('n_components') == 0.7
+    assert impl.params.get('n_components') == 'auto'
 
 
 @pytest.mark.unit
@@ -68,7 +68,7 @@ def test_pca_params_schema_rejects_invalid_n_components():
         validate_pca_params({'n_components': 0})
 
     with pytest.raises(FedotValidationError):
-        validate_pca_params({'n_components': 'auto'})
+        validate_pca_params({'n_components': 'random'})
 
 
 @pytest.mark.unit
@@ -77,8 +77,21 @@ def test_pca_params_schema_fills_missing_n_components():
         validate_pca_params,
     )
 
-    assert validate_pca_params({})['n_components'] == 0.7
-    assert validate_pca_params({'n_components': None})['n_components'] == 0.7
+    assert validate_pca_params({})['n_components'] == 'auto'
+    assert validate_pca_params({'n_components': None})['n_components'] == 'auto'
+
+
+@pytest.mark.unit
+def test_pca_auto_n_components_uses_half_features_budget(train_td):
+    from fedot.core.operations.evaluation.operation_implementations.tools import (
+        default_components_budget,
+    )
+
+    impl = PCAImplementation(OperationParameters(n_components='auto'))
+    impl.fit(train_td)
+    expected = default_components_budget(impl.n_samples_, impl.n_features_)
+    assert impl.n_components_ == expected
+    assert impl.params.get('n_components') == expected
 
 
 @pytest.mark.unit

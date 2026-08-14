@@ -481,6 +481,20 @@ class PipelineSearchSpace(SearchSpace):
                     'sampling-scope': [0.1, 0.99],
                     'type': 'continuous'}
             },
+            'truncated_svd': {
+                'n_components': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [1, 20],
+                    'type': 'discrete'},
+                'n_iter': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [2, 10],
+                    'type': 'discrete'},
+                'n_oversamples': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [2, 20],
+                    'type': 'discrete'},
+            },
             'optional_preprocessing': {
                 'imputation_method': {
                     'hyperopt-dist': hp.choice,

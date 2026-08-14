@@ -204,7 +204,12 @@
     "balance_ratio": 1
   },
   "pca": {
-    "n_components": 0.7
+    "n_components": "auto"
+  },
+  "truncated_svd": {
+    "n_components": "auto",
+    "n_iter": 5,
+    "n_oversamples": 10
   },
   "dask_pca": {
     "svd_solver": "full",
