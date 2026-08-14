@@ -32,11 +32,9 @@ from fedot.validation.context import ValidationContext
 
 
 class PCAParamsSchema(Schema):
-    """Hyperparameters for Tensor PCA pipeline node.
+    """Marshmallow schema for PCA hyperparameters.
 
-    Missing / ``None`` ``n_components`` is filled from repository defaults in
-    ``@pre_load``. Explicitly invalid values fail (no soft recovery via
-    ``load_default``).
+    Missing / ``None`` ``n_components`` is filled from repository defaults.
     """
 
     class Meta:
@@ -58,11 +56,7 @@ class PCAParamsSchema(Schema):
 
 
 class TruncatedSVDParamsSchema(Schema):
-    """Hyperparameters for TruncatedSVD.
-
-    ``n_components``: positive int, float feature-fraction in ``(0, 1]``,
-    ``auto``, ``elbow``, or ``broken_stick``.
-    """
+    """Marshmallow schema for TruncatedSVD hyperparameters."""
 
     class Meta:
         unknown = INCLUDE
@@ -99,7 +93,7 @@ class TruncatedSVDParamsSchema(Schema):
 
 
 class DecompositionFitSamplesSchema(Schema):
-    """Runtime check: enough finite samples remain after NaN drop."""
+    """Marshmallow schema: enough finite samples remain after NaN drop."""
 
     class Meta:
         unknown = INCLUDE
@@ -115,7 +109,7 @@ class DecompositionFitSamplesSchema(Schema):
 
 
 class BrokenStickNSchema(Schema):
-    """Validate broken-stick length ``n`` (number of spectrum pieces)."""
+    """Marshmallow schema for broken-stick length ``n``."""
 
     n = fields.Raw(required=True)
 
@@ -126,7 +120,7 @@ class BrokenStickNSchema(Schema):
 
 
 class SpectrumRankSelectionSchema(Schema):
-    """Validate spectrum rank-selection method and required scree inputs."""
+    """Marshmallow schema for spectrum rank-selection inputs."""
 
     method = fields.Raw(required=True)
     singular_values = fields.Raw(load_default=None, allow_none=True)
@@ -162,7 +156,15 @@ def validate_pca_params(
     params: Optional[Mapping[str, Any]] = None,
     context: ValidationContext = None,
 ) -> dict:
-    """Validate / complete PCA params via marshmallow (defaults from repository)."""
+    """Validate and complete PCA params.
+
+    Args:
+        params: Raw parameter mapping.
+        context: Optional validation context.
+
+    Returns:
+        Validated parameter dict.
+    """
     return load_validated(
         PCAParamsSchema(),
         dict(params or {}),
@@ -175,7 +177,15 @@ def validate_truncated_svd_params(
     params: Optional[Mapping[str, Any]] = None,
     context: ValidationContext = None,
 ) -> dict:
-    """Validate / complete TruncatedSVD params (int / fraction / auto / spectrum)."""
+    """Validate and complete TruncatedSVD params.
+
+    Args:
+        params: Raw parameter mapping.
+        context: Optional validation context.
+
+    Returns:
+        Validated parameter dict.
+    """
     return load_validated(
         TruncatedSVDParamsSchema(),
         dict(params or {}),
@@ -190,7 +200,16 @@ def validate_decomposition_fit_samples(
     op_name: str = 'decomposition',
     context: ValidationContext = None,
 ) -> int:
-    """Ensure a linear decomposition fit has enough finite samples."""
+    """Validate that enough finite samples remain for fit.
+
+    Args:
+        n_samples: Number of finite rows after NaN drop.
+        op_name: Operation name for the error message.
+        context: Optional validation context.
+
+    Returns:
+        Validated ``n_samples``.
+    """
     schema = DecompositionFitSamplesSchema()
     schema.context['op_name'] = op_name
     validated = load_validated(
@@ -206,7 +225,15 @@ def validate_broken_stick_n(
     n: Any,
     context: ValidationContext = None,
 ) -> int:
-    """Ensure broken-stick length is a positive int."""
+    """Validate broken-stick length.
+
+    Args:
+        n: Candidate length.
+        context: Optional validation context.
+
+    Returns:
+        Validated positive int ``n``.
+    """
     return load_validated(
         BrokenStickNSchema(),
         {'n': n},
@@ -223,7 +250,18 @@ def validate_spectrum_rank_selection(
     max_components: int,
     context: ValidationContext = None,
 ) -> dict:
-    """Validate spectrum method + presence of scree inputs; coerce method to enum."""
+    """Validate spectrum method and scree inputs.
+
+    Args:
+        method: ``elbow`` / ``broken_stick`` (str or enum).
+        singular_values: Singular values tensor, if available.
+        proportions: Explained-variance shares, if available.
+        max_components: Rank upper bound.
+        context: Optional validation context.
+
+    Returns:
+        Validated dict with enum ``method`` and spectrum fields.
+    """
     return load_validated(
         SpectrumRankSelectionSchema(),
         {

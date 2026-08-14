@@ -6,7 +6,7 @@ TRUNCATED_SVD_OPERATION_TYPE = 'truncated_svd'
 
 
 class SpectrumNComponentsMethod(str, Enum):
-    """Rank selection from the singular spectrum (scree)."""
+    """Spectrum-based rank selection methods for ``n_components``."""
 
     ELBOW = 'elbow'
     BROKEN_STICK = 'broken_stick'
@@ -20,14 +20,14 @@ AUTO_N_COMPONENTS_ALIASES = frozenset({None, 'auto'})
 
 
 def is_spectrum_n_components_method(value: Any) -> bool:
-    """Whether ``n_components`` selects rank from the singular spectrum."""
+    """Return True if ``value`` is an elbow / broken-stick method."""
     if isinstance(value, SpectrumNComponentsMethod):
         return True
     return isinstance(value, str) and value in SPECTRUM_N_COMPONENTS_METHODS
 
 
 def is_auto_n_components(value: Any) -> bool:
-    """Whether ``n_components`` means data-dependent default (half-rank budget)."""
+    """Return True if ``value`` means the data-dependent ``auto`` budget."""
     if value is None:
         return True
     if isinstance(value, str) and value.lower() == 'auto':
@@ -36,7 +36,7 @@ def is_auto_n_components(value: Any) -> bool:
 
 
 def is_valid_pca_n_components(value: Any) -> bool:
-    """Whether ``n_components`` is an allowed PCA hyperparameter value."""
+    """Return True if ``value`` is a valid PCA ``n_components``."""
     if is_auto_n_components(value):
         return True
     if isinstance(value, SpectrumNComponentsMethod):
@@ -55,7 +55,7 @@ def is_valid_pca_n_components(value: Any) -> bool:
 
 
 def is_valid_truncated_svd_n_components(value: Any) -> bool:
-    """TruncatedSVD: int / feature-fraction / ``auto`` / spectrum methods."""
+    """Return True if ``value`` is a valid TruncatedSVD ``n_components``."""
     if is_auto_n_components(value):
         return True
     if isinstance(value, SpectrumNComponentsMethod):

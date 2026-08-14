@@ -23,13 +23,20 @@ from fedot.core.operations.operation_parameters import OperationParameters
 
 
 class PCAImplementation(TensorDataOperationImplementation):
-    """PCA for TensorData via torch SVD (sklearn-``pca`` analogue).
+    """PCA for TensorData via centered torch SVD.
 
-    ``n_components`` is validated/completed via :func:`validate_pca_params`
-    (marshmallow + ``default_operation_params.json``).
+    Args:
+        params: Operation parameters. ``n_components`` may be:
 
-    Fit drops samples that contain NaN (with a warning). Transform keeps the
-    original number of rows: NaN inputs stay NaN after projection.
+            * ``int`` — fixed number of components
+            * ``float`` in ``(0, 1]`` — explained variance ratio
+            * ``'auto'`` — half-feature budget
+            * ``'mle'`` — MLE-like rank heuristic
+            * ``'elbow'`` / ``'broken_stick'`` — spectrum rank selection
+
+    Note:
+        Fit drops rows with NaN (warning). Transform keeps all rows; NaN
+        inputs stay NaN after projection.
     """
 
     def __init__(self, params: Optional[OperationParameters] = None):
@@ -45,6 +52,14 @@ class PCAImplementation(TensorDataOperationImplementation):
         self.n_samples_: Optional[int] = None
 
     def fit(self, data: TensorData):
+        """Fit PCA on finite samples of ``data.features``.
+
+        Args:
+            data: Training TensorData.
+
+        Returns:
+            Self.
+        """
         features = flatten_if_needed(data.features)
         self.n_features_ = features.shape[1]
 
@@ -74,8 +89,7 @@ class PCAImplementation(TensorDataOperationImplementation):
         self.mean_ = clean.mean(dim=0)
         centered = clean - self.mean_
 
-        # Full SVD on centered matrix: X = U S V^T, components = rows of V^T
-        # (needed when n_components is a variance ratio / mle / spectrum method).
+        # Full thin SVD: needed for variance ratio / mle / elbow / broken_stick.
         _, singular_values, vh = torch.linalg.svd(centered, full_matrices=False)
         explained_variance = (singular_values ** 2) / max(self.n_samples_ - 1, 1)
         total_var = explained_variance.sum()
@@ -98,6 +112,14 @@ class PCAImplementation(TensorDataOperationImplementation):
         return self
 
     def transform(self, data: TensorData) -> TensorData:
+        """Project ``data.features`` onto fitted components.
+
+        Args:
+            data: TensorData to transform.
+
+        Returns:
+            TensorData with projected features.
+        """
         if self.mean_ is None or self.components_ is None:
             raise RuntimeError('PCAImplementation is not fitted yet.')
 
@@ -110,12 +132,22 @@ class PCAImplementation(TensorDataOperationImplementation):
 
 
 class TruncatedSVDImplementation(TensorDataOperationImplementation):
-    """Truncated SVD for TensorData via ``torch.svd_lowrank`` (no centering).
+    """Truncated SVD for TensorData (no centering).
 
-    Unlike PCA, does not center features. ``n_components`` may be a positive int,
-    a float feature-fraction in ``(0, 1]``, ``auto`` (half-feature budget), or a
-    spectrum method (``elbow`` / ``broken_stick``) that needs a thin SVD first.
-    Useful after OHE / high-dimensional encodings.
+    Args:
+        params: Operation parameters. ``n_components`` may be:
+
+            * ``int`` — fixed number of components
+            * ``float`` in ``(0, 1]`` — fraction of ``n_features``
+            * ``'auto'`` — half-feature budget
+            * ``'elbow'`` / ``'broken_stick'`` — spectrum rank selection
+
+            ``int`` / float / ``auto`` use ``torch.svd_lowrank``;
+            spectrum modes use thin ``torch.linalg.svd``.
+
+    Note:
+        Fit drops rows with NaN (warning). Transform keeps all rows; NaN
+        inputs stay NaN after projection.
     """
 
     def __init__(self, params: Optional[OperationParameters] = None):
@@ -133,6 +165,14 @@ class TruncatedSVDImplementation(TensorDataOperationImplementation):
         self.n_samples_: Optional[int] = None
 
     def fit(self, data: TensorData):
+        """Fit TruncatedSVD on finite samples of ``data.features``.
+
+        Args:
+            data: Training TensorData.
+
+        Returns:
+            Self.
+        """
         features = flatten_if_needed(data.features)
         self.n_features_ = features.shape[1]
 
@@ -152,7 +192,7 @@ class TruncatedSVDImplementation(TensorDataOperationImplementation):
 
         mode = self.params.get('n_components')
         if is_spectrum_n_components_method(mode):
-            # Spectrum rank selection needs the full thin singular spectrum.
+            # Spectrum methods need the full thin singular spectrum.
             _, singular_values, vh = torch.linalg.svd(clean, full_matrices=False)
             k = resolve_truncated_svd_n_components(
                 mode,
@@ -175,7 +215,7 @@ class TruncatedSVDImplementation(TensorDataOperationImplementation):
         n_oversamples = int(self.params.get('n_oversamples', 10))
         q = min(k + n_oversamples, max_rank)
 
-        # Randomized / truncated SVD: only approximate rank-q factors, keep k.
+        # Randomized SVD: approximate rank-q factors, keep k.
         _, _, V = torch.svd_lowrank(clean, q=q, niter=n_iter)
         self.n_components_ = k
         self.components_ = V[:, :k].T.contiguous()
@@ -183,6 +223,14 @@ class TruncatedSVDImplementation(TensorDataOperationImplementation):
         return self
 
     def transform(self, data: TensorData) -> TensorData:
+        """Project ``data.features`` onto fitted components.
+
+        Args:
+            data: TensorData to transform.
+
+        Returns:
+            TensorData with projected features.
+        """
         if self.components_ is None:
             raise RuntimeError('TruncatedSVDImplementation is not fitted yet.')
 

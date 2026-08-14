@@ -24,7 +24,17 @@ def prepare_finite_features(
     *,
     require_min_samples: bool = True,
 ) -> torch.Tensor:
-    """Flatten features, drop NaN rows, optionally enforce min sample count."""
+    """Flatten features and drop rows that contain NaN.
+
+    Args:
+        features: Feature tensor.
+        log: Logger used for the NaN-drop warning.
+        op_name: Operation name in validation / warning messages.
+        require_min_samples: If True, require at least two finite rows.
+
+    Returns:
+        Finite feature rows only.
+    """
     features = flatten_if_needed(features)
     clean, n_dropped = drop_rows_with_nan(features)
     if n_dropped:
@@ -39,7 +49,15 @@ def prepare_finite_features(
 
 
 def replace_projected_features(data: TensorData, projected: torch.Tensor) -> TensorData:
-    """Write projected features back into a TensorData container."""
+    """Replace features in ``data`` with projected values.
+
+    Args:
+        data: Source TensorData.
+        projected: Projected feature matrix.
+
+    Returns:
+        Updated TensorData (numerical indices reset).
+    """
     return replace(
         data,
         features=projected,
@@ -51,43 +69,61 @@ def replace_projected_features(data: TensorData, projected: torch.Tensor) -> Ten
 
 
 def max_decomposition_rank(n_samples: int, n_features: int) -> int:
-    """Hard SVD rank bound ``min(n_samples, n_features)`` (at least 1)."""
+    """Return SVD rank bound ``max(min(n_samples, n_features), 1)``.
+
+    Args:
+        n_samples: Number of finite training rows.
+        n_features: Feature width.
+
+    Returns:
+        Maximum feasible number of components.
+    """
     return max(min(n_samples, n_features), 1)
 
 
 def default_components_budget(n_samples: int, n_features: int) -> int:
-    """Data-dependent default ``k`` when ``n_components='auto'`` / unset.
+    """Default ``k`` for ``n_components='auto'``: half features, capped by rank.
 
-    Uses at most half of the feature width, still capped by SVD rank:
+    Args:
+        n_samples: Number of finite training rows.
+        n_features: Feature width.
 
-    ``k = max(1, min(rank, n_features // 2))``
-
-    This is a practical default for both PCA and TruncatedSVD: keeps compression
-    meaningful on wide tables (e.g. after OHE) without requiring a variance
-    target, and avoids keeping nearly full rank.
+    Returns:
+        ``max(1, min(rank, n_features // 2))``.
     """
+    # Practical default for wide tables (e.g. after OHE): compress without a
+    # variance target and without keeping nearly full rank.
     rank = max_decomposition_rank(n_samples, n_features)
     half_features = max(n_features // 2, 1)
     return max(1, min(rank, half_features))
 
 
 def broken_stick_expectations(n: int, *, device=None, dtype=None) -> torch.Tensor:
-    """Broken-stick share expectations for ``n`` ordered components.
+    """Broken-stick expected shares for ``n`` ordered components.
 
-    ``b_k = (1 / n) * sum_{i=k}^{n} (1 / i)`` for ``k = 1..n`` (1-based).
+    Args:
+        n: Number of spectrum pieces (``n >= 1``).
+        device: Torch device for the result.
+        dtype: Torch dtype for the result.
+
+    Returns:
+        Tensor of length ``n`` with expected shares (sums to 1).
     """
     n = validate_broken_stick_n(n)
+    # b_k = (1/n) * sum_{i=k}^{n} (1/i), k = 1..n
     inv = 1.0 / torch.arange(1, n + 1, device=device, dtype=dtype or torch.float32)
-    # suffix[k] = sum_{i=k}^{n-1} inv[i] = sum_{j=k+1}^{n} 1/j
     suffix = torch.flip(torch.cumsum(torch.flip(inv, dims=(0,)), dim=0), dims=(0,))
     return suffix / n
 
 
 def n_components_from_broken_stick(proportions: torch.Tensor) -> int:
-    """Keep leading components whose share exceeds the broken-stick model.
+    """Select leading components above broken-stick expectations.
 
-    ``proportions`` should be non-increasing explained-variance shares (or any
-    positive spectrum that will be renormalized to sum to 1).
+    Args:
+        proportions: Spectrum shares (renormalized to sum 1 if needed).
+
+    Returns:
+        Number of leading components to keep (at least 1).
     """
     values = proportions.detach().flatten()
     n = int(values.numel())
@@ -100,7 +136,7 @@ def n_components_from_broken_stick(proportions: torch.Tensor) -> int:
     shares = values / values.sum()
     expected = broken_stick_expectations(n, device=shares.device, dtype=shares.dtype)
     exceed = shares > expected
-    # First contiguous run from the start; always keep at least one component.
+    # Keep the first contiguous run from the start.
     stop = (~exceed).nonzero(as_tuple=False)
     if stop.numel() == 0:
         return n
@@ -108,9 +144,13 @@ def n_components_from_broken_stick(proportions: torch.Tensor) -> int:
 
 
 def n_components_from_elbow(spectrum: torch.Tensor) -> int:
-    """Elbow (knee) cut: max distance from the chord joining first and last SV.
+    """Select rank by elbow (max distance to the first–last chord).
 
-    Returns ``knee_index + 1`` (include the elbow point), at least 1.
+    Args:
+        spectrum: Decreasing singular values (or similar scree curve).
+
+    Returns:
+        ``knee_index + 1`` (includes the elbow point), at least 1.
     """
     values = spectrum.detach().flatten()
     n = int(values.numel())
@@ -145,10 +185,17 @@ def resolve_spectrum_n_components(
     proportions: Optional[torch.Tensor] = None,
     max_components: int,
 ) -> int:
-    """Map ``elbow`` / ``broken_stick`` + spectrum → feasible ``k``.
+    """Resolve ``elbow`` / ``broken_stick`` to a feasible component count.
 
-    Prefer ``singular_values`` for elbow. For ``broken_stick``,
-    ``proportions`` (already normalized shares) may be used instead of ``S^2``.
+    Args:
+        method: Spectrum rank-selection method.
+        singular_values: Singular values (preferred for elbow; used as ``S^2``
+            for broken stick when proportions are absent).
+        proportions: Explained-variance shares for broken stick.
+        max_components: Upper bound from data rank.
+
+    Returns:
+        Selected number of components in ``[1, max_components]``.
     """
     validated = validate_spectrum_rank_selection(
         method,
@@ -163,6 +210,7 @@ def resolve_spectrum_n_components(
     if method_enum is SpectrumNComponentsMethod.ELBOW:
         spectrum = sv if sv is not None else props
     else:
+        # Prefer ready proportions; otherwise use eigenvalue proxies S^2.
         spectrum = props if props is not None else sv.square()
 
     k = SPECTRUM_N_COMPONENTS[method_enum](spectrum)
@@ -177,7 +225,19 @@ def resolve_pca_n_components(
     explained_variance_ratio: torch.Tensor,
     singular_values: Optional[torch.Tensor] = None,
 ) -> int:
-    """Resolve PCA ``n_components`` (auto / int / variance / mle / spectrum) to ``k``."""
+    """Resolve PCA ``n_components`` to an integer rank.
+
+    Args:
+        n_components: Int, variance ratio, ``auto``, ``mle``, ``elbow``, or
+            ``broken_stick``.
+        n_samples: Number of finite training rows.
+        n_features: Feature width.
+        explained_variance_ratio: Full explained-variance shares.
+        singular_values: Singular values for spectrum methods.
+
+    Returns:
+        Feasible number of components.
+    """
     max_components = max_decomposition_rank(n_samples, n_features)
 
     if is_auto_n_components(n_components):
@@ -192,7 +252,7 @@ def resolve_pca_n_components(
         )
 
     if isinstance(n_components, str):
-        # Schema allows only ``mle`` among remaining strings.
+        # Remaining allowed string is ``mle``.
         if n_samples < n_features:
             n_components = 0.5
         else:
@@ -218,12 +278,17 @@ def resolve_truncated_svd_n_components(
     n_features: int,
     singular_values: Optional[torch.Tensor] = None,
 ) -> int:
-    """Resolve TruncatedSVD ``n_components`` to feasible ``k``.
+    """Resolve TruncatedSVD ``n_components`` to an integer rank.
 
-    - ``auto`` / unset → half-feature budget
-    - float in ``(0, 1]`` → fraction of ``n_features`` (not explained variance)
-    - ``elbow`` / ``broken_stick`` → spectrum methods (require ``singular_values``)
-    - positive int → clamped to SVD rank
+    Args:
+        n_components: Int, feature-fraction in ``(0, 1]``, ``auto``, ``elbow``,
+            or ``broken_stick``.
+        n_samples: Number of finite training rows.
+        n_features: Feature width.
+        singular_values: Required for spectrum methods.
+
+    Returns:
+        Feasible number of components.
     """
     max_components = max_decomposition_rank(n_samples, n_features)
 
@@ -238,6 +303,7 @@ def resolve_truncated_svd_n_components(
         )
 
     if isinstance(n_components, float) and n_components <= 1.0:
+        # Feature fraction, not explained-variance ratio.
         resolved = int(round(n_components * n_features))
         return max(1, min(resolved, max_components))
 
@@ -249,7 +315,16 @@ def project_with_components(
     components: torch.Tensor,
     mean: Optional[torch.Tensor] = None,
 ) -> torch.Tensor:
-    """Project features with optional centering (PCA) onto ``components`` rows."""
+    """Project features onto component rows, optionally after centering.
+
+    Args:
+        features: Feature matrix.
+        components: Component matrix with shape ``(k, n_features)``.
+        mean: Optional feature mean (PCA). If None, no centering.
+
+    Returns:
+        Projected features of shape ``(n_samples, k)``.
+    """
     components = components.to(device=features.device, dtype=features.dtype)
     if mean is not None:
         features = features - mean.to(device=features.device, dtype=features.dtype)
