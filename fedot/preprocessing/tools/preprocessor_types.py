@@ -1,4 +1,4 @@
-from typing import Optional, Any, Dict, TypeAlias, Union
+from typing import Optional, Any, Dict, Type, TypeAlias, Union, Mapping as TypingMapping
 
 from dataclasses import dataclass, field
 from golem.utilities.data_structures import ComparableEnum as Enum
@@ -98,6 +98,32 @@ class ImagePreprocessingMethodEnum(Enum):
 class FilteringMethodEnum(Enum):
     """Enumeration of filteringmethod options."""
     quantile = "quantile"
+    variance = "variance"
+
+
+@dataclass(frozen=True)
+class OptionalStepSpec:
+    """Optional-step registry entry: method handlers + flat-knob policy.
+
+    ``handlers`` maps method enum → handler class.
+
+    ``flat_auto_default``:
+        - ``True`` / ``False`` — expose ``<step>_method``; when ``auto=True`` and
+          the method is unset, enable with ``auto`` or skip respectively;
+        - ``None`` — strategy-only step (no flat knob).
+    """
+
+    handlers: TypingMapping[Any, Type[AbstractPreprocessingHandler]]
+    flat_auto_default: Optional[bool] = None
+
+
+def step_method_handlers(entry: Any) -> TypingMapping[Any, Any]:
+    """Unwrap ``OptionalStepSpec`` or plain ``{method: handler_cls}`` dict."""
+    if entry is None:
+        return {}
+    if isinstance(entry, OptionalStepSpec):
+        return entry.handlers
+    return entry
 
 
 @dataclass

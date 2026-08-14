@@ -17,6 +17,8 @@ from fedot.industrial.core.architecture.preprocessing.ts_optional_service import
 from fedot.preprocessing.service.optional_service import OptionalService
 from fedot.preprocessing.service.tabular_optional_service import OptionalTabularService
 from fedot.preprocessing.tools.preprocessor_types import (
+    FilteringMethodEnum,
+    ImagePreprocessingMethodEnum,
     ImputationMethodEnum,
     PreprocessingStepEnum,
     ScalingMethodEnum,
@@ -218,9 +220,8 @@ def test_fit_uses_flat_imputation_and_scaling_params(train_td):
     strategy = TensorOptionalPreprocessingStrategy(
         'optional_preprocessing',
         OperationParameters(
-            use_imputation=True,
+            auto=False,
             imputation_method='mean',
-            use_scaling=False,
             scaling_method='none',
         ),
     )
@@ -233,27 +234,170 @@ def test_fit_uses_flat_imputation_and_scaling_params(train_td):
 
 
 @pytest.mark.unit
-def test_build_optional_strategy_from_flat_params(train_td):
+@pytest.mark.parametrize(
+    'params, expected',
+    [
+        # auto=True (default): OptionalStepSpec.flat_auto_default → imputation/scaling auto, filtering skip
+        (
+            {'auto': True},
+            {
+                PreprocessingStepEnum.imputation: None,
+                PreprocessingStepEnum.scaling: None,
+            },
+        ),
+        (
+            {},
+            {
+                PreprocessingStepEnum.imputation: None,
+                PreprocessingStepEnum.scaling: None,
+            },
+        ),
+        # auto=True + explicit method overrides defaults
+        (
+            {
+                'auto': True,
+                'imputation_method': 'median',
+                'scaling_method': 'standard',
+            },
+            {
+                PreprocessingStepEnum.imputation: ImputationMethodEnum.median,
+                PreprocessingStepEnum.scaling: ScalingMethodEnum.standard,
+            },
+        ),
+        # auto=True + none skips a default-enabled step
+        (
+            {'auto': True, 'scaling_method': 'none'},
+            {
+                PreprocessingStepEnum.imputation: None,
+            },
+        ),
+        # auto=True + method enables a default-disabled step
+        (
+            {'auto': True, 'filtering_method': 'variance'},
+            {
+                PreprocessingStepEnum.imputation: None,
+                PreprocessingStepEnum.scaling: None,
+                PreprocessingStepEnum.filtering: FilteringMethodEnum.variance,
+            },
+        ),
+        # auto=True + filtering_method='auto' enables filtering as planner auto
+        (
+            {'auto': True, 'filtering_method': 'auto'},
+            {
+                PreprocessingStepEnum.imputation: None,
+                PreprocessingStepEnum.scaling: None,
+                PreprocessingStepEnum.filtering: None,
+            },
+        ),
+        # explicit 'auto' string is equivalent to planner auto (None stage config)
+        (
+            {
+                'auto': False,
+                'imputation_method': 'auto',
+                'scaling_method': 'auto',
+            },
+            {
+                PreprocessingStepEnum.imputation: None,
+                PreprocessingStepEnum.scaling: None,
+            },
+        ),
+        # auto=False: unset methods are skipped
+        (
+            {'auto': False},
+            {},
+        ),
+        # auto=False: only explicitly set methods apply
+        (
+            {
+                'auto': False,
+                'imputation_method': 'mean',
+                'scaling_method': 'none',
+                'filtering_method': 'quantile',
+            },
+            {
+                PreprocessingStepEnum.imputation: ImputationMethodEnum.mean,
+                PreprocessingStepEnum.filtering: FilteringMethodEnum.quantile,
+            },
+        ),
+    ],
+)
+def test_build_optional_strategy_flat_knob_variants(train_td, params, expected):
     from fedot.core.operations.evaluation.optional_preprocessing_strategy_builder import (
         OptionalStrategySpec,
         build_optional_strategy_from_node_params,
     )
 
-    strategy = build_optional_strategy_from_node_params(
-        train_td,
-        {
-            'use_imputation': True,
-            'imputation_method': 'median',
-            'use_scaling': True,
-            'scaling_method': 'standard',
-        },
-    )
+    strategy = build_optional_strategy_from_node_params(train_td, params)
 
     assert isinstance(strategy, OptionalStrategySpec)
-    assert PreprocessingStepEnum.imputation in strategy
-    assert strategy[PreprocessingStepEnum.imputation] == ImputationMethodEnum.median
-    assert PreprocessingStepEnum.scaling in strategy
-    assert strategy[PreprocessingStepEnum.scaling] == ScalingMethodEnum.standard
+    assert dict(strategy) == expected
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    'params, expected',
+    [
+        # TS flat_auto_default: imputation/scaling on, image_preprocessing off
+        (
+            {'auto': True},
+            {
+                PreprocessingStepEnum.imputation: None,
+                PreprocessingStepEnum.scaling: None,
+            },
+        ),
+        (
+            {
+                'auto': True,
+                'imputation_method': 'ts_mean',
+                'scaling_method': 'seasonal',
+                'image_preprocessing_method': 'gamma_correction',
+            },
+            {
+                PreprocessingStepEnum.imputation: ImputationMethodEnum.ts_mean,
+                PreprocessingStepEnum.scaling: ScalingMethodEnum.seasonal,
+                PreprocessingStepEnum.image_preprocessing: (
+                    ImagePreprocessingMethodEnum.gamma_correction
+                ),
+            },
+        ),
+        # filtering is tabular-only; ignored for TS flat knobs
+        (
+            {'auto': True, 'filtering_method': 'variance'},
+            {
+                PreprocessingStepEnum.imputation: None,
+                PreprocessingStepEnum.scaling: None,
+            },
+        ),
+    ],
+)
+def test_build_optional_strategy_flat_knob_variants_for_ts(params, expected):
+    from fedot.core.operations.evaluation.optional_preprocessing_strategy_builder import (
+        OptionalStrategySpec,
+        build_optional_strategy_from_node_params,
+    )
+
+    ts_td = TensorDataCreator.create(
+        np.array([[1.0, 10.0], [2.0, np.nan], [3.0, 30.0]], dtype=np.float32),
+        backend_name='cpu',
+        data_type='time_series',
+    )
+    strategy = build_optional_strategy_from_node_params(ts_td, params)
+
+    assert isinstance(strategy, OptionalStrategySpec)
+    assert dict(strategy) == expected
+
+
+@pytest.mark.unit
+def test_build_optional_strategy_rejects_unknown_flat_method(train_td):
+    from fedot.core.operations.evaluation.optional_preprocessing_strategy_builder import (
+        build_optional_strategy_from_node_params,
+    )
+
+    with pytest.raises(FedotValidationError, match='Unsupported imputation_method'):
+        build_optional_strategy_from_node_params(
+            train_td,
+            {'imputation_method': 'not-a-method'},
+        )
 
 
 @pytest.mark.unit

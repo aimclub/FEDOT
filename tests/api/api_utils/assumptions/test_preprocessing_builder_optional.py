@@ -50,11 +50,10 @@ def test_preprocessing_builder_for_tensor_data_adds_optional_preprocessing(task_
 
 
 @pytest.mark.unit
-def test_optional_preprocessing_search_space_contains_imputation_and_scaling():
+def test_optional_preprocessing_search_space_contains_method_knobs():
     space = PipelineSearchSpace()
     params = space.get_parameters_for_operation('optional_preprocessing')
 
-    assert 'use_imputation' in params
     assert 'imputation_method' in params
-    assert 'use_scaling' in params
     assert 'scaling_method' in params
+    assert 'filtering_method' in params

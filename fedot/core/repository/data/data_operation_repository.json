@@ -50,6 +50,24 @@
       ],
       "description": "TensorData optional preprocessing via OptionalService (imputation, scaling, etc.)"
     },
+    "tensor_dimension_transformation": {
+      "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering, TaskTypesEnum.ts_forecasting]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "accepted_node_types": [
+        "any"
+      ],
+      "forbidden_node_types": "[]",
+      "strategies": [
+        "fedot.core.operations.evaluation.tensor_transform",
+        "TensorTransformStrategy"
+      ],
+      "tags": [
+        "tensor",
+        "feature_reduction"
+      ],
+      "description": "TensorData dimensionality / feature-engineering transforms (e.g. PCA, TruncatedSVD)"
+    },
     "custom_ts_preprocessing": {
       "tasks": "[TaskTypesEnum.ts_forecasting]",
       "input_type": "[DataTypesEnum.table]",
@@ -334,10 +352,9 @@
       ]
     },
     "pca": {
-      "meta": "dimension_transformation",
+      "meta": "tensor_dimension_transformation",
       "presets": [
         "fast_train",
-        "ts",
         "*tree"
       ],
       "tags": [
@@ -345,7 +362,23 @@
         "dimensionality_transforming",
         "correct_params",
         "non_applicable_for_ts",
-        "feature_reduction"
+        "feature_reduction",
+        "tensor"
+      ]
+    },
+    "truncated_svd": {
+      "meta": "tensor_dimension_transformation",
+      "presets": [
+        "fast_train",
+        "*tree"
+      ],
+      "tags": [
+        "linear",
+        "dimensionality_transforming",
+        "correct_params",
+        "non_applicable_for_ts",
+        "feature_reduction",
+        "tensor"
       ]
     },
     "dask_pca": {

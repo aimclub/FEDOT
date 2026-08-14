@@ -5,13 +5,13 @@ from typing import Any, Dict, Iterator, Mapping, Optional, Union
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.operations.rules import (
+    flat_optional_steps,
     is_optional_auto_method,
     is_optional_none_method,
     resolve_optional_method,
 )
 from fedot.core.operations.schemas import (
-    validate_optional_imputation_method,
-    validate_optional_scaling_method,
+    validate_optional_method,
     validate_optional_strategy_mapping,
 )
 from fedot.preprocessing.tools.preprocessor_types import PreprocessingStepEnum
@@ -42,47 +42,21 @@ def _build_strategy_from_flat_params(
     params: OperationParameters,
 ) -> Dict[PreprocessingStepEnum, Any]:
     auto = params.get('auto', True)
-    use_imputation = params.get('use_imputation')
-    use_scaling = params.get('use_scaling')
-
-    if auto is False and use_imputation is None and use_scaling is None:
-        return {}
-
-    if use_imputation is None:
-        use_imputation = True
-    if use_scaling is None:
-        use_scaling = True
-
-    imputation_method = validate_optional_imputation_method(
-        params.get('imputation_method', 'auto')
-    )
-    scaling_method = validate_optional_scaling_method(
-        params.get('scaling_method', 'auto')
-    )
-
     strategy: Dict[PreprocessingStepEnum, Any] = {}
 
-    if use_imputation:
-        resolved = resolve_optional_method(
-            imputation_method,
-            data.data_type,
-            PreprocessingStepEnum.imputation,
-        )
-        if not is_optional_none_method(resolved):
-            strategy[PreprocessingStepEnum.imputation] = (
-                None if is_optional_auto_method(resolved) else resolved
-            )
+    for step, default_enabled in flat_optional_steps(data.data_type).items():
+        method = params.get(f'{step.value}_method')
+        if method is None:
+            if auto and default_enabled:
+                method = 'auto'
+            else:
+                continue
 
-    if use_scaling:
-        resolved = resolve_optional_method(
-            scaling_method,
-            data.data_type,
-            PreprocessingStepEnum.scaling,
-        )
-        if not is_optional_none_method(resolved):
-            strategy[PreprocessingStepEnum.scaling] = (
-                None if is_optional_auto_method(resolved) else resolved
-            )
+        method = validate_optional_method(step, method)
+        resolved = resolve_optional_method(method, data.data_type, step)
+        if is_optional_none_method(resolved):
+            continue
+        strategy[step] = None if is_optional_auto_method(resolved) else resolved
 
     return strategy
 
@@ -96,11 +70,15 @@ def build_optional_strategy_from_node_params(
 
     Supported params:
         - ``strategy``: full override mapping for OptionalService;
-        - ``auto``: when ``False`` and step flags are unset, returns empty plan;
-        - ``use_imputation`` / ``imputation_method``;
-        - ``use_scaling`` / ``scaling_method``.
+        - ``auto``: when ``True`` (default), unset methods follow
+          ``OptionalStepSpec.flat_auto_default`` for the data type's mapping
+          (enabled steps get ``auto``); when ``False``, unset methods are skipped;
+        - ``<step>_method`` for steps that declare ``flat_auto_default``
+          on that mapping (tabular: imputation/scaling/filtering; TS:
+          imputation/scaling/image_preprocessing; ...).
 
     Method values:
+        - unset → skip (unless ``auto=True`` and step default-enabled → ``auto``);
         - ``auto`` → planner default step creation (``None`` stage config);
         - ``none`` → skip stage;
         - concrete names from handler mapping for the data type
