@@ -482,10 +482,11 @@ class PipelineSearchSpace(SearchSpace):
                     'type': 'continuous'}
             },
             'truncated_svd': {
+                # Fraction of n_features (dataset-agnostic); resolved to int at fit.
                 'n_components': {
-                    'hyperopt-dist': hp.uniformint,
-                    'sampling-scope': [1, 20],
-                    'type': 'discrete'},
+                    'hyperopt-dist': hp.uniform,
+                    'sampling-scope': [0.1, 0.99],
+                    'type': 'continuous'},
                 'n_iter': {
                     'hyperopt-dist': hp.uniformint,
                     'sampling-scope': [2, 10],

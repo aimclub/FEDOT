@@ -34,13 +34,16 @@ def test_truncated_svd_reduces_features(train_td):
 
 
 @pytest.mark.unit
-def test_truncated_svd_rejects_float_and_mle():
-    with pytest.raises(FedotValidationError):
-        validate_truncated_svd_params({'n_components': 0.7})
+def test_truncated_svd_rejects_mle_accepts_feature_fraction(train_td):
     with pytest.raises(FedotValidationError):
         validate_truncated_svd_params({'n_components': 'mle'})
     with pytest.raises(FedotValidationError):
-        TruncatedSVDImplementation(OperationParameters(n_components=0.7))
+        TruncatedSVDImplementation(OperationParameters(n_components='mle'))
+
+    impl = TruncatedSVDImplementation(OperationParameters(n_components=0.5))
+    impl.fit(train_td)
+    expected = max(1, min(impl.n_samples_, impl.n_features_, round(0.5 * impl.n_features_)))
+    assert impl.n_components_ == expected
 
 
 @pytest.mark.unit

@@ -13,8 +13,8 @@ from fedot.core.operations.evaluation.operation_implementations.tools import (
     prepare_finite_features,
     project_with_components,
     replace_projected_features,
-    resolve_int_n_components,
     resolve_pca_n_components,
+    resolve_truncated_svd_n_components,
 )
 from fedot.core.operations.operation_parameters import OperationParameters
 
@@ -108,8 +108,9 @@ class PCAImplementation(TensorDataOperationImplementation):
 class TruncatedSVDImplementation(TensorDataOperationImplementation):
     """Truncated SVD for TensorData via ``torch.svd_lowrank`` (no centering).
 
-    Unlike PCA, does not center features. ``n_components`` is a positive int only
-    (sklearn TruncatedSVD-like). Useful after OHE / high-dimensional encodings.
+    Unlike PCA, does not center features. ``n_components`` may be a positive int,
+    a float feature-fraction in ``(0, 1]``, or ``auto`` (half-feature budget).
+    Useful after OHE / high-dimensional encodings.
     """
 
     def __init__(self, params: Optional[OperationParameters] = None):
@@ -144,7 +145,7 @@ class TruncatedSVDImplementation(TensorDataOperationImplementation):
         clean = prepare_finite_features(features, self.log, 'TruncatedSVD')
         self.n_samples_ = clean.shape[0]
 
-        k = resolve_int_n_components(
+        k = resolve_truncated_svd_n_components(
             self.params.get('n_components'),
             n_samples=self.n_samples_,
             n_features=self.n_features_,

@@ -35,10 +35,16 @@ def is_valid_pca_n_components(value: Any) -> bool:
 
 
 def is_valid_truncated_svd_n_components(value: Any) -> bool:
-    """TruncatedSVD: positive int or ``auto`` (half-rank budget)."""
+    """TruncatedSVD: positive int, float feature-fraction in (0, 1], or ``auto``."""
     if is_auto_n_components(value):
         return True
-    return isinstance(value, int) and not isinstance(value, bool) and value >= 1
+    if isinstance(value, bool) or value is None:
+        return False
+    if isinstance(value, int):
+        return value >= 1
+    if isinstance(value, float):
+        return 0.0 < value <= 1.0
+    return False
 
 
 def pca_n_components_error_message(value: Any) -> str:
@@ -52,7 +58,7 @@ def pca_n_components_error_message(value: Any) -> str:
 def truncated_svd_n_components_error_message(value: Any) -> str:
     return (
         f"Unsupported TruncatedSVD n_components: {value!r}. "
-        f"Expected a positive int or 'auto'."
+        f"Expected a positive int, float feature-fraction in (0, 1], or 'auto'."
     )
 
 

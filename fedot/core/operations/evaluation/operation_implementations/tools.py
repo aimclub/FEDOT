@@ -98,17 +98,27 @@ def resolve_pca_n_components(
     return max(1, resolved)
 
 
-def resolve_int_n_components(
-    n_components: Union[int, str, None],
+def resolve_truncated_svd_n_components(
+    n_components: Union[int, float, str, None],
     *,
     n_samples: int,
     n_features: int,
 ) -> int:
-    """Resolve TruncatedSVD ``n_components`` (auto / positive int) to feasible ``k``."""
+    """Resolve TruncatedSVD ``n_components`` to feasible ``k``.
+
+    - ``auto`` / unset → half-feature budget
+    - float in ``(0, 1]`` → fraction of ``n_features`` (not explained variance)
+    - positive int → clamped to SVD rank
+    """
     if is_auto_n_components(n_components):
         return default_components_budget(n_samples, n_features)
 
     max_components = max_decomposition_rank(n_samples, n_features)
+
+    if isinstance(n_components, float) and n_components <= 1.0:
+        resolved = int(round(n_components * n_features))
+        return max(1, min(resolved, max_components))
+
     return max(1, min(int(n_components), max_components))
 
 

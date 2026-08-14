@@ -44,7 +44,10 @@ class PCAParamsSchema(Schema):
 
 
 class TruncatedSVDParamsSchema(Schema):
-    """Hyperparameters for TruncatedSVD: ``n_components`` is a positive int only."""
+    """Hyperparameters for TruncatedSVD.
+
+    ``n_components``: positive int, float feature-fraction in ``(0, 1]``, or ``auto``.
+    """
 
     class Meta:
         unknown = INCLUDE
@@ -113,7 +116,7 @@ def validate_truncated_svd_params(
     params: Optional[Mapping[str, Any]] = None,
     context: ValidationContext = None,
 ) -> dict:
-    """Validate / complete TruncatedSVD params (int ``n_components`` only)."""
+    """Validate / complete TruncatedSVD params (int / feature-fraction / auto)."""
     return load_validated(
         TruncatedSVDParamsSchema(),
         dict(params or {}),
