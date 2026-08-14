@@ -232,6 +232,50 @@
       ],
       "tasks": "[TaskTypesEnum.regression]"
     },
+    "tensor_tabular_class": {
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "Experimental TensorData-only tabular neural classification models",
+      "forbidden_node_types": "[]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.tensor_models",
+        "TensorTabularClassificationStrategy"
+      ],
+      "tags": [
+        "ml",
+        "neural",
+        "non_linear",
+        "non-default",
+        "tensor-only",
+        "cpu"
+      ],
+      "tasks": "[TaskTypesEnum.classification]"
+    },
+    "tensor_tabular_regr": {
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "Experimental TensorData-only tabular neural regression models",
+      "forbidden_node_types": "[]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.tensor_models",
+        "TensorTabularRegressionStrategy"
+      ],
+      "tags": [
+        "ml",
+        "neural",
+        "non_linear",
+        "non-default",
+        "tensor-only",
+        "cpu"
+      ],
+      "tasks": "[TaskTypesEnum.regression]"
+    },
     "ts_model": {
       "description": "Implementations of the time series models",
       "input_type": "[DataTypesEnum.ts]",
@@ -367,6 +411,48 @@
         "non-default"
       ]
     },
+    "hist_gb": {
+      "meta": "sklearn_class",
+      "presets": ["*tree"],
+      "tags": [
+        "tree",
+        "non_linear",
+        "boosting",
+        "non-default"
+      ]
+    },
+    "hist_gbreg": {
+      "meta": "sklearn_regr",
+      "presets": ["*tree"],
+      "tags": [
+        "tree",
+        "non_multi",
+        "non_linear",
+        "boosting",
+        "non-default"
+      ]
+    },
+    "ebm": {
+      "meta": "sklearn_class",
+      "presets": ["*tree"],
+      "tags": [
+        "interpretable",
+        "boosting",
+        "non_linear",
+        "non-default"
+      ]
+    },
+    "ebmreg": {
+      "meta": "sklearn_regr",
+      "presets": ["*tree"],
+      "tags": [
+        "interpretable",
+        "boosting",
+        "non_multi",
+        "non_linear",
+        "non-default"
+      ]
+    },
     "kmeans": {
       "meta": "sklearn_clust",
       "presets": ["fast_train"],
@@ -455,6 +541,16 @@
         "non_linear"
       ]
     },
+    "mlpreg": {
+      "meta": "sklearn_regr",
+      "tags": [
+        "deprecated",
+        "neural",
+        "non_multi",
+        "non_linear",
+        "non-default"
+      ]
+    },
     "multinb": {
       "meta": "sklearn_class",
       "presets": ["fast_train"],
@@ -480,6 +576,11 @@
       "meta": "sklearn_class",
       "presets": ["fast_train", "*tree"],
       "tags": ["tree", "non_linear"]
+    },
+    "extra_trees": {
+      "meta": "sklearn_class",
+      "presets": ["fast_train", "*tree"],
+      "tags": ["tree", "non_linear", "non-default"]
     },
     "rfr": {
       "meta": "sklearn_regr",
@@ -628,6 +729,38 @@
           "non-default"
         ]
 	},
+    "tabm": {
+      "meta": "tensor_tabular_class",
+      "tags": ["tabm", "tensor-only"]
+    },
+    "tabmreg": {
+      "meta": "tensor_tabular_regr",
+      "tags": ["tabm", "tensor-only"]
+    },
+    "realmlp": {
+      "meta": "tensor_tabular_class",
+      "tags": ["realmlp", "tensor-only"]
+    },
+    "realmlpreg": {
+      "meta": "tensor_tabular_regr",
+      "tags": ["realmlp", "tensor-only"]
+    },
+    "ft_transformer": {
+      "meta": "tensor_tabular_class",
+      "tags": ["ft-transformer", "tensor-only"]
+    },
+    "ft_transformerreg": {
+      "meta": "tensor_tabular_regr",
+      "tags": ["ft-transformer", "tensor-only"]
+    },
+    "tab_resnet": {
+      "meta": "tensor_tabular_class",
+      "tags": ["resnet", "tensor-only"]
+    },
+    "tab_resnetreg": {
+      "meta": "tensor_tabular_regr",
+      "tags": ["resnet", "tensor-only"]
+    },
     "tabpfn": {
       "meta": "tabpfn_class",
       "tags": ["non_auto"]

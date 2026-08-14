@@ -104,6 +104,76 @@ class PipelineSearchSpace(SearchSpace):
                     'sampling-scope': [[True, False]],
                     'type': 'categorical'}
             },
+            'extra_trees': {
+                'criterion': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [["gini", "entropy"]],
+                    'type': 'categorical'},
+                'n_estimators': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [100, 700],
+                    'type': 'discrete'},
+                'max_features': {
+                    'hyperopt-dist': hp.uniform,
+                    'sampling-scope': [0.05, 1.0],
+                    'type': 'continuous'},
+                'min_samples_split': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [2, 20],
+                    'type': 'discrete'},
+                'min_samples_leaf': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [1, 15],
+                    'type': 'discrete'},
+                'bootstrap': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[True, False]],
+                    'type': 'categorical'}
+            },
+            'hist_gb': {
+                'learning_rate': {
+                    'hyperopt-dist': hp.loguniform,
+                    'sampling-scope': [1e-3, 0.3],
+                    'type': 'continuous'},
+                'max_iter': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [50, 500],
+                    'type': 'discrete'},
+                'max_leaf_nodes': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [8, 64],
+                    'type': 'discrete'},
+                'l2_regularization': {
+                    'hyperopt-dist': hp.loguniform,
+                    'sampling-scope': [1e-6, 10.0],
+                    'type': 'continuous'}
+            },
+            'ebm': {
+                'learning_rate': {
+                    'hyperopt-dist': hp.loguniform,
+                    'sampling-scope': [0.005, 0.08],
+                    'type': 'continuous'},
+                'max_bins': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[128, 256, 512]],
+                    'type': 'categorical'},
+                'max_interaction_bins': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[16, 32, 64]],
+                    'type': 'categorical'},
+                'outer_bags': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[2, 4, 8]],
+                    'type': 'categorical'},
+                'max_rounds': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [200, 3000],
+                    'type': 'discrete'},
+                'min_samples_leaf': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [2, 16],
+                    'type': 'discrete'}
+            },
             'ridge': {
                 'alpha': {
                     'hyperopt-dist': hp.uniform,
@@ -132,6 +202,64 @@ class PipelineSearchSpace(SearchSpace):
                 'bootstrap': {
                     'hyperopt-dist': hp.choice,
                     'sampling-scope': [[True, False]],
+                    'type': 'categorical'}
+            },
+            'hist_gbreg': {
+                'learning_rate': {
+                    'hyperopt-dist': hp.loguniform,
+                    'sampling-scope': [1e-3, 0.3],
+                    'type': 'continuous'},
+                'max_iter': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [50, 500],
+                    'type': 'discrete'},
+                'max_leaf_nodes': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [8, 64],
+                    'type': 'discrete'},
+                'l2_regularization': {
+                    'hyperopt-dist': hp.loguniform,
+                    'sampling-scope': [1e-6, 10.0],
+                    'type': 'continuous'}
+            },
+            'ebmreg': {
+                'learning_rate': {
+                    'hyperopt-dist': hp.loguniform,
+                    'sampling-scope': [0.005, 0.08],
+                    'type': 'continuous'},
+                'max_bins': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[128, 256, 512]],
+                    'type': 'categorical'},
+                'max_interaction_bins': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[16, 32, 64]],
+                    'type': 'categorical'},
+                'outer_bags': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[2, 4, 8]],
+                    'type': 'categorical'},
+                'max_rounds': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [200, 3000],
+                    'type': 'discrete'},
+                'min_samples_leaf': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [2, 16],
+                    'type': 'discrete'}
+            },
+            'mlpreg': {
+                'alpha': {
+                    'hyperopt-dist': hp.loguniform,
+                    'sampling-scope': [1e-6, 1e-2],
+                    'type': 'continuous'},
+                'max_iter': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [200, 800],
+                    'type': 'discrete'},
+                'hidden_layer_sizes': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[(50,), (100,), (100, 50)]],
                     'type': 'categorical'}
             },
             'xgboostreg': {
@@ -1023,6 +1151,342 @@ class PipelineSearchSpace(SearchSpace):
                     'hyperopt-dist': hp.choice,
                     'sampling-scope': [[True, False]],
                     'type': 'categorical'
+                },
+            },
+            'tabm': {
+                'n_epochs': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [10, 100],
+                    'type': 'discrete'
+                },
+                'lr': {
+                    'hyperopt-dist': hp.loguniform,
+                    'sampling-scope': [1e-4, 3e-2],
+                    'type': 'continuous'
+                },
+                'd_block': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[128, 256, 512]],
+                    'type': 'categorical'
+                },
+                'n_blocks': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[1, 2, 3]],
+                    'type': 'categorical'
+                },
+                'arch_type': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [['tabm-mini', 'tabm']],
+                    'type': 'categorical'
+                },
+                'share_training_batches': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[True, False]],
+                    'type': 'categorical'
+                },
+                'dropout': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[0.0, 0.1, 0.2, 0.3]],
+                    'type': 'categorical'
+                },
+                'tabm_k': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[4, 8, 16, 32]],
+                    'type': 'categorical'
+                },
+                'weight_decay': {
+                    'hyperopt-dist': hp.loguniform,
+                    'sampling-scope': [1e-6, 1e-2],
+                    'type': 'continuous'
+                },
+                'num_emb_n_bins': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[0, 8, 16, 32]],
+                    'type': 'categorical'
+                },
+            },
+            'tabmreg': {
+                'n_epochs': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [50, 400],
+                    'type': 'discrete'
+                },
+                'lr': {
+                    'hyperopt-dist': hp.loguniform,
+                    'sampling-scope': [1e-4, 3e-2],
+                    'type': 'continuous'
+                },
+                'd_block': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[128, 256, 512]],
+                    'type': 'categorical'
+                },
+                'n_blocks': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[1, 2, 3]],
+                    'type': 'categorical'
+                },
+                'arch_type': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [['tabm-mini', 'tabm']],
+                    'type': 'categorical'
+                },
+                'share_training_batches': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[True, False]],
+                    'type': 'categorical'
+                },
+                'dropout': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[0.0, 0.1, 0.2, 0.3]],
+                    'type': 'categorical'
+                },
+                'tabm_k': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[4, 8, 16, 32]],
+                    'type': 'categorical'
+                },
+                'weight_decay': {
+                    'hyperopt-dist': hp.loguniform,
+                    'sampling-scope': [1e-6, 1e-2],
+                    'type': 'continuous'
+                },
+                'num_emb_n_bins': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[0, 8, 16, 32]],
+                    'type': 'categorical'
+                },
+            },
+            'realmlp': {
+                'n_epochs': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [10, 100],
+                    'type': 'discrete'
+                },
+                'lr': {
+                    'hyperopt-dist': hp.loguniform,
+                    'sampling-scope': [1e-4, 3e-2],
+                    'type': 'continuous'
+                },
+                'p_drop': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[0.0, 0.1, 0.2, 0.3]],
+                    'type': 'categorical'
+                },
+                'n_hidden_layers': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[2, 3, 4]],
+                    'type': 'categorical'
+                },
+                'hidden_width': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[128, 256, 512]],
+                    'type': 'categorical'
+                },
+                'wd': {
+                    'hyperopt-dist': hp.loguniform,
+                    'sampling-scope': [1e-8, 1e-2],
+                    'type': 'continuous'
+                },
+            },
+            'realmlpreg': {
+                'n_epochs': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [10, 100],
+                    'type': 'discrete'
+                },
+                'lr': {
+                    'hyperopt-dist': hp.loguniform,
+                    'sampling-scope': [1e-4, 3e-2],
+                    'type': 'continuous'
+                },
+                'p_drop': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[0.0, 0.1, 0.2, 0.3]],
+                    'type': 'categorical'
+                },
+                'n_hidden_layers': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[2, 3, 4]],
+                    'type': 'categorical'
+                },
+                'hidden_width': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[128, 256, 512]],
+                    'type': 'categorical'
+                },
+                'wd': {
+                    'hyperopt-dist': hp.loguniform,
+                    'sampling-scope': [1e-8, 1e-2],
+                    'type': 'continuous'
+                },
+            },
+            'ft_transformer': {
+                'n_epochs': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [10, 80],
+                    'type': 'discrete'
+                },
+                'lr': {
+                    'hyperopt-dist': hp.loguniform,
+                    'sampling-scope': [1e-4, 3e-3],
+                    'type': 'continuous'
+                },
+                'd_block': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[32, 64, 128]],
+                    'type': 'categorical'
+                },
+                'n_blocks': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[2, 3, 4]],
+                    'type': 'categorical'
+                },
+                'attention_n_heads': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[4, 8]],
+                    'type': 'categorical'
+                },
+                'attention_dropout': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[0.0, 0.1, 0.2]],
+                    'type': 'categorical'
+                },
+                'ffn_dropout': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[0.0, 0.1, 0.2]],
+                    'type': 'categorical'
+                },
+                'weight_decay': {
+                    'hyperopt-dist': hp.loguniform,
+                    'sampling-scope': [1e-6, 1e-2],
+                    'type': 'continuous'
+                },
+            },
+            'ft_transformerreg': {
+                'n_epochs': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [20, 120],
+                    'type': 'discrete'
+                },
+                'lr': {
+                    'hyperopt-dist': hp.loguniform,
+                    'sampling-scope': [1e-4, 3e-3],
+                    'type': 'continuous'
+                },
+                'd_block': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[32, 64, 128]],
+                    'type': 'categorical'
+                },
+                'n_blocks': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[2, 3, 4]],
+                    'type': 'categorical'
+                },
+                'attention_n_heads': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[4, 8]],
+                    'type': 'categorical'
+                },
+                'attention_dropout': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[0.0, 0.1, 0.2]],
+                    'type': 'categorical'
+                },
+                'ffn_dropout': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[0.0, 0.1, 0.2]],
+                    'type': 'categorical'
+                },
+                'weight_decay': {
+                    'hyperopt-dist': hp.loguniform,
+                    'sampling-scope': [1e-6, 1e-2],
+                    'type': 'continuous'
+                },
+            },
+            'tab_resnet': {
+                'n_epochs': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [10, 80],
+                    'type': 'discrete'
+                },
+                'lr': {
+                    'hyperopt-dist': hp.loguniform,
+                    'sampling-scope': [1e-4, 3e-3],
+                    'type': 'continuous'
+                },
+                'd_block': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[64, 128, 256]],
+                    'type': 'categorical'
+                },
+                'n_blocks': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[2, 3, 4]],
+                    'type': 'categorical'
+                },
+                'd_hidden_multiplier': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[1.5, 2.0, 3.0]],
+                    'type': 'categorical'
+                },
+                'dropout1': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[0.0, 0.1, 0.2]],
+                    'type': 'categorical'
+                },
+                'dropout2': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[0.0, 0.1, 0.2]],
+                    'type': 'categorical'
+                },
+                'weight_decay': {
+                    'hyperopt-dist': hp.loguniform,
+                    'sampling-scope': [1e-6, 1e-2],
+                    'type': 'continuous'
+                },
+            },
+            'tab_resnetreg': {
+                'n_epochs': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [20, 120],
+                    'type': 'discrete'
+                },
+                'lr': {
+                    'hyperopt-dist': hp.loguniform,
+                    'sampling-scope': [1e-4, 3e-3],
+                    'type': 'continuous'
+                },
+                'd_block': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[64, 128, 256]],
+                    'type': 'categorical'
+                },
+                'n_blocks': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[2, 3, 4]],
+                    'type': 'categorical'
+                },
+                'd_hidden_multiplier': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[1.5, 2.0, 3.0]],
+                    'type': 'categorical'
+                },
+                'dropout1': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[0.0, 0.1, 0.2]],
+                    'type': 'categorical'
+                },
+                'dropout2': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[0.0, 0.1, 0.2]],
+                    'type': 'categorical'
+                },
+                'weight_decay': {
+                    'hyperopt-dist': hp.loguniform,
+                    'sampling-scope': [1e-6, 1e-2],
+                    'type': 'continuous'
                 },
             },
             'tabicl': {

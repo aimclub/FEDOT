@@ -7,8 +7,11 @@ import numpy as np
 from golem.core.log import default_log
 from sklearn.ensemble import (
     AdaBoostRegressor,
+    ExtraTreesClassifier,
     ExtraTreesRegressor,
     GradientBoostingRegressor,
+    HistGradientBoostingClassifier,
+    HistGradientBoostingRegressor,
     RandomForestClassifier,
     RandomForestRegressor
 )
@@ -21,7 +24,7 @@ from sklearn.linear_model import (
 )
 from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
 from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB, MultinomialNB as SklearnMultinomialNB
-from sklearn.neural_network import MLPClassifier
+from sklearn.neural_network import MLPClassifier, MLPRegressor
 from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
@@ -36,6 +39,18 @@ from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 from fedot.utilities.random import ImplementationRandomStateHandler
 
 warnings.filterwarnings("ignore", category=UserWarning)
+
+
+class ExplainableBoostingClassifierAdapter:
+    def __new__(cls, **params):
+        from interpret.glassbox import ExplainableBoostingClassifier
+        return ExplainableBoostingClassifier(**params)
+
+
+class ExplainableBoostingRegressorAdapter:
+    def __new__(cls, **params):
+        from interpret.glassbox import ExplainableBoostingRegressor
+        return ExplainableBoostingRegressor(**params)
 
 
 class EvaluationStrategy:
@@ -120,6 +135,9 @@ class EvaluationStrategy:
         Returns: prediction as :obj:`OutputData`
         """
 
+        if isinstance(predict_data, TensorData):
+            return EvaluationStrategy._replace_predict_in_tensor_data(prediction, predict_data)
+
         if not isinstance(prediction, OutputData):
             # Wrap prediction as OutputData
             converted = OutputData(idx=predict_data.idx,
@@ -178,6 +196,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
     _operations_by_types = {
         'adareg': AdaBoostRegressor,
         'gbr': GradientBoostingRegressor,
+        'hist_gbreg': HistGradientBoostingRegressor,
         'dtreg': DecisionTreeRegressor,
         'treg': ExtraTreesRegressor,
         'rfr': RandomForestRegressor,
@@ -186,13 +205,18 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'lasso': SklearnLassoReg,
         'svr': SklearnSVR,
         'sgdr': SklearnSGD,
+        'mlpreg': MLPRegressor,
+        'ebmreg': ExplainableBoostingRegressorAdapter,
 
         'logit': SklearnLogReg,
         'bernb': SklearnBernoulliNB,
         'multinb': SklearnMultinomialNB,
         'dt': DecisionTreeClassifier,
+        'extra_trees': ExtraTreesClassifier,
+        'hist_gb': HistGradientBoostingClassifier,
         'rf': RandomForestClassifier,
         'mlp': MLPClassifier,
+        'ebm': ExplainableBoostingClassifierAdapter,
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
@@ -231,8 +255,9 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
                 operation_implementation = convert_to_multivariate_model(
                     operation_implementation, train_data)
             else:
+                target = self._sklearn_compatible_target(train_data.target)
                 operation_implementation.fit(
-                    train_data.features, train_data.target)
+                    train_data.features, target)
 
         return operation_implementation
 
@@ -253,6 +278,12 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         for operation, operation_impl in self._operations_by_types.items():
             if operation_impl == impl:
                 return operation
+
+    @staticmethod
+    def _sklearn_compatible_target(target):
+        if target is not None and len(target.shape) == 2 and target.shape[1] == 1:
+            return target.reshape(-1)
+        return target
 
     @property
     def implementation_info(self) -> str:

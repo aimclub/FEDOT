@@ -399,7 +399,7 @@ def test_create_predict_label_encoding_maps_unseen_category():
     train = np.array([
         [1.0, "A", 10.0, 0],
         [2.0, "B", 20.0, 1],
-        [3.0, "A", 30.0, 0],
+        [1.0, "A", 10.0, 0],
     ], dtype=object)
     test = np.array([
         [4.0, "C", 40.0],

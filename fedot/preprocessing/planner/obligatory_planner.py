@@ -9,6 +9,7 @@ from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStep,
                                                           EncodingMethodEnum)
 from fedot.core.data.tensor_data.tools import get_idx_from_features_names, convert_idx_to_list
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.preprocessing.data_types import CATEGORICAL_MAX_UNIQUE_TH
 from fedot.preprocessing.planner.planner import PreprocessingPlan
 from fedot.preprocessing.planner.auto_create_step import auto_encoding_steps
 
@@ -77,9 +78,10 @@ def force_categorical_determination(table: ArrayType) -> IndexType:
     """
     Detect categorical feature columns.
 
-    A column is treated as categorical if:
-    1. it has object/string-like dtype or contains python string objects, and
-    2. among non-missing values, it cannot be safely converted to numeric values.
+    A column is treated as categorical if it either contains non-numeric strings
+    or has object/string dtype with between 3 and 12 unique non-missing numeric
+    values. The latter recovers categorical codes after mixed tabular data has
+    been represented by a common object array.
 
     Missing values (None, np.nan, pd.NA, etc.) do not make a column categorical.
 
@@ -103,10 +105,16 @@ def force_categorical_determination(table: ArrayType) -> IndexType:
 
         original_notna = ~pd_backend.isna(series)
         converted_notna = ~pd_backend.isna(numeric_series)
+        non_missing = series[original_notna]
+        non_missing_unique_count = non_missing.nunique()
 
         is_fully_numeric = converted_notna[original_notna].all()
 
         if is_fully_numeric:
+            has_repeated_values = non_missing_unique_count < len(non_missing)
+            is_low_cardinality = 2 < non_missing_unique_count < CATEGORICAL_MAX_UNIQUE_TH
+            if is_low_cardinality and has_repeated_values:
+                categorical_ids.append(column_id)
             continue
 
         has_object_or_string_dtype = (

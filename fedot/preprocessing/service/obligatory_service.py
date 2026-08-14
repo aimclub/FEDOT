@@ -119,11 +119,11 @@ class ObligatoryService:
 
                 if step.step == PreprocessingStepEnum.target_encoding:
                     prepared_data_target = PreparedData(features=target)
-                    prepared_data = handler.fit_transform(
+                    encoded_target = handler.fit_transform(
                         prepared_data_target,
                         step.features_idx
                     )
-                    prepared_data.target = prepared_data_target.features
+                    prepared_data.target = encoded_target.features
 
                     # Models must stay on disk for predict-via-trace, even when
                     # TensorData artifacts themselves are not cached.
@@ -210,10 +210,11 @@ class ObligatoryService:
                 model_ref.model_path,
                 kind="preprocessing_model",
             )
-            prepared_data = handler.transform(prepared_data)
 
             if step.step == PreprocessingStepEnum.target_encoding:
                 continue
+
+            prepared_data = handler.transform(prepared_data)
 
             features_idx = model_ref.features_idx if model_ref.features_idx is not None else step.features_idx
             prepared_data.idx_mapping = update_index_mapping(

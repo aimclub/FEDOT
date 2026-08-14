@@ -27,6 +27,24 @@ class HyperparametersPreprocessor:
             'max_leaf_nodes': ['le0_to_none', 'integer'],
             'max_depth': ['le0_to_none', 'integer']
         },
+        'hist_gbreg': {
+            'max_iter': ['integer'],
+            'max_leaf_nodes': ['le0_to_none', 'integer'],
+            'max_depth': ['le0_to_none', 'integer'],
+            'min_samples_leaf': ['integer']
+        },
+        'ebmreg': {
+            'max_bins': ['integer'],
+            'max_interaction_bins': ['integer'],
+            'outer_bags': ['integer'],
+            'max_rounds': ['integer'],
+            'early_stopping_rounds': ['integer'],
+            'min_samples_leaf': ['integer'],
+            'n_jobs': ['integer']
+        },
+        'mlpreg': {
+            'max_iter': ['integer']
+        },
         'adareg': {
             'n_estimators': ['integer'],
             'max_leaf_nodes': ['le0_to_none', 'integer'],
@@ -78,6 +96,28 @@ class HyperparametersPreprocessor:
             'max_leaf_nodes': ['le0_to_none', 'integer'],
             'max_depth': ['le0_to_none', 'integer']
         },
+        'extra_trees': {
+            'n_estimators': ['integer'],
+            'max_leaf_nodes': ['le0_to_none', 'integer'],
+            'max_depth': ['le0_to_none', 'integer'],
+            'min_samples_split': ['integer'],
+            'min_samples_leaf': ['integer']
+        },
+        'hist_gb': {
+            'max_iter': ['integer'],
+            'max_leaf_nodes': ['le0_to_none', 'integer'],
+            'max_depth': ['le0_to_none', 'integer'],
+            'min_samples_leaf': ['integer']
+        },
+        'ebm': {
+            'max_bins': ['integer'],
+            'max_interaction_bins': ['integer'],
+            'outer_bags': ['integer'],
+            'max_rounds': ['integer'],
+            'early_stopping_rounds': ['integer'],
+            'min_samples_leaf': ['integer'],
+            'n_jobs': ['integer']
+        },
         'xgboost': {
             'nthread': ['integer'],
             'n_estimators': ['integer'],
@@ -118,6 +158,66 @@ class HyperparametersPreprocessor:
         },
         'fast_ica': {
             'n_components': ['le0_to_none', 'integer']
+        },
+        'tabm': {
+            'n_epochs': ['integer'],
+            'patience': ['integer'],
+            'd_block': ['integer'],
+            'tabm_k': ['integer'],
+            'num_emb_n_bins': ['integer'],
+            'n_blocks': ['integer'],
+            'n_jobs': ['integer']
+        },
+        'tabmreg': {
+            'n_epochs': ['integer'],
+            'patience': ['integer'],
+            'd_block': ['integer'],
+            'tabm_k': ['integer'],
+            'num_emb_n_bins': ['integer'],
+            'n_blocks': ['integer'],
+            'n_jobs': ['integer']
+        },
+        'realmlp': {
+            'n_epochs': ['integer'],
+            'n_hidden_layers': ['integer'],
+            'hidden_width': ['integer'],
+            'n_jobs': ['integer']
+        },
+        'realmlpreg': {
+            'n_epochs': ['integer'],
+            'n_hidden_layers': ['integer'],
+            'hidden_width': ['integer'],
+            'n_jobs': ['integer']
+        },
+        'ft_transformer': {
+            'n_epochs': ['integer'],
+            'patience': ['integer'],
+            'd_block': ['integer'],
+            'n_blocks': ['integer'],
+            'attention_n_heads': ['integer'],
+            'n_jobs': ['integer']
+        },
+        'ft_transformerreg': {
+            'n_epochs': ['integer'],
+            'patience': ['integer'],
+            'd_block': ['integer'],
+            'n_blocks': ['integer'],
+            'attention_n_heads': ['integer'],
+            'n_jobs': ['integer']
+        },
+        'tab_resnet': {
+            'n_epochs': ['integer'],
+            'patience': ['integer'],
+            'd_block': ['integer'],
+            'n_blocks': ['integer'],
+            'n_jobs': ['integer']
+        },
+        'tab_resnetreg': {
+            'n_epochs': ['integer'],
+            'patience': ['integer'],
+            'd_block': ['integer'],
+            'n_blocks': ['integer'],
+            'n_jobs': ['integer']
         },
     }
 
