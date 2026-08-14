@@ -5,6 +5,9 @@ import torch
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.tensor_data.tools import flatten_if_needed
 from fedot.core.operations.evaluation.abstract_node import TensorDataOperationImplementation
+from fedot.core.operations.evaluation.operation_implementations.rules import (
+    is_spectrum_n_components_method,
+)
 from fedot.core.operations.evaluation.operation_implementations.schema import (
     validate_pca_params,
     validate_truncated_svd_params,
@@ -72,7 +75,7 @@ class PCAImplementation(TensorDataOperationImplementation):
         centered = clean - self.mean_
 
         # Full SVD on centered matrix: X = U S V^T, components = rows of V^T
-        # (needed when n_components is a variance ratio / mle).
+        # (needed when n_components is a variance ratio / mle / spectrum method).
         _, singular_values, vh = torch.linalg.svd(centered, full_matrices=False)
         explained_variance = (singular_values ** 2) / max(self.n_samples_ - 1, 1)
         total_var = explained_variance.sum()
@@ -86,6 +89,7 @@ class PCAImplementation(TensorDataOperationImplementation):
             n_samples=self.n_samples_,
             n_features=self.n_features_,
             explained_variance_ratio=self.explained_variance_ratio_,
+            singular_values=singular_values,
         )
         self.n_components_ = n_components
         self.components_ = vh[:n_components].contiguous()
@@ -109,7 +113,8 @@ class TruncatedSVDImplementation(TensorDataOperationImplementation):
     """Truncated SVD for TensorData via ``torch.svd_lowrank`` (no centering).
 
     Unlike PCA, does not center features. ``n_components`` may be a positive int,
-    a float feature-fraction in ``(0, 1]``, or ``auto`` (half-feature budget).
+    a float feature-fraction in ``(0, 1]``, ``auto`` (half-feature budget), or a
+    spectrum method (``elbow`` / ``broken_stick``) that needs a thin SVD first.
     Useful after OHE / high-dimensional encodings.
     """
 
@@ -145,8 +150,23 @@ class TruncatedSVDImplementation(TensorDataOperationImplementation):
         clean = prepare_finite_features(features, self.log, 'TruncatedSVD')
         self.n_samples_ = clean.shape[0]
 
+        mode = self.params.get('n_components')
+        if is_spectrum_n_components_method(mode):
+            # Spectrum rank selection needs the full thin singular spectrum.
+            _, singular_values, vh = torch.linalg.svd(clean, full_matrices=False)
+            k = resolve_truncated_svd_n_components(
+                mode,
+                n_samples=self.n_samples_,
+                n_features=self.n_features_,
+                singular_values=singular_values,
+            )
+            self.n_components_ = k
+            self.components_ = vh[:k].contiguous()
+            self.params.update(n_components=k)
+            return self
+
         k = resolve_truncated_svd_n_components(
-            self.params.get('n_components'),
+            mode,
             n_samples=self.n_samples_,
             n_features=self.n_features_,
         )

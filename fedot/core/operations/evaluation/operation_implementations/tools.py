@@ -1,13 +1,19 @@
 from dataclasses import replace
-from typing import Any, Optional, Union
+from typing import Any, Callable, Dict, Optional, Union
 
 import torch
 
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.tensor_data.tools import drop_rows_with_nan, flatten_if_needed
-from fedot.core.operations.evaluation.operation_implementations.rules import is_auto_n_components
+from fedot.core.operations.evaluation.operation_implementations.rules import (
+    SpectrumNComponentsMethod,
+    is_auto_n_components,
+    is_spectrum_n_components_method,
+)
 from fedot.core.operations.evaluation.operation_implementations.schema import (
+    validate_broken_stick_n,
     validate_decomposition_fit_samples,
+    validate_spectrum_rank_selection,
 )
 
 
@@ -65,18 +71,125 @@ def default_components_budget(n_samples: int, n_features: int) -> int:
     return max(1, min(rank, half_features))
 
 
+def broken_stick_expectations(n: int, *, device=None, dtype=None) -> torch.Tensor:
+    """Broken-stick share expectations for ``n`` ordered components.
+
+    ``b_k = (1 / n) * sum_{i=k}^{n} (1 / i)`` for ``k = 1..n`` (1-based).
+    """
+    n = validate_broken_stick_n(n)
+    inv = 1.0 / torch.arange(1, n + 1, device=device, dtype=dtype or torch.float32)
+    # suffix[k] = sum_{i=k}^{n-1} inv[i] = sum_{j=k+1}^{n} 1/j
+    suffix = torch.flip(torch.cumsum(torch.flip(inv, dims=(0,)), dim=0), dims=(0,))
+    return suffix / n
+
+
+def n_components_from_broken_stick(proportions: torch.Tensor) -> int:
+    """Keep leading components whose share exceeds the broken-stick model.
+
+    ``proportions`` should be non-increasing explained-variance shares (or any
+    positive spectrum that will be renormalized to sum to 1).
+    """
+    values = proportions.detach().flatten()
+    n = int(values.numel())
+    if n <= 1:
+        return max(n, 1)
+
+    total = float(values.sum().item())
+    if total <= 0:
+        return 1
+    shares = values / values.sum()
+    expected = broken_stick_expectations(n, device=shares.device, dtype=shares.dtype)
+    exceed = shares > expected
+    # First contiguous run from the start; always keep at least one component.
+    stop = (~exceed).nonzero(as_tuple=False)
+    if stop.numel() == 0:
+        return n
+    return max(1, int(stop[0].item()))
+
+
+def n_components_from_elbow(spectrum: torch.Tensor) -> int:
+    """Elbow (knee) cut: max distance from the chord joining first and last SV.
+
+    Returns ``knee_index + 1`` (include the elbow point), at least 1.
+    """
+    values = spectrum.detach().flatten()
+    n = int(values.numel())
+    if n <= 1:
+        return max(n, 1)
+
+    x = torch.arange(n, device=values.device, dtype=values.dtype)
+    coords = torch.stack((x, values), dim=1)
+    line = coords[-1] - coords[0]
+    line_norm = torch.linalg.norm(line)
+    if float(line_norm.item()) == 0.0:
+        return 1
+
+    line_unit = line / line_norm
+    from_first = coords - coords[0]
+    parallel = torch.outer(from_first @ line_unit, line_unit)
+    dist = torch.linalg.norm(from_first - parallel, dim=1)
+    knee_idx = int(torch.argmax(dist).item())
+    return max(1, knee_idx + 1)
+
+
+SPECTRUM_N_COMPONENTS: Dict[SpectrumNComponentsMethod, Callable[[torch.Tensor], int]] = {
+    SpectrumNComponentsMethod.ELBOW: n_components_from_elbow,
+    SpectrumNComponentsMethod.BROKEN_STICK: n_components_from_broken_stick,
+}
+
+
+def resolve_spectrum_n_components(
+    method: Union[str, SpectrumNComponentsMethod],
+    *,
+    singular_values: Optional[torch.Tensor] = None,
+    proportions: Optional[torch.Tensor] = None,
+    max_components: int,
+) -> int:
+    """Map ``elbow`` / ``broken_stick`` + spectrum → feasible ``k``.
+
+    Prefer ``singular_values`` for elbow. For ``broken_stick``,
+    ``proportions`` (already normalized shares) may be used instead of ``S^2``.
+    """
+    validated = validate_spectrum_rank_selection(
+        method,
+        singular_values=singular_values,
+        proportions=proportions,
+        max_components=max_components,
+    )
+    method_enum: SpectrumNComponentsMethod = validated['method']
+    sv = validated['singular_values']
+    props = validated['proportions']
+
+    if method_enum is SpectrumNComponentsMethod.ELBOW:
+        spectrum = sv if sv is not None else props
+    else:
+        spectrum = props if props is not None else sv.square()
+
+    k = SPECTRUM_N_COMPONENTS[method_enum](spectrum)
+    return max(1, min(k, validated['max_components'], int(spectrum.numel())))
+
+
 def resolve_pca_n_components(
-    n_components: Union[int, float, str, None],
+    n_components: Union[int, float, str, SpectrumNComponentsMethod, None],
     *,
     n_samples: int,
     n_features: int,
     explained_variance_ratio: torch.Tensor,
+    singular_values: Optional[torch.Tensor] = None,
 ) -> int:
-    """Resolve PCA ``n_components`` (auto / int / variance ratio / ``mle``) to ``k``."""
+    """Resolve PCA ``n_components`` (auto / int / variance / mle / spectrum) to ``k``."""
     max_components = max_decomposition_rank(n_samples, n_features)
 
     if is_auto_n_components(n_components):
         return default_components_budget(n_samples, n_features)
+
+    if is_spectrum_n_components_method(n_components):
+        return resolve_spectrum_n_components(
+            n_components,
+            singular_values=singular_values,
+            proportions=explained_variance_ratio,
+            max_components=max_components,
+        )
 
     if isinstance(n_components, str):
         # Schema allows only ``mle`` among remaining strings.
@@ -99,21 +212,30 @@ def resolve_pca_n_components(
 
 
 def resolve_truncated_svd_n_components(
-    n_components: Union[int, float, str, None],
+    n_components: Union[int, float, str, SpectrumNComponentsMethod, None],
     *,
     n_samples: int,
     n_features: int,
+    singular_values: Optional[torch.Tensor] = None,
 ) -> int:
     """Resolve TruncatedSVD ``n_components`` to feasible ``k``.
 
     - ``auto`` / unset → half-feature budget
     - float in ``(0, 1]`` → fraction of ``n_features`` (not explained variance)
+    - ``elbow`` / ``broken_stick`` → spectrum methods (require ``singular_values``)
     - positive int → clamped to SVD rank
     """
+    max_components = max_decomposition_rank(n_samples, n_features)
+
     if is_auto_n_components(n_components):
         return default_components_budget(n_samples, n_features)
 
-    max_components = max_decomposition_rank(n_samples, n_features)
+    if is_spectrum_n_components_method(n_components):
+        return resolve_spectrum_n_components(
+            n_components,
+            singular_values=singular_values,
+            max_components=max_components,
+        )
 
     if isinstance(n_components, float) and n_components <= 1.0:
         resolved = int(round(n_components * n_features))

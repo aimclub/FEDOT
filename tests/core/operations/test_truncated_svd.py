@@ -68,6 +68,17 @@ def test_truncated_svd_auto_n_components_uses_half_features_budget(train_td):
 
 
 @pytest.mark.unit
+@pytest.mark.parametrize('method', ['elbow', 'broken_stick'])
+def test_truncated_svd_spectrum_n_components_methods(train_td, method):
+    impl = TruncatedSVDImplementation(OperationParameters(n_components=method))
+    impl.fit(train_td)
+    out = impl.transform(train_td)
+    assert 1 <= impl.n_components_ <= train_td.features.shape[1]
+    assert out.features.shape == (train_td.features.shape[0], impl.n_components_)
+    assert isinstance(impl.params.get('n_components'), int)
+
+
+@pytest.mark.unit
 def test_truncated_svd_keeps_nan_rows_on_transform(train_td):
     features = train_td.features.clone()
     features[0, 0] = float('nan')

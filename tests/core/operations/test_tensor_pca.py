@@ -95,6 +95,17 @@ def test_pca_auto_n_components_uses_half_features_budget(train_td):
 
 
 @pytest.mark.unit
+@pytest.mark.parametrize('method', ['elbow', 'broken_stick'])
+def test_pca_spectrum_n_components_methods(train_td, method):
+    impl = PCAImplementation(OperationParameters(n_components=method))
+    impl.fit(train_td)
+    out = impl.transform(train_td)
+    assert 1 <= impl.n_components_ <= train_td.features.shape[1]
+    assert out.features.shape == (train_td.features.shape[0], impl.n_components_)
+    assert isinstance(impl.params.get('n_components'), int)
+
+
+@pytest.mark.unit
 def test_pca_fit_drops_nan_rows_transform_keeps_them(train_td_with_nan):
     impl = PCAImplementation(OperationParameters(n_components=2))
     impl.fit(train_td_with_nan)

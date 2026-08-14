@@ -1,15 +1,29 @@
 from typing import Any, Mapping, Optional
 
-from marshmallow import INCLUDE, Schema, ValidationError, fields, pre_load, validates
+from marshmallow import (
+    INCLUDE,
+    Schema,
+    ValidationError,
+    fields,
+    post_load,
+    pre_load,
+    validate,
+    validates,
+    validates_schema,
+)
 
 from fedot.core.operations.evaluation.operation_implementations.rules import (
     PCA_OPERATION_TYPE,
     TRUNCATED_SVD_OPERATION_TYPE,
+    SpectrumNComponentsMethod,
+    broken_stick_n_error_message,
     decomposition_fit_samples_error_message,
     has_enough_decomposition_fit_samples,
     is_valid_pca_n_components,
     is_valid_truncated_svd_n_components,
     pca_n_components_error_message,
+    spectrum_input_error_message,
+    spectrum_method_error_message,
     truncated_svd_n_components_error_message,
 )
 from fedot.core.operations.operation_parameters import get_default_params
@@ -46,7 +60,8 @@ class PCAParamsSchema(Schema):
 class TruncatedSVDParamsSchema(Schema):
     """Hyperparameters for TruncatedSVD.
 
-    ``n_components``: positive int, float feature-fraction in ``(0, 1]``, or ``auto``.
+    ``n_components``: positive int, float feature-fraction in ``(0, 1]``,
+    ``auto``, ``elbow``, or ``broken_stick``.
     """
 
     class Meta:
@@ -99,6 +114,50 @@ class DecompositionFitSamplesSchema(Schema):
             raise ValidationError(decomposition_fit_samples_error_message(value, op_name=op_name))
 
 
+class BrokenStickNSchema(Schema):
+    """Validate broken-stick length ``n`` (number of spectrum pieces)."""
+
+    n = fields.Raw(required=True)
+
+    @validates('n')
+    def validate_n(self, value: Any) -> None:
+        if not isinstance(value, int) or isinstance(value, bool) or value < 1:
+            raise ValidationError(broken_stick_n_error_message(value))
+
+
+class SpectrumRankSelectionSchema(Schema):
+    """Validate spectrum rank-selection method and required scree inputs."""
+
+    method = fields.Raw(required=True)
+    singular_values = fields.Raw(load_default=None, allow_none=True)
+    proportions = fields.Raw(load_default=None, allow_none=True)
+    max_components = fields.Integer(required=True, validate=validate.Range(min=1))
+
+    @validates('method')
+    def validate_method(self, value: Any) -> None:
+        if isinstance(value, SpectrumNComponentsMethod):
+            return
+        if isinstance(value, str):
+            try:
+                SpectrumNComponentsMethod(value)
+                return
+            except ValueError:
+                pass
+        raise ValidationError(spectrum_method_error_message(value))
+
+    @validates_schema
+    def require_spectrum_input(self, data, **kwargs):
+        if data.get('singular_values') is None and data.get('proportions') is None:
+            raise ValidationError(spectrum_input_error_message(data.get('method')))
+
+    @post_load
+    def coerce_method(self, data, **kwargs):
+        method = data['method']
+        if not isinstance(method, SpectrumNComponentsMethod):
+            data['method'] = SpectrumNComponentsMethod(method)
+        return data
+
+
 def validate_pca_params(
     params: Optional[Mapping[str, Any]] = None,
     context: ValidationContext = None,
@@ -116,7 +175,7 @@ def validate_truncated_svd_params(
     params: Optional[Mapping[str, Any]] = None,
     context: ValidationContext = None,
 ) -> dict:
-    """Validate / complete TruncatedSVD params (int / feature-fraction / auto)."""
+    """Validate / complete TruncatedSVD params (int / fraction / auto / spectrum)."""
     return load_validated(
         TruncatedSVDParamsSchema(),
         dict(params or {}),
@@ -141,3 +200,38 @@ def validate_decomposition_fit_samples(
         prefix=op_name,
     )
     return validated['n_samples']
+
+
+def validate_broken_stick_n(
+    n: Any,
+    context: ValidationContext = None,
+) -> int:
+    """Ensure broken-stick length is a positive int."""
+    return load_validated(
+        BrokenStickNSchema(),
+        {'n': n},
+        context,
+        prefix='broken_stick',
+    )['n']
+
+
+def validate_spectrum_rank_selection(
+    method: Any,
+    *,
+    singular_values: Any = None,
+    proportions: Any = None,
+    max_components: int,
+    context: ValidationContext = None,
+) -> dict:
+    """Validate spectrum method + presence of scree inputs; coerce method to enum."""
+    return load_validated(
+        SpectrumRankSelectionSchema(),
+        {
+            'method': method,
+            'singular_values': singular_values,
+            'proportions': proportions,
+            'max_components': max_components,
+        },
+        context,
+        prefix='spectrum_n_components',
+    )
