@@ -7,8 +7,8 @@ from fedot.core.operations.model import Model
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task, \
-    atomized_model_type
+from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_all_operations_for_task, \
+    get_operations_for_task, atomized_model_type
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
@@ -273,7 +273,10 @@ def has_no_conflicts_during_multitask(pipeline: Pipeline):
     Validation perform only for classification pipelines.
     """
 
-    classification_operations = get_operations_for_task(task=Task(TaskTypesEnum.classification), mode='all')
+    # The unfiltered list is required: with the default tag exclusions an
+    # explicitly requested operation (e.g. qda or mlp) would be read as
+    # solving a foreign task and the pipeline would be rejected.
+    classification_operations = get_all_operations_for_task(task=Task(TaskTypesEnum.classification))
     pipeline_operations = [node.operation.operation_type for node in pipeline.nodes]
     pipeline_operations = set(pipeline_operations)
 
@@ -302,7 +305,7 @@ def has_no_conflicts_after_class_decompose(pipeline: Pipeline):
     if 'class_decompose' not in pipeline_operations:
         return True
 
-    regression_operations = get_operations_for_task(task=Task(TaskTypesEnum.regression), mode='all')
+    regression_operations = get_all_operations_for_task(task=Task(TaskTypesEnum.regression))
 
     # Check for correct descendants after classification decompose
     for node in pipeline.nodes:

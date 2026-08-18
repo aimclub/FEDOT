@@ -1,7 +1,6 @@
 import itertools
 from typing import List, Optional, Dict
 
-from fedot.api.api_utils.presets import OperationsPreset
 from fedot.core.repository.graph_operation_repository import GraphOperationRepository
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -26,11 +25,16 @@ class PipelineOperationRepository(GraphOperationRepository):
 
     def from_available_operations(self, task: Task, preset: str,
                                   available_operations: List[str]):
-        """ Initialize repository from available operations, task and preset """
-        operations_by_task_preset = OperationsPreset(task, preset).filter_operations_by_preset()
-        all_operations = sorted(list(set.intersection(set(operations_by_task_preset), set(available_operations))))
-        primary_operations, secondary_operations = \
-            self.divide_operations(all_operations, task)
+        """ Initialize repository from available operations and task.
+
+        The list is taken verbatim. When the user did not restrict operations
+        the caller passes the preset's own operation set here, and when the
+        user did, re-filtering by preset would silently drop the requested
+        operations that the preset tags exclude (e.g. qda, mlp, dt), so the
+        mutations could never propose them.
+        """
+        all_operations = sorted(set(available_operations))
+        primary_operations, secondary_operations = self.divide_operations(all_operations, task)
         self.operations_by_keys = {'primary': primary_operations, 'secondary': secondary_operations}
 
     def get_operations(self, is_primary: bool) -> List[str]:

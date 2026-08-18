@@ -456,6 +456,30 @@ def get_operations_for_task(task: Optional[Task], data_type: Optional[DataTypesE
         raise ValueError(f'Such mode "{mode}" is not supported')
 
 
+def get_all_operations_for_task(task: Optional[Task] = None, mode: str = 'all') -> List[str]:
+    """Function returns aliases of every operation registered for the task.
+
+    Unlike :func:`get_operations_for_task`, the default tag exclusions do not
+    apply, so operations tagged as deprecated, non-default or expensive are
+    included. Use this where the complete universe of operations matters -
+    e.g. to recognise an operation the user requested explicitly - rather
+    than to choose default candidates.
+
+    Args:
+        task: task to solve
+        mode: ``all``, ``model`` or ``data_operation``, as in
+            :func:`get_operations_for_task`
+
+    Returns:
+        list: operation aliases
+    """
+    if mode not in AVAILABLE_REPO_NAMES:
+        raise ValueError(f'Such mode "{mode}" is not supported')
+    task_type = task.task_type if task else None
+    repo = OperationTypesRepository(mode)
+    return sorted(op.id for op in repo.operations if task_type is None or task_type in op.task_type)
+
+
 def get_operation_type_from_id(operation_id):
     operation_type = _operation_name_without_postfix(operation_id)
     return operation_type
