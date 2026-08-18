@@ -87,3 +87,11 @@ def test_get_final_node_proposes_models_only(node_factory):
         node = node_factory.get_final_node()
         assert node is not None
         assert node.content['name'] in ('dt', 'logit', 'rf')
+
+
+def test_advisor_accepts_only_models_as_sink():
+    advisor = PipelineChangeAdvisor(Task(TaskTypesEnum.classification))
+    assert advisor.can_be_sink(OptNode(content={'name': 'rf'}))
+    assert advisor.can_be_sink(OptNode(content={'name': 'logit'}))
+    assert not advisor.can_be_sink(OptNode(content={'name': 'scaling'}))
+    assert not advisor.can_be_sink(OptNode(content={'name': 'pca'}))
