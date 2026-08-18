@@ -1,5 +1,6 @@
 import json
 import logging
+from functools import lru_cache
 import os
 from collections import defaultdict
 from dataclasses import dataclass
@@ -476,8 +477,17 @@ def get_all_operations_for_task(task: Optional[Task] = None, mode: str = 'all') 
     if mode not in AVAILABLE_REPO_NAMES:
         raise ValueError(f'Such mode "{mode}" is not supported')
     task_type = task.task_type if task else None
+    # The verification rules ask for these lists on every checked graph; the
+    # registry is static, so the scan is done once per (task, mode). A copy is
+    # returned to keep the cache safe from mutation by callers.
+    return list(_all_operations_for_task_type(task_type, mode))
+
+
+@lru_cache(maxsize=None)
+def _all_operations_for_task_type(task_type: Optional[TaskTypesEnum], mode: str) -> tuple:
     repo = OperationTypesRepository(mode)
-    return sorted(op.id for op in repo.operations if task_type is None or task_type in op.task_type)
+    return tuple(sorted(op.id for op in repo.operations
+                        if task_type is None or task_type in op.task_type))
 
 
 def get_operation_type_from_id(operation_id):
