@@ -33,8 +33,8 @@ class TorchLinearClassifier:
         self.module = nn.Linear(n_features, n_classes).to(self.device)
         self.classes_ = classes
 
-        learning_rate = float(self.params.get('learning_rate') or 0.05)
-        epochs = int(self.params.get('epochs') or 200)
+        learning_rate = float(self.params.get('learning_rate'))
+        epochs = int(self.params.get('epochs'))
         optimizer = torch.optim.Adam(self.module.parameters(), lr=learning_rate)
         criterion = nn.CrossEntropyLoss()
 
