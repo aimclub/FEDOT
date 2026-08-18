@@ -18,7 +18,7 @@ from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
 from fedot.utilities.custom_errors import AbstractMethodNotImplementError
-from fedot.core.caching.cacher import Cacher
+from fedot.core.caching.cacher import Cacher, ensure_cacher
 
 
 @register_serializable
@@ -36,19 +36,9 @@ class Operation:
         self._eval_strategy = None
         self.operations_repo: Optional[OperationTypesRepository] = None
         self.fitted_operation = None
-        self._cacher = cacher
+        self.cacher = ensure_cacher(cacher)
 
         self.log = default_log(self)
-
-    @property
-    def cacher(self) -> Cacher:
-        if self._cacher is None:
-            self._cacher = Cacher()
-        return self._cacher
-
-    @cacher.setter
-    def cacher(self, value: Optional[Cacher]):
-        self._cacher = value
 
     def _init(self, task: Task, **kwargs):
         params = kwargs.get('params')
@@ -231,7 +221,7 @@ class Operation:
         return {
             k: v
             for k, v in sorted(vars(self).items())
-            if k not in ['log', 'operations_repo', '_eval_strategy', 'fitted_operation', '_cacher']
+            if k not in ['log', 'operations_repo', '_eval_strategy', 'fitted_operation', 'cacher']
         }
 
 

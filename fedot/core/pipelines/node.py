@@ -63,15 +63,16 @@ class PipelineNode(LinkedGraphNode):
             # Was the data passed directly to the node or not
             self.direct_set = True
 
+        cacher = kwargs.pop('cacher', None)
         passed_content = kwargs.get('content')
         if passed_content:
             # Define operation, based on content dictionary
-            operation = self._process_content_init(passed_content)
+            operation = self._process_content_init(passed_content, cacher=cacher)
             params = passed_content.get('params', {})
             self.metadata = passed_content.get('metadata', NodeMetadata())
         else:
             # There is no content for node
-            operation = self._process_direct_init(operation_type)
+            operation = self._process_direct_init(operation_type, cacher=cacher)
 
             # Define operation with default parameters
             params = {}
@@ -93,23 +94,25 @@ class PipelineNode(LinkedGraphNode):
         if not self.nodes_from or len(self.nodes_from) == 0:
             return True
 
-    def _process_content_init(self, passed_content: dict) -> Operation:
+    def _process_content_init(self, passed_content: dict, cacher=None) -> Operation:
         """ Updating content in the node """
         if isinstance(passed_content['name'], str):
             # Need to convert name of operation into operation class object
             operation_factory = OperationFactory(
                 operation_name=passed_content['name'])
-            operation = operation_factory.get_operation()
+            operation = operation_factory.get_operation(cacher=cacher)
 
             passed_content.update({'name': operation})
         else:
             operation = passed_content['name']
+            if cacher is not None:
+                operation.cacher = cacher
         self.content = passed_content
 
         return operation
 
     @staticmethod
-    def _process_direct_init(operation_type: Optional[Union[str, Operation]]) -> Operation:
+    def _process_direct_init(operation_type: Optional[Union[str, Operation]], cacher=None) -> Operation:
         """Define operation based on the direct ``operation_type`` without defining content in the node
 
         Args:
@@ -124,10 +127,12 @@ class PipelineNode(LinkedGraphNode):
         if not isinstance(operation_type, str):
             # AtomizedModel
             operation = operation_type
+            if cacher is not None:
+                operation.cacher = cacher
         else:
             # Define appropriate operation or data operation
             operation_factory = OperationFactory(operation_name=operation_type)
-            operation = operation_factory.get_operation()
+            operation = operation_factory.get_operation(cacher=cacher)
 
         return operation
 

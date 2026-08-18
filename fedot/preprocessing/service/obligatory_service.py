@@ -12,7 +12,7 @@ from fedot.preprocessing.tools.preprocessor_types import PreprocessingStepEnum
 from fedot.preprocessing.tools.tools import copy_handler_mapping, update_handler_mapping
 from fedot.preprocessing.tools.methods_mapping import PREPROCESSING_OBLIGATORY_MAPPING
 from fedot.core.data.common.types import ArrayType
-from fedot.core.caching.cacher import Cacher
+from fedot.core.caching.cacher import Cacher, ensure_cacher
 from fedot.core.caching.cache_loader import Loader
 from fedot.core.caching.hasher import Hasher
 from fedot.core.caching.tracer import TraceBuilder, TraceStage
@@ -63,8 +63,9 @@ class ObligatoryService:
     plan: Optional[PreprocessingPlan] = None
     use_cache: bool = True
 
-    def __init__(self, use_cache: bool = True):
-        self.use_cache = use_cache
+    def __init__(self, use_cache: bool = True, cacher: Optional[Cacher] = None):
+        self.cacher = ensure_cacher(cacher, use_cache=use_cache)
+        self.use_cache = self.cacher.use_cache
         # Instance copy so fit/custom steps cannot mutate the class-/module-level mapping.
         self.handler_mapping = copy_handler_mapping(type(self).handler_mapping)
 
@@ -85,7 +86,7 @@ class ObligatoryService:
 
         self.plan = build_obligatory_plan(features, target, params)
 
-        cacher = Cacher(use_cache=self.use_cache)
+        cacher = self.cacher
         cached_data = cacher.load_tensor_data(input_data=features, target=target, operation=self.plan)
         raw_fingerprint = cached_data.input_hash
         plan_hash = cached_data.operation_hash

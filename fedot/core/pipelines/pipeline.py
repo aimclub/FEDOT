@@ -15,6 +15,7 @@ from golem.core.paths import copy_doc
 from golem.utilities.serializable import Serializable
 from golem.visualisation.graph_viz import NodeColorType
 
+from fedot.core.caching.cacher import Cacher
 from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.data.input_data.data import InputData
@@ -48,11 +49,32 @@ class Pipeline(GraphDelegate, Serializable):
         nodes: :obj:`PipelineNode` object(s)
     """
 
-    def __init__(self, nodes: Union[PipelineNode, Sequence[PipelineNode]] = ()):
+    def __init__(
+            self,
+            nodes: Union[PipelineNode, Sequence[PipelineNode]] = (),
+            cacher: Optional[Cacher] = None,
+    ):
         super().__init__(nodes, _graph_nodes_to_pipeline_nodes)
 
         self.computation_time = None
         self.log = default_log(self)
+        self.cacher = cacher
+        self.bind_cacher(cacher)
+
+    def bind_cacher(self, cacher: Optional[Cacher] = None) -> None:
+        """Attach ``cacher`` to this pipeline and every node operation.
+
+        When ``cacher`` is omitted, uses :attr:`cacher` if it was already set.
+        Does nothing when neither is provided, so a per-operation cacher stays.
+        """
+        resolved = cacher if cacher is not None else self.cacher
+        if resolved is None:
+            return
+        self.cacher = resolved
+        for node in self.nodes:
+            operation = getattr(node, 'operation', None)
+            if operation is not None:
+                operation.cacher = resolved
 
     def fit_from_scratch(self, tensor_data: TensorData = None):
         """[Obsolete] Method used for training the pipeline without using saved information
@@ -146,6 +168,7 @@ class Pipeline(GraphDelegate, Serializable):
             n_jobs: int = 1,
             predictions_cache: Optional[PredictionsCache] = None,
             fold_id: Optional[int] = None) -> TensorData:
+        self.bind_cacher()
         self.replace_n_jobs_in_nodes(n_jobs)
 
         copied_tensor_data = deepcopy(tensor_data)
@@ -212,6 +235,7 @@ class Pipeline(GraphDelegate, Serializable):
                 predictions_cache: Optional[PredictionsCache] = None,
                 fold_id: Optional[int] = None) -> TensorData:
         validate_pipeline_is_fitted(self.is_fitted)
+        self.bind_cacher()
 
         modes = resolve_pipeline_predict_modes(output_mode, tensor_data.task.task_type)
 

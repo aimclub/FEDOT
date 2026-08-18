@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any, List, Optional, Sequence
 
 from fedot.core.data.prepared_data.prepared_data import PreparedData
-from fedot.core.caching.cacher import Cacher
+from fedot.core.caching.cacher import Cacher, ensure_cacher
 from fedot.preprocessing.tools.index_mapping_tools import (update_index_mapping,
                                                            update_indices, create_index_mapping)
 from fedot.core.data.tensor_data.tensor_data import TensorData
@@ -50,8 +50,9 @@ class OptionalService:
     """
     handler_mapping = {}
 
-    def __init__(self, use_cache: bool = True):
-        self.use_cache = use_cache
+    def __init__(self, use_cache: bool = True, cacher: Optional[Cacher] = None):
+        self.cacher = ensure_cacher(cacher, use_cache=use_cache)
+        self.use_cache = self.cacher.use_cache
         self.plan = None
         self.fitted_handlers: Optional[List[Any]] = None
         self._cached_handler_paths: List[Path] = []
@@ -78,7 +79,7 @@ class OptionalService:
             self._plan_hash = None
             return self
 
-        cacher = Cacher(use_cache=self.use_cache)
+        cacher = self.cacher
         cached_data = cacher.load_tensor_data(input_data=data, operation=self.plan)
         self._input_hash = cached_data.input_hash
         self._plan_hash = cached_data.operation_hash
@@ -154,8 +155,7 @@ class OptionalService:
             )
 
         data = update_tensor_data(data, prepared_data)
-        cacher = Cacher(use_cache=self.use_cache)
-        response = cacher.cache_tensor_data(
+        response = self.cacher.cache_tensor_data(
             output_data=data,
             input_hash=init_fingerprint,
             operation_hash=self._plan_hash,

@@ -24,6 +24,17 @@ from fedot.core.caching.cache_cleaner import CacheCleaner
 logger = logging.getLogger(__name__)
 
 
+def ensure_cacher(cacher: Optional["Cacher"] = None, **kwargs) -> "Cacher":
+    """Return ``cacher`` or a new :class:`Cacher` with default (or given) settings.
+
+    Call sites that receive an optional ``Cacher`` should use this instead of
+    constructing ``Cacher()`` themselves.
+    """
+    if cacher is not None:
+        return cacher
+    return Cacher(**kwargs)
+
+
 class Cacher:
     """
     Facade for disk-backed preprocessing and tensor-data cache.
