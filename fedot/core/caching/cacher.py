@@ -7,9 +7,11 @@ from fedot.core.caching.index_db import (
     PreprocessingModelCacheIndexRecord,
     TensorDataCacheIndexRecord,
     PreprocessingPlanCacheIndexRecord,
+    OperationCacheIndexRecord,
 )
 from fedot.core.caching.cache_loader import Loader
 from fedot.core.caching.cache_saver import Saver
+from fedot.core.caching.inmemory_operations import save_fitted_operation
 from fedot.core.caching.responses import DataCacherLoaderResponse
 from fedot.core.caching.tracer import TraceBuilder
 from fedot.preprocessing.planner import PreprocessingPlan
@@ -348,3 +350,68 @@ class Cacher:
             return TraceBuilder.from_trace_uuid(trace_uuid, index_db=self.index_db)
 
         return TraceBuilder(raw_fingerprint=raw_fingerprint, index_db=self.index_db)
+
+    def cache_operation(self, operation: Any, data: Any) -> Optional[OperationCacheIndexRecord]:
+        """
+        Persist a fitted pipeline operation as a ``.pkl`` artifact.
+
+        Preprocessing pipeline nodes are skipped: they already persist handlers
+        through :meth:`cache_preprocessing_model`. One fitted model is stored per
+        ``(input_hash, operation_hash)`` pair.
+        """
+        if _is_preprocessing_pipeline_operation(operation):
+            return None
+
+        fitted_operation = getattr(operation, "fitted_operation", None)
+        if fitted_operation is None:
+            return None
+
+        input_hash = Hasher.hash(data)
+        operation_hash = Hasher.hash(operation)
+
+        if self.use_cache:
+            saver_response = save_fitted_operation(
+                fitted_operation, f"{input_hash}_{operation_hash}"
+            )
+            if not saver_response.success:
+                logger.error(
+                    "Failed to save fitted operation: %s %s",
+                    input_hash,
+                    operation_hash,
+                )
+                return None
+            path = saver_response.path
+        else:
+            path = None
+
+        return self.index_db.add_operation(
+            input_hash=input_hash,
+            operation_hash=operation_hash,
+            path=path,
+        )
+
+    def load_operation(self, operation: Any, data: Any) -> Optional[Any]:
+        """
+        Load a fitted pipeline operation for an input/spec pair.
+
+        Returns ``None`` when cache is disabled, the operation is preprocessing,
+        or no artifact exists.
+        """
+        if _is_preprocessing_pipeline_operation(operation):
+            return None
+
+        input_hash = Hasher.hash(data)
+        operation_hash = Hasher.hash(operation)
+        if not self.use_cache:
+            return None
+
+        record = self.index_db.get_operation(input_hash, operation_hash)
+        if record is None or record.path is None or not record.path.exists():
+            return None
+
+        return Loader.load(str(record.path), kind="operation")
+
+
+def _is_preprocessing_pipeline_operation(operation: Any) -> bool:
+    """Return whether ``operation`` is the TensorData optional-preprocessing node."""
+    return getattr(operation, "operation_type", None) == "optional_preprocessing"

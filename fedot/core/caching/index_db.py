@@ -43,6 +43,15 @@ class PreprocessingPlanCacheIndexRecord:
     created_at: str
 
 
+@dataclass(frozen=True)
+class OperationCacheIndexRecord:
+    """SQLite index row describing one cached fitted pipeline operation."""
+    input_hash: str
+    operation_hash: str
+    path: Optional[Path]
+    created_at: str
+
+
 class CacheIndexDB:
     """
     SQLite index for cache files stored on disk.
@@ -54,6 +63,7 @@ class CacheIndexDB:
     TENSOR_DATA_TABLE = "tensor_data_cache"
     PREPROCESSING_MODELS_TABLE = "preprocessing_model_cache"
     PREPROCESSING_PLANS_TABLE = "preprocessing_plan_cache"
+    OPERATIONS_TABLE = "operation_cache"
 
     def __init__(self, db_path: Optional[Union[str, Path]] = None):
         """
@@ -193,6 +203,75 @@ class CacheIndexDB:
     def has_tensor_data(self, input_hash: str, operation_hash: str) -> bool:
         """Return whether a tensor-data row exists for the given hashes."""
         return self.get_tensor_data(input_hash, operation_hash) is not None
+
+    def add_operation(
+        self,
+        input_hash: str,
+        operation_hash: str,
+        path: Optional[Union[str, Path]],
+        created_at: Optional[str] = None,
+    ) -> OperationCacheIndexRecord:
+        """
+        Insert or update a fitted-operation index row.
+
+        When ``path`` is ``None``, an existing row is preserved and no update is
+        performed. One fitted model is stored per ``(input_hash, operation_hash)``.
+        """
+        if path is None:
+            existing_record = self.get_operation(input_hash, operation_hash)
+            if existing_record is not None:
+                return existing_record
+
+        with closing(self._connect()) as conn:
+            with conn:
+                cur = conn.cursor()
+                if path is None:
+                    cur.execute(
+                        f"""
+                        INSERT INTO {self.OPERATIONS_TABLE}
+                            (input_hash, operation_hash, path, created_at)
+                        VALUES (?, ?, NULL, COALESCE(?, CURRENT_TIMESTAMP))
+                        ON CONFLICT(input_hash, operation_hash) DO NOTHING;
+                        """,
+                        (input_hash, operation_hash, created_at),
+                    )
+                else:
+                    cur.execute(
+                        f"""
+                        INSERT INTO {self.OPERATIONS_TABLE}
+                            (input_hash, operation_hash, path, created_at)
+                        VALUES (?, ?, ?, COALESCE(?, CURRENT_TIMESTAMP))
+                        ON CONFLICT(input_hash, operation_hash) DO UPDATE SET
+                            path = excluded.path,
+                            created_at = excluded.created_at;
+                        """,
+                        (input_hash, operation_hash, str(path), created_at),
+                    )
+
+        record = self.get_operation(input_hash, operation_hash)
+        if record is None:
+            raise RuntimeError("Operation cache index record was not saved.")
+        return record
+
+    def get_operation(
+        self,
+        input_hash: str,
+        operation_hash: str,
+    ) -> Optional[OperationCacheIndexRecord]:
+        """Return the fitted-operation row for an input/operation pair, if present."""
+        with closing(self._connect()) as conn:
+            cur = conn.cursor()
+            cur.execute(
+                f"""
+                SELECT input_hash, operation_hash, path, created_at
+                FROM {self.OPERATIONS_TABLE}
+                WHERE input_hash = ? AND operation_hash = ?;
+                """,
+                (input_hash, operation_hash),
+            )
+            row = cur.fetchone()
+
+        return self._operation_record_from_row(row)
 
     def add_preprocessing_model(
         self,
@@ -395,6 +474,7 @@ class CacheIndexDB:
                 cur.execute(f"DELETE FROM {self.TENSOR_DATA_TABLE};")
                 cur.execute(f"DELETE FROM {self.PREPROCESSING_MODELS_TABLE};")
                 cur.execute(f"DELETE FROM {self.PREPROCESSING_PLANS_TABLE};")
+                cur.execute(f"DELETE FROM {self.OPERATIONS_TABLE};")
 
     def add_preprocessing_plan(
         self,
@@ -507,6 +587,17 @@ class CacheIndexDB:
                     ON {self.PREPROCESSING_PLANS_TABLE} (plan_hash);
                     """
                 )
+                cur.execute(
+                    f"""
+                    CREATE TABLE IF NOT EXISTS {self.OPERATIONS_TABLE} (
+                        input_hash TEXT NOT NULL,
+                        operation_hash TEXT NOT NULL,
+                        path TEXT,
+                        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        PRIMARY KEY (input_hash, operation_hash)
+                    );
+                    """
+                )
                 self._ensure_tensor_table_schema(cur)
                 self._ensure_preprocessing_models_table_schema(cur)
 
@@ -552,6 +643,19 @@ class CacheIndexDB:
         plan_hash, path, created_at = row
         return PreprocessingPlanCacheIndexRecord(
             plan_hash=plan_hash,
+            path=None if path is None else Path(path),
+            created_at=created_at,
+        )
+
+    @staticmethod
+    def _operation_record_from_row(row: Optional[tuple]) -> Optional[OperationCacheIndexRecord]:
+        if row is None:
+            return None
+
+        input_hash, operation_hash, path, created_at = row
+        return OperationCacheIndexRecord(
+            input_hash=input_hash,
+            operation_hash=operation_hash,
             path=None if path is None else Path(path),
             created_at=created_at,
         )

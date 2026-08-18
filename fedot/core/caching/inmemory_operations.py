@@ -168,6 +168,35 @@ def save_preprocessing_model(data: Any, key: str) -> SaverResponse:
     )
 
 
+def save_fitted_operation(data: Any, key: str) -> SaverResponse:
+    """
+    Pickle a fitted pipeline operation to ``CACHE_DIR/operations/{key}.pkl``.
+
+    Args:
+        data: Fitted model or data-operation implementation.
+        key: Content hash used as the file stem.
+
+    Returns:
+        ``SaverResponse`` with the final path and write status.
+    """
+    ensure_cache_dirs()
+
+    final_path = CACHE_DIR / "operations" / f"{key}.pkl"
+
+    def writer(tmp_path: Path) -> None:
+        with open(tmp_path, "wb") as file:
+            cloudpickle.dump(data, file, protocol=pickle.HIGHEST_PROTOCOL)
+
+    written = _atomic_save(final_path, writer)
+
+    return SaverResponse(
+        key=key,
+        kind="operation",
+        path=final_path,
+        success=written,
+    )
+
+
 def load_pt_file(source: str, hash: str = None, kind: str = None) -> Any:
     """
     Load cached ``TensorData`` from a ``.pt`` file.
@@ -200,7 +229,7 @@ def load_pkl_file(source: str, hash: str = None, kind: str = None) -> Any:
     Args:
         source: Path to the pickle cache file.
         hash: Expected fingerprint validated after loading.
-        kind: Artifact kind (`preprocessing_model` or `preprocessing_plan`).
+        kind: Artifact kind (`preprocessing_model`, `preprocessing_plan`, or `operation`).
 
     Returns:
         Restored Python object, with tensors moved to the active backend for models.
@@ -208,7 +237,7 @@ def load_pkl_file(source: str, hash: str = None, kind: str = None) -> Any:
     Raises:
         ValueError: For unsupported ``kind`` or hash mismatch.
     """
-    if kind not in (None, "preprocessing_model", "preprocessing_plan"):
+    if kind not in (None, "preprocessing_model", "preprocessing_plan", "operation"):
         raise ValueError(f"Unsupported .pkl cache kind: {kind}")
 
     with open(source, "rb") as file:
@@ -216,7 +245,8 @@ def load_pkl_file(source: str, hash: str = None, kind: str = None) -> Any:
 
     if kind in (None, "preprocessing_model"):
         data = prepare_loaded_preprocessing_model(data)
-    _validate_loaded_hash(data, hash)
+    if kind != "operation":
+        _validate_loaded_hash(data, hash)
     logger.info(f"Loaded cached {kind or 'preprocessing_model'} from {source}")
     return data
 

@@ -11,6 +11,11 @@ from fedot.core.caching.hasher import Hasher
 from fedot.core.caching.tracer import TraceBuilder
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
+from fedot.core.operations.data_operation import DataOperation
+from fedot.core.operations.evaluation.operation_implementations.models.torch import TorchLinearClassifier
+from fedot.core.operations.model import Model
+from fedot.core.pipelines.node import PipelineNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.preprocessing.planner import PreprocessingPlan
@@ -111,6 +116,7 @@ def test_cache_index_db_is_created_with_tensor_and_model_tables(isolated_cache_d
     assert db.db_path == isolated_cache_dir / "index.sqlite3"
     assert CacheIndexDB.TENSOR_DATA_TABLE in tables
     assert CacheIndexDB.PREPROCESSING_MODELS_TABLE in tables
+    assert CacheIndexDB.OPERATIONS_TABLE in tables
 
 
 @pytest.mark.unit
@@ -354,3 +360,208 @@ def test_cacher_clears_cache(isolated_cache_dir):
     assert not (isolated_cache_dir / "tensor_data" / "tensor-hash.pt").exists()
     assert not (isolated_cache_dir / "traces" / "trace-hash.json").exists()
     assert not (isolated_cache_dir / "index.sqlite3").exists()
+
+
+def _init_logit_operation(tensor_data: TensorData, cacher: Cacher) -> Model:
+    operation = Model("logit")
+    operation.cacher = cacher
+    operation._init(tensor_data.task, n_samples_data=tensor_data.features.shape[0])
+    return operation
+
+
+def _make_torch_linear_train_data() -> TensorData:
+    return TensorData(
+        task=Task(TaskTypesEnum.classification),
+        data_type=DataTypesEnum.table,
+        features=torch.tensor(
+            [
+                [1.0, 2.0],
+                [3.0, 4.0],
+                [5.0, 6.0],
+                [7.0, 8.0],
+            ]
+        ),
+        target=torch.tensor([0.0, 1.0, 0.0, 1.0]),
+    )
+
+
+@pytest.mark.unit
+def test_pipeline_torch_linear_caches_fitted_operation_as_pkl(isolated_cache_dir):
+    tensor_data = _make_torch_linear_train_data()
+    cacher = Cacher(use_cache=True)
+    node = PipelineNode("torch_linear")
+    node.parameters = {"epochs": 20, "learning_rate": 0.05}
+    node.operation.cacher = cacher
+    pipeline = Pipeline(node)
+
+    pipeline.fit(tensor_data)
+
+    fitted = pipeline.root_node.fitted_operation
+    operation_files = list((isolated_cache_dir / "operations").glob("*.pkl"))
+    tensor_files = list((isolated_cache_dir / "tensor_data").glob("*.pt"))
+    loaded = cacher.load_operation(node.operation, tensor_data)
+
+    assert pipeline.is_fitted
+    assert isinstance(fitted, TorchLinearClassifier)
+    assert fitted.module is not None
+    assert len(operation_files) == 1
+    assert len(tensor_files) == 1
+    assert isinstance(loaded, TorchLinearClassifier)
+    assert loaded.module is not None
+    assert torch.equal(loaded.module.weight.detach().cpu(), fitted.module.weight.detach().cpu())
+    assert torch.equal(loaded.module.bias.detach().cpu(), fitted.module.bias.detach().cpu())
+
+
+def _fit_torch_linear_pipeline(tensor_data: TensorData, cacher: Cacher) -> Pipeline:
+    node = PipelineNode("torch_linear")
+    node.parameters = {"epochs": 20, "learning_rate": 0.05}
+    node.operation.cacher = cacher
+    pipeline = Pipeline(node)
+    pipeline.fit(tensor_data)
+    return pipeline
+
+
+def _make_torch_linear_test_data(train_data: TensorData) -> TensorData:
+    return TensorData(
+        task=train_data.task,
+        data_type=train_data.data_type,
+        features=train_data.features + 0.5,
+        target=train_data.target,
+    )
+
+
+@pytest.mark.unit
+def test_pipeline_predict_reuses_inmemory_operation_when_cache_disabled(isolated_cache_dir):
+    train_data = _make_torch_linear_train_data()
+    test_data = _make_torch_linear_test_data(train_data)
+    pipeline = _fit_torch_linear_pipeline(train_data, Cacher(use_cache=False))
+    fitted = pipeline.root_node.fitted_operation
+    predict_calls = {"count": 0}
+    original_predict_proba = fitted.predict_proba
+
+    def wrapped_predict_proba(features):
+        predict_calls["count"] += 1
+        return original_predict_proba(features)
+
+    fitted.predict_proba = wrapped_predict_proba
+
+    result = pipeline.predict(test_data)
+
+    assert pipeline.root_node.fitted_operation is fitted
+    assert predict_calls["count"] == 1
+    assert result.predict is not None
+    assert not list((isolated_cache_dir / "operations").glob("*.pkl"))
+
+
+@pytest.mark.unit
+def test_pipeline_predict_uses_inmemory_operation_before_cache(isolated_cache_dir):
+    train_data = _make_torch_linear_train_data()
+    test_data = _make_torch_linear_test_data(train_data)
+    cacher = Cacher(use_cache=True)
+    pipeline = _fit_torch_linear_pipeline(train_data, cacher)
+    fitted = pipeline.root_node.fitted_operation
+    predict_calls = {"count": 0}
+    original_predict_proba = fitted.predict_proba
+
+    def wrapped_predict_proba(features):
+        predict_calls["count"] += 1
+        return original_predict_proba(features)
+
+    fitted.predict_proba = wrapped_predict_proba
+
+    result = pipeline.predict(test_data)
+
+    assert pipeline.root_node.fitted_operation is fitted
+    assert predict_calls["count"] == 1
+    assert result.predict is not None
+    assert cacher.load_operation(pipeline.root_node.operation, train_data) is not None
+
+    second = pipeline.predict(test_data)
+    assert predict_calls["count"] == 1
+    assert torch.equal(second.predict.detach().cpu(), result.predict.detach().cpu())
+
+
+@pytest.mark.unit
+def test_predict_loads_operation_from_cache_when_missing_in_memory(isolated_cache_dir):
+    train_data = _make_torch_linear_train_data()
+    cacher = Cacher(use_cache=True)
+    pipeline = _fit_torch_linear_pipeline(train_data, cacher)
+    operation = pipeline.root_node.operation
+    original_weight = pipeline.root_node.fitted_operation.module.weight.detach().clone()
+
+    result = operation.predict(
+        fitted_operation=None,
+        data=train_data,
+        params=pipeline.root_node.parameters,
+    )
+
+    assert result.predict is not None
+    restored = cacher.load_operation(operation, train_data)
+    assert restored is not None
+    assert torch.equal(restored.module.weight.detach().cpu(), original_weight.cpu())
+
+
+@pytest.mark.unit
+def test_cacher_skips_optional_preprocessing_operation(isolated_cache_dir):
+    tensor_data = _make_tensor_data_for_cache()
+    cacher = Cacher(use_cache=True)
+    operation = DataOperation("optional_preprocessing")
+    operation.fitted_operation = object()
+
+    assert cacher.cache_operation(operation, tensor_data) is None
+    assert cacher.load_operation(operation, tensor_data) is None
+    assert not list((isolated_cache_dir / "operations").glob("*.pkl"))
+
+
+@pytest.mark.unit
+def test_cacher_with_disabled_cache_does_not_write_operation_artifact(isolated_cache_dir):
+    tensor_data = _make_tensor_data_for_cache()
+    cacher = Cacher(use_cache=False)
+    operation = _init_logit_operation(tensor_data, cacher)
+    operation.fitted_operation = {"weights": [1.0, 2.0]}
+
+    record = cacher.cache_operation(operation, tensor_data)
+
+    assert record is not None
+    assert record.path is None
+    assert cacher.load_operation(operation, tensor_data) is None
+    assert not list((isolated_cache_dir / "operations").glob("*.pkl"))
+
+
+@pytest.mark.unit
+def test_operation_fit_reuses_cached_fitted_model(isolated_cache_dir):
+    tensor_data = _make_tensor_data_for_cache()
+    cacher = Cacher(use_cache=True)
+    fit_calls = {"count": 0}
+
+    def _bind_fake_strategy(operation: Model):
+        original_init = operation._init
+
+        def wrapped_init(*args, **kwargs):
+            original_init(*args, **kwargs)
+
+            def fake_fit(train_data):
+                fit_calls["count"] += 1
+                return {"marker": "fitted-logit"}
+
+            def fake_predict_for_fit(trained_operation, predict_data):
+                return predict_data
+
+            operation._eval_strategy.fit = fake_fit
+            operation._eval_strategy.predict_for_fit = fake_predict_for_fit
+
+        operation._init = wrapped_init
+
+    first = Model("logit")
+    first.cacher = cacher
+    _bind_fake_strategy(first)
+    fitted, _ = first.fit(params=None, data=tensor_data)
+
+    second = Model("logit")
+    second.cacher = cacher
+    _bind_fake_strategy(second)
+    loaded, _ = second.fit(params=None, data=tensor_data)
+
+    assert fitted == {"marker": "fitted-logit"}
+    assert loaded == {"marker": "fitted-logit"}
+    assert fit_calls["count"] == 1

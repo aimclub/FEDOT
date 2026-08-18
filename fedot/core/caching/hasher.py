@@ -16,7 +16,8 @@ from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.preprocessing.planner import PreprocessingPlan
 from fedot.core.common.registry_predicates import (
     is_array_runtime, is_tensor_data,
-    is_preprocessing_plan, is_preprocessing_handler)
+    is_preprocessing_plan, is_preprocessing_handler,
+    is_pipeline_operation)
 
 
 class Hasher(Registry):
@@ -129,6 +130,28 @@ def preprocessing_plan_hash(plan: PreprocessingPlan, digest_size: int = 16) -> s
         Hexadecimal hash string.
     """
     return get_hash_preprocessing_plan(plan, digest_size=digest_size)
+
+
+@Hasher.register_creator(is_pipeline_operation)
+def pipeline_operation_hash(operation: Any, digest_size: int = 16) -> str:
+    """
+    Build a fingerprint for a pipeline ``Operation`` spec.
+
+    The hash uses operation type and fit parameters, not the fitted sklearn
+    object. Two unfitted ``ridge`` nodes with the same params share a key.
+    """
+    params = {}
+    eval_strategy = getattr(operation, "_eval_strategy", None)
+    if eval_strategy is not None and getattr(eval_strategy, "params_for_fit", None) is not None:
+        params = eval_strategy.params_for_fit.to_dict()
+
+    return stable_hash(
+        {
+            "operation_type": operation.operation_type,
+            "params": params,
+        },
+        digest_size=digest_size,
+    )
 
 
 @Hasher.register_creator(is_preprocessing_handler)

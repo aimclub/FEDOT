@@ -11,6 +11,7 @@ __all__ = [
     'is_tensor_data',
     'is_preprocessing_plan',
     'is_preprocessing_handler',
+    'is_pipeline_operation',
 ]
 
 
@@ -67,6 +68,21 @@ def is_preprocessing_handler(data: Any) -> bool:
         return issubclass(data, AbstractPreprocessingHandler)
 
     return isinstance(data, AbstractPreprocessingHandler)
+
+
+def is_pipeline_operation(data: Any) -> bool:
+    """
+    Return whether ``data`` is a FEDOT pipeline ``Operation`` instance.
+
+    Args:
+        data: Candidate runtime object.
+
+    Returns:
+        ``True`` for ``Operation`` subclasses used in pipeline nodes.
+    """
+    from fedot.core.operations.operation import Operation
+
+    return isinstance(data, Operation)
 
 
 def is_pt_filepath(source: Any) -> bool:

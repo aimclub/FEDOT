@@ -18,6 +18,7 @@ from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
 from fedot.utilities.custom_errors import AbstractMethodNotImplementError
+from fedot.core.caching.cacher import Cacher
 
 
 @register_serializable
@@ -29,14 +30,25 @@ class Operation:
         operation_type: name of the operation
     """
 
-    def __init__(self, operation_type: str, **kwargs):
+    def __init__(self, operation_type: str, cacher: Optional[Cacher] = None, **kwargs):
         self.operation_type = operation_type
 
         self._eval_strategy = None
         self.operations_repo: Optional[OperationTypesRepository] = None
         self.fitted_operation = None
+        self._cacher = cacher
 
         self.log = default_log(self)
+
+    @property
+    def cacher(self) -> Cacher:
+        if self._cacher is None:
+            self._cacher = Cacher()
+        return self._cacher
+
+    @cacher.setter
+    def cacher(self, value: Optional[Cacher]):
+        self._cacher = value
 
     def _init(self, task: Task, **kwargs):
         params = kwargs.get('params')
@@ -83,6 +95,7 @@ class Operation:
                 f'{self.__class__.__name__} {self.operation_type} not found')
         return operation_info
 
+    # TODO @romankuklo: change when fold_id will be important
     def fit(self,
             params: Optional[Union[OperationParameters, dict]],
             data: TensorData,
@@ -96,16 +109,37 @@ class Operation:
             n_samples_data=data.features.shape[0],
         )
 
-        self.fitted_operation = self._eval_strategy.fit(train_data=data)
+        cached_fitted = self.cacher.load_operation(self, data)
+        if cached_fitted is not None:
+            self.fitted_operation = cached_fitted
+            cached_output = self.cacher.load_tensor_data(data, self)
+            if cached_output.success:
+                return self.fitted_operation, cached_output.data
+            result_data = self._eval_strategy.predict_for_fit(
+                trained_operation=self.fitted_operation,
+                predict_data=data,
+            )
+            self.cacher.cache_tensor_data(
+                output_data=result_data,
+                input_data=data,
+                operation=self,
+                state=_operation_cache_state(data),
+            )
+            return self.fitted_operation, result_data
 
-        output = self.predict_for_fit(
-            fitted_operation=self.fitted_operation,
-            data=data,
-            params=params,
-            predictions_cache=predictions_cache,
-            fold_id=fold_id,
+        self.fitted_operation = self._eval_strategy.fit(train_data=data)
+        result_data = self._eval_strategy.predict_for_fit(
+            trained_operation=self.fitted_operation,
+            predict_data=data,
         )
-        return self.fitted_operation, output
+        self.cacher.cache_operation(self, data)
+        self.cacher.cache_tensor_data(
+            output_data=result_data,
+            input_data=data,
+            operation=self,
+            state=_operation_cache_state(data),
+        )
+        return self.fitted_operation, result_data
 
     def _is_tensor_transform_operation(self) -> bool:
         from fedot.core.operations.data_operation import DataOperation
@@ -165,27 +199,28 @@ class Operation:
             n_samples_data=data.features.shape[0],
         )
 
-        result_data = None
+        cached_output = self.cacher.load_tensor_data(data, self)
+        if cached_output.success:
+            return cached_output.data
 
-        if predictions_cache is not None:
-            result_data = predictions_cache.load_node_prediction(
-                descriptive_id, output_mode, fold_id, is_fit=is_fit_stage)
+        if fitted_operation is None:
+            fitted_operation = self.cacher.load_operation(self, data)
 
-        # TODO @romankuklo: change with new cache implementation (if/else)
-        if result_data is None:
-            if is_fit_stage:
-                result_data = self._eval_strategy.predict_for_fit(
-                    trained_operation=fitted_operation,
-                    predict_data=data)
-            else:
-                result_data = self._eval_strategy.predict(
-                    trained_operation=fitted_operation,
-                    predict_data=data)
+        if is_fit_stage:
+            result_data = self._eval_strategy.predict_for_fit(
+                trained_operation=fitted_operation,
+                predict_data=data)
+        else:
+            result_data = self._eval_strategy.predict(
+                trained_operation=fitted_operation,
+                predict_data=data)
 
-        if predictions_cache is not None:
-            predictions_cache.save_node_prediction(
-                descriptive_id, output_mode, fold_id, result_data, is_fit=is_fit_stage)
-
+        self.cacher.cache_tensor_data(
+            output_data=result_data,
+            input_data=data,
+            operation=self,
+            state=_operation_cache_state(data),
+        )
         return result_data
 
     def __str__(self):
@@ -196,7 +231,7 @@ class Operation:
         return {
             k: v
             for k, v in sorted(vars(self).items())
-            if k not in ['log', 'operations_repo', '_eval_strategy', 'fitted_operation']
+            if k not in ['log', 'operations_repo', '_eval_strategy', 'fitted_operation', '_cacher']
         }
 
 
@@ -243,3 +278,8 @@ def _eval_strategy_for_task(operation_type: str, current_task_type: TaskTypesEnu
     strategy = operations_repo.operation_info_by_id(
         operation_type).current_strategy(current_task_type)
     return strategy
+
+
+def _operation_cache_state(data: TensorData) -> str:
+    state = getattr(data, "state", "fit")
+    return state.value if hasattr(state, "value") else str(state)
