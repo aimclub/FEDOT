@@ -78,3 +78,12 @@ def test_get_primary_node(node_factory):
 
     assert new_primary_node is not None
     assert new_primary_node.content['name'] in node_factory.graph_model_repository.get_operations(is_primary=True)
+
+
+def test_get_final_node_proposes_models_only(node_factory):
+    """The sink of a pipeline must be a model; the factory must never propose
+    a data operation there, because verification would reject the offspring."""
+    for _ in range(50):
+        node = node_factory.get_final_node()
+        assert node is not None
+        assert node.content['name'] in ('dt', 'logit', 'rf')
