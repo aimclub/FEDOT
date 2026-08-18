@@ -1,5 +1,19 @@
 import json
 import os
+from functools import lru_cache
+
+
+@lru_cache(maxsize=None)
+def _load_repository(repo_path: str) -> dict:
+    """Parse the repository file once per process.
+
+    Default parameters are requested in ``PipelineNode.__init__``, so every
+    graph the optimiser mutates, verifies, restores or serialises used to
+    re-read the JSON from disk for each of its nodes - thousands of reads per
+    generation, a noticeable share of the time between two populations.
+    """
+    with open(repo_path) as repository_json_file:
+        return json.load(repository_json_file)
 
 
 class DefaultOperationParamsRepository:
@@ -16,10 +30,7 @@ class DefaultOperationParamsRepository:
         self._repo_path = None
 
     def _initialise_repo(self) -> dict:
-        with open(self._repo_path) as repository_json_file:
-            repository_json = json.load(repository_json_file)
-
-        return repository_json
+        return _load_repository(self._repo_path)
 
     def get_default_params_for_operation(self, model_name: str) -> dict:
         model_name = model_name.split('/')[0]
