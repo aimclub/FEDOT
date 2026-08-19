@@ -17,6 +17,10 @@ class PipelineChangeAdvisor(DefaultChangeAdvisor):
         self.data_operations: List[str] = get_all_operations_for_task(task, mode='data_operation')
         super().__init__(task)
 
+    def can_be_sink(self, node: OptNode) -> bool:
+        """A pipeline must end with a model, so only models fit the sink."""
+        return node.content['name'] in self.models
+
     def can_be_removed(self, node: OptNode) -> RemoveType:
         operation_id = node.content['name']
         if 'exog_ts' in operation_id:

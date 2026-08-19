@@ -51,6 +51,20 @@ class PipelineOptNodeFactory(OptNodeFactory):
         candidates = self.filter_specific_candidates(candidates)
         return self._return_node(candidates)
 
+    def get_final_node(self):
+        """A node fit to end the pipeline: models only.
+
+        Mutations ask for this when the new node becomes the sink. Proposing a
+        data operation there is pointless - ``has_final_operation_as_model``
+        rejects the whole offspring at verification - and such proposals used
+        to be the main source of discarded mutants.
+        """
+        candidates = self.graph_model_repository.get_operations(is_primary=False)
+        models = set(self.advisor.models)
+        candidates = [candidate for candidate in candidates if candidate in models]
+        candidates = self.filter_specific_candidates(candidates)
+        return self._return_node(candidates)
+
     @staticmethod
     def _return_node(candidates) -> Optional[OptNode]:
         if not candidates:
