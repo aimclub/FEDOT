@@ -37,7 +37,7 @@ class HyperparametersPreprocessor:
             'max_leaf_nodes': ['le0_to_none', 'integer'],
             'max_depth': ['le0_to_none', 'integer']
         },
-        'xgbreg': {
+        'xgboostreg': {
             'nthread': ['integer'],
             'n_estimators': ['integer'],
             'max_depth': ['integer'],
