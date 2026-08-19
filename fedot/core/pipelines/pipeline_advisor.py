@@ -3,13 +3,18 @@ from typing import List
 from golem.core.optimisers.advisor import DefaultChangeAdvisor, RemoveType
 from golem.core.optimisers.graph import OptNode
 
-from fedot.core.repository.operation_types_repository import get_operations_for_task
+from fedot.core.repository.operation_types_repository import get_all_operations_for_task
 
 
 class PipelineChangeAdvisor(DefaultChangeAdvisor):
     def __init__(self, task=None):
-        self.models: List[str] = get_operations_for_task(task, mode='model')
-        self.data_operations: List[str] = get_operations_for_task(task, mode='data_operation')
+        # These lists classify candidates into models and data operations, they
+        # do not select them: availability is decided by `possible_operations`
+        # the caller passes in. The unfiltered lists keep the advisor from
+        # silently vetoing operations the user requested explicitly but the
+        # default tag exclusions would hide (e.g. qda, mlp, dt).
+        self.models: List[str] = get_all_operations_for_task(task, mode='model')
+        self.data_operations: List[str] = get_all_operations_for_task(task, mode='data_operation')
         super().__init__(task)
 
     def can_be_sink(self, node: OptNode) -> bool:

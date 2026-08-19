@@ -395,3 +395,15 @@ def test_incorrect_pipeline_with_parallel_filtering_branches():
 def test_pipeline_with_filtering_branch_correct():
     pipeline = correct_pipeline_with_filtering_branch()
     assert has_no_parallel_branches_with_filtering(pipeline)
+
+
+def test_multitask_rule_accepts_operations_excluded_by_default_tags():
+    """A classification pipeline built from explicitly requested operations
+    must pass the multitask check even when the default repository tag filter
+    hides those operations (e.g. qda and mlp are tagged as deprecated)."""
+    for model in ('qda', 'mlp'):
+        first = PipelineNode(operation_type='scaling')
+        second = PipelineNode(operation_type=model, nodes_from=[first])
+        pipeline = Pipeline(second)
+
+        assert has_no_conflicts_during_multitask(pipeline)

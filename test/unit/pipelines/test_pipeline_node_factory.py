@@ -4,6 +4,7 @@ from golem.core.optimisers.graph import OptNode
 
 from fedot.core.pipelines.pipeline_advisor import PipelineChangeAdvisor
 from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
+from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
@@ -95,3 +96,33 @@ def test_advisor_accepts_only_models_as_sink():
     assert advisor.can_be_sink(OptNode(content={'name': 'logit'}))
     assert not advisor.can_be_sink(OptNode(content={'name': 'scaling'}))
     assert not advisor.can_be_sink(OptNode(content={'name': 'pca'}))
+
+def test_change_node_proposes_operations_excluded_by_default_tags():
+    """An explicit list of operations must reach node replacement even for
+    operations the default repository tag filter hides (qda, mlp, dt)."""
+    task = Task(TaskTypesEnum.classification)
+    operations = ['logit', 'rf', 'qda', 'mlp', 'dt', 'scaling']
+    requirements = PipelineComposerRequirements(primary=operations,
+                                                secondary=operations)
+    factory = PipelineOptNodeFactory(requirements=requirements,
+                                     advisor=PipelineChangeAdvisor(task))
+    node = OptNode(content={'name': 'logit'})
+
+    proposed = {factory.exchange_node(node).content['name'] for _ in range(200)}
+
+    assert {'qda', 'mlp', 'dt'}.issubset(proposed)
+
+
+def test_from_available_operations_keeps_the_list_verbatim():
+    """The repository must not re-filter an explicit operation list by preset:
+    the caller resolves the preset when the user gave no list of their own."""
+    task = Task(TaskTypesEnum.classification)
+    operations = ['logit', 'rf', 'qda', 'mlp', 'dt', 'scaling']
+    repository = PipelineOperationRepository()
+
+    repository.from_available_operations(task=task, preset='best_quality',
+                                         available_operations=operations)
+
+    assert set(repository.get_operations(is_primary=True)) == set(operations)
+    assert set(repository.get_operations(is_primary=False)) == set(operations)
+
