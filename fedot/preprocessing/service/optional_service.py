@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any, List, Optional, Sequence
 
 from fedot.core.data.prepared_data.prepared_data import PreparedData
-from fedot.core.caching.cacher import Cacher, ensure_cacher
+from fedot.core.caching.cacher import Cacher
 from fedot.preprocessing.tools.index_mapping_tools import (update_index_mapping,
                                                            update_indices, create_index_mapping)
 from fedot.core.data.tensor_data.tensor_data import TensorData
@@ -27,11 +27,13 @@ class OptionalService:
     from obligatory service is that optional service is requires ready TensorData as input.
 
     Fitted-handler contract:
-    - ``use_cache=False``: keep fitted handlers in ``fitted_handlers`` (in memory).
-      The fitted service (including handlers) must be pickled with the pipeline node.
-    - ``use_cache=True``: persist each fitted handler via ``Cacher`` and keep only
-      disk path refs on the service; ``predict`` loads handlers through ``Loader``.
-      Path refs travel with the pickled node; artifacts must still exist under cache.
+    - ``Cacher().use_cache`` is ``False``: keep fitted handlers in ``fitted_handlers``
+      (in memory). The fitted service (including handlers) must be pickled with the
+      pipeline node.
+    - ``Cacher().use_cache`` is ``True``: persist each fitted handler via ``Cacher``
+      and keep only disk path refs on the service; ``predict`` loads handlers through
+      ``Loader``. Path refs travel with the pickled node; artifacts must still exist
+      under cache.
 
     Processing sequence:
     1. Build optional preprocessing plan for the provided data and strategy.
@@ -40,7 +42,7 @@ class OptionalService:
     3. Initialize `PreparedData` from source tensor data.
     4. Resolve preprocessing handlers required by plan steps.
     5. During `fit`, train each handler in execution order and either store it in
-       memory or cache it to disk (depending on ``use_cache``).
+       memory or cache it to disk (depending on ``Cacher.use_cache``).
     6. During `predict`, resolve handlers (memory or cache) and apply them without
        refitting. For each step:
        - remap feature indices according to current index mapping;
@@ -50,9 +52,7 @@ class OptionalService:
     """
     handler_mapping = {}
 
-    def __init__(self, use_cache: bool = True, cacher: Optional[Cacher] = None):
-        self.cacher = ensure_cacher(cacher, use_cache=use_cache)
-        self.use_cache = self.cacher.use_cache
+    def __init__(self):
         self.plan = None
         self.fitted_handlers: Optional[List[Any]] = None
         self._cached_handler_paths: List[Path] = []
@@ -79,7 +79,7 @@ class OptionalService:
             self._plan_hash = None
             return self
 
-        cacher = self.cacher
+        cacher = Cacher()
         cached_data = cacher.load_tensor_data(input_data=data, operation=self.plan)
         self._input_hash = cached_data.input_hash
         self._plan_hash = cached_data.operation_hash
@@ -155,7 +155,7 @@ class OptionalService:
             )
 
         data = update_tensor_data(data, prepared_data)
-        response = self.cacher.cache_tensor_data(
+        response = Cacher().cache_tensor_data(
             output_data=data,
             input_hash=init_fingerprint,
             operation_hash=self._plan_hash,

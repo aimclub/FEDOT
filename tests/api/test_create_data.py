@@ -4,7 +4,9 @@ import torch
 
 from fedot import Fedot, TensorData, create_data
 from fedot.api.create_data import _build_create_data_kwargs, _resolve_target_argument
+from fedot.core.caching.cacher import Cacher
 from fedot.core.data.common.enums import StateEnum
+from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.validation.errors import FedotValidationError
 
@@ -86,7 +88,7 @@ def test_create_data_accepts_explicit_target_array(isolated_cache_dir):
 def test_fedot_create_data_uses_problem_and_tensor_data_config(isolated_cache_dir):
     model = Fedot(
         problem='classification',
-        tensor_data_config={'use_cache': False},
+        use_cache=False,
     )
     x = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
     y = np.array([0, 1, 0, 1], dtype=np.int64)
@@ -99,6 +101,34 @@ def test_fedot_create_data_uses_problem_and_tensor_data_config(isolated_cache_di
     test = model.create_data(x[:2], from_data=train)
     assert test.state is StateEnum.PREDICT
     assert test.trace_uuid == train.trace_uuid
+    assert Cacher().use_cache is False
+
+
+@pytest.mark.unit
+def test_tensor_data_creator_use_cache_sets_runtime_cacher(isolated_cache_dir):
+    x = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
+    y = np.array([0, 1, 0, 1], dtype=np.int64)
+
+    Cacher().set(use_cache=True)
+    TensorDataCreator.create(x, backend_name='cpu', target=y, use_cache=False)
+    assert Cacher().use_cache is False
+
+    create_data(x, target=y, use_cache=True)
+    assert Cacher().use_cache is True
+
+
+@pytest.mark.unit
+def test_fedot_tensor_data_config_use_cache_overrides_api_flag(isolated_cache_dir):
+    model = Fedot(
+        problem='classification',
+        use_cache=True,
+        tensor_data_config={'use_cache': False},
+    )
+    x = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
+    y = np.array([0, 1, 0, 1], dtype=np.int64)
+
+    model.create_data(x, target=y)
+    assert Cacher().use_cache is False
 
 
 @pytest.mark.unit

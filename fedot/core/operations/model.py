@@ -15,8 +15,8 @@ class Model(Operation):
         operation_type: name of the model
     """
 
-    def __init__(self, operation_type: str, cacher=None, **kwargs):
-        super().__init__(operation_type=operation_type, cacher=cacher, **kwargs)
+    def __init__(self, operation_type: str):
+        super().__init__(operation_type=operation_type)
         self.operations_repo = OperationTypesRepository('model')
 
     @staticmethod

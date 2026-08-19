@@ -26,9 +26,7 @@ class TensorOptionalPreprocessingStrategy(EvaluationStrategy):
         - ``use_imputation`` / ``imputation_method``: ``auto|none`` or honest
           method names from handler mapping (e.g. ``mean``, ``ts_mean``);
         - ``use_scaling`` / ``scaling_method``: ``auto|none`` or honest method
-          names from handler mapping (e.g. ``standard``, ``seasonal``);
-        - ``use_cache``: whether the optional service should use cache
-          (default ``True``).
+          names from handler mapping (e.g. ``standard``, ``seasonal``).
 
     All entry paths are normalized into a validated :class:`OptionalStrategySpec`.
 
@@ -47,8 +45,7 @@ class TensorOptionalPreprocessingStrategy(EvaluationStrategy):
         runtime_spec = get_optional_runtime_spec_for_tensor_data(train_data)
         strategy = build_optional_strategy_from_node_params(train_data, self.params_for_fit)
 
-        use_cache = bool(self.params_for_fit.get('use_cache', True))
-        service = runtime_spec.service_cls(use_cache=use_cache)
+        service = runtime_spec.service_cls()
         return service.fit(train_data, strategy)
 
     def predict(self, trained_operation: OptionalService, predict_data: TensorData) -> TensorData:

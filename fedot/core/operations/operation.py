@@ -18,7 +18,7 @@ from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
 from fedot.utilities.custom_errors import AbstractMethodNotImplementError
-from fedot.core.caching.cacher import Cacher, ensure_cacher
+from fedot.core.caching.cacher import Cacher
 
 
 @register_serializable
@@ -30,13 +30,12 @@ class Operation:
         operation_type: name of the operation
     """
 
-    def __init__(self, operation_type: str, cacher: Optional[Cacher] = None, **kwargs):
+    def __init__(self, operation_type: str, **kwargs):
         self.operation_type = operation_type
 
         self._eval_strategy = None
         self.operations_repo: Optional[OperationTypesRepository] = None
         self.fitted_operation = None
-        self.cacher = ensure_cacher(cacher)
 
         self.log = default_log(self)
 
@@ -99,17 +98,18 @@ class Operation:
             n_samples_data=data.features.shape[0],
         )
 
-        cached_fitted = self.cacher.load_operation(self, data)
+        cacher = Cacher()
+        cached_fitted = cacher.load_operation(self, data)
         if cached_fitted is not None:
             self.fitted_operation = cached_fitted
-            cached_output = self.cacher.load_tensor_data(data, self)
+            cached_output = cacher.load_tensor_data(data, self)
             if cached_output.success:
                 return self.fitted_operation, cached_output.data
             result_data = self._eval_strategy.predict_for_fit(
                 trained_operation=self.fitted_operation,
                 predict_data=data,
             )
-            self.cacher.cache_tensor_data(
+            cacher.cache_tensor_data(
                 output_data=result_data,
                 input_data=data,
                 operation=self,
@@ -122,8 +122,8 @@ class Operation:
             trained_operation=self.fitted_operation,
             predict_data=data,
         )
-        self.cacher.cache_operation(self, data)
-        self.cacher.cache_tensor_data(
+        cacher.cache_operation(self, data)
+        cacher.cache_tensor_data(
             output_data=result_data,
             input_data=data,
             operation=self,
@@ -189,12 +189,13 @@ class Operation:
             n_samples_data=data.features.shape[0],
         )
 
-        cached_output = self.cacher.load_tensor_data(data, self)
+        cacher = Cacher()
+        cached_output = cacher.load_tensor_data(data, self)
         if cached_output.success:
             return cached_output.data
 
         if fitted_operation is None:
-            fitted_operation = self.cacher.load_operation(self, data)
+            fitted_operation = cacher.load_operation(self, data)
 
         if is_fit_stage:
             result_data = self._eval_strategy.predict_for_fit(
@@ -205,7 +206,7 @@ class Operation:
                 trained_operation=fitted_operation,
                 predict_data=data)
 
-        self.cacher.cache_tensor_data(
+        cacher.cache_tensor_data(
             output_data=result_data,
             input_data=data,
             operation=self,
@@ -221,7 +222,7 @@ class Operation:
         return {
             k: v
             for k, v in sorted(vars(self).items())
-            if k not in ['log', 'operations_repo', '_eval_strategy', 'fitted_operation', 'cacher']
+            if k not in ['log', 'operations_repo', '_eval_strategy', 'fitted_operation']
         }
 
 

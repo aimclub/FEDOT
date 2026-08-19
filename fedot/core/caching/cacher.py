@@ -1,6 +1,8 @@
+from contextlib import contextmanager
+import logging
+import threading
 from typing import Any, Optional, Union, List
 
-import logging
 from fedot.core.caching.hasher import Hasher
 from fedot.core.caching.index_db import (
     CacheIndexDB,
@@ -24,26 +26,31 @@ from fedot.core.caching.cache_cleaner import CacheCleaner
 logger = logging.getLogger(__name__)
 
 
-def ensure_cacher(cacher: Optional["Cacher"] = None, **kwargs) -> "Cacher":
-    """Return ``cacher`` or a new :class:`Cacher` with default (or given) settings.
-
-    Call sites that receive an optional ``Cacher`` should use this instead of
-    constructing ``Cacher()`` themselves.
-    """
-    if cacher is not None:
-        return cacher
-    return Cacher(**kwargs)
-
-
 class Cacher:
     """
-    Facade for disk-backed preprocessing and tensor-data cache.
+    Singleton facade for disk-backed preprocessing and tensor-data cache.
 
-    `Cacher` coordinates hashing, artifact persistence, SQLite indexing, and
-    optional trace manifests. Callers interact with a single object instead of
-    wiring `Hasher`, `Saver`, `Loader`, `CacheIndexDB`, and `TraceBuilder`
-    directly.
+    One runtime shares a single ``Cacher``. Call ``set`` to change ``use_cache``
+    or ``index_db``, and ``override`` for a temporary scoped change (same idea
+    as :class:`~fedot.core.backend.backend.Backend`).
+
+    Examples
+    --------
+        Cacher().set(use_cache=False)
+
+        with Cacher().override(use_cache=False, index_db=custom_db):
+            ...
     """
+
+    _instance = None
+    _instance_lock = threading.Lock()
+
+    def __new__(cls, index_db: Optional[CacheIndexDB] = None, use_cache: bool = True):
+        if cls._instance is None:
+            with cls._instance_lock:
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
+        return cls._instance
 
     def __init__(
         self,
@@ -51,7 +58,11 @@ class Cacher:
         use_cache: bool = True,
     ):
         """
-        Initialize the cache facade.
+        Initialize the cache facade once per runtime.
+
+        Later ``Cacher(...)`` calls return the same instance and ignore
+        constructor arguments. Use :meth:`set` or :meth:`override` to change
+        ``use_cache`` / ``index_db``.
 
         Args:
             index_db: SQLite index instance. When omitted, a default index under
@@ -59,8 +70,65 @@ class Cacher:
             use_cache: When ``False``, index rows may be written without saving
                 tensor or preprocessing-model artifacts to disk (trace-only mode).
         """
+        if getattr(self, "_initialized", False):
+            return
+
+        self._lock = threading.RLock()
+        self.use_cache = bool(use_cache)
         self.index_db = index_db or CacheIndexDB()
-        self.use_cache = use_cache
+        self._initialized = True
+
+    def _apply(
+        self,
+        use_cache: Optional[bool] = None,
+        index_db: Optional[CacheIndexDB] = None,
+    ) -> None:
+        if use_cache is not None:
+            self.use_cache = bool(use_cache)
+        if index_db is not None:
+            self.index_db = index_db
+
+    def set(
+        self,
+        use_cache: Optional[bool] = None,
+        index_db: Optional[CacheIndexDB] = None,
+    ) -> "Cacher":
+        """Update runtime cache policy and/or SQLite index. Omitted fields stay."""
+        with self._lock:
+            self._apply(use_cache=use_cache, index_db=index_db)
+        return self
+
+    @contextmanager
+    def override(
+        self,
+        use_cache: Optional[bool] = None,
+        index_db: Optional[CacheIndexDB] = None,
+    ):
+        """Temporarily replace ``use_cache`` and/or ``index_db``, then restore."""
+        with self._lock:
+            previous_use_cache = self.use_cache
+            previous_index_db = self.index_db
+            self._apply(use_cache=use_cache, index_db=index_db)
+        try:
+            yield self
+        finally:
+            with self._lock:
+                self.use_cache = previous_use_cache
+                self.index_db = previous_index_db
+
+    def reset(self):
+        """Drop runtime state so the next ``Cacher()`` re-initializes defaults."""
+        with self._lock:
+            self.use_cache = True
+            self.index_db = None
+            self._initialized = False
+
+    @classmethod
+    def reset_runtime(cls):
+        """Reset the singleton so the next ``Cacher()`` uses default policy and index."""
+        instance = cls._instance
+        if instance is not None and getattr(instance, "_initialized", False):
+            instance.reset()
 
     def cache_tensor_data(
         self,

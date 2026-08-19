@@ -49,6 +49,9 @@ class DataSpec:
         index_col: Explicit index column for tabular file inputs.
         possible_idx_keywords: Keywords used to auto-detect an index column when
             `index_col` is not provided.
+        use_cache: Whether TensorData / caching helpers may use disk cache.
+            Applied to the runtime :class:`~fedot.core.caching.cacher.Cacher`
+            when data is created. Defaults to ``True``.
     """
 
     task: Optional[Union[Task, str]] = Task(TaskTypesEnum.classification)

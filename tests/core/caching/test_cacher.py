@@ -6,7 +6,7 @@ import pytest
 import torch
 
 from fedot.core.caching.index_db import CacheIndexDB
-from fedot.core.caching.cacher import Cacher, ensure_cacher
+from fedot.core.caching.cacher import Cacher
 from fedot.core.caching.hasher import Hasher
 from fedot.core.caching.tracer import TraceBuilder
 from fedot.core.data.tensor_data.tensor_data import TensorData
@@ -120,14 +120,23 @@ def test_cache_index_db_is_created_with_tensor_and_model_tables(isolated_cache_d
 
 
 @pytest.mark.unit
-def test_ensure_cacher_returns_existing_or_default_instance():
-    existing = Cacher(use_cache=False)
-    created = ensure_cacher(use_cache=False)
+def test_cacher_is_singleton_and_override_restores_state():
+    first = Cacher()
+    second = Cacher(use_cache=False)
 
-    assert ensure_cacher(existing) is existing
-    assert isinstance(created, Cacher)
-    assert created.use_cache is False
-    assert ensure_cacher().use_cache is True
+    assert first is second
+    assert first.use_cache is True
+
+    with first.override(use_cache=False):
+        assert Cacher().use_cache is False
+        assert Cacher() is first
+
+    assert Cacher().use_cache is True
+
+    custom_db = CacheIndexDB()
+    first.set(index_db=custom_db, use_cache=False)
+    assert Cacher().index_db is custom_db
+    assert Cacher().use_cache is False
 
 
 @pytest.mark.unit
@@ -374,7 +383,8 @@ def test_cacher_clears_cache(isolated_cache_dir):
 
 
 def _init_logit_operation(tensor_data: TensorData, cacher: Cacher) -> Model:
-    operation = Model("logit", cacher=cacher)
+    Cacher().set(use_cache=cacher.use_cache, index_db=cacher.index_db)
+    operation = Model("logit")
     operation._init(tensor_data.task, n_samples_data=tensor_data.features.shape[0])
     return operation
 
@@ -399,9 +409,9 @@ def _make_torch_linear_train_data() -> TensorData:
 def test_pipeline_torch_linear_caches_fitted_operation_as_pkl(isolated_cache_dir):
     tensor_data = _make_torch_linear_train_data()
     cacher = Cacher(use_cache=True)
-    node = PipelineNode("torch_linear", cacher=cacher)
+    node = PipelineNode("torch_linear")
     node.parameters = {"epochs": 20, "learning_rate": 0.05}
-    pipeline = Pipeline(node, cacher=cacher)
+    pipeline = Pipeline(node)
 
     pipeline.fit(tensor_data)
 
@@ -422,9 +432,10 @@ def test_pipeline_torch_linear_caches_fitted_operation_as_pkl(isolated_cache_dir
 
 
 def _fit_torch_linear_pipeline(tensor_data: TensorData, cacher: Cacher) -> Pipeline:
-    node = PipelineNode("torch_linear", cacher=cacher)
+    Cacher().set(use_cache=cacher.use_cache, index_db=cacher.index_db)
+    node = PipelineNode("torch_linear")
     node.parameters = {"epochs": 20, "learning_rate": 0.05}
-    pipeline = Pipeline(node, cacher=cacher)
+    pipeline = Pipeline(node)
     pipeline.fit(tensor_data)
     return pipeline
 
@@ -560,11 +571,11 @@ def test_operation_fit_reuses_cached_fitted_model(isolated_cache_dir):
 
         operation._init = wrapped_init
 
-    first = Model("logit", cacher=cacher)
+    first = Model("logit")
     _bind_fake_strategy(first)
     fitted, _ = first.fit(params=None, data=tensor_data)
 
-    second = Model("logit", cacher=cacher)
+    second = Model("logit")
     _bind_fake_strategy(second)
     loaded, _ = second.fit(params=None, data=tensor_data)
 

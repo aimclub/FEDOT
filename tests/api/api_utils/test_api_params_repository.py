@@ -56,13 +56,11 @@ def test_api_params_repository_preserves_valid_tensor_data_config():
     result = repository.apply_default_params({
         'tensor_data_config': {
             'backend_name': ' GPU ',
-            'use_cache': False,
         },
     })
 
     assert result['tensor_data_config'] == {
         'backend_name': 'gpu',
-        'use_cache': False,
     }
 
 

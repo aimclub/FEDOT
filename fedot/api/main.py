@@ -40,7 +40,7 @@ from fedot.api.api_utils.params import ApiParams
 from fedot.api.api_utils.predefined_model import PredefinedModel
 from fedot.api.sampling_stage.config import SamplingChunkingConfig
 from fedot.api.sampling_stage.executor import SamplingStageExecutor
-from fedot.core.caching.cacher import ensure_cacher
+from fedot.core.caching.cacher import Cacher
 from fedot.core.constants import DEFAULT_API_TIMEOUT_MINUTES, DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.input_data.data import InputData, InputDataList, OutputData, PathType
 from fedot.core.data.multimodal.multi_modal import MultiModalData
@@ -125,8 +125,9 @@ class Fedot:
             ``tensor_data_config`` is a dictionary of options for
             :func:`~fedot.api.create_data.create_data` /
             :class:`~fedot.core.data.tensor_data.tensor_data_creator.TensorDataCreator`
-            (for example ``backend_name``, ``use_cache``, ``encoding_strategy``,
-            ``custom_strategy``, ``data_type``, ``ts_orientation``). It is validated
+            (for example ``backend_name``, ``encoding_strategy``,
+            ``custom_strategy``, ``data_type``, ``ts_orientation``, ``use_cache``).
+            It is validated
             during initialization and stored on :attr:`~fedot.api.api_utils.params.ApiParams.tensor_data_config`.
             Prefer :meth:`create_data` (or the module-level :func:`~fedot.api.create_data.create_data`)
             to build :class:`~fedot.core.data.tensor_data.tensor_data.TensorData` before
@@ -148,7 +149,7 @@ class Fedot:
         set_random_seed(seed)
         self.log = self._init_logger(logging_level)
         self.use_cache = use_cache
-        self.cacher = ensure_cacher(use_cache=use_cache)
+        Cacher().set(use_cache=use_cache)
 
         # Attributes for dealing with metrics, data sources and hyperparameters
         self.params = ApiParams(composer_tuner_params, problem, task_params, n_jobs, timeout, seed)
@@ -280,21 +281,10 @@ class Fedot:
             self.data_processor.accept_and_apply_recommendations(full_train_not_preprocessed,
                                                                  {k: v for k, v in recommendations.items()
                                                                   if k != 'cut'})
-        self._bind_cacher()
         self.current_pipeline.fit(
             full_train_not_preprocessed,
             n_jobs=self.params.n_jobs
         )
-
-    def _bind_cacher(self, pipeline: Optional[Union[Pipeline, PipelineEnsemble]] = None) -> None:
-        pipeline = self.current_pipeline if pipeline is None else pipeline
-        if pipeline is None:
-            return
-        if isinstance(pipeline, Pipeline):
-            pipeline.bind_cacher(self.cacher)
-        elif isinstance(pipeline, PipelineEnsemble):
-            for item in pipeline.pipelines:
-                item.bind_cacher(self.cacher)
 
     def _finalize_pipeline_ensemble(self, validation_data: Optional[InputData] = None):
         self.current_pipeline.finalize(validation_data=validation_data)
@@ -364,9 +354,8 @@ class Fedot:
                     self.train_data,
                 )
 
-        if self.current_pipeline is None:
-            raise ValueError('No models were found')
-        self._bind_cacher()
+            if self.current_pipeline is None:
+                raise ValueError('No models were found')
 
     def create_data(
         self,
@@ -408,10 +397,10 @@ class Fedot:
 
         config_kwargs = dict(request.spec_kwargs)
         config_kwargs.update(options)
+        config_kwargs.setdefault('use_cache', self.use_cache)
         config_kwargs.pop('target', None)
         config_kwargs.pop('backend', None)
         config_kwargs.pop('backend_name', None)
-        config_kwargs.setdefault('cacher', self.cacher)
 
         task = options.get('task') if from_data is not None else config_kwargs.pop('task', None)
         data_type = options.get('data_type') if from_data is not None else config_kwargs.pop('data_type', None)
@@ -518,7 +507,6 @@ class Fedot:
             self.api_composer.was_tuned = pipeline_tuner.was_tuned
 
             # Tuner returns a not fitted pipeline, and it is required to fit on train dataset
-            self._bind_cacher()
             self.current_pipeline.fit(self.train_data)
 
         return self.current_pipeline
@@ -545,7 +533,6 @@ class Fedot:
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
-        self._bind_cacher()
         self.test_data = tensor_data
         # TODO @romankuklo: add optional preprocessing
         with fedot_composer_timer.launch_predicting():

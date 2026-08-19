@@ -1,6 +1,6 @@
 from typing import Any, Dict, Optional, Set, Type
 
-from marshmallow import RAISE, Schema, ValidationError, fields, validates, validates_schema
+from marshmallow import INCLUDE, RAISE, Schema, ValidationError, fields, validates, validates_schema
 
 from fedot.validation.boundaries import load_validated
 from fedot.validation.context import ValidationContext
@@ -83,6 +83,14 @@ class AssumptionFitErrorSchema(Schema):
 
     message = fields.Str(required=True)
     exception = fields.Raw(allow_none=True, load_default=None)
+
+
+class TensorDataConfigSchema(Schema):
+    class Meta:
+        unknown = INCLUDE
+
+    use_cache = fields.Bool(required=False, truthy={True}, falsy={False})
+    backend_name = fields.Str(required=False)
 
 
 class TensorDataCreationTraceSchema(Schema):

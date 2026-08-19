@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 import torch
 
+from fedot.core.caching.cacher import Cacher
 from fedot.core.data.common.enums import StateEnum
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
@@ -55,9 +56,10 @@ def test_td() -> TensorData:
 
 @pytest.mark.unit
 def test_fit_returns_fitted_tabular_service_with_default_strategy(train_td):
+    Cacher().set(use_cache=False)
     strategy = TensorOptionalPreprocessingStrategy(
         'optional_preprocessing',
-        OperationParameters(use_cache=False),
+        OperationParameters(),
     )
 
     fitted = strategy.fit(train_td)
@@ -138,26 +140,27 @@ def test_fit_with_auto_false_and_no_strategy_builds_empty_plan(train_td):
 
 
 @pytest.mark.unit
-def test_fit_passes_use_cache_to_service(train_td):
+def test_fit_uses_runtime_cacher_flag(train_td):
+    Cacher().set(use_cache=False)
     strategy = TensorOptionalPreprocessingStrategy(
         'optional_preprocessing',
         OperationParameters(
-            use_cache=False,
             strategy={PreprocessingStepEnum.imputation: None},
         ),
     )
 
     fitted = strategy.fit(train_td)
 
-    assert fitted.use_cache is False
+    assert Cacher().use_cache is False
+    assert fitted.fitted_handlers is not None
 
 
 @pytest.mark.unit
 def test_predict_applies_fitted_handlers_without_refit(train_td, test_td):
+    Cacher().set(use_cache=False)
     strategy = TensorOptionalPreprocessingStrategy(
         'optional_preprocessing',
         OperationParameters(
-            use_cache=False,
             strategy={PreprocessingStepEnum.imputation: None},
         ),
     )
@@ -180,10 +183,10 @@ def test_predict_for_fit_matches_predict_invariant(train_td):
     If optional preprocessing later adds leakage-prone steps, replace this
     invariant with an explicit predict_for_fit implementation and update the test.
     """
+    Cacher().set(use_cache=False)
     strategy = TensorOptionalPreprocessingStrategy(
         'optional_preprocessing',
         OperationParameters(
-            use_cache=False,
             strategy={PreprocessingStepEnum.imputation: None},
         ),
     )

@@ -1,6 +1,7 @@
 import pytest
 
 import fedot.core.caching.cache_cleaner as cache_cleaner_module
+import fedot.core.caching.cacher as cacher_module
 import fedot.core.caching.index_db as index_db_module
 import fedot.core.caching.inmemory_operations as inmemory_operations
 import fedot.core.caching.normalization as normalization_module
@@ -24,4 +25,5 @@ def isolated_cache_dir(tmp_path, monkeypatch):
     cache_dir = tmp_path / "cache"
     for module in CACHE_DIR_MODULES:
         monkeypatch.setattr(module, "CACHE_DIR", cache_dir)
+    cacher_module.Cacher.reset_runtime()
     return cache_dir

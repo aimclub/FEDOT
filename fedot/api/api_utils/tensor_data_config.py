@@ -1,8 +1,12 @@
 from dataclasses import fields
 from typing import Any, Dict, Optional, Set
 
+from fedot.api.api_utils.schemas import TensorDataConfigSchema
 from fedot.core.backend.backend import Backend
 from fedot.core.data.tensor_data.data_spec import DataSpec
+from fedot.validation.boundaries import load_validated
+from fedot.validation.context import ValidationContext
+from fedot.validation.errors import FedotValidationError, unknown_keys_error
 
 _CREATOR_ONLY_KEYS: Set[str] = {'backend_name'}
 
@@ -25,7 +29,10 @@ _USER_CONFIGURABLE_DATA_SPEC_KEYS: Set[str] = {
 _ALLOWED_KEYS: Set[str] = _USER_CONFIGURABLE_DATA_SPEC_KEYS | _CREATOR_ONLY_KEYS
 
 
-def validate_tensor_data_config(config: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+def validate_tensor_data_config(
+    config: Optional[Dict[str, Any]],
+    context: Optional[ValidationContext] = None,
+) -> Optional[Dict[str, Any]]:
     """
     Validate user-provided ``tensor_data_config`` for :class:`~fedot.api.api_utils.params.ApiParams`.
 
@@ -37,37 +44,43 @@ def validate_tensor_data_config(config: Optional[Dict[str, Any]]) -> Optional[Di
 
     Args:
         config: User config dictionary or ``None``.
+        context: Optional validation context for default-or-raise recovery.
 
     Returns:
         A shallow copy of the validated config, or ``None`` when *config* is ``None``.
 
     Raises:
-        ValueError: If *config* is not a dict or contains unknown / forbidden keys.
+        FedotValidationError: If *config* is not a dict, contains unknown / forbidden
+            keys, or has an invalid ``use_cache`` / ``backend_name``.
     """
     if config is None:
         return None
     if not isinstance(config, dict):
-        raise ValueError('"tensor_data_config" must be a dictionary or None.')
+        raise FedotValidationError(
+            '"tensor_data_config" must be a dictionary or None.',
+            field_name='_schema',
+        )
 
     unknown_keys = set(config) - _ALLOWED_KEYS
     if unknown_keys:
-        raise ValueError(
-            f'Unknown keys in "tensor_data_config": {sorted(unknown_keys)}'
-        )
+        raise unknown_keys_error('tensor_data_config', unknown_keys)
 
     forbidden_keys = set(config) & _RUNTIME_KEYS
     if forbidden_keys:
-        raise ValueError(
+        raise FedotValidationError(
             'Keys reserved for runtime injection must not appear in '
-            f'"tensor_data_config": {sorted(forbidden_keys)}'
+            f'"tensor_data_config": {sorted(forbidden_keys)}',
+            field_name='_schema',
         )
 
-    normalized = dict(config)
+    normalized = load_validated(
+        TensorDataConfigSchema(),
+        dict(config),
+        context,
+        prefix='tensor_data_config',
+    )
     if 'backend_name' in normalized:
         normalized['backend_name'] = Backend.normalize_name(normalized['backend_name'])
-
-    if 'use_cache' in normalized and not isinstance(normalized['use_cache'], bool):
-        raise ValueError('"tensor_data_config.use_cache" must be a boolean.')
 
     return normalized
 
@@ -81,15 +94,12 @@ def resolve_tensor_data_config(
     Build the validated TensorDataCreator config stored on :class:`~fedot.api.api_utils.params.ApiParams`.
 
     User options from ``tensor_data_config`` are validated first. Missing ``backend_name``
-    defaults to ``'cpu'``; missing ``use_cache`` follows ``use_preprocessing_cache``.
-
-    Note: despite its name, ``use_preprocessing_cache`` here only controls the default for the
-    ``TensorData`` ``Cacher``'s ``use_cache`` flag (tensor obligatory-preprocessing caching) -
-    it has no relation to the (legacy) ``InputData`` ``PreprocessingCache``/``DataPreprocessor``.
+    defaults to ``'cpu'``. ``use_cache`` may be set here for :class:`~fedot.core.data.tensor_data.data_spec.DataSpec`
+    (standalone / ``create_data``); :class:`~fedot.api.main.Fedot` also applies
+    ``use_cache`` on init and when calling :meth:`~fedot.api.main.Fedot.create_data`.
+    ``use_preprocessing_cache`` is unused here.
     """
     validated = validate_tensor_data_config(user_config) or {}
     config = dict(validated)
     config.setdefault('backend_name', Backend.DEFAULT_NAME)
-    if 'use_cache' not in config:
-        config['use_cache'] = use_preprocessing_cache
     return validate_tensor_data_config(config)

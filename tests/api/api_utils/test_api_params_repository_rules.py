@@ -71,6 +71,6 @@ def test_normalize_chunked_ensemble_config_uses_validator_result():
 def test_normalize_tensor_data_config_uses_validator_result():
     assert normalize_tensor_data_config(
         {'backend_name': 'gpu'},
-        lambda config: {'backend_name': 'gpu', 'use_cache': False},
-    ) == {'backend_name': 'gpu', 'use_cache': False}
+        lambda config: {'backend_name': 'gpu'},
+    ) == {'backend_name': 'gpu'}
     assert normalize_tensor_data_config(None, lambda config: {'backend_name': 'cpu'}) is None

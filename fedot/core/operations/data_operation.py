@@ -10,8 +10,8 @@ class DataOperation(Operation):
         operation_type: name of the data operation
     """
 
-    def __init__(self, operation_type: str, cacher=None, **kwargs):
-        super().__init__(operation_type, cacher=cacher, **kwargs)
+    def __init__(self, operation_type: str):
+        super().__init__(operation_type)
         self.operations_repo = OperationTypesRepository('data_operation')
 
     @property

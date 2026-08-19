@@ -19,7 +19,7 @@ class OperationFactory:
         self.operation_name = operation_name
         self.operation_type = self._define_operation_type()
 
-    def get_operation(self, cacher=None) -> Operation:
+    def get_operation(self) -> Operation:
         """
         Factory method returns the desired object of the 'Data_operation' or
         'Model' class which depends on model_type variable
@@ -27,13 +27,13 @@ class OperationFactory:
         """
 
         if self.operation_type == 'model':
-            operation = Model(operation_type=self.operation_name, cacher=cacher)
+            operation = Model(operation_type=self.operation_name)
         elif self.operation_type == 'extension_model':
-            operation = ExtensionModel(operation_type=self.operation_name, cacher=cacher)
+            operation = ExtensionModel(operation_type=self.operation_name)
         elif self.operation_type == 'data_operation':
-            operation = DataOperation(operation_type=self.operation_name, cacher=cacher)
+            operation = DataOperation(operation_type=self.operation_name)
         elif self.operation_type == 'automl':
-            operation = AutoML(operation_type=self.operation_name, cacher=cacher)
+            operation = AutoML(operation_type=self.operation_name)
         else:
             raise ValueError(
                 f'Operation type {self.operation_type} is not supported')

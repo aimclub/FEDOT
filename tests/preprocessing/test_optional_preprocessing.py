@@ -12,6 +12,7 @@ from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStepEnum,
                                                           EncodingMethodEnum)
 from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 from fedot.preprocessing.service.tabular_optional_service import OptionalTabularService
+from fedot.core.caching.cacher import Cacher
 from fedot.core.data.prepared_data.prepared_data import PreparedData
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
@@ -98,7 +99,7 @@ def test_empty_optional_plan_is_identity_short_circuit():
         backend_name='cpu',
         without_target=True,
     )
-    service = OptionalTabularService(use_cache=True)
+    service = OptionalTabularService()
     fitted = service.fit(td, {})
 
     assert fitted.plan is not None
@@ -132,7 +133,8 @@ def test_optional_imputation_predicts_nans_absent_in_train():
     )
 
     train_td = TensorDataCreator.create(train, backend_name='cpu', without_target=True)
-    service = OptionalTabularService(use_cache=False)
+    Cacher().set(use_cache=False)
+    service = OptionalTabularService()
     service.fit(
         train_td,
         {PreprocessingStepEnum.imputation: ImputationMethodEnum.mean},
@@ -789,7 +791,8 @@ def test_optional_handler_mapping_is_instance_local():
         def transform(self, data):
             return data
 
-    service = OptionalTabularService(use_cache=False)
+    Cacher().set(use_cache=False)
+    service = OptionalTabularService()
     assert service.handler_mapping is not OptionalTabularService.handler_mapping
     assert service.handler_mapping is not PREPROCESSING_OPTIONAL_MAPPING
 
@@ -922,7 +925,8 @@ def test_optional_fit_predict_without_cache_keeps_trace_plan_not_model(isolated_
     ], dtype=object)
 
     train_td = TensorDataCreator.create(train, backend_name="cpu", use_cache=False)
-    service = OptionalTabularService(use_cache=False)
+    Cacher().set(use_cache=False)
+    service = OptionalTabularService()
     service.fit(train_td, {PreprocessingStepEnum.imputation: None})
     fitted_td = service.predict(train_td)
 
@@ -956,7 +960,7 @@ def test_optional_service_use_cache_keeps_handlers_on_disk_not_memory(isolated_c
     ], dtype=object)
     train_td = TensorDataCreator.create(train, backend_name='cpu')
 
-    service = OptionalTabularService(use_cache=True)
+    service = OptionalTabularService()
     service.fit(train_td, {PreprocessingStepEnum.imputation: None})
 
     assert service.fitted_handlers is None

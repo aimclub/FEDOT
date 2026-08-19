@@ -22,7 +22,7 @@ from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.reader.data_reader import DataReader
 from fedot.core.data.tensor_data.data_spec import DataSpec
 from fedot.core.data.tensor_data.lazy_tensor import LazyTensor
-from fedot.core.caching.cacher import ensure_cacher
+from fedot.core.caching.cacher import Cacher
 from fedot.core.caching.hasher import Hasher
 
 
@@ -51,7 +51,6 @@ class TensorDataCreator:
         preprocessing starts.
         """
         self.spec = None
-        self.cacher = None
 
     def obligatory_preprocess(self):
         """
@@ -86,7 +85,7 @@ class TensorDataCreator:
                                                                                               self.spec.idx_mapping,
                                                                                               self.spec.without_target)
 
-        service = ObligatoryTabularService(cacher=self.cacher)
+        service = ObligatoryTabularService()
         service_params = {
             "encoding_strategy": self.spec.encoding_strategy,
             "embedding_strategy": self.spec.embedding_strategy,
@@ -268,7 +267,7 @@ class TensorDataCreator:
             backend_name: Target backend name, currently `"cpu"` or `"gpu"`.
             **kwargs: Options used to initialize `DataSpec`, such as `target`,
                 `target_idx`, `data_type`, `state`, `encoding_strategy`,
-                `ts_orientation`, and file loading options.
+                `ts_orientation`, `use_cache`, and file loading options.
 
         Returns:
             TensorData: Materialized tensor data on the requested backend.
@@ -281,9 +280,9 @@ class TensorDataCreator:
 
         creation_request = build_creation_request(backend_name)
         Backend().set(creation_request.backend_name)
-        cacher = kwargs.pop('cacher', None)
+        kwargs.pop('cacher', None)
         creator.spec = DataSpec(**kwargs)
-        creator.cacher = ensure_cacher(cacher, use_cache=creator.spec.use_cache)
+        Cacher().set(use_cache=creator.spec.use_cache)
 
         try:
             creator.read_features(source_data)
@@ -296,7 +295,7 @@ class TensorDataCreator:
             output_hash = Hasher.hash(tensor_data)
             tensor_data.fingerprint = output_hash
 
-            creator.cacher.cache_tensor_data(
+            Cacher().cache_tensor_data(
                 output_data=tensor_data,
                 output_hash=output_hash,
                 input_hash=creator.spec.raw_fingerprint,
