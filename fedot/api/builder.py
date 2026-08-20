@@ -305,7 +305,7 @@ class FedotBuilder:
                     - ``svr`` -> Linear Support Vector Regressor
                     - ``treg`` -> Extra Trees Regressor
                     - ``xgboost`` -> Extreme Gradient Boosting Classifier
-                    - ``xgbreg`` -> Extreme Gradient Boosting Regressor
+                    - ``xgboostreg`` -> Extreme Gradient Boosting Regressor
                     - ``cnn`` -> Convolutional Neural Network
                     - ``scaling`` -> Scaling
                     - ``normalization`` -> Normalization
@@ -357,7 +357,7 @@ class FedotBuilder:
                     - ``ridge`` -> Ridge Linear Regressor
                     - ``treg`` -> Extra Trees Regressor
                     - ``xgboost`` -> Extreme Gradient Boosting Classifier
-                    - ``xgbreg`` -> Extreme Gradient Boosting Regressor
+                    - ``xgboostreg`` -> Extreme Gradient Boosting Regressor
 
             max_depth: max depth of a pipeline. Defaults to ``6``.
 
