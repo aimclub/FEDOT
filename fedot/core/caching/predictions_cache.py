@@ -43,9 +43,16 @@ class PredictionsCache(BaseCache):
 
     def _save_prediction(self, uid: str, outputData: OutputData):
         self.log.debug(f"--- SAVE prediction cache: {uid}")
-        self._db.add_prediction(uid, outputData)
+        try:
+            self._db.add_prediction(uid, outputData)
+        except Exception as ex:
+            self._handle_db_error(ex, 'Prediction can not be saved')
 
     def _load_prediction(self, uid: str):
-        outputData = self._db.get_prediction(uid)
+        try:
+            outputData = self._db.get_prediction(uid)
+        except Exception as ex:
+            self._handle_db_error(ex, 'Prediction can not be loaded')
+            return None
         self.log.debug(f"--- {'MISS' if outputData is None else 'HIT'} prediction cache: {uid}")
         return outputData

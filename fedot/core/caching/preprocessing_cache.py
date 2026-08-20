@@ -30,8 +30,8 @@ class PreprocessingCache(BaseCache):
             processors = self._db.get_preprocessor(structural_id)
             if processors:
                 pipeline.encoder, pipeline.imputer = processors
-        except Exception:
-            self.log.log_or_raise('warning', ValueError('Preprocessor search error'))
+        except Exception as ex:
+            self._handle_db_error(ex, 'Preprocessor search error')
 
     def add_preprocessor(self, pipeline: 'Pipeline', fold_id: Optional[Union[int, None]] = None):
         """
@@ -40,8 +40,11 @@ class PreprocessingCache(BaseCache):
         :param pipeline: pipeline with preprocessor to add
         :param fold_id: number of fold
         """
-        structural_id = _get_db_uid(pipeline, fold_id)
-        self._db.add_preprocessor(structural_id, pipeline.preprocessor)
+        try:
+            structural_id = _get_db_uid(pipeline, fold_id)
+            self._db.add_preprocessor(structural_id, pipeline.preprocessor)
+        except Exception as ex:
+            self._handle_db_error(ex, 'Preprocessor can not be saved')
 
 
 def _get_db_uid(pipeline: 'Pipeline', fold_id: Union[int, None]) -> str:

@@ -36,7 +36,7 @@ class PreprocessingCacheDB(BaseCacheDB):
 
         :return matched: pair of data processors (encoder, imputer) or None
         """
-        with closing(sqlite3.connect(self.db_path)) as conn:
+        with closing(self.connect()) as conn:
             with conn:
                 cur = conn.cursor()
                 cur.execute(f'SELECT encoder, imputer FROM {self._main_table} WHERE id = ?;', [uid])
@@ -58,7 +58,7 @@ class PreprocessingCacheDB(BaseCacheDB):
         :param uid: unique preprocessor identificator
         :param value: the preprocessor itself
         """
-        with closing(sqlite3.connect(self.db_path)) as conn:
+        with closing(self.connect()) as conn:
             with conn:
                 cur = conn.cursor()
                 pickled_encoder = sqlite3.Binary(pickle.dumps(value.features_encoders, pickle.HIGHEST_PROTOCOL))
@@ -70,7 +70,7 @@ class PreprocessingCacheDB(BaseCacheDB):
         """
         Initializes DB working table.
         """
-        with closing(sqlite3.connect(self.db_path)) as conn:
+        with closing(self.connect()) as conn:
             with conn:
                 cur = conn.cursor()
                 cur.execute((

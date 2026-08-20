@@ -8,6 +8,10 @@ import psutil
 
 from fedot.core.utils import default_fedot_data_dir
 
+#  Seconds to wait for a write lock before giving up. Parallel workers share a single cache file, so the sqlite
+#  default of 5 seconds is not always enough for a big prediction blob to be written by a neighbour process.
+DB_LOCK_TIMEOUT = 15
+
 
 class BaseCacheDB:
     """
@@ -39,12 +43,18 @@ class BaseCacheDB:
         self._effectiveness_keys = stats_keys
         self._init_eff()
 
+    def connect(self) -> sqlite3.Connection:
+        """
+        Opens a connection to the cache DB, waiting `DB_LOCK_TIMEOUT` for a lock held by a parallel worker.
+        """
+        return sqlite3.connect(self.db_path, timeout=DB_LOCK_TIMEOUT)
+
     def get_effectiveness(self) -> Optional[Tuple[int, int, int, int]]:
         """
         Returns effectiveness of the cache in case of enabled `use_stats`, None instead.
         """
         if self.use_stats:
-            with closing(sqlite3.connect(self.db_path)) as conn:
+            with closing(self.connect()) as conn:
                 with conn:
                     cur = conn.cursor()
                     cur.execute(f'SELECT {",".join(self._effectiveness_keys)} FROM {self._eff_table};')
@@ -60,7 +70,7 @@ class BaseCacheDB:
         """
         Drops all scores from working table and resets efficiency table values to zero.
         """
-        with closing(sqlite3.connect(self.db_path)) as conn:
+        with closing(self.connect()) as conn:
             with conn:
                 cur = conn.cursor()
                 if self.use_stats:
@@ -75,7 +85,7 @@ class BaseCacheDB:
         Initializes effectiveness table.
         """
         if self.use_stats:
-            with closing(sqlite3.connect(self.db_path)) as conn:
+            with closing(self.connect()) as conn:
                 with conn:
                     cur = conn.cursor()
                     eff_type = ' INTEGER DEFAULT 0'
@@ -133,7 +143,7 @@ class BaseCacheDB:
         cur.execute(f'DELETE FROM {self._main_table};')
 
     def __len__(self):
-        with closing(sqlite3.connect(self.db_path)) as conn:
+        with closing(self.connect()) as conn:
             with conn:
                 cur = conn.cursor()
                 cur.execute(f'SELECT id FROM {self._main_table};')

@@ -97,6 +97,7 @@ def test_advisor_accepts_only_models_as_sink():
     assert not advisor.can_be_sink(OptNode(content={'name': 'scaling'}))
     assert not advisor.can_be_sink(OptNode(content={'name': 'pca'}))
 
+
 def test_change_node_proposes_operations_excluded_by_default_tags():
     """An explicit list of operations must reach node replacement even for
     operations the default repository tag filter hides (qda, mlp, dt)."""
@@ -125,4 +126,3 @@ def test_from_available_operations_keeps_the_list_verbatim():
 
     assert set(repository.get_operations(is_primary=True)) == set(operations)
     assert set(repository.get_operations(is_primary=False)) == set(operations)
-
