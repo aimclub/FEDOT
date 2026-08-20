@@ -1,4 +1,5 @@
 import os
+import sqlite3
 
 import numpy as np
 import pytest
@@ -125,6 +126,45 @@ def test_uid_generation_variants(predictions_cache: PredictionsCache, output_tab
         result = predictions_cache.load_node_prediction(**case["params"])
         assert result is not None
         assert isinstance(result, OutputData)
+
+
+def test_locked_db_is_treated_as_cache_miss(predictions_cache: PredictionsCache, output_table_1d: OutputData,
+                                            monkeypatch):
+    """Test that a cache file locked by a parallel worker leaves the caller with a miss instead of an error"""
+    def raise_lock_error(*args, **kwargs):
+        raise sqlite3.OperationalError('database is locked')
+
+    monkeypatch.setattr(predictions_cache._db, 'add_prediction', raise_lock_error)
+    monkeypatch.setattr(predictions_cache._db, 'get_prediction', raise_lock_error)
+
+    predictions_cache.save_node_prediction(
+        descriptive_id="locked_node",
+        output_mode="default",
+        fold_id=0,
+        outputData=output_table_1d
+    )
+    result = predictions_cache.load_node_prediction(
+        descriptive_id="locked_node",
+        output_mode="default",
+        fold_id=0
+    )
+
+    assert result is None
+
+
+def test_unexpected_db_error_is_not_suppressed(predictions_cache: PredictionsCache, monkeypatch):
+    """Test that errors other than the environment-caused ones are still reported"""
+    def raise_unexpected_error(*args, **kwargs):
+        raise sqlite3.OperationalError('no such table: predictions')
+
+    monkeypatch.setattr(predictions_cache._db, 'get_prediction', raise_unexpected_error)
+
+    with pytest.raises(ValueError, match='Prediction can not be loaded'):
+        predictions_cache.load_node_prediction(
+            descriptive_id="broken_node",
+            output_mode="default",
+            fold_id=0
+        )
 
 
 def test_fit_vs_pred_type_handling(predictions_cache: PredictionsCache, output_table_1d: OutputData):

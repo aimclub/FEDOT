@@ -3,6 +3,7 @@ import sqlite3
 from contextlib import closing
 from typing import List, Tuple
 
+from fedot.core.caching.base_cache_db import DB_LOCK_TIMEOUT
 from fedot.core.caching.predictions_cache_db import PredictionsCacheDB
 
 
@@ -32,6 +33,14 @@ def test_table_creation(tmp_cache: PredictionsCacheDB) -> None:
 
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='stats';")
         assert cursor.fetchone() is not None, "Stats table 'stats' not created."
+
+
+def test_connection_waits_for_lock(tmp_cache: PredictionsCacheDB) -> None:
+    """Test that connections are given time to outlive a lock taken by a parallel worker."""
+    with closing(tmp_cache.connect()) as conn:
+        busy_timeout = conn.execute('PRAGMA busy_timeout;').fetchone()[0]
+
+    assert busy_timeout == DB_LOCK_TIMEOUT * 1000, "Busy timeout is left at the sqlite default."
 
 
 def test_add_and_get_prediction(tmp_cache: PredictionsCacheDB) -> None:

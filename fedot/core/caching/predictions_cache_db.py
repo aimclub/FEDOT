@@ -50,7 +50,7 @@ class PredictionsCacheDB(BaseCacheDB):
         """
         Stores predicted `outputData` in binary format in a SQL table.
         """
-        with closing(sqlite3.connect(self.db_path)) as conn:
+        with closing(self.connect()) as conn:
             with conn:
                 cur = conn.cursor()
                 pickled_data = sqlite3.Binary(pickle.dumps(outputData, pickle.HIGHEST_PROTOCOL))
@@ -60,7 +60,7 @@ class PredictionsCacheDB(BaseCacheDB):
         """
         Retrieves the predicted `outputData` from binary format in a SQL table.
         """
-        with closing(sqlite3.connect(self.db_path)) as conn:
+        with closing(self.connect()) as conn:
             with conn:
                 cur = conn.cursor()
                 query = f"SELECT id, prediction FROM {self._main_table} WHERE id = ?"
@@ -81,7 +81,7 @@ class PredictionsCacheDB(BaseCacheDB):
         Retrieves statistics for all non-zero prediction cache entries.
         """
         if self.use_stats:
-            with closing(sqlite3.connect(self.db_path)) as conn:
+            with closing(self.connect()) as conn:
                 with conn:
                     cur = conn.cursor()
                     query = "SELECT id, retrieve_count FROM stats;"
@@ -99,7 +99,7 @@ class PredictionsCacheDB(BaseCacheDB):
         Initializes the database statistics table.
         """
         if self.use_stats:
-            with closing(sqlite3.connect(self.db_path)) as conn:
+            with closing(self.connect()) as conn:
                 with conn:
                     cur = conn.cursor()
                     cur.execute("PRAGMA journal_mode=WAL;")
@@ -109,7 +109,7 @@ class PredictionsCacheDB(BaseCacheDB):
         """
         Initializes the main database working table.
         """
-        with closing(sqlite3.connect(self.db_path)) as conn:
+        with closing(self.connect()) as conn:
             with conn:
                 cur = conn.cursor()
                 cur.execute("PRAGMA journal_mode=WAL;")

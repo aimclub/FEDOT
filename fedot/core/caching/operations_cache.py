@@ -1,4 +1,3 @@
-import sqlite3
 from typing import List, Optional, TYPE_CHECKING, Union
 
 from golem.utilities.data_structures import ensure_wrapped_in_sequence
@@ -35,12 +34,7 @@ class OperationsCache(BaseCache):
             ]
             self._db.add_operations(mapped)
         except Exception as ex:
-            exc_is_expected = (isinstance(ex, sqlite3.DatabaseError) and 'disk is full' in str(ex))
-            msg = 'Nodes can not be saved'
-            if exc_is_expected:
-                self.log.warning(msg, exc_info=ex)
-            else:
-                self.log.log_or_raise('warning', ValueError(msg))
+            self._handle_db_error(ex, 'Nodes can not be saved')
 
     def save_pipeline(self, pipeline: 'Pipeline', fold_id: Optional[int] = None):
         """
@@ -65,8 +59,8 @@ class OperationsCache(BaseCache):
                     nodes_lst[idx].fitted_operation = cached_op
                 else:
                     nodes_lst[idx].fitted_operation = None
-        except Exception:
-            self.log.log_or_raise('info', ValueError('Cache can not be loaded.'))
+        except Exception as ex:
+            self._handle_db_error(ex, 'Cache can not be loaded.', level='info')
 
     def try_load_into_pipeline(self, pipeline: 'Pipeline', fold_id: Optional[int] = None):
         """
