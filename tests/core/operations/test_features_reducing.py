@@ -29,6 +29,7 @@ from fedot.core.operations.evaluation.tensor_transform import TensorTransformStr
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utils import RandomStateHandler
 from fedot.validation.errors import FedotValidationError
 
 
@@ -323,3 +324,34 @@ def test_pipeline_node_wires_truncated_svd(train_td):
     node.fit(train_td)
     predicted = node.predict(train_td)
     assert predicted.features.shape == (train_td.features.shape[0], 2)
+
+
+@pytest.mark.unit
+def test_truncated_svd_lowrank_is_reproducible_with_random_state(train_td):
+    first = TruncatedSVDImplementation(OperationParameters(n_components=3))
+    second = TruncatedSVDImplementation(OperationParameters(n_components=3))
+    first.random_state = 0
+    second.random_state = 0
+    first.fit(train_td)
+    second.fit(train_td)
+    torch.testing.assert_close(first.components_, second.components_)
+
+    other = TruncatedSVDImplementation(OperationParameters(n_components=3))
+    other.random_state = 1
+    other.fit(train_td)
+    assert not torch.allclose(first.components_, other.components_)
+
+
+@pytest.mark.unit
+def test_truncated_svd_strategy_fit_is_reproducible(train_td):
+    original_seed = RandomStateHandler.MODEL_FITTING_SEED
+    RandomStateHandler.MODEL_FITTING_SEED = 7
+    try:
+        strategy = TensorTransformStrategy(
+            'truncated_svd', OperationParameters(n_components=3),
+        )
+        first = strategy.fit(train_td)
+        second = strategy.fit(train_td)
+        torch.testing.assert_close(first.components_, second.components_)
+    finally:
+        RandomStateHandler.MODEL_FITTING_SEED = original_seed

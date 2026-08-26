@@ -145,6 +145,10 @@ class TruncatedSVDImplementation(TensorDataOperationImplementation):
             ``int`` / float / ``auto`` use ``torch.svd_lowrank``;
             spectrum modes use thin ``torch.linalg.svd``.
 
+            ``random_state`` is not a searchable hyperparameter; it is
+            injected by ``ImplementationRandomStateHandler`` during strategy
+            ``fit`` and used to seed randomized SVD.
+
     Note:
         Fit drops rows with NaN (warning). Transform keeps all rows; NaN
         inputs stay NaN after projection.
@@ -163,6 +167,24 @@ class TruncatedSVDImplementation(TensorDataOperationImplementation):
         self.n_components_: Optional[int] = None
         self.n_features_: Optional[int] = None
         self.n_samples_: Optional[int] = None
+        self.random_state: Optional[int] = None
+
+    def _svd_lowrank(self, matrix: torch.Tensor, q: int, niter: int):
+        """Randomized SVD, seeded when ``random_state`` is set.
+
+        ``torch.svd_lowrank`` samples from the global RNG and has no
+        ``generator`` argument. Fork the RNG so repeated fits are stable
+        without leaking the seed into later operations.
+        """
+        if self.random_state is None:
+            return torch.svd_lowrank(matrix, q=q, niter=niter)
+
+        devices = [matrix.device] if matrix.is_cuda else []
+        with torch.random.fork_rng(devices=devices):
+            torch.manual_seed(int(self.random_state))
+            if matrix.is_cuda:
+                torch.cuda.manual_seed_all(int(self.random_state))
+            return torch.svd_lowrank(matrix, q=q, niter=niter)
 
     def fit(self, data: TensorData):
         """Fit TruncatedSVD on finite samples of ``data.features``.
@@ -216,7 +238,7 @@ class TruncatedSVDImplementation(TensorDataOperationImplementation):
         q = min(k + n_oversamples, max_rank)
 
         # Randomized SVD: approximate rank-q factors, keep k.
-        _, _, V = torch.svd_lowrank(clean, q=q, niter=n_iter)
+        _, _, V = self._svd_lowrank(clean, q=q, niter=n_iter)
         self.n_components_ = k
         self.components_ = V[:, :k].T.contiguous()
         self.params.update(n_components=k)
