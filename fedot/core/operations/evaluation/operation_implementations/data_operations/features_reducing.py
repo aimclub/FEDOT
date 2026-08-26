@@ -142,8 +142,9 @@ class TruncatedSVDImplementation(TensorDataOperationImplementation):
             * ``'auto'`` — half-feature budget
             * ``'elbow'`` / ``'broken_stick'`` — spectrum rank selection
 
-            ``int`` / float / ``auto`` use ``torch.svd_lowrank``;
-            spectrum modes use thin ``torch.linalg.svd``.
+            ``int`` / float / ``auto`` use ``torch.svd_lowrank`` when
+            ``q < max_rank``; otherwise the same thin ``torch.linalg.svd``
+            as spectrum modes (``elbow`` / ``broken_stick``).
 
             ``random_state`` is not a searchable hyperparameter; it is
             injected by ``ImplementationRandomStateHandler`` during strategy
@@ -237,10 +238,14 @@ class TruncatedSVDImplementation(TensorDataOperationImplementation):
         n_oversamples = int(self.params.get('n_oversamples', 10))
         q = min(k + n_oversamples, max_rank)
 
-        # Randomized SVD: approximate rank-q factors, keep k.
-        _, _, V = self._svd_lowrank(clean, q=q, niter=n_iter)
+        # Full-rank request: exact SVD, same subspace as spectrum modes for this k.
+        if q >= max_rank:
+            _, _, vh = torch.linalg.svd(clean, full_matrices=False)
+            self.components_ = vh[:k].contiguous()
+        else:
+            _, _, V = self._svd_lowrank(clean, q=q, niter=n_iter)
+            self.components_ = V[:, :k].T.contiguous()
         self.n_components_ = k
-        self.components_ = V[:, :k].T.contiguous()
         self.params.update(n_components=k)
         return self
 

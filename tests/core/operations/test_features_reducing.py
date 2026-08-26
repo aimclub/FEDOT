@@ -41,6 +41,13 @@ def train_td():
 
 
 @pytest.fixture
+def wide_td():
+    rng = np.random.default_rng(0)
+    features = rng.normal(size=(80, 40)).astype(np.float32)
+    return TensorDataCreator.create(features, backend_name='cpu')
+
+
+@pytest.fixture
 def train_td_with_nan(train_td):
     features = train_td.features.clone()
     features[0, 1] = float('nan')
@@ -326,20 +333,55 @@ def test_pipeline_node_wires_truncated_svd(train_td):
     assert predicted.features.shape == (train_td.features.shape[0], 2)
 
 
+def _relative_reconstruction_error(features: torch.Tensor, components: torch.Tensor) -> torch.Tensor:
+    reconstructed = (features @ components.T) @ components
+    return torch.linalg.norm(features - reconstructed) / torch.linalg.norm(features)
+
+
 @pytest.mark.unit
-def test_truncated_svd_lowrank_is_reproducible_with_random_state(train_td):
-    first = TruncatedSVDImplementation(OperationParameters(n_components=3))
-    second = TruncatedSVDImplementation(OperationParameters(n_components=3))
+def test_truncated_svd_integer_k_matches_exact_svd_when_q_covers_full_rank(train_td):
+    impl = TruncatedSVDImplementation(OperationParameters(n_components=3))
+    impl.fit(train_td)
+    _, _, vh = torch.linalg.svd(train_td.features, full_matrices=False)
+    torch.testing.assert_close(impl.components_, vh[:3])
+
+
+@pytest.mark.unit
+def test_truncated_svd_integer_k_matches_spectrum_subspace_when_full_rank(train_td):
+    spectrum = TruncatedSVDImplementation(OperationParameters(n_components='elbow'))
+    spectrum.fit(train_td)
+    integer = TruncatedSVDImplementation(
+        OperationParameters(n_components=spectrum.n_components_),
+    )
+    integer.fit(train_td)
+    torch.testing.assert_close(spectrum.components_, integer.components_)
+
+
+@pytest.mark.unit
+def test_truncated_svd_lowrank_reconstruction_tracks_exact_svd(wide_td):
+    k = 3
+    impl = TruncatedSVDImplementation(OperationParameters(
+        n_components=k, n_oversamples=2, n_iter=5,
+    ))
+    impl.random_state = 0
+    impl.fit(wide_td)
+
+    _, _, vh = torch.linalg.svd(wide_td.features, full_matrices=False)
+    exact_err = _relative_reconstruction_error(wide_td.features, vh[:k])
+    approx_err = _relative_reconstruction_error(wide_td.features, impl.components_)
+    assert approx_err <= exact_err + 5e-3
+
+
+@pytest.mark.unit
+def test_truncated_svd_lowrank_is_reproducible_with_random_state(wide_td):
+    params = OperationParameters(n_components=3, n_oversamples=2)
+    first = TruncatedSVDImplementation(params)
+    second = TruncatedSVDImplementation(params)
     first.random_state = 0
     second.random_state = 0
-    first.fit(train_td)
-    second.fit(train_td)
+    first.fit(wide_td)
+    second.fit(wide_td)
     torch.testing.assert_close(first.components_, second.components_)
-
-    other = TruncatedSVDImplementation(OperationParameters(n_components=3))
-    other.random_state = 1
-    other.fit(train_td)
-    assert not torch.allclose(first.components_, other.components_)
 
 
 @pytest.mark.unit
