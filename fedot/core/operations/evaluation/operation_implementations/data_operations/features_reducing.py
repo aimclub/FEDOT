@@ -31,7 +31,8 @@ class PCAImplementation(TensorDataOperationImplementation):
             * ``int`` — fixed number of components
             * ``float`` in ``(0, 1]`` — explained variance ratio
             * ``'auto'`` — half-feature budget
-            * ``'mle'`` — MLE-like rank heuristic
+            * ``'mle'`` — Minka MLE (sklearn-compatible; needs
+              ``n_samples >= n_features``)
             * ``'elbow'`` / ``'broken_stick'`` — spectrum rank selection
 
     Note:

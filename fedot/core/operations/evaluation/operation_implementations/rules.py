@@ -88,6 +88,10 @@ def pca_n_components_error_message(value: Any) -> str:
     )
 
 
+def pca_mle_shape_error_message() -> str:
+    return "n_components='mle' is only supported if n_samples >= n_features"
+
+
 def truncated_svd_n_components_error_message(value: Any) -> str:
     return (
         f"Unsupported TruncatedSVD n_components: {value!r}. "

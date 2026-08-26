@@ -1,3 +1,4 @@
+import math
 from dataclasses import replace
 from typing import Any, Callable, Dict, Optional, Union
 
@@ -11,12 +12,14 @@ from fedot.core.operations.evaluation.operation_implementations.rules import (
     is_integral_number,
     is_real_number,
     is_spectrum_n_components_method,
+    pca_mle_shape_error_message,
 )
 from fedot.core.operations.evaluation.operation_implementations.schema import (
     validate_broken_stick_n,
     validate_decomposition_fit_samples,
     validate_spectrum_rank_selection,
 )
+from fedot.validation.errors import FedotValidationError
 
 
 def prepare_finite_features(
@@ -174,6 +177,70 @@ def n_components_from_elbow(spectrum: torch.Tensor) -> int:
     return max(1, knee_idx + 1)
 
 
+def _assess_mle_dimension(spectrum: torch.Tensor, rank: int, n_samples: int) -> float:
+    """Log-likelihood of PCA rank ``rank`` (Minka, NIPS 2000).
+
+    Port of ``sklearn.decomposition._pca._assess_dimension``. ``spectrum`` is
+    the explained-variance vector (eigenvalues), sorted descending.
+    """
+    n_features = int(spectrum.shape[0])
+    eps = 1e-15
+    if float(spectrum[rank - 1]) < eps:
+        return float('-inf')
+
+    pu = -rank * math.log(2.0)
+    for i in range(1, rank + 1):
+        pu += (
+            math.lgamma((n_features - i + 1) / 2.0)
+            - math.log(math.pi) * (n_features - i + 1) / 2.0
+        )
+
+    pl = float(torch.sum(torch.log(spectrum[:rank])))
+    pl = -pl * n_samples / 2.0
+
+    v = max(eps, float(torch.sum(spectrum[rank:])) / (n_features - rank))
+    pv = -math.log(v) * n_samples * (n_features - rank) / 2.0
+
+    m = n_features * rank - rank * (rank + 1.0) / 2.0
+    pp = math.log(2.0 * math.pi) * (m + rank) / 2.0
+
+    pa = 0.0
+    spectrum_ = spectrum.clone()
+    spectrum_[rank:n_features] = v
+    for i in range(rank):
+        for j in range(i + 1, n_features):
+            pa += math.log(
+                float(
+                    (spectrum[i] - spectrum[j])
+                    * (1.0 / spectrum_[j] - 1.0 / spectrum_[i])
+                )
+            ) + math.log(n_samples)
+
+    return pu + pl + pv + pp - pa / 2.0 - rank * math.log(n_samples) / 2.0
+
+
+def n_components_from_mle(spectrum: torch.Tensor, n_samples: int) -> int:
+    """Select PCA rank by Minka's MLE (sklearn ``n_components='mle'``).
+
+    Args:
+        spectrum: Explained-variance eigenvalues, shape ``(n_features,)``.
+        n_samples: Number of training rows (must be ``>= n_features``).
+
+    Returns:
+        Rank in ``[1, n_features - 1]``.
+    """
+    values = spectrum.detach().flatten().to(dtype=torch.float64)
+    n_spectrum = int(values.numel())
+    if n_spectrum <= 1:
+        return 1
+
+    ll = torch.full((n_spectrum,), float('-inf'), dtype=torch.float64)
+    for rank in range(1, n_spectrum):
+        ll[rank] = _assess_mle_dimension(values, rank, n_samples)
+    chosen = int(torch.argmax(ll).item())
+    return max(1, min(chosen, n_spectrum - 1))
+
+
 SPECTRUM_N_COMPONENTS: Dict[SpectrumNComponentsMethod, Callable[[torch.Tensor], int]] = {
     SpectrumNComponentsMethod.ELBOW: n_components_from_elbow,
     SpectrumNComponentsMethod.BROKEN_STICK: n_components_from_broken_stick,
@@ -230,8 +297,8 @@ def resolve_pca_n_components(
     """Resolve PCA ``n_components`` to an integer rank.
 
     Args:
-        n_components: Int, variance ratio, ``auto``, ``mle``, ``elbow``, or
-            ``broken_stick``.
+        n_components: Int, variance ratio, ``auto``, Minka ``mle``, ``elbow``,
+            or ``broken_stick``.
         n_samples: Number of finite training rows.
         n_features: Feature width.
         explained_variance_ratio: Full explained-variance shares.
@@ -253,12 +320,14 @@ def resolve_pca_n_components(
             max_components=max_components,
         )
 
-    if isinstance(n_components, str):
-        # Remaining allowed string is ``mle``.
+    if isinstance(n_components, str) and n_components == 'mle':
         if n_samples < n_features:
-            n_components = 0.5
-        else:
-            return max(1, max_components - 1) if max_components > 1 else 1
+            raise FedotValidationError(pca_mle_shape_error_message())
+        if singular_values is None:
+            raise FedotValidationError("n_components='mle' requires singular_values")
+        spectrum = singular_values.square() / max(n_samples - 1, 1)
+        k = n_components_from_mle(spectrum, n_samples)
+        return max(1, min(k, max_components))
 
     # Non-integral float in (0, 1): explained-variance ratio.
     if is_real_number(n_components) and not is_integral_number(n_components):

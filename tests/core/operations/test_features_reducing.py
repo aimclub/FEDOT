@@ -23,6 +23,7 @@ from fedot.core.operations.evaluation.operation_implementations.tools import (
     default_components_budget,
     n_components_from_broken_stick,
     n_components_from_elbow,
+    n_components_from_mle,
     resolve_spectrum_n_components,
 )
 from fedot.core.operations.evaluation.tensor_transform import TensorTransformStrategy
@@ -201,6 +202,38 @@ def test_pca_spectrum_n_components_methods(train_td, method):
     assert 1 <= impl.n_components_ <= train_td.features.shape[1]
     assert out.features.shape == (train_td.features.shape[0], impl.n_components_)
     assert isinstance(impl.params.get('n_components'), int)
+
+
+@pytest.mark.unit
+def test_pca_mle_matches_sklearn(train_td):
+    from sklearn.decomposition import PCA as SklearnPCA
+
+    impl = PCAImplementation(OperationParameters(n_components='mle'))
+    impl.fit(train_td)
+    sklearn_pca = SklearnPCA(n_components='mle', svd_solver='full')
+    sklearn_pca.fit(train_td.features.numpy())
+    assert impl.n_components_ == sklearn_pca.n_components_
+
+
+@pytest.mark.unit
+def test_pca_mle_rejects_wide_tables():
+    rng = np.random.default_rng(0)
+    features = rng.normal(size=(5, 10)).astype(np.float32)
+    data = TensorDataCreator.create(features, backend_name='cpu')
+    impl = PCAImplementation(OperationParameters(n_components='mle'))
+    with pytest.raises(FedotValidationError, match='n_samples >= n_features'):
+        impl.fit(data)
+
+
+@pytest.mark.unit
+def test_n_components_from_mle_matches_sklearn_infer_dimension():
+    from sklearn.decomposition._pca import _infer_dimension
+
+    rng = np.random.default_rng(1)
+    spectrum = np.sort(rng.random(8) + 0.1)[::-1].astype(np.float64)
+    n_samples = 40
+    expected = int(_infer_dimension(spectrum, n_samples))
+    assert n_components_from_mle(torch.tensor(spectrum), n_samples) == expected
 
 
 @pytest.mark.unit
