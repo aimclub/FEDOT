@@ -161,9 +161,13 @@ def test_pca_supports_variance_ratio(train_td):
     impl = PCAImplementation(OperationParameters(n_components=0.9))
     impl.fit(train_td)
     out = impl.transform(train_td)
-    assert 1 <= out.features.shape[1] <= train_td.features.shape[1]
+    kept = impl.explained_variance_ratio_
+    assert out.features.shape[1] == impl.n_components_
     assert impl.params.get('n_components') == 0.9
     assert isinstance(impl.n_components_, int)
+    assert float(kept.sum()) >= 0.9
+    if impl.n_components_ > 1:
+        assert float(kept[:-1].sum()) < 0.9
 
 
 @pytest.mark.unit
