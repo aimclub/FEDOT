@@ -83,7 +83,7 @@ def is_valid_truncated_svd_n_components(value: Any) -> bool:
 def pca_n_components_error_message(value: Any) -> str:
     return (
         f"Unsupported PCA n_components: {value!r}. "
-        f"Expected positive int, float in (0, 1], or one of "
+        f"Expected positive int, float in (0, 1), float >= 1 (integer count), or one of "
         f"{sorted(PCA_SUPPORTED_N_COMPONENTS_STR)}."
     )
 

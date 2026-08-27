@@ -330,6 +330,7 @@ def resolve_pca_n_components(
         return max(1, min(k, max_components))
 
     # Non-integral float in (0, 1): explained-variance ratio.
+    # 1.0 is excluded on purpose (sklearn): int(1.0) == 1, not full rank.
     if is_real_number(n_components) and not is_integral_number(n_components):
         ratio = float(n_components)
         if ratio < 1.0:
