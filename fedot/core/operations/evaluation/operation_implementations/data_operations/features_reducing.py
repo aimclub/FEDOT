@@ -44,7 +44,8 @@ class PCAImplementation(TensorDataOperationImplementation):
 
     Note:
         Fit drops rows with NaN (warning). Transform keeps all rows; NaN
-        inputs stay NaN after projection.
+        inputs stay NaN after projection. Resolved rank is ``n_components_``;
+        the ``n_components`` hyperparameter is not overwritten.
     """
 
     def __init__(self, params: Optional[OperationParameters] = None):
@@ -116,7 +117,6 @@ class PCAImplementation(TensorDataOperationImplementation):
         self.n_components_ = n_components
         self.components_ = vh[:n_components].contiguous()
         self.explained_variance_ratio_ = self.explained_variance_ratio_[:n_components].contiguous()
-        self.params.update(n_components=n_components)
         return self
 
     def transform(self, data: TensorData) -> TensorData:
@@ -164,7 +164,8 @@ class TruncatedSVDImplementation(TensorDataOperationImplementation):
 
     Note:
         Fit drops rows with NaN (warning). Transform keeps all rows; NaN
-        inputs stay NaN after projection.
+        inputs stay NaN after projection. Resolved rank is ``n_components_``;
+        the ``n_components`` hyperparameter is not overwritten.
     """
 
     def __init__(self, params: Optional[OperationParameters] = None):
@@ -237,7 +238,6 @@ class TruncatedSVDImplementation(TensorDataOperationImplementation):
             )
             self.n_components_ = k
             self.components_ = vh[:k].contiguous()
-            self.params.update(n_components=k)
             return self
 
         k = resolve_truncated_svd_n_components(
@@ -258,7 +258,6 @@ class TruncatedSVDImplementation(TensorDataOperationImplementation):
             _, _, V = self._svd_lowrank(clean, q=q, niter=n_iter)
             self.components_ = V[:, :k].T.contiguous()
         self.n_components_ = k
-        self.params.update(n_components=k)
         return self
 
     def transform(self, data: TensorData) -> TensorData:

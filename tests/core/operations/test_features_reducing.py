@@ -203,7 +203,17 @@ def test_pca_auto_n_components_uses_half_features_budget(train_td):
     impl.fit(train_td)
     expected = default_components_budget(impl.n_samples_, impl.n_features_)
     assert impl.n_components_ == expected
-    assert impl.params.get('n_components') == expected
+    assert impl.params.get('n_components') == 'auto'
+
+
+@pytest.mark.unit
+def test_pca_auto_policy_survives_refit(train_td):
+    impl = PCAImplementation(OperationParameters(n_components='auto'))
+    impl.fit(train_td)
+    first = impl.n_components_
+    impl.fit(train_td)
+    assert impl.params.get('n_components') == 'auto'
+    assert impl.n_components_ == first
 
 
 @pytest.mark.unit
@@ -214,7 +224,7 @@ def test_pca_spectrum_n_components_methods(train_td, method):
     out = impl.transform(train_td)
     assert 1 <= impl.n_components_ <= train_td.features.shape[1]
     assert out.features.shape == (train_td.features.shape[0], impl.n_components_)
-    assert isinstance(impl.params.get('n_components'), int)
+    assert impl.params.get('n_components') == method
 
 
 @pytest.mark.unit
@@ -341,7 +351,7 @@ def test_truncated_svd_auto_n_components_uses_half_features_budget(train_td):
     impl.fit(train_td)
     expected = default_components_budget(impl.n_samples_, impl.n_features_)
     assert impl.n_components_ == expected
-    assert impl.params.get('n_components') == expected
+    assert impl.params.get('n_components') == 'auto'
     out = impl.transform(train_td)
     assert out.features.shape == (train_td.features.shape[0], expected)
 
@@ -354,7 +364,7 @@ def test_truncated_svd_spectrum_n_components_methods(train_td, method):
     out = impl.transform(train_td)
     assert 1 <= impl.n_components_ <= train_td.features.shape[1]
     assert out.features.shape == (train_td.features.shape[0], impl.n_components_)
-    assert isinstance(impl.params.get('n_components'), int)
+    assert impl.params.get('n_components') == method
 
 
 @pytest.mark.unit
