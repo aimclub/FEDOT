@@ -119,7 +119,7 @@ def test_resolve_spectrum_rejects_unknown_method_and_missing_input():
 def test_params_accept_numpy_scalars(train_td):
     validated_pca = validate_pca_params({'n_components': np.int64(3)})
     assert validated_pca['n_components'] == 3
-    assert type(validated_pca['n_components']) is int
+    assert validated_pca['n_components'].__class__ is int
 
     validated_svd = validate_truncated_svd_params({
         'n_components': np.float64(0.5),
@@ -127,7 +127,7 @@ def test_params_accept_numpy_scalars(train_td):
         'n_oversamples': np.int64(8),
     })
     assert validated_svd['n_components'] == 0.5
-    assert type(validated_svd['n_components']) is float
+    assert validated_svd['n_components'].__class__ is float
     assert validated_svd['n_iter'] == 4
     assert validated_svd['n_oversamples'] == 8
 
