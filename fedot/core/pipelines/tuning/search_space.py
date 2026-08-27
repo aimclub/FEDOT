@@ -476,20 +476,28 @@ class PipelineSearchSpace(SearchSpace):
                     'type': 'categorical'},
             },
             'pca': {
-                # Explained-variance ratio in (0, 1]. Same numeric interval as
-                # truncated_svd.n_components, different meaning (not a feature fraction).
+                # Validated modes plus variance-ratio floats. Same choice set as
+                # truncated_svd; a float is explained-variance share, not a
+                # feature fraction. ``mle`` is omitted: it needs
+                # n_samples >= n_features and fails on wide tables.
                 'n_components': {
-                    'hyperopt-dist': hp.uniform,
-                    'sampling-scope': [0.1, 0.99],
-                    'type': 'continuous'}
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[
+                        'auto', 'elbow', 'broken_stick',
+                        0.1, 0.25, 0.5, 0.75, 0.9, 0.99,
+                    ]],
+                    'type': 'categorical'}
             },
             'truncated_svd': {
-                # Fraction of n_features (dataset-agnostic); resolved to int at fit.
-                # Not PCA explained-variance: 0.5 → round(0.5 * n_features).
+                # Validated modes plus feature-fraction floats
+                # (0.5 → round(0.5 * n_features), not PCA variance).
                 'n_components': {
-                    'hyperopt-dist': hp.uniform,
-                    'sampling-scope': [0.1, 0.99],
-                    'type': 'continuous'},
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[
+                        'auto', 'elbow', 'broken_stick',
+                        0.1, 0.25, 0.5, 0.75, 0.9, 0.99,
+                    ]],
+                    'type': 'categorical'},
                 'n_iter': {
                     'hyperopt-dist': hp.uniformint,
                     'sampling-scope': [2, 10],

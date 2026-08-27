@@ -29,6 +29,7 @@ from fedot.core.operations.evaluation.operation_implementations.tools import (
 from fedot.core.operations.evaluation.tensor_transform import TensorTransformStrategy
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.node import PipelineNode
+from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import RandomStateHandler
 from fedot.validation.errors import FedotValidationError
@@ -358,6 +359,14 @@ def test_truncated_svd_params_schema_rejects_unknown_keys():
         validate_truncated_svd_params({'n_components': 2, 'n_component': 3})
     with pytest.raises(FedotValidationError, match='Unknown keys'):
         TruncatedSVDImplementation(OperationParameters(n_components=2, svd_solver='full'))
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize('operation', ['pca', 'truncated_svd'])
+def test_decomposition_search_space_includes_validated_n_components_modes(operation):
+    choices = PipelineSearchSpace().get_parameters_dict()[operation]['n_components']['sampling-scope'][0]
+    for mode in ('auto', 'elbow', 'broken_stick'):
+        assert mode in choices
 
 
 @pytest.mark.unit

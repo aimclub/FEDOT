@@ -32,9 +32,9 @@ class PCAImplementation(TensorDataOperationImplementation):
             * ``int`` — fixed number of components
             * ``float`` in ``(0, 1]`` — explained variance ratio.
               ``1.0`` keeps full rank (100% variance); ``1`` is one component.
-              Tuner samples the same ``[0.1, 0.99]`` interval as
-              ``truncated_svd``, but here the float is variance share, not
-              a fraction of ``n_features``.
+              Tuner samples ``auto`` / ``elbow`` / ``broken_stick`` and the
+              same variance-ratio floats as ``truncated_svd`` (there a float
+              is a fraction of ``n_features``).
             * ``'auto'`` — repository default:
               ``max(1, min(rank, n_features // 2))``. After OHE a variance
               target often keeps nearly full width; ``auto`` caps rank without
@@ -150,8 +150,9 @@ class TruncatedSVDImplementation(TensorDataOperationImplementation):
             * ``int`` — fixed number of components
             * ``float`` in ``(0, 1]`` — fraction of ``n_features``
               (``round(fraction * n_features)``), not explained variance.
-              Tuner also samples ``[0.1, 0.99]``; ``0.5`` means half the
-              columns, unlike PCA where ``0.5`` means 50% variance.
+              Tuner samples ``auto`` / ``elbow`` / ``broken_stick`` and
+              feature-fraction floats; ``0.5`` means half the columns,
+              unlike PCA where ``0.5`` means 50% variance.
             * ``'auto'`` — repository default, same width cap as PCA
               (``n_features // 2``, not a variance target).
             * ``'elbow'`` / ``'broken_stick'`` — spectrum rank selection
