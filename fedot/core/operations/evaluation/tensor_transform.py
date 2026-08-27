@@ -1,4 +1,3 @@
-import warnings
 from typing import Optional
 
 from fedot.core.data.tensor_data.tensor_data import TensorData
@@ -9,8 +8,6 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 )
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.utilities.random import ImplementationRandomStateHandler
-
-warnings.filterwarnings('ignore', category=UserWarning)
 
 
 class TensorTransformStrategy(EvaluationStrategy):
