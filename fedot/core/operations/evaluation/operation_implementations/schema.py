@@ -2,6 +2,7 @@ from typing import Any, Mapping, Optional
 
 from marshmallow import (
     INCLUDE,
+    RAISE,
     Schema,
     ValidationError,
     fields,
@@ -43,7 +44,7 @@ class PCAParamsSchema(Schema):
     """
 
     class Meta:
-        unknown = INCLUDE
+        unknown = RAISE
 
     n_components = fields.Raw(required=True)
 
@@ -77,7 +78,7 @@ class TruncatedSVDParamsSchema(Schema):
     """
 
     class Meta:
-        unknown = INCLUDE
+        unknown = RAISE
 
     n_components = fields.Raw(required=True)
     n_iter = fields.Raw(load_default=5)

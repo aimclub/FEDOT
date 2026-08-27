@@ -194,6 +194,16 @@ def test_pca_params_schema_rejects_invalid_n_components():
 
 
 @pytest.mark.unit
+def test_pca_params_schema_rejects_unknown_keys():
+    with pytest.raises(FedotValidationError, match='n_component|Unknown keys'):
+        validate_pca_params({'n_components': 2, 'n_component': 3})
+    with pytest.raises(FedotValidationError, match='svd_solver|Unknown keys'):
+        validate_pca_params({'n_components': 2, 'svd_solver': 'full'})
+    with pytest.raises(FedotValidationError, match='svd_solver|Unknown keys'):
+        PCAImplementation(OperationParameters(n_components=2, svd_solver='full'))
+
+
+@pytest.mark.unit
 def test_pca_params_schema_fills_missing_n_components():
     assert validate_pca_params({})['n_components'] == 'auto'
     assert validate_pca_params({'n_components': None})['n_components'] == 'auto'
@@ -340,6 +350,14 @@ def test_truncated_svd_rejects_mle_accepts_feature_fraction(train_td):
     expected = max(1, min(impl.n_samples_, impl.n_features_, round(0.5 * impl.n_features_)))
     assert impl.n_components_ == expected
     assert impl.params.get('n_components') == 0.5
+
+
+@pytest.mark.unit
+def test_truncated_svd_params_schema_rejects_unknown_keys():
+    with pytest.raises(FedotValidationError, match='n_component|Unknown keys'):
+        validate_truncated_svd_params({'n_components': 2, 'n_component': 3})
+    with pytest.raises(FedotValidationError, match='Unknown keys'):
+        TruncatedSVDImplementation(OperationParameters(n_components=2, svd_solver='full'))
 
 
 @pytest.mark.unit
