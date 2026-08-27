@@ -355,6 +355,7 @@
       "meta": "tensor_dimension_transformation",
       "presets": [
         "fast_train",
+        "ts",
         "*tree"
       ],
       "tags": [
@@ -370,6 +371,7 @@
       "meta": "tensor_dimension_transformation",
       "presets": [
         "fast_train",
+        "ts",
         "*tree"
       ],
       "tags": [
