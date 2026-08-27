@@ -34,7 +34,10 @@ class PCAImplementation(TensorDataOperationImplementation):
               Tuner samples the same ``[0.1, 0.99]`` interval as
               ``truncated_svd``, but here the float is variance share, not
               a fraction of ``n_features``.
-            * ``'auto'`` — half-feature budget
+            * ``'auto'`` — repository default:
+              ``max(1, min(rank, n_features // 2))``. After OHE a variance
+              target often keeps nearly full width; ``auto`` caps rank without
+              a variance quota.
             * ``'mle'`` — Minka MLE (sklearn-compatible; needs
               ``n_samples >= n_features``)
             * ``'elbow'`` / ``'broken_stick'`` — spectrum rank selection
@@ -147,7 +150,8 @@ class TruncatedSVDImplementation(TensorDataOperationImplementation):
               (``round(fraction * n_features)``), not explained variance.
               Tuner also samples ``[0.1, 0.99]``; ``0.5`` means half the
               columns, unlike PCA where ``0.5`` means 50% variance.
-            * ``'auto'`` — half-feature budget
+            * ``'auto'`` — repository default, same width cap as PCA
+              (``n_features // 2``, not a variance target).
             * ``'elbow'`` / ``'broken_stick'`` — spectrum rank selection
 
             ``int`` / float / ``auto`` use ``torch.svd_lowrank`` when

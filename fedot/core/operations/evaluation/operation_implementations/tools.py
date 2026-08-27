@@ -87,7 +87,11 @@ def max_decomposition_rank(n_samples: int, n_features: int) -> int:
 
 
 def default_components_budget(n_samples: int, n_features: int) -> int:
-    """Default ``k`` for ``n_components='auto'``: half features, capped by rank.
+    """Default ``k`` for repository ``n_components='auto'``.
+
+    ``max(1, min(rank, n_features // 2))``. It is a width cap so wide
+    tables (e.g. after OHE) compress even when a variance quota would keep
+    almost every column.
 
     Args:
         n_samples: Number of finite training rows.
@@ -96,8 +100,6 @@ def default_components_budget(n_samples: int, n_features: int) -> int:
     Returns:
         ``max(1, min(rank, n_features // 2))``.
     """
-    # Practical default for wide tables (e.g. after OHE): compress without a
-    # variance target and without keeping nearly full rank.
     rank = max_decomposition_rank(n_samples, n_features)
     half_features = max(n_features // 2, 1)
     return max(1, min(rank, half_features))

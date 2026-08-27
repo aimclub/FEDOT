@@ -36,7 +36,8 @@ from fedot.validation.context import ValidationContext
 class PCAParamsSchema(Schema):
     """Marshmallow schema for PCA hyperparameters.
 
-    Missing / ``None`` ``n_components`` is filled from repository defaults.
+    Missing / ``None`` ``n_components`` is filled from repository defaults
+    (``'auto'``: half-feature budget).
     A float in ``(0, 1]`` is explained-variance ratio, not a feature fraction
     (that meaning belongs to TruncatedSVD).
     """
