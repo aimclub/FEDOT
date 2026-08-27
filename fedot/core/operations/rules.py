@@ -32,15 +32,6 @@ def is_optional_none_method(method: Any) -> bool:
     return normalize_optional_method_name(method) in OPTIONAL_NONE_METHOD_ALIASES
 
 
-def _optional_handler_mappings():
-    from fedot.preprocessing.tools.methods_mapping import (
-        PREPROCESSING_OPTIONAL_MAPPING,
-        TS_PREPROCESSING_MAPPING,
-    )
-
-    return (PREPROCESSING_OPTIONAL_MAPPING, TS_PREPROCESSING_MAPPING)
-
-
 def _optional_mapping_for_data_type(data_type: DataTypesEnum) -> Mapping:
     from fedot.preprocessing.tools.methods_mapping import (
         PREPROCESSING_OPTIONAL_MAPPING,
@@ -112,12 +103,13 @@ def resolve_optional_method(
     raise KeyError(method_name)
 
 
-def supported_optional_strategy_steps() -> FrozenSet[PreprocessingStepEnum]:
-    """Steps allowed in optional strategy = keys of handler mappings + custom."""
-    steps = {PreprocessingStepEnum.custom}
-    for mapping in _optional_handler_mappings():
-        steps.update(mapping)
-    return frozenset(steps)
+def supported_optional_strategy_steps(
+    data_type: DataTypesEnum,
+) -> FrozenSet[PreprocessingStepEnum]:
+    """Steps allowed in ``strategy`` for ``data_type``: that mapping's keys + custom."""
+    return frozenset(
+        {PreprocessingStepEnum.custom, *_optional_mapping_for_data_type(data_type)}
+    )
 
 
 def allowed_optional_strategy_methods(

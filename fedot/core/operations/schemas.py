@@ -86,7 +86,10 @@ def validate_optional_method(
     return validated['method']
 
 
-def _parse_optional_strategy_step(raw_step: Any) -> PreprocessingStepEnum:
+def _parse_optional_strategy_step(
+    raw_step: Any,
+    data_type: DataTypesEnum,
+) -> PreprocessingStepEnum:
     if isinstance(raw_step, PreprocessingStepEnum):
         step = raw_step
     else:
@@ -98,7 +101,7 @@ def _parse_optional_strategy_step(raw_step: Any) -> PreprocessingStepEnum:
                 field_name='strategy',
             ) from exc
 
-    if step not in supported_optional_strategy_steps():
+    if step not in supported_optional_strategy_steps(data_type):
         raise FedotValidationError(
             f'Unknown optional preprocessing step: {raw_step!r}',
             field_name='strategy',
@@ -214,7 +217,7 @@ def validate_optional_strategy_mapping(
 
     normalized: Dict[PreprocessingStepEnum, Any] = {}
     for raw_step, raw_config in strategy.items():
-        step = _parse_optional_strategy_step(raw_step)
+        step = _parse_optional_strategy_step(raw_step, data_type)
         stage_config = _normalize_optional_stage_config(step, raw_config, data_type)
         if stage_config is _SKIP_STAGE:
             continue
