@@ -52,7 +52,8 @@ class PCAImplementation(TensorDataOperationImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         validated = validate_pca_params(self.params.to_dict())
-        self.params.update(n_components=validated['n_components'])
+        # Not params.update: that marks keys changed and the node copies them after fit.
+        self.params._parameters.update(validated)
 
         self.mean_: Optional[torch.Tensor] = None
         self.components_: Optional[torch.Tensor] = None
@@ -174,11 +175,8 @@ class TruncatedSVDImplementation(TensorDataOperationImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         validated = validate_truncated_svd_params(self.params.to_dict())
-        self.params.update(
-            n_components=validated['n_components'],
-            n_iter=validated['n_iter'],
-            n_oversamples=validated['n_oversamples'],
-        )
+        # Not params.update: that marks keys changed and the node copies them after fit.
+        self.params._parameters.update(validated)
 
         self.components_: Optional[torch.Tensor] = None
         self.n_components_: Optional[int] = None

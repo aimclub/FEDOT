@@ -234,6 +234,28 @@ def test_pca_auto_policy_survives_refit(train_td):
 
 
 @pytest.mark.unit
+@pytest.mark.parametrize(
+    'operation, policy',
+    [
+        ('pca', 'auto'),
+        ('pca', 'elbow'),
+        ('pca', 'mle'),
+        ('truncated_svd', 'auto'),
+        ('truncated_svd', 'elbow'),
+    ],
+)
+def test_node_keeps_n_components_policy_after_fit(train_td, operation, policy):
+    node = PipelineNode(operation)
+    node.parameters = {'n_components': policy}
+    node.fit(train_td)
+    assert node.parameters['n_components'] == policy
+    assert isinstance(node.fitted_operation.n_components_, int)
+    node.unfit()
+    node.fit(train_td)
+    assert node.parameters['n_components'] == policy
+
+
+@pytest.mark.unit
 @pytest.mark.parametrize('method', ['elbow', 'broken_stick'])
 def test_pca_spectrum_n_components_methods(train_td, method):
     impl = PCAImplementation(OperationParameters(n_components=method))
