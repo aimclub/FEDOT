@@ -297,8 +297,8 @@ def resolve_pca_n_components(
     """Resolve PCA ``n_components`` to an integer rank.
 
     Args:
-        n_components: Int, variance ratio, ``auto``, Minka ``mle``, ``elbow``,
-            or ``broken_stick``.
+        n_components: Int, variance ratio in ``(0, 1]`` (``1.0`` = full rank),
+            ``auto``, Minka ``mle``, ``elbow``, or ``broken_stick``.
         n_samples: Number of finite training rows.
         n_features: Feature width.
         explained_variance_ratio: Full explained-variance shares.
@@ -329,11 +329,13 @@ def resolve_pca_n_components(
         k = n_components_from_mle(spectrum, n_samples)
         return max(1, min(k, max_components))
 
-    # Non-integral float in (0, 1): explained-variance ratio.
-    # 1.0 is excluded on purpose (sklearn): int(1.0) == 1, not full rank.
+    # Non-integral float in (0, 1]: explained-variance ratio.
+    # 1.0 maps to full rank (all variance), unlike sklearn where 1.0 == 1.
     if is_real_number(n_components) and not is_integral_number(n_components):
         ratio = float(n_components)
-        if ratio < 1.0:
+        if ratio <= 1.0:
+            if ratio == 1.0:
+                return max_components
             cumsum = torch.cumsum(explained_variance_ratio, dim=0)
             hits = (cumsum >= ratio).nonzero(as_tuple=False)
             if hits.numel() == 0:

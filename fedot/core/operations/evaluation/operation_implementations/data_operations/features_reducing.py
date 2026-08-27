@@ -29,8 +29,8 @@ class PCAImplementation(TensorDataOperationImplementation):
         params: Operation parameters. ``n_components`` may be:
 
             * ``int`` — fixed number of components
-            * ``float`` in ``(0, 1)`` — explained variance ratio.
-              ``1.0`` is one component (sklearn), not 100% variance.
+            * ``float`` in ``(0, 1]`` — explained variance ratio.
+              ``1.0`` keeps full rank (100% variance); ``1`` is one component.
             * ``'auto'`` — half-feature budget
             * ``'mle'`` — Minka MLE (sklearn-compatible; needs
               ``n_samples >= n_features``)

@@ -164,11 +164,16 @@ def test_pca_supports_variance_ratio(train_td):
 
 
 @pytest.mark.unit
-def test_pca_float_one_is_one_component_not_full_variance(train_td):
+def test_pca_float_one_keeps_full_rank(train_td):
     impl = PCAImplementation(OperationParameters(n_components=1.0))
     impl.fit(train_td)
-    assert impl.n_components_ == 1
-    assert impl.transform(train_td).features.shape[1] == 1
+    expected = min(impl.n_samples_, impl.n_features_)
+    assert impl.n_components_ == expected
+    assert impl.transform(train_td).features.shape[1] == expected
+
+    one = PCAImplementation(OperationParameters(n_components=1))
+    one.fit(train_td)
+    assert one.n_components_ == 1
 
 
 @pytest.mark.unit
