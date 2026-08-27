@@ -177,10 +177,12 @@ def test_pca_float_one_keeps_full_rank(train_td):
     expected = min(impl.n_samples_, impl.n_features_)
     assert impl.n_components_ == expected
     assert impl.transform(train_td).features.shape[1] == expected
+    assert impl.params.get('n_components') == 1.0
 
     one = PCAImplementation(OperationParameters(n_components=1))
     one.fit(train_td)
     assert one.n_components_ == 1
+    assert one.params.get('n_components') == 1
 
 
 @pytest.mark.unit
@@ -196,6 +198,11 @@ def test_pca_params_schema_rejects_invalid_n_components():
 
     with pytest.raises(FedotValidationError):
         validate_pca_params({'n_components': 'random'})
+
+    with pytest.raises(FedotValidationError):
+        validate_pca_params({'n_components': 1.5})
+    with pytest.raises(FedotValidationError):
+        validate_truncated_svd_params({'n_components': 1.5})
 
 
 @pytest.mark.unit
@@ -380,6 +387,20 @@ def test_truncated_svd_rejects_mle_accepts_feature_fraction(train_td):
 
 
 @pytest.mark.unit
+def test_truncated_svd_float_one_keeps_all_features(train_td):
+    impl = TruncatedSVDImplementation(OperationParameters(n_components=1.0))
+    impl.fit(train_td)
+    expected = min(impl.n_samples_, impl.n_features_)
+    assert impl.n_components_ == expected
+    assert impl.params.get('n_components') == 1.0
+
+    one = TruncatedSVDImplementation(OperationParameters(n_components=1))
+    one.fit(train_td)
+    assert one.n_components_ == 1
+    assert one.params.get('n_components') == 1
+
+
+@pytest.mark.unit
 def test_truncated_svd_params_schema_rejects_unknown_keys():
     with pytest.raises(FedotValidationError, match='n_component|Unknown keys'):
         validate_truncated_svd_params({'n_components': 2, 'n_component': 3})
@@ -393,6 +414,7 @@ def test_decomposition_search_space_includes_validated_n_components_modes(operat
     choices = PipelineSearchSpace().get_parameters_dict()[operation]['n_components']['sampling-scope'][0]
     for mode in ('auto', 'elbow', 'broken_stick'):
         assert mode in choices
+    assert 1.0 in choices
 
 
 @pytest.mark.unit

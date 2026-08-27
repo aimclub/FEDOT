@@ -476,26 +476,26 @@ class PipelineSearchSpace(SearchSpace):
                     'type': 'categorical'},
             },
             'pca': {
-                # Validated modes plus variance-ratio floats. Same choice set as
-                # truncated_svd; a float is explained-variance share, not a
-                # feature fraction. ``mle`` is omitted: it needs
-                # n_samples >= n_features and fails on wide tables.
+                # Variance-ratio floats in (0, 1]: 1.0 is 100% variance, not
+                # one component (that is int 1). Same numeric choices as
+                # truncated_svd, different meaning (not a feature fraction).
+                # ``mle`` is omitted: it needs n_samples >= n_features.
                 'n_components': {
                     'hyperopt-dist': hp.choice,
                     'sampling-scope': [[
                         'auto', 'elbow', 'broken_stick',
-                        0.1, 0.25, 0.5, 0.75, 0.9, 0.99,
+                        0.1, 0.25, 0.5, 0.75, 0.9, 0.99, 1.0,
                     ]],
                     'type': 'categorical'}
             },
             'truncated_svd': {
-                # Validated modes plus feature-fraction floats
-                # (0.5 → round(0.5 * n_features), not PCA variance).
+                # Feature-fraction floats in (0, 1]: 1.0 is all features,
+                # 0.5 → round(0.5 * n_features), not PCA variance.
                 'n_components': {
                     'hyperopt-dist': hp.choice,
                     'sampling-scope': [[
                         'auto', 'elbow', 'broken_stick',
-                        0.1, 0.25, 0.5, 0.75, 0.9, 0.99,
+                        0.1, 0.25, 0.5, 0.75, 0.9, 0.99, 1.0,
                     ]],
                     'type': 'categorical'},
                 'n_iter': {

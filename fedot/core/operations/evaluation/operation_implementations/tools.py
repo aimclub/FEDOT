@@ -299,8 +299,9 @@ def resolve_pca_n_components(
     """Resolve PCA ``n_components`` to an integer rank.
 
     Args:
-        n_components: Int, variance ratio in ``(0, 1]`` (``1.0`` = full rank),
-            ``auto``, Minka ``mle``, ``elbow``, or ``broken_stick``.
+        n_components: Int (``1`` = one component), variance ratio in ``(0, 1]``
+            (``1.0`` = 100% variance / full rank), ``auto``, Minka ``mle``,
+            ``elbow``, or ``broken_stick``.
         n_samples: Number of finite training rows.
         n_features: Feature width.
         explained_variance_ratio: Full explained-variance shares.
@@ -332,7 +333,7 @@ def resolve_pca_n_components(
         return max(1, min(k, max_components))
 
     # Non-integral float in (0, 1]: explained-variance ratio.
-    # 1.0 maps to full rank (all variance), unlike sklearn where 1.0 == 1.
+    # 1.0 is 100% variance (full rank); int 1 is one component.
     if is_real_number(n_components) and not is_integral_number(n_components):
         ratio = float(n_components)
         if ratio <= 1.0:
@@ -360,8 +361,9 @@ def resolve_truncated_svd_n_components(
     """Resolve TruncatedSVD ``n_components`` to an integer rank.
 
     Args:
-        n_components: Int, feature-fraction in ``(0, 1]``, ``auto``, ``elbow``,
-            or ``broken_stick``.
+        n_components: Int (``1`` = one component), feature-fraction in
+            ``(0, 1]`` (``1.0`` = all features), ``auto``, ``elbow``, or
+            ``broken_stick``.
         n_samples: Number of finite training rows.
         n_features: Feature width.
         singular_values: Required for spectrum methods.
@@ -382,6 +384,7 @@ def resolve_truncated_svd_n_components(
         )
 
     # Non-integral float in (0, 1]: feature fraction (not variance ratio).
+    # 1.0 keeps all features; int 1 is one component.
     if is_real_number(n_components) and not is_integral_number(n_components):
         fraction = float(n_components)
         if fraction <= 1.0:

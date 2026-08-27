@@ -39,8 +39,9 @@ class PCAParamsSchema(Schema):
 
     Missing / ``None`` ``n_components`` is filled from repository defaults
     (``'auto'``: half-feature budget).
-    A float in ``(0, 1]`` is explained-variance ratio, not a feature fraction
-    (that meaning belongs to TruncatedSVD).
+    A float in ``(0, 1]`` is explained-variance ratio (``1.0`` = 100% variance),
+    not a feature fraction and not sklearn's ``1.0`` → one component.
+    An int is a component count (``1`` = one component).
     """
 
     class Meta:
@@ -73,8 +74,9 @@ class PCAParamsSchema(Schema):
 class TruncatedSVDParamsSchema(Schema):
     """Marshmallow schema for TruncatedSVD hyperparameters.
 
-    A float ``n_components`` in ``(0, 1]`` is a fraction of ``n_features``,
-    not PCA explained-variance ratio.
+    A float ``n_components`` in ``(0, 1]`` is a fraction of ``n_features``
+    (``1.0`` = all features), not PCA explained-variance ratio.
+    An int is a component count (``1`` = one component).
     """
 
     class Meta:

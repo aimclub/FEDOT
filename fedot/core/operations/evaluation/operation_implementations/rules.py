@@ -57,10 +57,9 @@ def is_valid_pca_n_components(value: Any) -> bool:
     if is_integral_number(value):
         return int(value) >= 1
     if is_real_number(value):
-        # Float in (0, 1] is variance ratio; float > 1 is treated as an int.
-        if float(value) <= 1.0:
-            return float(value) > 0.0
-        return True
+        # Non-integral float: explained-variance ratio in (0, 1].
+        # 1.0 is 100% variance; int 1 is one component.
+        return 0.0 < float(value) <= 1.0
     return False
 
 
@@ -76,6 +75,7 @@ def is_valid_truncated_svd_n_components(value: Any) -> bool:
         return int(value) >= 1
     if is_real_number(value):
         # Non-integral float must be a feature-fraction in (0, 1].
+        # 1.0 is all features; int 1 is one component.
         return 0.0 < float(value) <= 1.0
     return False
 
@@ -83,7 +83,8 @@ def is_valid_truncated_svd_n_components(value: Any) -> bool:
 def pca_n_components_error_message(value: Any) -> str:
     return (
         f"Unsupported PCA n_components: {value!r}. "
-        f"Expected positive int, float explained-variance ratio in (0, 1], or one of "
+        f"Expected a positive int (1 = one component), a float explained-variance "
+        f"ratio in (0, 1] (1.0 = 100% variance), or one of "
         f"{sorted(PCA_SUPPORTED_N_COMPONENTS_STR)}."
     )
 
@@ -95,7 +96,8 @@ def pca_mle_shape_error_message() -> str:
 def truncated_svd_n_components_error_message(value: Any) -> str:
     return (
         f"Unsupported TruncatedSVD n_components: {value!r}. "
-        f"Expected a positive int, float feature-fraction in (0, 1], or one of "
+        f"Expected a positive int (1 = one component), a float feature-fraction "
+        f"in (0, 1] (1.0 = all features), or one of "
         f"{sorted(TRUNCATED_SVD_SUPPORTED_N_COMPONENTS_STR)}."
     )
 

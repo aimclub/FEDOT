@@ -29,9 +29,9 @@ class PCAImplementation(TensorDataOperationImplementation):
     Args:
         params: Operation parameters. ``n_components`` may be:
 
-            * ``int`` — fixed number of components
+            * ``int`` — fixed number of components (``1`` = one component)
             * ``float`` in ``(0, 1]`` — explained variance ratio.
-              ``1.0`` keeps full rank (100% variance); ``1`` is one component.
+              ``1.0`` is 100% variance (full rank), not sklearn's one component.
               Tuner samples ``auto`` / ``elbow`` / ``broken_stick`` and the
               same variance-ratio floats as ``truncated_svd`` (there a float
               is a fraction of ``n_features``).
@@ -148,12 +148,13 @@ class TruncatedSVDImplementation(TensorDataOperationImplementation):
     Args:
         params: Operation parameters. ``n_components`` may be:
 
-            * ``int`` — fixed number of components
+            * ``int`` — fixed number of components (``1`` = one component)
             * ``float`` in ``(0, 1]`` — fraction of ``n_features``
               (``round(fraction * n_features)``), not explained variance.
-              Tuner samples ``auto`` / ``elbow`` / ``broken_stick`` and
-              feature-fraction floats; ``0.5`` means half the columns,
-              unlike PCA where ``0.5`` means 50% variance.
+              ``1.0`` keeps all features; ``0.5`` is half the columns,
+              unlike PCA where ``0.5`` is 50% variance.
+              Tuner samples ``auto`` / ``elbow`` / ``broken_stick`` and the
+              same fraction floats as PCA (there a float is variance share).
             * ``'auto'`` — repository default, same width cap as PCA
               (``n_features // 2``, not a variance target).
             * ``'elbow'`` / ``'broken_stick'`` — spectrum rank selection
