@@ -476,6 +476,8 @@ class PipelineSearchSpace(SearchSpace):
                     'type': 'categorical'},
             },
             'pca': {
+                # Explained-variance ratio in (0, 1]. Same numeric interval as
+                # truncated_svd.n_components, different meaning (not a feature fraction).
                 'n_components': {
                     'hyperopt-dist': hp.uniform,
                     'sampling-scope': [0.1, 0.99],
@@ -483,6 +485,7 @@ class PipelineSearchSpace(SearchSpace):
             },
             'truncated_svd': {
                 # Fraction of n_features (dataset-agnostic); resolved to int at fit.
+                # Not PCA explained-variance: 0.5 → round(0.5 * n_features).
                 'n_components': {
                     'hyperopt-dist': hp.uniform,
                     'sampling-scope': [0.1, 0.99],

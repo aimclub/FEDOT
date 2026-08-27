@@ -37,6 +37,8 @@ class PCAParamsSchema(Schema):
     """Marshmallow schema for PCA hyperparameters.
 
     Missing / ``None`` ``n_components`` is filled from repository defaults.
+    A float in ``(0, 1]`` is explained-variance ratio, not a feature fraction
+    (that meaning belongs to TruncatedSVD).
     """
 
     class Meta:
@@ -67,7 +69,11 @@ class PCAParamsSchema(Schema):
 
 
 class TruncatedSVDParamsSchema(Schema):
-    """Marshmallow schema for TruncatedSVD hyperparameters."""
+    """Marshmallow schema for TruncatedSVD hyperparameters.
+
+    A float ``n_components`` in ``(0, 1]`` is a fraction of ``n_features``,
+    not PCA explained-variance ratio.
+    """
 
     class Meta:
         unknown = INCLUDE

@@ -21,7 +21,9 @@ class TensorTransformStrategy(EvaluationStrategy):
 
     Supported operations:
         - ``pca`` → :class:`PCAImplementation`
+          (float ``n_components`` = explained-variance ratio)
         - ``truncated_svd`` → :class:`TruncatedSVDImplementation`
+          (float ``n_components`` = fraction of ``n_features``)
 
     Invariant:
         ``predict_for_fit`` is intentionally identical to ``predict`` for current

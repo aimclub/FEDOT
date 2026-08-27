@@ -31,6 +31,9 @@ class PCAImplementation(TensorDataOperationImplementation):
             * ``int`` — fixed number of components
             * ``float`` in ``(0, 1]`` — explained variance ratio.
               ``1.0`` keeps full rank (100% variance); ``1`` is one component.
+              Tuner samples the same ``[0.1, 0.99]`` interval as
+              ``truncated_svd``, but here the float is variance share, not
+              a fraction of ``n_features``.
             * ``'auto'`` — half-feature budget
             * ``'mle'`` — Minka MLE (sklearn-compatible; needs
               ``n_samples >= n_features``)
@@ -141,6 +144,9 @@ class TruncatedSVDImplementation(TensorDataOperationImplementation):
 
             * ``int`` — fixed number of components
             * ``float`` in ``(0, 1]`` — fraction of ``n_features``
+              (``round(fraction * n_features)``), not explained variance.
+              Tuner also samples ``[0.1, 0.99]``; ``0.5`` means half the
+              columns, unlike PCA where ``0.5`` means 50% variance.
             * ``'auto'`` — half-feature budget
             * ``'elbow'`` / ``'broken_stick'`` — spectrum rank selection
 
