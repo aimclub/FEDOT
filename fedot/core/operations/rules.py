@@ -61,12 +61,14 @@ def _handler_methods_for_data_type(
     return step_method_handlers(_optional_mapping_for_data_type(data_type).get(step))
 
 
-def _method_names_from_mappings(step: PreprocessingStepEnum) -> set:
-    names: set = set()
-    for mapping in _optional_handler_mappings():
-        for method in step_method_handlers(mapping.get(step)):
-            names.add(normalize_optional_method_name(method))
-    return names
+def _method_names_for_data_type(
+    step: PreprocessingStepEnum,
+    data_type: DataTypesEnum,
+) -> set:
+    return {
+        normalize_optional_method_name(method)
+        for method in _handler_methods_for_data_type(step, data_type)
+    }
 
 
 def flat_optional_steps(data_type: DataTypesEnum) -> Mapping[PreprocessingStepEnum, bool]:
@@ -84,9 +86,12 @@ def flat_optional_steps(data_type: DataTypesEnum) -> Mapping[PreprocessingStepEn
     return steps
 
 
-def supported_optional_method_names(step: PreprocessingStepEnum) -> FrozenSet[Any]:
-    """Flat-knob allowlist: auto/none + honest method values from handler mappings."""
-    return frozenset({'auto', 'none'} | _method_names_from_mappings(step))
+def supported_optional_method_names(
+    step: PreprocessingStepEnum,
+    data_type: DataTypesEnum,
+) -> FrozenSet[Any]:
+    """Flat-knob allowlist for ``data_type``: auto/none + that mapping's methods."""
+    return frozenset({'auto', 'none'} | _method_names_for_data_type(step, data_type))
 
 
 def resolve_optional_method(
@@ -117,8 +122,9 @@ def supported_optional_strategy_steps() -> FrozenSet[PreprocessingStepEnum]:
 
 def allowed_optional_strategy_methods(
     step: PreprocessingStepEnum,
+    data_type: DataTypesEnum,
 ) -> Optional[FrozenSet[Any]]:
-    """Methods allowed for a step, derived from handler mapping keys.
+    """Methods allowed for a step on ``data_type``, from that mapping's keys.
 
     ``custom`` accepts any method (implementation is provided by the caller).
     Mapped steps also accept ``auto`` / ``none``.
@@ -126,14 +132,9 @@ def allowed_optional_strategy_methods(
     if step == PreprocessingStepEnum.custom:
         return None
 
-    methods: set = set()
-    for mapping in _optional_handler_mappings():
-        step_methods = step_method_handlers(mapping.get(step))
-        if not step_methods:
-            continue
-        methods.update(step_methods)
-        methods.update(normalize_optional_method_name(method) for method in step_methods)
-
+    step_methods = _handler_methods_for_data_type(step, data_type)
+    methods: set = set(step_methods)
+    methods.update(normalize_optional_method_name(method) for method in step_methods)
     methods.update(OPTIONAL_AUTO_METHOD_ALIASES)
     methods.update(OPTIONAL_NONE_METHOD_ALIASES)
 

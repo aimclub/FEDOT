@@ -52,7 +52,7 @@ def _build_strategy_from_flat_params(
             else:
                 continue
 
-        method = validate_optional_method(step, method)
+        method = validate_optional_method(step, method, data.data_type)
         resolved = resolve_optional_method(method, data.data_type, step)
         if is_optional_none_method(resolved):
             continue

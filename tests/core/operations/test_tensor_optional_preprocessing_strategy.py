@@ -401,6 +401,30 @@ def test_build_optional_strategy_rejects_unknown_flat_method(train_td):
 
 
 @pytest.mark.unit
+def test_build_optional_strategy_rejects_flat_method_from_other_data_type(train_td):
+    from fedot.core.operations.evaluation.optional_preprocessing_strategy_builder import (
+        build_optional_strategy_from_node_params,
+    )
+
+    with pytest.raises(FedotValidationError, match='Unsupported imputation_method'):
+        build_optional_strategy_from_node_params(
+            train_td,
+            {'imputation_method': 'ts_mean'},
+        )
+
+    ts_td = TensorDataCreator.create(
+        np.array([[1.0, 10.0], [2.0, np.nan], [3.0, 30.0]], dtype=np.float32),
+        backend_name='cpu',
+        data_type='time_series',
+    )
+    with pytest.raises(FedotValidationError, match='Unsupported imputation_method'):
+        build_optional_strategy_from_node_params(
+            ts_td,
+            {'imputation_method': 'mean'},
+        )
+
+
+@pytest.mark.unit
 def test_build_optional_strategy_rejects_unknown_step(train_td):
     from fedot.core.operations.evaluation.optional_preprocessing_strategy_builder import (
         build_optional_strategy_from_node_params,
