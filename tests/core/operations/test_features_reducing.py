@@ -161,6 +161,8 @@ def test_pca_supports_variance_ratio(train_td):
     impl.fit(train_td)
     out = impl.transform(train_td)
     assert 1 <= out.features.shape[1] <= train_td.features.shape[1]
+    assert impl.params.get('n_components') == 0.9
+    assert isinstance(impl.n_components_, int)
 
 
 @pytest.mark.unit
@@ -337,6 +339,7 @@ def test_truncated_svd_rejects_mle_accepts_feature_fraction(train_td):
     impl.fit(train_td)
     expected = max(1, min(impl.n_samples_, impl.n_features_, round(0.5 * impl.n_features_)))
     assert impl.n_components_ == expected
+    assert impl.params.get('n_components') == 0.5
 
 
 @pytest.mark.unit
