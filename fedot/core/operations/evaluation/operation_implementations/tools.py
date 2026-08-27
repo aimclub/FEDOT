@@ -391,6 +391,30 @@ def resolve_truncated_svd_n_components(
     return max(1, min(int(n_components), max_components))
 
 
+def require_fitted_feature_width(
+    features: torch.Tensor,
+    n_features: Optional[int],
+    op_name: str,
+) -> None:
+    """Raise if transform width does not match fit.
+
+    Args:
+        features: Flattened feature matrix.
+        n_features: Width stored at fit, or ``None`` if unknown.
+        op_name: Operation name in the error message.
+
+    Raises:
+        FedotValidationError: When ``features.shape[1] != n_features``.
+    """
+    if n_features is None:
+        return
+    width = int(features.shape[1])
+    if width != n_features:
+        raise FedotValidationError(
+            f'{op_name} expected {n_features} features, got {width}'
+        )
+
+
 def project_with_components(
     features: torch.Tensor,
     components: torch.Tensor,

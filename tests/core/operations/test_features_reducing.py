@@ -456,3 +456,28 @@ def test_truncated_svd_strategy_fit_is_reproducible(train_td):
         torch.testing.assert_close(first.components_, second.components_)
     finally:
         RandomStateHandler.MODEL_FITTING_SEED = original_seed
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    'impl_cls, params',
+    [
+        (PCAImplementation, OperationParameters(n_components=2)),
+        (TruncatedSVDImplementation, OperationParameters(n_components=2)),
+    ],
+)
+def test_transform_rejects_feature_width_mismatch(train_td, impl_cls, params):
+    impl = impl_cls(params)
+    impl.fit(train_td)
+    fitted_width = impl.n_features_
+    assert fitted_width is not None and fitted_width > 1
+    wrong = replace(
+        train_td,
+        features=train_td.features[:, : fitted_width - 1],
+        fingerprint=None,
+    )
+    with pytest.raises(
+        FedotValidationError,
+        match=f'expected {fitted_width} features, got {fitted_width - 1}',
+    ):
+        impl.transform(wrong)

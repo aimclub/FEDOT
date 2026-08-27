@@ -16,6 +16,7 @@ from fedot.core.operations.evaluation.operation_implementations.tools import (
     prepare_finite_features,
     project_with_components,
     replace_projected_features,
+    require_fitted_feature_width,
     resolve_pca_n_components,
     resolve_truncated_svd_n_components,
 )
@@ -132,6 +133,7 @@ class PCAImplementation(TensorDataOperationImplementation):
             raise RuntimeError('PCAImplementation is not fitted yet.')
 
         features = flatten_if_needed(data.features)
+        require_fitted_feature_width(features, self.n_features_, 'PCA')
         if self.n_features_ is not None and self.n_features_ <= 1:
             projected = features
         else:
@@ -273,6 +275,7 @@ class TruncatedSVDImplementation(TensorDataOperationImplementation):
             raise RuntimeError('TruncatedSVDImplementation is not fitted yet.')
 
         features = flatten_if_needed(data.features)
+        require_fitted_feature_width(features, self.n_features_, 'TruncatedSVD')
         if self.n_features_ is not None and self.n_features_ <= 1:
             projected = features
         else:
