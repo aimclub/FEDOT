@@ -55,6 +55,17 @@ class OperationParameters:
     def to_dict(self) -> dict:
         return deepcopy(self._parameters)
 
+    def copy(self) -> 'OperationParameters':
+        """Return a detached parameters object.
+
+        Copies the parameter mapping and ``changed_keys`` list so callers can
+        read/update the snapshot without mutating this instance. Values are
+        shallow-copied (operation hyperparameters are scalars / immutable).
+        """
+        cloned = OperationParameters(**self._parameters)
+        cloned._changed_keys = list(self._changed_keys)
+        return cloned
+
     def keys(self) -> Iterable:
         return self._parameters.keys()
 

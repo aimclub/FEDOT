@@ -6,7 +6,7 @@ from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStr
 from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import \
     OneHotEncodingImplementation, LabelEncodingImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
-    ImputationImplementation, KernelPCAImplementation, NormalizationImplementation, PCAImplementation, \
+    ImputationImplementation, KernelPCAImplementation, NormalizationImplementation, \
     PolyFeaturesImplementation, ScalingImplementation, FastICAImplementation, DaskPCAImplementation
 from fedot.core.operations.evaluation.operation_implementations. \
     data_operations.topological.fast_topological_extractor import \
@@ -27,7 +27,6 @@ class FedotPreprocessingStrategy(EvaluationStrategy):
                 - ``scaling``-> ScalingImplementation,
                 - ``normalization``-> NormalizationImplementation,
                 - ``simple_imputation``-> ImputationImplementation,
-                - ``pca``-> PCAImplementation,
                 - ``dask_pca``-> DaskPCAImplementation,
                 - ``kernel_pca``-> KernelPCAImplementation,
                 - ``poly_features``-> PolyFeaturesImplementation,
@@ -43,7 +42,6 @@ class FedotPreprocessingStrategy(EvaluationStrategy):
         'scaling': ScalingImplementation,
         'normalization': NormalizationImplementation,
         'simple_imputation': ImputationImplementation,
-        'pca': PCAImplementation,
         'dask_pca': DaskPCAImplementation,
         'kernel_pca': KernelPCAImplementation,
         'poly_features': PolyFeaturesImplementation,

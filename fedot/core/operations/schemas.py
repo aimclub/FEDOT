@@ -9,16 +9,11 @@ from fedot.core.operations.rules import (
     is_optional_none_method,
     normalize_optional_method_name,
     resolve_optional_method,
-    supported_optional_imputation_method_names,
-    supported_optional_scaling_method_names,
+    supported_optional_method_names,
     supported_optional_strategy_steps,
 )
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.preprocessing.tools.preprocessor_types import (
-    ImputationMethodEnum,
-    PreprocessingStepEnum,
-    ScalingMethodEnum,
-)
+from fedot.preprocessing.tools.preprocessor_types import PreprocessingStepEnum
 from fedot.validation.boundaries import load_validated
 from fedot.validation.context import ValidationContext
 from fedot.validation.errors import FedotInvalidKeysError, FedotValidationError
@@ -53,63 +48,48 @@ def validate_classification_output_mode(
     return validated['output_mode']
 
 
-class OptionalImputationMethodSchema(Schema):
+class OptionalMethodSchema(Schema):
+    """Shared flat-knob schema; ``step`` and ``data_type`` come from context."""
+
     class Meta:
         unknown = INCLUDE
 
-    imputation_method = fields.Raw(required=True)
+    method = fields.Raw(required=True)
 
-    @validates('imputation_method')
-    def validate_imputation_method(self, value: Any) -> None:
+    @validates('method')
+    def validate_method(self, value: Any) -> None:
+        step: PreprocessingStepEnum = self.context['step']
+        data_type: DataTypesEnum = self.context['data_type']
+        field_name = f'{step.value}_method'
         method_name = normalize_optional_method_name(value)
-        if method_name not in supported_optional_imputation_method_names():
+        if method_name not in supported_optional_method_names(step, data_type):
             raise ValidationError(
-                f'Unsupported imputation_method for optional preprocessing: {value!r}'
+                f'Unsupported {field_name} for optional preprocessing: {value!r}'
             )
 
 
-class OptionalScalingMethodSchema(Schema):
-    class Meta:
-        unknown = INCLUDE
-
-    scaling_method = fields.Raw(required=True)
-
-    @validates('scaling_method')
-    def validate_scaling_method(self, value: Any) -> None:
-        method_name = normalize_optional_method_name(value)
-        if method_name not in supported_optional_scaling_method_names():
-            raise ValidationError(
-                f'Unsupported scaling_method for optional preprocessing: {value!r}'
-            )
-
-
-def validate_optional_imputation_method(
-    imputation_method: Any,
+def validate_optional_method(
+    step: PreprocessingStepEnum,
+    method: Any,
+    data_type: DataTypesEnum,
     context: ValidationContext = None,
 ) -> Any:
+    schema = OptionalMethodSchema()
+    schema.context['step'] = step
+    schema.context['data_type'] = data_type
     validated = load_validated(
-        OptionalImputationMethodSchema(),
-        {'imputation_method': imputation_method},
+        schema,
+        {'method': method},
         context,
         prefix='optional_preprocessing',
     )
-    return validated['imputation_method']
+    return validated['method']
 
 
-def validate_optional_scaling_method(
-    scaling_method: Any,
-    context: ValidationContext = None,
-) -> Any:
-    validated = load_validated(
-        OptionalScalingMethodSchema(),
-        {'scaling_method': scaling_method},
-        context,
-        prefix='optional_preprocessing',
-    )
-    return validated['scaling_method']
-
-
-def _parse_optional_strategy_step(raw_step: Any) -> PreprocessingStepEnum:
+def _parse_optional_strategy_step(
+    raw_step: Any,
+    data_type: DataTypesEnum,
+) -> PreprocessingStepEnum:
     if isinstance(raw_step, PreprocessingStepEnum):
         step = raw_step
     else:
@@ -121,7 +101,7 @@ def _parse_optional_strategy_step(raw_step: Any) -> PreprocessingStepEnum:
                 field_name='strategy',
             ) from exc
 
-    if step not in supported_optional_strategy_steps():
+    if step not in supported_optional_strategy_steps(data_type):
         raise FedotValidationError(
             f'Unknown optional preprocessing step: {raw_step!r}',
             field_name='strategy',
@@ -129,8 +109,12 @@ def _parse_optional_strategy_step(raw_step: Any) -> PreprocessingStepEnum:
     return step
 
 
-def _ensure_optional_strategy_method_allowed(step: PreprocessingStepEnum, method: Any) -> None:
-    allowed = allowed_optional_strategy_methods(step)
+def _ensure_optional_strategy_method_allowed(
+    step: PreprocessingStepEnum,
+    method: Any,
+    data_type: DataTypesEnum,
+) -> None:
+    allowed = allowed_optional_strategy_methods(step, data_type)
     if allowed is None:
         return
     if method in allowed:
@@ -149,28 +133,22 @@ def _normalize_optional_method_only_config(
     method: Any,
     data_type: DataTypesEnum,
 ) -> Any:
-    _ensure_optional_strategy_method_allowed(step, method)
+    _ensure_optional_strategy_method_allowed(step, method, data_type)
     if is_optional_none_method(method):
         return _SKIP_STAGE
     if is_optional_auto_method(method):
         return None
 
-    if step == PreprocessingStepEnum.imputation:
-        if isinstance(method, ImputationMethodEnum):
-            return method
-        return resolve_optional_method(method, data_type, step)
+    if step == PreprocessingStepEnum.custom:
+        return method
 
-    if step == PreprocessingStepEnum.scaling:
-        if isinstance(method, ScalingMethodEnum):
-            return method
-        return resolve_optional_method(method, data_type, step)
-
-    return method
+    return resolve_optional_method(method, data_type, step)
 
 
 def _normalize_optional_stage_params(
     step: PreprocessingStepEnum,
     params: Mapping[str, Any],
+    data_type: DataTypesEnum,
 ) -> Dict[str, Any]:
     unknown = set(params) - OPTIONAL_STRATEGY_STAGE_PARAM_KEYS
     if unknown:
@@ -187,7 +165,7 @@ def _normalize_optional_stage_params(
             field_name='strategy',
         )
 
-    _ensure_optional_strategy_method_allowed(step, params['method'])
+    _ensure_optional_strategy_method_allowed(step, params['method'], data_type)
     return dict(params)
 
 
@@ -200,7 +178,7 @@ def _normalize_optional_stage_config(
         return _normalize_optional_method_only_config(step, config, data_type)
 
     if isinstance(config, Mapping):
-        return [_normalize_optional_stage_params(step, config)]
+        return [_normalize_optional_stage_params(step, config, data_type)]
 
     if isinstance(config, list):
         if not config:
@@ -215,7 +193,7 @@ def _normalize_optional_stage_config(
                     f'Optional preprocessing stage {step.value!r} params must be mappings',
                     field_name='strategy',
                 )
-            normalized_items.append(_normalize_optional_stage_params(step, item))
+            normalized_items.append(_normalize_optional_stage_params(step, item, data_type))
         return normalized_items
 
     raise FedotValidationError(
@@ -239,7 +217,7 @@ def validate_optional_strategy_mapping(
 
     normalized: Dict[PreprocessingStepEnum, Any] = {}
     for raw_step, raw_config in strategy.items():
-        step = _parse_optional_strategy_step(raw_step)
+        step = _parse_optional_strategy_step(raw_step, data_type)
         stage_config = _normalize_optional_stage_config(step, raw_config, data_type)
         if stage_config is _SKIP_STAGE:
             continue

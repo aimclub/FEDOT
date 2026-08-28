@@ -22,11 +22,12 @@ class TensorOptionalPreprocessingStrategy(EvaluationStrategy):
 
     Expected params:
         - ``strategy``: full OptionalService strategy override (validated);
-        - ``auto``: when ``False`` and step flags are unset, build an empty plan;
-        - ``use_imputation`` / ``imputation_method``: ``auto|none`` or honest
-          method names from handler mapping (e.g. ``mean``, ``ts_mean``);
-        - ``use_scaling`` / ``scaling_method``: ``auto|none`` or honest method
-          names from handler mapping (e.g. ``standard``, ``seasonal``);
+        - ``auto``: when ``True`` (default), unset ``<step>_method`` knobs follow
+          ``OptionalStepSpec.flat_auto_default`` from handler mappings; when
+          ``False``, unset methods are skipped;
+        - ``<step>_method`` for flat optional steps (imputation, scaling,
+          filtering, ...): ``auto|none`` or honest method names from handler
+          mapping; omit or ``none`` to skip a step;
         - ``use_cache``: whether the optional service should use cache
           (default ``True``).
 
@@ -34,10 +35,10 @@ class TensorOptionalPreprocessingStrategy(EvaluationStrategy):
 
     Invariant:
         ``predict_for_fit`` is intentionally identical to ``predict`` for the
-        current optional steps (imputation / scaling): fitted statistics are
-        applied the same way on train and inference batches. If leakage-prone
-        steps (e.g. target-aware encoding) are added later, override
-        ``predict_for_fit`` instead of inheriting this equivalence.
+        current optional steps: fitted statistics are applied the same way on
+        train and inference batches. If leakage-prone steps (e.g. target-aware
+        encoding) are added later, override ``predict_for_fit`` instead of
+        inheriting this equivalence.
     """
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
