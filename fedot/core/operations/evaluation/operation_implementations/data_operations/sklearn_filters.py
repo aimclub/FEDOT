@@ -93,6 +93,8 @@ class RegRANSACImplementation(FilterImplementation):
             residual_threshold = residual_threshold + residual_threshold_step
             iter_ += 1
 
+        # Do not filter the data if no fit retained a sufficient number of inliers.
+        self.operation.inlier_mask_ = None
         return self.operation
 
 
