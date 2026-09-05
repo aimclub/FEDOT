@@ -6,6 +6,7 @@ import pytest
 from golem.core.optimisers.fitness import SingleObjFitness
 
 from fedot.core.data.data import InputData
+from fedot.core.data.merge.data_merger import DataMergeError
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
@@ -156,6 +157,23 @@ def test_pipeline_objective_evaluate_with_time_constraint(classification_dataset
     fitness = objective_eval(pipeline)
     assert fitness.valid
     assert fitness.value is not None
+
+
+def test_pipeline_objective_evaluate_skips_pipeline_with_incompatible_branch_indices(classification_dataset,
+                                                                                     monkeypatch):
+    pipeline = sample_pipeline()
+    data_producer = DataSourceSplitter(cv_folds=None).build(classification_dataset)
+    objective_eval = PipelineObjectiveEvaluate(MetricsObjective(ClassificationMetricsEnum.ROCAUC_penalty),
+                                               data_producer=data_producer)
+
+    def raise_data_merge_error(*args, **kwargs):
+        raise DataMergeError('There are no common indices for outputs')
+
+    monkeypatch.setattr(objective_eval, 'prepare_graph', raise_data_merge_error)
+
+    fitness = objective_eval(pipeline)
+
+    assert not fitness.valid
 
 
 @pytest.mark.parametrize(
