@@ -5,11 +5,24 @@ from typing import Optional
 import numpy as np
 
 try:
-    from gph import ripser_parallel as ripser
+    from gph import ripser_parallel
+
+    def ripser(data, maxdim, coeff, metric):
+        return ripser_parallel(data,
+                               maxdim=maxdim,
+                               coeff=coeff,
+                               metric=metric,
+                               n_threads=1,
+                               collapse_edges=False)
 except ModuleNotFoundError:
-    logging.log(100,
-                "Topological features operation requires extra dependencies for time series forecasting, which are not"
-                " installed. It can infuence the performance. Please install it by 'pip install fedot[extra]'")
+    try:
+        from ripser import ripser
+    except ModuleNotFoundError:
+        ripser = None
+        logging.log(100,
+                    "Topological features operation requires extra dependencies for time series forecasting, which are"
+                    " not installed. It can influence the performance. Please install them with 'pip install"
+                    " fedot[extra]'")
 
 from joblib import Parallel, delayed
 
@@ -39,6 +52,8 @@ class TopologicalFeaturesImplementation(DataOperationImplementation):
         return self
 
     def transform(self, input_data: InputData) -> OutputData:
+        if ripser is None:
+            raise ModuleNotFoundError("Install topological dependencies with 'pip install fedot[extra]'")
         features = input_data.features
         with Parallel(n_jobs=self.n_jobs, prefer='processes') as parallel:
             topological_features = parallel(delayed(self._extract_features)
@@ -57,9 +72,7 @@ class TopologicalFeaturesImplementation(DataOperationImplementation):
         x_processed = ripser(x_sliced,
                              maxdim=self.max_homology_dimension,
                              coeff=2,
-                             metric=self.metric,
-                             n_threads=1,
-                             collapse_edges=False)["dgms"]
+                             metric=self.metric)["dgms"]
         result = np.zeros(self._shape * (self.max_homology_dimension + 1))
         for i, xp in enumerate(x_processed):
             if xp.shape[0] > 0:

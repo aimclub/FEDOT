@@ -1,11 +1,13 @@
 # Base framework
-thegolem==0.4.2
+thegolem>=0.5.0, <0.6.0
 
 
 # Data
-numpy>=1.16.0, <2.0.0, !=1.24.0
+numpy>=1.16.0, <2.0.0, !=1.24.0; python_version < '3.13'
+numpy>=2.1, <3.0.0; python_version >= '3.13'
 pandas>=1.3.0, <3.0.0
-scipy>0.13.0, <1.15.2
+scipy>0.13.0, <1.13.0; python_version < '3.13'
+scipy>=1.14.1, <2.0.0; python_version >= '3.13'
 dask-ml<2026.0.0
 dask<2026.0.0
 
@@ -18,7 +20,8 @@ xgboost>=1.4.0, <4.0.0
 statsmodels>=0.12.0, <0.16.0
 ete3>=3.1.0, <4.0.0
 networkx>=2.4, <4.0.0, !=2.7.*, !=2.8.1, !=2.8.2, !=2.8.3
-scikit-learn>=1.0.0, <1.7.0
+scikit-learn>=1.0.0, <1.7.0; python_version < '3.13'
+scikit-learn>=1.7.0, <2.0.0; python_version >= '3.13'
 sktime>=0.16.1, <2.0.0
 
 # Analysis and optimizations
@@ -33,6 +36,7 @@ pyvis==0.2.1
 seaborn>=0.9.0, <1.0.0
 
 # Misc
+setuptools<81
 func_timeout==4.3.5
 joblib>=0.17.0, <2.0.0
 requests>=2.0, <3.0.0
