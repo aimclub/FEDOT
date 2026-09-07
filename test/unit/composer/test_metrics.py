@@ -72,7 +72,8 @@ def data_setup(request):
 
 
 def get_classification_pipeline():
-    first = PipelineNode(operation_type='logit')
+    scaling = PipelineNode(operation_type='scaling')
+    first = PipelineNode(operation_type='logit', nodes_from=[scaling])
     second = PipelineNode(operation_type='logit', nodes_from=[first])
     third = PipelineNode(operation_type='logit', nodes_from=[first])
     final = PipelineNode(operation_type='logit', nodes_from=[second, third])

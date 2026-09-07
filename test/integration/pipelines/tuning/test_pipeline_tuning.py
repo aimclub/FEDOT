@@ -1,5 +1,4 @@
 import os
-from time import time
 
 import pytest
 from golem.core.tuning.hyperopt_tuner import get_node_parameters_for_hyperopt
@@ -430,35 +429,35 @@ def test_ts_pipeline_with_stats_model(n_steps, tuner):
 
 
 @pytest.mark.parametrize('data_fixture', ['tiny_classification_dataset'])
-def test_early_stop_in_tuning(data_fixture, request):
+def test_early_stop_in_tuning(data_fixture, request, caplog):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
+    caplog.set_level('INFO', logger='hyperopt.fmin')
 
-    start_pipeline_tuner = time()
     _ = run_pipeline_tuner(tuner=SimultaneousTuner,
                            train_data=train_data,
                            pipeline=get_class_pipelines()[0],
                            loss_function=ClassificationMetricsEnum.ROCAUC,
-                           iterations=1000,
+                           iterations=20,
                            early_stopping_rounds=1)
-    assert time() - start_pipeline_tuner < 1.3
+    assert 'Early stop triggered' in caplog.text
+    caplog.clear()
 
-    start_sequential_tuner = time()
     _ = run_pipeline_tuner(tuner=SequentialTuner,
                            train_data=train_data,
                            pipeline=get_class_pipelines()[0],
                            loss_function=ClassificationMetricsEnum.ROCAUC,
-                           iterations=1000,
+                           iterations=20,
                            early_stopping_rounds=1)
-    assert time() - start_sequential_tuner < 1.3
+    assert 'Early stop triggered' in caplog.text
+    caplog.clear()
 
-    start_node_tuner = time()
     _ = run_node_tuner(train_data=train_data,
                        pipeline=get_class_pipelines()[0],
                        loss_function=ClassificationMetricsEnum.ROCAUC,
-                       iterations=1000,
+                       iterations=20,
                        early_stopping_rounds=1)
-    assert time() - start_node_tuner < 1.3
+    assert 'Early stop triggered' in caplog.text
 
 
 def test_search_space_correctness_after_customization():
