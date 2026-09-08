@@ -9,6 +9,7 @@ from golem.utilities.data_structures import are_same_length
 
 from fedot.core.data.common.array_utils import find_common_elements, atleast_2d, atleast_4d, flatten_extra_dim
 from fedot.core.data.input_data.data import OutputData, InputData
+from fedot.core.data.merge.rules import TensorMergeInputPlan, plan_tensor_merge_input
 from fedot.core.data.merge.supplementary_data_merger import SupplementaryDataMerger
 from fedot.core.data.schemas import validate_tensor_data_merge_data_type
 from fedot.core.data.tensor_data.tensor_data import TensorData
@@ -169,16 +170,25 @@ class TensorDataMerger:
     """
     Merges TensorData objects from parent nodes into a TensorData for the next node.
 
-    TensorData runtime has no TensorOutputData, so parent outputs are merged by
-    their ``features`` field. The resulting container keeps the metadata from the
-    first parent and clears ``predict`` so only final model predictions are stored
-    in ``predict``.
+    TensorData runtime has no TensorOutputData. A model parent exposes its result
+    through ``predict`` while a data-operation parent exposes transformed
+    ``features``. The merged values become features for the next node and
+    ``predict`` is cleared.
     """
 
-    def __init__(self, outputs: List[TensorData]):
+    def __init__(self, outputs: List[TensorData], parent_is_models: Optional[List[bool]] = None):
         if not outputs:
             raise ValueError('No TensorData outputs to merge')
+        if parent_is_models is not None and len(parent_is_models) != len(outputs):
+            raise ValueError(
+                'Each TensorData output must have one parent operation role')
         self.outputs = outputs
+        roles = parent_is_models or [None] * len(outputs)
+        self.input_plans = [
+            plan_tensor_merge_input(
+                output.predict is not None, parent_is_model)
+            for output, parent_is_model in zip(outputs, roles)
+        ]
         self.main_output = self._find_main_output(outputs)
         self.data_type = DataMerger.get_datatype_for_merge(
             output.data_type for output in outputs)
@@ -199,21 +209,28 @@ class TensorDataMerger:
     def _find_common_indices(self):
         idx_list = [output.idx for output in self.outputs]
         if any(idx is None for idx in idx_list):
-            self._check_equal_rows([output.features for output in self.outputs])
+            self._check_equal_rows(
+                [output.features for output in self.outputs])
             return self.main_output.idx
 
-        common_indices = find_common_elements(*[np.asarray(idx) for idx in idx_list])
+        common_indices = find_common_elements(
+            *[np.asarray(idx) for idx in idx_list])
         if len(common_indices) == 0:
-            raise ValueError('There are no common indices for TensorData outputs')
+            raise ValueError(
+                'There are no common indices for TensorData outputs')
         return common_indices
 
     def find_common_features(self) -> List[torch.Tensor]:
         features = [
-            self._select_common(output, output.features)
-            for output in self.outputs
+            self._select_common(output, self._merge_input(output, plan))
+            for output, plan in zip(self.outputs, self.input_plans)
         ]
         self._check_equal_rows(features)
         return self._normalize_feature_shapes(features)
+
+    @staticmethod
+    def _merge_input(output: TensorData, plan: TensorMergeInputPlan) -> torch.Tensor:
+        return output.predict if plan.use_predict else output.features
 
     def merge_target(self) -> Optional[torch.Tensor]:
         target = self.main_output.target
@@ -231,7 +248,8 @@ class TensorDataMerger:
         if self.common_indices is None or output.idx is None:
             return tensor
         index_mask = np.isin(np.asarray(output.idx), self.common_indices)
-        tensor_mask = torch.as_tensor(index_mask, dtype=torch.bool, device=tensor.device)
+        tensor_mask = torch.as_tensor(
+            index_mask, dtype=torch.bool, device=tensor.device)
         return tensor[tensor_mask]
 
     @staticmethod
@@ -251,7 +269,8 @@ class TensorDataMerger:
         - if branch shapes are incompatible for ``torch.cat(..., dim=-1)``,
           tensors are flattened to ``[n_samples, -1]``.
         """
-        normalized = [TensorDataMerger._atleast_2d_tensor(tensor) for tensor in features]
+        normalized = [TensorDataMerger._atleast_2d_tensor(
+            tensor) for tensor in features]
         if TensorDataMerger._can_cat_by_last_axis(normalized):
             return normalized
         return [tensor.reshape(tensor.shape[0], -1) for tensor in normalized]

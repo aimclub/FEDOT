@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import random
+from dataclasses import replace
 from typing import Optional
 
 import numpy as np
@@ -13,11 +14,9 @@ from sklearn.preprocessing import KBinsDiscretizer, QuantileTransformer
 from torch import nn
 from torch.nn import functional as F
 
-from fedot.core.data.input_data.data import OutputData
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
-from fedot.core.repository.dataset_types import DataTypesEnum
 
 
 class TensorTabularModelImplementation(ModelImplementation):
@@ -49,7 +48,8 @@ class TensorTabularModelImplementation(ModelImplementation):
 
         feature_names = self._to_numpy(tensor_data.features_names)
         if feature_names is None or len(feature_names) != features.shape[1]:
-            feature_names = np.array([f'f_{i}' for i in range(features.shape[1])])
+            feature_names = np.array(
+                [f'f_{i}' for i in range(features.shape[1])])
         feature_names = [str(name) for name in feature_names]
         self.feature_names = feature_names
 
@@ -57,7 +57,8 @@ class TensorTabularModelImplementation(ModelImplementation):
         categorical_idx = self._to_numpy(tensor_data.categorical_idx)
         if categorical_idx is None:
             categorical_idx = []
-        self.cat_col_names = [feature_names[int(idx)] for idx in categorical_idx if int(idx) < len(feature_names)]
+        self.cat_col_names = [feature_names[int(
+            idx)] for idx in categorical_idx if int(idx) < len(feature_names)]
         for col in self.cat_col_names:
             frame[col] = frame[col].astype('category')
         return frame
@@ -74,23 +75,15 @@ class TensorTabularModelImplementation(ModelImplementation):
             return device
         features = tensor_data.features
         if isinstance(features, torch.Tensor) and features.device.type == 'cuda':
-            return 'cuda'
+            return str(features.device)
         return 'cpu'
 
-    def _output(self, tensor_data: TensorData, prediction: np.ndarray) -> OutputData:
-        idx = self._to_numpy(tensor_data.idx) if tensor_data.idx is not None else None
-        if idx is None or len(idx) != len(prediction):
-            idx = np.arange(len(prediction))
-        return OutputData(
-            idx=idx,
-            features=tensor_data.features,
-            predict=prediction,
-            task=tensor_data.task,
-            target=self._to_numpy(tensor_data.target),
-            data_type=DataTypesEnum.tabular,
-            features_names=self._to_numpy(tensor_data.features_names),
-            categorical_idx=self._to_numpy(tensor_data.categorical_idx),
+    def _output(self, tensor_data: TensorData, prediction: np.ndarray) -> TensorData:
+        prediction = torch.as_tensor(
+            prediction,
+            device=tensor_data.features.device,
         )
+        return replace(tensor_data, predict=prediction)
 
     def _encode_target(self, y):
         if self._is_classification:
@@ -126,7 +119,8 @@ class TabMCategoryEncoder:
             col = values[:, col_idx]
             col = col[~pd.isna(col)]
             categories = np.unique(col)
-            mapping = {category: idx for idx, category in enumerate(categories.tolist())}
+            mapping = {category: idx for idx,
+                       category in enumerate(categories.tolist())}
             self.mappings.append(mapping)
             self.cardinalities.append(len(mapping))
         return self
@@ -136,7 +130,8 @@ class TabMCategoryEncoder:
         for col_idx, mapping in enumerate(self.mappings):
             unknown_idx = len(mapping)
             encoded[:, col_idx] = [
-                mapping.get(value, unknown_idx) if not pd.isna(value) else unknown_idx
+                mapping.get(value, unknown_idx) if not pd.isna(
+                    value) else unknown_idx
                 for value in values[:, col_idx]
             ]
         return encoded
@@ -156,14 +151,16 @@ class TabMPreprocessor:
 
     def fit(self, features: np.ndarray):
         all_idx = np.arange(features.shape[1])
-        self.categorical_idx = self.categorical_idx[self.categorical_idx < features.shape[1]]
+        self.categorical_idx = self.categorical_idx[self.categorical_idx <
+                                                    features.shape[1]]
         self.numerical_idx = np.setdiff1d(all_idx, self.categorical_idx)
 
         if len(self.categorical_idx) > 0:
             self.cat_encoder.fit(features[:, self.categorical_idx])
         if len(self.numerical_idx) > 0:
             numerical = features[:, self.numerical_idx].astype(np.float32)
-            n_quantiles = min(max(len(numerical) // 2, 10), 1000, len(numerical))
+            n_quantiles = min(max(len(numerical) // 2, 10),
+                              1000, len(numerical))
             self.num_imputer = SimpleImputer(add_indicator=True)
             self.num_quantile_transformer = QuantileTransformer(
                 n_quantiles=n_quantiles,
@@ -171,15 +168,18 @@ class TabMPreprocessor:
                 random_state=self.random_state,
             )
             numerical = self.num_imputer.fit_transform(numerical)
-            quantile_features = self.num_quantile_transformer.fit_transform(numerical)
+            quantile_features = self.num_quantile_transformer.fit_transform(
+                numerical)
             if self.num_emb_n_bins > 1:
                 self.num_bins_encoder = KBinsDiscretizer(
-                    n_bins=min(self.num_emb_n_bins, max(2, len(numerical) // 2)),
+                    n_bins=min(self.num_emb_n_bins, max(
+                        2, len(numerical) // 2)),
                     encode='onehot-dense',
                     strategy='quantile',
                     random_state=self.random_state,
                 )
-                binned_features = self.num_bins_encoder.fit_transform(numerical)
+                binned_features = self.num_bins_encoder.fit_transform(
+                    numerical)
                 numerical = np.hstack([quantile_features, binned_features])
             else:
                 numerical = quantile_features
@@ -192,7 +192,8 @@ class TabMPreprocessor:
         if len(self.numerical_idx) > 0:
             numerical = features[:, self.numerical_idx].astype(np.float32)
             numerical = self.num_imputer.transform(numerical)
-            quantile_features = self.num_quantile_transformer.transform(numerical)
+            quantile_features = self.num_quantile_transformer.transform(
+                numerical)
             if self.num_bins_encoder is not None:
                 binned_features = self.num_bins_encoder.transform(numerical)
                 numerical = np.hstack([quantile_features, binned_features])
@@ -203,7 +204,8 @@ class TabMPreprocessor:
             numerical = np.empty((len(features), 0), dtype=np.float32)
 
         if len(self.categorical_idx) > 0:
-            categorical = self.cat_encoder.transform(features[:, self.categorical_idx])
+            categorical = self.cat_encoder.transform(
+                features[:, self.categorical_idx])
         else:
             categorical = np.empty((len(features), 0), dtype=np.int64)
 
@@ -230,7 +232,8 @@ class TabMNetwork(nn.Module):
         self.share_training_batches = share_training_batches
         self.model = tabm_lib.TabM.make(
             n_num_features=n_num_features,
-            cat_cardinalities=[cardinality + 1 for cardinality in cat_cardinalities] or None,
+            cat_cardinalities=[cardinality +
+                               1 for cardinality in cat_cardinalities] or None,
             d_out=output_dim,
             d_block=d_block,
             dropout=dropout,
@@ -241,8 +244,10 @@ class TabMNetwork(nn.Module):
 
     def forward(self, x_num: torch.Tensor, x_cat: torch.Tensor) -> torch.Tensor:
         if self.training and not self.share_training_batches:
-            x_num = x_num.reshape(len(x_num) // self.k, self.k, *x_num.shape[1:])
-            x_cat = x_cat.reshape(len(x_cat) // self.k, self.k, *x_cat.shape[1:])
+            x_num = x_num.reshape(len(x_num) // self.k,
+                                  self.k, *x_num.shape[1:])
+            x_cat = x_cat.reshape(len(x_cat) // self.k,
+                                  self.k, *x_cat.shape[1:])
         x_num = x_num if x_num.shape[-1] > 0 else None
         x_cat = x_cat if x_cat.shape[-1] > 0 else None
         return self.model(x_num, x_cat)
@@ -278,16 +283,19 @@ class FedotTabMImplementation(TensorTabularModelImplementation):
         self.preprocessor = TabMPreprocessor(
             categorical_idx=categorical_idx,
             random_state=self.params.get('random_state', 42),
-            num_emb_n_bins=self.params.get('num_emb_n_bins', self._default_num_emb_n_bins()),
+            num_emb_n_bins=self.params.get(
+                'num_emb_n_bins', self._default_num_emb_n_bins()),
         ).fit(X_train)
 
         x_num_train, x_cat_train = self.preprocessor.transform(X_train)
         x_num_val, x_cat_val = self.preprocessor.transform(X_val)
-        train_tensors = self._to_torch_tensors(x_num_train, x_cat_train, y_train, fit_regression_target=True)
+        train_tensors = self._to_torch_tensors(
+            x_num_train, x_cat_train, y_train, fit_regression_target=True)
         val_tensors = self._to_torch_tensors(x_num_val, x_cat_val, y_val)
 
         arch_type = self.params.get('arch_type', 'tabm-mini')
-        self.model = self._make_model(x_num_train.shape[1], arch_type).to(self.device_)
+        self.model = self._make_model(
+            x_num_train.shape[1], arch_type).to(self.device_)
         self._fit_model(train_tensors, val_tensors)
         return self
 
@@ -301,7 +309,8 @@ class FedotTabMImplementation(TensorTabularModelImplementation):
             tabm_k=self.params.get('tabm_k', 8),
             n_blocks=self.params.get('n_blocks', 2),
             arch_type=arch_type,
-            share_training_batches=self.params.get('share_training_batches', False),
+            share_training_batches=self.params.get(
+                'share_training_batches', False),
         )
 
     def _setup_random_state(self):
@@ -334,14 +343,16 @@ class FedotTabMImplementation(TensorTabularModelImplementation):
         fit_regression_target: bool = False,
     ) -> dict[str, torch.Tensor]:
         if self._is_classification:
-            y_tensor = torch.as_tensor(y, dtype=torch.long, device=self.device_)
+            y_tensor = torch.as_tensor(
+                y, dtype=torch.long, device=self.device_)
         else:
             y = y.astype(np.float32)
             if fit_regression_target:
                 self.y_mean_ = float(np.mean(y))
                 self.y_std_ = float(np.std(y))
             y = (y - self.y_mean_) / (self.y_std_ + 1e-30)
-            y_tensor = torch.as_tensor(y, dtype=torch.float32, device=self.device_)
+            y_tensor = torch.as_tensor(
+                y, dtype=torch.float32, device=self.device_)
 
         return {
             'x_num': torch.as_tensor(x_num, dtype=torch.float32, device=self.device_),
@@ -365,12 +376,14 @@ class FedotTabMImplementation(TensorTabularModelImplementation):
             self.model.train()
             for batch_idx in self._batch_indices(n_train, batch_size):
                 optimizer.zero_grad()
-                prediction = self.model(train_tensors['x_num'][batch_idx], train_tensors['x_cat'][batch_idx])
+                prediction = self.model(
+                    train_tensors['x_num'][batch_idx], train_tensors['x_cat'][batch_idx])
                 loss = self._loss(prediction, train_tensors['y'][batch_idx])
                 loss.backward()
                 gradient_norm = self.params.get('gradient_clipping_norm', 1.0)
                 if gradient_norm is not None and gradient_norm != 'none':
-                    torch.nn.utils.clip_grad_norm_(self.model.parameters(), gradient_norm)
+                    torch.nn.utils.clip_grad_norm_(
+                        self.model.parameters(), gradient_norm)
                 optimizer.step()
 
             val_loss = self._validation_loss(val_tensors)
@@ -388,7 +401,8 @@ class FedotTabMImplementation(TensorTabularModelImplementation):
     def _batch_indices(self, n_train: int, batch_size: int):
         if self.model.share_training_batches:
             return torch.randperm(n_train, device=self.device_).split(batch_size)
-        member_permutations = torch.rand((self.model.k, n_train), device=self.device_).argsort(dim=1)
+        member_permutations = torch.rand(
+            (self.model.k, n_train), device=self.device_).argsort(dim=1)
         return [
             batch.transpose(0, 1).flatten()
             for batch in member_permutations.split(batch_size, dim=1)
@@ -421,18 +435,21 @@ class FedotTabMImplementation(TensorTabularModelImplementation):
         if X.ndim == 1:
             X = X.reshape(-1, 1)
         x_num, x_cat = self.preprocessor.transform(X)
-        x_num = torch.as_tensor(x_num, dtype=torch.float32, device=self.device_)
+        x_num = torch.as_tensor(
+            x_num, dtype=torch.float32, device=self.device_)
         x_cat = torch.as_tensor(x_cat, dtype=torch.long, device=self.device_)
 
         self.model.eval()
         eval_batch_size = self.params.get('eval_batch_size', 1024)
         predictions = []
         for batch_idx in torch.arange(len(x_num), device=self.device_).split(eval_batch_size):
-            predictions.append(self.model(x_num[batch_idx], x_cat[batch_idx]).detach().cpu())
+            predictions.append(self.model(
+                x_num[batch_idx], x_cat[batch_idx]).detach().cpu())
         prediction = torch.cat(predictions).numpy()
 
         if self._is_classification:
-            probabilities = F.softmax(torch.as_tensor(prediction), dim=-1).numpy()
+            probabilities = F.softmax(
+                torch.as_tensor(prediction), dim=-1).numpy()
             return probabilities.mean(axis=1)
         prediction = prediction.squeeze(-1).mean(axis=1)
         return prediction * self.y_std_ + self.y_mean_
@@ -441,7 +458,8 @@ class FedotTabMImplementation(TensorTabularModelImplementation):
         return 'regression'
 
     def _train_val_split(self, X: np.ndarray, y: np.ndarray):
-        val_size = max(1, int(round(len(X) * self.params.get('val_fraction', 0.2))))
+        val_size = max(
+            1, int(round(len(X) * self.params.get('val_fraction', 0.2))))
         val_size = min(val_size, len(X) - 1)
         stratify = None
         if self._is_classification and len(np.unique(y)) > 1:
@@ -499,12 +517,14 @@ class FedotRTDLImplementation(TensorTabularModelImplementation):
         self.preprocessor = TabMPreprocessor(
             categorical_idx=categorical_idx,
             random_state=self.params.get('random_state', 42),
-            num_emb_n_bins=self.params.get('num_emb_n_bins', self._default_num_emb_n_bins()),
+            num_emb_n_bins=self.params.get(
+                'num_emb_n_bins', self._default_num_emb_n_bins()),
         ).fit(X_train)
 
         x_num_train, x_cat_train = self.preprocessor.transform(X_train)
         x_num_val, x_cat_val = self.preprocessor.transform(X_val)
-        train_tensors = self._to_torch_tensors(x_num_train, x_cat_train, y_train, fit_regression_target=True)
+        train_tensors = self._to_torch_tensors(
+            x_num_train, x_cat_train, y_train, fit_regression_target=True)
         val_tensors = self._to_torch_tensors(x_num_val, x_cat_val, y_val)
 
         self.model = self._make_model(x_num_train.shape[1]).to(self.device_)
@@ -547,14 +567,16 @@ class FedotRTDLImplementation(TensorTabularModelImplementation):
         fit_regression_target: bool = False,
     ) -> dict[str, torch.Tensor]:
         if self._is_classification:
-            y_tensor = torch.as_tensor(y, dtype=torch.long, device=self.device_)
+            y_tensor = torch.as_tensor(
+                y, dtype=torch.long, device=self.device_)
         else:
             y = y.astype(np.float32)
             if fit_regression_target:
                 self.y_mean_ = float(np.mean(y))
                 self.y_std_ = float(np.std(y))
             y = (y - self.y_mean_) / (self.y_std_ + 1e-30)
-            y_tensor = torch.as_tensor(y, dtype=torch.float32, device=self.device_)
+            y_tensor = torch.as_tensor(
+                y, dtype=torch.float32, device=self.device_)
 
         return {
             'x_num': torch.as_tensor(x_num, dtype=torch.float32, device=self.device_),
@@ -578,12 +600,14 @@ class FedotRTDLImplementation(TensorTabularModelImplementation):
             self.model.train()
             for batch_idx in torch.randperm(n_train, device=self.device_).split(batch_size):
                 optimizer.zero_grad()
-                prediction = self._forward(train_tensors['x_num'][batch_idx], train_tensors['x_cat'][batch_idx])
+                prediction = self._forward(
+                    train_tensors['x_num'][batch_idx], train_tensors['x_cat'][batch_idx])
                 loss = self._loss(prediction, train_tensors['y'][batch_idx])
                 loss.backward()
                 gradient_norm = self.params.get('gradient_clipping_norm', 1.0)
                 if gradient_norm is not None and gradient_norm != 'none':
-                    torch.nn.utils.clip_grad_norm_(self.model.parameters(), gradient_norm)
+                    torch.nn.utils.clip_grad_norm_(
+                        self.model.parameters(), gradient_norm)
                 optimizer.step()
 
             val_loss = self._validation_loss(val_tensors)
@@ -612,11 +636,13 @@ class FedotRTDLImplementation(TensorTabularModelImplementation):
     @torch.inference_mode()
     def _validation_loss(self, tensors: dict[str, torch.Tensor]) -> float:
         self.model.eval()
-        batch_size = self.params.get('eval_batch_size', self._batch_size(len(tensors['y'])))
+        batch_size = self.params.get(
+            'eval_batch_size', self._batch_size(len(tensors['y'])))
         total_loss = 0.0
         total_size = 0
         for batch_idx in torch.arange(len(tensors['y']), device=self.device_).split(batch_size):
-            prediction = self._forward(tensors['x_num'][batch_idx], tensors['x_cat'][batch_idx])
+            prediction = self._forward(
+                tensors['x_num'][batch_idx], tensors['x_cat'][batch_idx])
             loss = self._loss(prediction, tensors['y'][batch_idx])
             n_batch = len(batch_idx)
             total_loss += float(loss.detach().cpu()) * n_batch
@@ -629,14 +655,16 @@ class FedotRTDLImplementation(TensorTabularModelImplementation):
         if X.ndim == 1:
             X = X.reshape(-1, 1)
         x_num, x_cat = self.preprocessor.transform(X)
-        x_num = torch.as_tensor(x_num, dtype=torch.float32, device=self.device_)
+        x_num = torch.as_tensor(
+            x_num, dtype=torch.float32, device=self.device_)
         x_cat = torch.as_tensor(x_cat, dtype=torch.long, device=self.device_)
 
         self.model.eval()
         eval_batch_size = self.params.get('eval_batch_size', 1024)
         predictions = []
         for batch_idx in torch.arange(len(x_num), device=self.device_).split(eval_batch_size):
-            predictions.append(self._forward(x_num[batch_idx], x_cat[batch_idx]).detach().cpu())
+            predictions.append(self._forward(
+                x_num[batch_idx], x_cat[batch_idx]).detach().cpu())
         prediction = torch.cat(predictions).numpy()
 
         if self._is_classification:
@@ -645,7 +673,8 @@ class FedotRTDLImplementation(TensorTabularModelImplementation):
         return prediction * self.y_std_ + self.y_mean_
 
     def _train_val_split(self, X: np.ndarray, y: np.ndarray):
-        val_size = max(1, int(round(len(X) * self.params.get('val_fraction', 0.2))))
+        val_size = max(
+            1, int(round(len(X) * self.params.get('val_fraction', 0.2))))
         val_size = min(val_size, len(X) - 1)
         stratify = None
         if self._is_classification and len(np.unique(y)) > 1:
@@ -680,14 +709,16 @@ class FedotFTTransformerImplementation(FedotRTDLImplementation):
         from rtdl_revisiting_models import FTTransformer
         return FTTransformer(
             n_cont_features=n_num_features,
-            cat_cardinalities=[cardinality + 1 for cardinality in self.preprocessor.cat_encoder.cardinalities],
+            cat_cardinalities=[
+                cardinality + 1 for cardinality in self.preprocessor.cat_encoder.cardinalities],
             d_out=self._output_dim(),
             n_blocks=self.params.get('n_blocks', 3),
             d_block=self.params.get('d_block', 64),
             attention_n_heads=self.params.get('attention_n_heads', 4),
             attention_dropout=self.params.get('attention_dropout', 0.1),
             ffn_d_hidden=None,
-            ffn_d_hidden_multiplier=self.params.get('ffn_d_hidden_multiplier', 4 / 3),
+            ffn_d_hidden_multiplier=self.params.get(
+                'ffn_d_hidden_multiplier', 4 / 3),
             ffn_dropout=self.params.get('ffn_dropout', 0.1),
             residual_dropout=self.params.get('residual_dropout', 0.0),
         )
@@ -714,7 +745,8 @@ class FedotFTTransformerRegressionImplementation(FedotFTTransformerImplementatio
 class FedotResNetImplementation(FedotRTDLImplementation):
     def _make_model(self, n_num_features: int) -> nn.Module:
         from rtdl_revisiting_models import ResNet
-        cat_features = sum(cardinality + 1 for cardinality in self.preprocessor.cat_encoder.cardinalities)
+        cat_features = sum(
+            cardinality + 1 for cardinality in self.preprocessor.cat_encoder.cardinalities)
         d_in = max(n_num_features + cat_features, 1)
         return ResNet(
             d_in=d_in,
@@ -739,7 +771,8 @@ class FedotResNetImplementation(FedotRTDLImplementation):
         if parts:
             x = torch.cat(parts, dim=1)
         else:
-            x = torch.zeros((len(x_num), 1), dtype=torch.float32, device=self.device_)
+            x = torch.zeros((len(x_num), 1),
+                            dtype=torch.float32, device=self.device_)
         return self.model(x)
 
 
@@ -766,7 +799,8 @@ class FedotRealMLPImplementation(TensorTabularModelImplementation):
             if k not in self._excluded_params
         }
         if params.get('predict_batch_size') == 'auto':
-            params['predict_batch_size'] = max(min(int(8192 * 200 / max(len(X.columns), 1)), 8192), 64)
+            params['predict_batch_size'] = max(
+                min(int(8192 * 200 / max(len(X.columns), 1)), 8192), 64)
 
         self.model = model_cls(
             device=self._device(input_data),
@@ -782,7 +816,8 @@ class FedotRealMLPImplementation(TensorTabularModelImplementation):
         return RealMLP_TD_Regressor
 
     def predict(self, input_data: TensorData):
-        prediction = self._decode_prediction(self.model.predict(self._to_frame(input_data)))
+        prediction = self._decode_prediction(
+            self.model.predict(self._to_frame(input_data)))
         return self._output(input_data, prediction)
 
     def predict_proba(self, input_data: TensorData):

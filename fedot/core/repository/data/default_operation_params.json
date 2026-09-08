@@ -7,8 +7,46 @@
     "scaling_method": "auto"
   },
   "torch_linear": {
-    "learning_rate": 0.05,
-    "epochs": 200
+    "device": "auto",
+    "learning_rate": 0.01,
+    "epochs": 200,
+    "batch_size": 256,
+    "weight_decay": 0.0001,
+    "validation_fraction": 0.1,
+    "patience": 20,
+    "random_state": 42
+  },
+  "torch_linear_reg": {
+    "device": "auto",
+    "learning_rate": 0.01,
+    "epochs": 300,
+    "batch_size": 256,
+    "weight_decay": 0.0001,
+    "validation_fraction": 0.1,
+    "patience": 30,
+    "random_state": 42
+  },
+  "torch_mlp": {
+    "device": "auto",
+    "hidden_layer_sizes": [256, 128],
+    "learning_rate": 0.001,
+    "epochs": 200,
+    "batch_size": 256,
+    "weight_decay": 0.0001,
+    "validation_fraction": 0.1,
+    "patience": 20,
+    "random_state": 42
+  },
+  "torch_mlp_reg": {
+    "device": "auto",
+    "hidden_layer_sizes": [256, 128],
+    "learning_rate": 0.001,
+    "epochs": 300,
+    "batch_size": 256,
+    "weight_decay": 0.0001,
+    "validation_fraction": 0.1,
+    "patience": 30,
+    "random_state": 42
   },
   "rf": {
     "n_jobs": 1

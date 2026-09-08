@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+import torch
 from sklearn.datasets import make_classification, make_regression
 
 from fedot.api.main import Fedot
@@ -133,7 +134,8 @@ def test_tensor_tabular_classifiers_fit_tensordata(operation):
 
     assert fitted.root_node.operation.operation_type == operation
     assert np.asarray(prediction).shape[0] == len(target)
-    assert np.all(np.isfinite(prediction))
+    assert isinstance(prediction, torch.Tensor)
+    assert torch.isfinite(prediction).all()
 
 
 @pytest.mark.unit
@@ -167,4 +169,5 @@ def test_tensor_tabular_regressors_fit_tensordata(operation):
 
     assert fitted.root_node.operation.operation_type == operation
     assert np.asarray(prediction).shape == (len(target),)
-    assert np.all(np.isfinite(prediction))
+    assert isinstance(prediction, torch.Tensor)
+    assert torch.isfinite(prediction).all()

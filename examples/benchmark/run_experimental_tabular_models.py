@@ -34,8 +34,10 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum  # noqa: E402
 
 
 DEFAULT_RESULT_PATH = ROOT_DIR / 'examples' / 'benchmark' / 'all_frameworks_res' / 'experimental_tabular_models.csv'
-TENSOR_CLASSIFICATION_OPS = {'tabm', 'ft_transformer', 'tab_resnet', 'realmlp'}
-TENSOR_REGRESSION_OPS = {'tabmreg', 'ft_transformerreg', 'tab_resnetreg', 'realmlpreg'}
+TENSOR_CLASSIFICATION_OPS = {'tabm', 'ft_transformer', 'tab_resnet', 'realmlp', 'torch_linear', 'torch_mlp'}
+TENSOR_REGRESSION_OPS = {
+    'tabmreg', 'ft_transformerreg', 'tab_resnetreg', 'realmlpreg', 'torch_linear_reg', 'torch_mlp_reg'
+}
 OPERATION_ALIASES = {
     'tabm_package': 'tabm',
     'tabmreg_package': 'tabmreg',
@@ -100,7 +102,18 @@ def _to_numeric_frame(X_train: pd.DataFrame, X_test: pd.DataFrame):
 
 def _tensor_pipeline(operation: str, fast_epochs: int, device: str) -> Pipeline:
     node = PipelineNode(operation)
-    if operation == 'tabm':
+    if operation.startswith('torch_'):
+        node.parameters = {
+            'device': device,
+            'epochs': fast_epochs,
+            'learning_rate': 0.01 if 'linear' in operation else 0.001,
+            'hidden_layer_sizes': [] if 'linear' in operation else [256, 128],
+            'batch_size': 256,
+            'validation_fraction': 0.1,
+            'patience': max(10, fast_epochs // 5),
+            'random_state': 42,
+        }
+    elif operation == 'tabm':
         node.parameters = {
             'device': device,
             'n_epochs': fast_epochs,
@@ -195,7 +208,7 @@ def _to_raw_tensordata_split(problem: str, X_train, y_train, X_test, y_test):
     train_td = create_data(
         X_train,
         backend='cpu',
-        target=y_train,
+        target=y_train_run,
         task=task,
         data_type=DataTypesEnum.tabular,
         use_cache=False,
@@ -211,7 +224,12 @@ def _to_raw_tensordata_split(problem: str, X_train, y_train, X_test, y_test):
 
 def _run_tensor_operation(operation: str, problem: str, X_train, y_train, X_test, y_test,
                           fast_epochs: int, device: str):
-    train_td, test_td, _, y_test_run = _to_tensordata_split(problem, X_train, y_train, X_test, y_test)
+    if operation.startswith('torch_'):
+        train_td, test_td, _, y_test_run = _to_raw_tensordata_split(
+            problem, X_train, y_train, X_test, y_test
+        )
+    else:
+        train_td, test_td, _, y_test_run = _to_tensordata_split(problem, X_train, y_train, X_test, y_test)
     automl = Fedot(problem=problem, logging_level=50, with_tuning=False, use_optional_preprocessing=False)
     automl.fit(train_td, predefined_model=_tensor_pipeline(operation, fast_epochs, device))
     if problem == 'classification':
@@ -227,7 +245,7 @@ def _run_tensor_operation(operation: str, problem: str, X_train, y_train, X_test
 def _run_legacy_operation(operation: str, problem: str, X_train, y_train, X_test, y_test):
     train_td, test_td, _, y_test_run = _to_raw_tensordata_split(problem, X_train, y_train, X_test, y_test)
     automl = Fedot(problem=problem, logging_level=50, with_tuning=False, available_operations=[operation],
-                  use_optional_preprocessing=False)
+                   use_optional_preprocessing=False)
     predefined_model = operation
     if operation in {'ebm', 'ebmreg'}:
         node = PipelineNode(operation)
@@ -384,8 +402,9 @@ def main():
     )
     parser.add_argument(
         '--operations',
-        default='extra_trees,hist_gb,hist_gbreg,ebm,ebmreg,mlpreg,tabm,ft_transformer,tab_resnet,realmlp,'
-                'tabmreg,ft_transformerreg,tab_resnetreg,realmlpreg',
+        default='extra_trees,hist_gb,hist_gbreg,ebm,ebmreg,mlpreg,torch_linear,torch_mlp,'
+                'torch_linear_reg,torch_mlp_reg,tabm,ft_transformer,tab_resnet,realmlp,tabmreg,'
+                'ft_transformerreg,tab_resnetreg,realmlpreg',
         help='Comma-separated operation names.',
     )
     parser.add_argument('--classification-suite', type=int, default=DEFAULT_CLASSIFICATION_SUITE)

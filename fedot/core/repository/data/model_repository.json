@@ -73,6 +73,25 @@
       ],
       "tasks": "[TaskTypesEnum.classification]"
     },
+    "simple_regr": {
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "Lightweight regression models for TensorData runtime",
+      "forbidden_node_types": "[]",
+      "input_type": "[DataTypesEnum.tabular]",
+      "output_type": "[DataTypesEnum.tabular]",
+      "strategies": [
+        "fedot.core.operations.evaluation.simple_regression",
+        "SimpleRegressionStrategy"
+      ],
+      "tags": [
+        "ml",
+        "torch",
+        "neural"
+      ],
+      "tasks": "[TaskTypesEnum.regression]"
+    },
     "sklearn_clust": {
       "accepted_node_types": [
         "any"
@@ -529,6 +548,35 @@
         "simple",
         "linear",
         "neural",
+        "torch",
+        "non_multi"
+      ]
+    },
+    "torch_linear_reg": {
+      "meta": "simple_regr",
+      "presets": ["fast_train"],
+      "tags": [
+        "simple",
+        "linear",
+        "neural",
+        "torch",
+        "non_multi"
+      ]
+    },
+    "torch_mlp": {
+      "meta": "simple_class",
+      "tags": [
+        "neural",
+        "non_linear",
+        "torch",
+        "non_multi"
+      ]
+    },
+    "torch_mlp_reg": {
+      "meta": "simple_regr",
+      "tags": [
+        "neural",
+        "non_linear",
         "torch",
         "non_multi"
       ]

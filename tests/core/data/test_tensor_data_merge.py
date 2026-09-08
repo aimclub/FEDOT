@@ -64,6 +64,8 @@ def test_tensor_data_merger_clears_predict_and_keeps_target(base_tensor_data):
 
     assert merged.predict is None
     assert torch.equal(merged.target, base_tensor_data.target)
+    assert torch.allclose(merged.features[:, 0], branch_a.predict)
+    assert torch.allclose(merged.features[:, 1], branch_b.predict)
 
 
 @pytest.mark.unit
@@ -110,7 +112,7 @@ def test_tensor_data_merger_filters_by_common_idx(base_tensor_data):
 
 
 @pytest.mark.unit
-def test_tensor_data_merger_single_parent_is_pass_through(base_tensor_data):
+def test_tensor_data_merger_single_model_parent_uses_prediction(base_tensor_data):
     branch = replace(
         base_tensor_data,
         features=base_tensor_data.features * 2,
@@ -119,7 +121,7 @@ def test_tensor_data_merger_single_parent_is_pass_through(base_tensor_data):
 
     merged = TensorDataMerger([branch]).merge()
 
-    assert torch.equal(merged.features, branch.features)
+    assert torch.equal(merged.features[:, 0], branch.predict)
     assert merged.predict is None
 
 

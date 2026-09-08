@@ -47,6 +47,15 @@ def test_replace_features_in_tensor_data_clears_predict(tensor_data):
 
 
 @pytest.mark.unit
+def test_tensor_data_to_moves_prediction_with_model_runtime_fields(tensor_data):
+    moved = tensor_data.to('cpu')
+
+    assert moved.features.device.type == 'cpu'
+    assert moved.target.device.type == 'cpu'
+    assert moved.predict.device.type == 'cpu'
+
+
+@pytest.mark.unit
 def test_is_tensor_transform_operation_for_model_and_transform():
     assert Model('linear')._is_tensor_transform_operation() is False
     assert Model('torch_linear')._is_tensor_transform_operation() is False

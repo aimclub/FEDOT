@@ -1,6 +1,7 @@
 from typing import Optional
 
 import numpy as np
+import torch
 
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
@@ -49,14 +50,17 @@ class TensorTabularClassificationStrategy(TensorTabularStrategy):
             proba = prediction.predict
             n_classes = len(trained_operation.classes_)
             if n_classes < 2:
-                raise ValueError('Data set contain only 1 target class. Please reformat your data.')
+                raise ValueError(
+                    'Data set contain only 1 target class. Please reformat your data.')
             if n_classes == 2:
                 if proba.ndim == 1 and self.output_mode == 'full_probs':
-                    proba = np.vstack((1 - proba, proba)).T
+                    if isinstance(proba, torch.Tensor):
+                        proba = torch.stack((1 - proba, proba), dim=1)
+                    else:
+                        proba = np.vstack((1 - proba, proba)).T
                 elif proba.ndim > 1 and self.output_mode != 'full_probs':
                     proba = proba[:, 1]
-            prediction.predict = proba
-            return prediction
+            return self._replace_predict_in_tensor_data(proba, prediction)
         raise ValueError(f'Output mode {self.output_mode} is not supported')
 
 
@@ -70,5 +74,6 @@ class TensorTabularRegressionStrategy(TensorTabularStrategy):
 
     def predict(self, trained_operation, predict_data: TensorData):
         if predict_data.task.task_type is not TaskTypesEnum.regression:
-            raise ValueError('Tensor tabular regression model supports only regression task')
+            raise ValueError(
+                'Tensor tabular regression model supports only regression task')
         return trained_operation.predict(predict_data)
