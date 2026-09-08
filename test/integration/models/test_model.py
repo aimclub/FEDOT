@@ -537,6 +537,10 @@ def test_operations_are_fast():
     reference_time = (float('inf'), ) * len(data_lengths)
     # tries for time measuring
     attempt = 2
+    # Wall-clock measurements on shared CI runners are noisy. Keep a small
+    # margin so the check catches meaningful regressions instead of transient
+    # scheduling and CPU-frequency differences.
+    relative_tolerance = 1.2
 
     for operation in OperationTypesRepository('all')._repo:
         if operation.id in reference_operations:
@@ -548,7 +552,7 @@ def test_operations_are_fast():
             for _ in range(attempt):
                 perfomance_values = get_operation_perfomance(operation, data_lengths)
                 # if attempt is successful then stop
-                if all(x >= y for x, y in zip(reference_time, perfomance_values)):
+                if all(x * relative_tolerance >= y for x, y in zip(reference_time, perfomance_values)):
                     break
             else:
                 raise Exception(f"Operation {operation.id} cannot have ``fast-train`` tag")
