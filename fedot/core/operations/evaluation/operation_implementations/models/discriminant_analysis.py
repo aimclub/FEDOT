@@ -64,7 +64,7 @@ class LDAImplementation(DiscriminantAnalysisImplementation):
 
         try:
             self.model.fit(train_data.features, train_data.target)
-        except ValueError:
+        except (ValueError, IndexError):
             # Problem arise when features and target are "ideally" mapping
             # features [[1.0], [0.0], [0.0]] and target [[1], [0], [0]]
             new_solver = 'lsqr'
