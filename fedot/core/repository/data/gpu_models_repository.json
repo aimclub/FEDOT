@@ -2,8 +2,8 @@
   "metadata": {
     "rapids_gpu_class": {
       "tasks": "[TaskTypesEnum.classification]",
-      "input_type": "[DataTypesEnum.table]",
-      "output_type": "[DataTypesEnum.table]",
+      "input_type": "[DataTypesEnum.table, DataTypesEnum.tabular]",
+      "output_type": "[DataTypesEnum.table, DataTypesEnum.tabular]",
       "accepted_node_types": [
         "any"
       ],
@@ -22,8 +22,8 @@
     },
     "rapids_gpu_regr": {
       "tasks": "[TaskTypesEnum.regression]",
-      "input_type": "[DataTypesEnum.table]",
-      "output_type": "[DataTypesEnum.table]",
+      "input_type": "[DataTypesEnum.table, DataTypesEnum.tabular]",
+      "output_type": "[DataTypesEnum.table, DataTypesEnum.tabular]",
       "accepted_node_types": [
         "any"
       ],
@@ -42,12 +42,12 @@
     },
     "rapids_gpu_clust": {
       "tasks": "[TaskTypesEnum.clustering]",
-      "input_type": "[DataTypesEnum.table]",
-      "output_type": "[DataTypesEnum.table]",
+      "input_type": "[DataTypesEnum.table, DataTypesEnum.tabular]",
+      "output_type": "[DataTypesEnum.table, DataTypesEnum.tabular]",
       "accepted_node_types": [
         "any"
       ],
-      "description": "Implementations of the clustering models from scikit-learn framework",
+      "description": "GPU-specific implementations of clustering models from cuML framework",
       "forbidden_node_types": "[]",
       "strategies": [
         "fedot.core.operations.evaluation.gpu.clustering",
@@ -167,7 +167,6 @@
       "meta": "rapids_gpu_class",
       "presets": ["gpu"],
       "tags": [
-        "no_prob",
         "expensive"
       ]
     },
@@ -197,9 +196,14 @@
     },
     "sgd": {
       "meta": "rapids_gpu_class",
-      "presets": ["gpu"]
+      "presets": ["gpu"],
+      "tags": ["non-default", "no_prob"]
     },
     "multinb": {
+      "meta": "rapids_gpu_class",
+      "presets": ["gpu"]
+    },
+    "bernb": {
       "meta": "rapids_gpu_class",
       "presets": ["gpu"]
     },
@@ -209,14 +213,15 @@
     },
     "minibatchsgd": {
       "meta": "rapids_gpu_class",
-      "presets": ["gpu"]
+      "presets": ["gpu"],
+      "tags": ["no_prob"]
     },
     "mbsgdcregr": {
       "meta": "rapids_gpu_regr",
       "presets": ["gpu"]
     },
     "cd": {
-      "meta": "rapids_gpu_class",
+      "meta": "rapids_gpu_regr",
       "presets": ["gpu"]
     },
     "tabpfn_gpu": {

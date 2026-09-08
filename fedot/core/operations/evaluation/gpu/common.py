@@ -1,102 +1,168 @@
+import importlib.util
+import platform
 import warnings
-from abc import abstractmethod
-from typing import Optional
+from typing import Optional, Union
 
+import numpy as np
+import torch
 from golem.utilities.requirements_notificator import warn_requirement
 
-from fedot.utilities.custom_errors import AbstractMethodNotImplementError
-
 try:
-    import cudf
+    import cupy
     import cuml
-    from cuml import Ridge, LogisticRegression, Lasso, ElasticNet, \
-        MBSGDClassifier, MBSGDRegressor, CD
+    from cuml.cluster import KMeans
     from cuml.ensemble import RandomForestClassifier, RandomForestRegressor
+    from cuml.linear_model import (
+        ElasticNet,
+        Lasso,
+        LinearRegression,
+        LogisticRegression,
+        MBSGDClassifier,
+        MBSGDRegressor,
+        Ridge,
+    )
+    from cuml.naive_bayes import BernoulliNB, MultinomialNB
+    from cuml.neighbors import KNeighborsClassifier, KNeighborsRegressor
+    from cuml.solvers import CD, SGD
     from cuml.svm import SVC
-    from cuml.neighbors import KNeighborsClassifier as CuMlknnClassifier, \
-        KNeighborsRegressor as CuMlknnRegressor
-    from cuml import LinearRegression as CuMlLinReg, SGD as CuMlSGD, \
-        MultinomialNB as CuMlMultinomialNB
-except ModuleNotFoundError:
-    warn_requirement('cudf / cuml', 'cudf / cuml')
-    cudf = None
+except (ImportError, ModuleNotFoundError):
+    warn_requirement('cupy / cuml', 'cuml-cu12')
+    cupy = None
     cuml = None
 
-from fedot.core.data.input_data.data import InputData, OutputData
-from fedot.core.operations.evaluation.evaluation_interfaces import SkLearnEvaluationStrategy
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.tensor_data.tensor_data import TensorData
+from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
+from fedot.core.operations.evaluation.gpu.rules import (
+    adapt_cuml_parameters,
+    build_cuml_precision_plan,
+    build_cuml_runtime_plan,
+    validate_cuml_tensor_operation,
+)
+from fedot.core.operations.evaluation.model_engine_rules import (
+    ModelEngine,
+    ModelEngineCapabilities,
+    ModelEngineRequest,
+    build_model_engine_plan,
+    resolve_runtime_platform,
+)
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.utilities.random import ImplementationRandomStateHandler
 
 
-class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
-    """
-    This class defines the certain operation implementation for the GPU-based CuML operations
-    defined in operation repository
-    :param str operation_type: str type of the operation defined in operation or
-    data operation repositories
-    :param dict params: hyperparameters to fit the operation with
-    """
-    try:
+class CuMLEvaluationStrategy(EvaluationStrategy):
+    """Common native cuML strategy for legacy InputData and TensorData."""
+
+    if cuml is not None:
         _operations_by_types = {
             'ridge': Ridge,
             'lasso': Lasso,
             'logit': LogisticRegression,
-            'linear': CuMlLinReg,
+            'linear': LinearRegression,
             'rf': RandomForestClassifier,
             'rfr': RandomForestRegressor,
             'svc': SVC,
-            'knn': CuMlknnClassifier,
-            'knnreg': CuMlknnRegressor,
-            'sgd': CuMlSGD,
-            'multinb': CuMlMultinomialNB,
+            'knn': KNeighborsClassifier,
+            'knnreg': KNeighborsRegressor,
+            'sgd': SGD,
+            'multinb': MultinomialNB,
+            'bernb': BernoulliNB,
             'elasticnet': ElasticNet,
-            'mbsgdclass': MBSGDClassifier,
+            'minibatchsgd': MBSGDClassifier,
             'mbsgdcregr': MBSGDRegressor,
-            'cd': CD
+            'cd': CD,
+            'kmeans': KMeans,
         }
-    except NameError:
-        # if cuML not installed
+    else:
         _operations_by_types = {}
 
-    def __init__(self, operation_type: str, params: Optional[dict] = None):
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
+        if isinstance(params, dict):
+            params = OperationParameters(**params)
         super().__init__(operation_type, params)
+        self.engine_plan = build_model_engine_plan(
+            ModelEngineRequest(
+                supported_engines=(ModelEngine.CUML,),
+                preferred_engine=ModelEngine.CUML,
+                require_acceleration=True,
+            ),
+            _detect_model_engine_capabilities(),
+        )
         self.operation_impl = self._convert_to_operation(operation_type)
-        cuml.set_global_output_type('numpy')
 
-    def fit(self, train_data: InputData):
-        """
-        This method is used for operation training with the data provided
-        :param InputData train_data: data used for operation training
-        :return: trained cuML operation
-        """
-        warnings.filterwarnings("ignore", category=RuntimeWarning)
-        operation_implementation = self.operation_impl(
-            **self.params_for_fit.to_dict())
+    def fit(self, train_data: Union[InputData, TensorData]):
+        """Fit a cuML estimator and keep TensorData transfers device-to-device."""
+        if isinstance(train_data, TensorData):
+            validate_cuml_tensor_operation(self.operation_type)
 
-        # If model doesn't support multi-output and current task is ts_forecasting
-        current_task = train_data.task.task_type
-        models_repo = OperationTypesRepository()
-        non_multi_models = models_repo.suitable_operation(task_type=current_task,
-                                                          tags=['non_multi'])
-        is_model_not_support_multi = self.operation_type in non_multi_models
-        features = cudf.DataFrame(train_data.features.astype('float32'))
-        target = cudf.Series(train_data.target.flatten().astype('float32'))
-
-        if is_model_not_support_multi and current_task == TaskTypesEnum.ts_forecasting:
-            raise NotImplementedError('Not supported for GPU yet')
-            # TODO Manually wrap the regressor into multi-output model
-        else:
+        precision_plan = build_cuml_precision_plan(self.operation_type)
+        features, device = self._features_to_cuml(train_data.features, precision_plan.dtype_name)
+        target = self._target_to_cuml(train_data.target, precision_plan.dtype_name, device)
+        parameters = adapt_cuml_parameters(self.operation_type, self.params_for_fit.to_dict())
+        operation_implementation = self.operation_impl(**parameters)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=RuntimeWarning)
             with ImplementationRandomStateHandler(implementation=operation_implementation):
-                operation_implementation.fit(features, target)
+                if self.operation_type == 'kmeans':
+                    operation_implementation.fit(features)
+                else:
+                    operation_implementation.fit(features, target)
         return operation_implementation
 
-    @abstractmethod
-    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
-        """
-        This method used for prediction of the target data during predict stage.
-        :param trained_operation: operation object
-        :param predict_data: data to predict
-        :return OutputData: passed data with new predicted target
-        """
-        raise AbstractMethodNotImplementError
+    @staticmethod
+    def _features_to_cuml(features, dtype_name: str):
+        torch_dtype = getattr(torch, dtype_name)
+        cupy_dtype = getattr(cupy, dtype_name)
+        if isinstance(features, torch.Tensor):
+            device = features.device if features.is_cuda else torch.device('cuda')
+            features = features.detach().to(device=device, dtype=torch_dtype).contiguous()
+            return cupy.from_dlpack(features), device
+        return cupy.asarray(np.asarray(features), dtype=cupy_dtype), None
+
+    @staticmethod
+    def _target_to_cuml(target, dtype_name: str, device: Optional[torch.device]):
+        if target is None:
+            return None
+        if len(target.shape) > 1 and target.shape[1] != 1:
+            raise ValueError('cuML model engines currently support a single target column')
+        torch_dtype = getattr(torch, dtype_name)
+        cupy_dtype = getattr(cupy, dtype_name)
+        if isinstance(target, torch.Tensor):
+            target = target.detach().to(device=device or 'cuda', dtype=torch_dtype).reshape(-1).contiguous()
+            return cupy.from_dlpack(target)
+        return cupy.asarray(np.asarray(target).reshape(-1), dtype=cupy_dtype)
+
+    def _features_and_runtime(self, predict_data: Union[InputData, TensorData]):
+        is_tensor_data = isinstance(predict_data, TensorData)
+        device = str(predict_data.features.device) if is_tensor_data else 'cpu'
+        runtime_plan = build_cuml_runtime_plan(is_tensor_data, device)
+        precision_plan = build_cuml_precision_plan(self.operation_type)
+        features, _ = self._features_to_cuml(predict_data.features, precision_plan.dtype_name)
+        return features, runtime_plan
+
+    @staticmethod
+    def _prediction_to_runtime(prediction, runtime_plan):
+        prediction = cupy.ascontiguousarray(prediction)
+        if runtime_plan.returns_tensor:
+            return torch.from_dlpack(prediction).to(runtime_plan.result_device)
+        return cupy.asnumpy(prediction)
+
+    def _convert_cuml_output(self, prediction, predict_data, runtime_plan):
+        runtime_prediction = self._prediction_to_runtime(prediction, runtime_plan)
+        return self._convert_to_output(runtime_prediction, predict_data)
+
+
+def _detect_model_engine_capabilities() -> ModelEngineCapabilities:
+    installed_engines = {
+        engine for engine, module_name in (
+            (ModelEngine.TORCH, 'torch'),
+            (ModelEngine.SKLEARN, 'sklearn'),
+        ) if importlib.util.find_spec(module_name) is not None
+    }
+    if cuml is not None:
+        installed_engines.add(ModelEngine.CUML)
+    return ModelEngineCapabilities(
+        platform=resolve_runtime_platform(platform.system(), platform.release()),
+        cuda_available=torch.cuda.is_available(),
+        installed_engines=frozenset(installed_engines),
+    )

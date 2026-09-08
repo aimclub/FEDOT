@@ -1,34 +1,33 @@
-import warnings
-
-from golem.utilities.requirements_notificator import warn_requirement
-
-try:
-    import cudf
-except ModuleNotFoundError:
-    warn_requirement('cudf', 'cudf')
-    cudf = None
+from typing import Union
 
 from fedot.core.data.input_data.data import InputData, OutputData
+from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.operations.evaluation.gpu.common import CuMLEvaluationStrategy
-
-warnings.filterwarnings("ignore", category=UserWarning)
 
 
 class CuMLClassificationStrategy(CuMLEvaluationStrategy):
-    """ Strategy for applying classification algorithms from Sklearn library """
+    """Classification strategy returning NumPy for InputData and Torch for TensorData."""
 
-    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
-        """
-        Predict method for regression task for predict stage
-        :param trained_operation: model object
-        :param predict_data: data used for prediction
-        :return:
-        """
-
-        features = cudf.DataFrame(predict_data.features.astype('float32'))
-
-        prediction = self._sklearn_compatible_prediction(trained_operation,
-                                                         features)
-        converted = self._convert_to_output(prediction, predict_data)
-
-        return converted
+    def predict(
+        self,
+        trained_operation,
+        predict_data: Union[InputData, TensorData],
+    ) -> Union[OutputData, TensorData]:
+        features, runtime_plan = self._features_and_runtime(predict_data)
+        if self.output_mode == 'labels':
+            prediction = trained_operation.predict(features)
+        elif self.output_mode in ['probs', 'full_probs', 'default', False]:
+            if not hasattr(trained_operation, 'predict_proba'):
+                if self.output_mode in ['probs', 'full_probs']:
+                    raise ValueError(f'cuML {self.operation_type!r} does not provide class probabilities')
+                prediction = trained_operation.predict(features)
+            else:
+                prediction = trained_operation.predict_proba(features)
+                n_classes = prediction.shape[1]
+                if n_classes < 2:
+                    raise ValueError('Data set contains only 1 target class. Please reformat your data.')
+                if n_classes == 2 and self.output_mode != 'full_probs':
+                    prediction = prediction[:, 1]
+        else:
+            raise ValueError(f'Output mode {self.output_mode!r} is not supported')
+        return self._convert_cuml_output(prediction, predict_data, runtime_plan)

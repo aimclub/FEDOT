@@ -1,27 +1,18 @@
-from golem.utilities.requirements_notificator import warn_requirement
-
-try:
-    import cudf
-except ModuleNotFoundError:
-    warn_requirement('cudf', 'cudf / cuml')
-    cudf = None
+from typing import Union
 
 from fedot.core.data.input_data.data import InputData, OutputData
+from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.operations.evaluation.gpu.common import CuMLEvaluationStrategy
 
 
 class CuMLRegressionStrategy(CuMLEvaluationStrategy):
-    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
-        """
-        Predict method for regression task for predict stage
-        :param trained_operation: model object
-        :param predict_data: data used for prediction
-        :return:
-        """
+    """Regression strategy returning NumPy for InputData and Torch for TensorData."""
 
-        features = cudf.DataFrame(predict_data.features.astype('float32'))
-
+    def predict(
+        self,
+        trained_operation,
+        predict_data: Union[InputData, TensorData],
+    ) -> Union[OutputData, TensorData]:
+        features, runtime_plan = self._features_and_runtime(predict_data)
         prediction = trained_operation.predict(features)
-        converted = self._convert_to_output(prediction, predict_data)
-
-        return converted
+        return self._convert_cuml_output(prediction, predict_data, runtime_plan)
