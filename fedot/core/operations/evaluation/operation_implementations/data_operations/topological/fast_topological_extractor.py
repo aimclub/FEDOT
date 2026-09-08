@@ -1,34 +1,15 @@
-import logging
 from itertools import chain
 from typing import Optional
 
 import numpy as np
-
-try:
-    from gph import ripser_parallel
-
-    def ripser(data, maxdim, coeff, metric):
-        return ripser_parallel(data,
-                               maxdim=maxdim,
-                               coeff=coeff,
-                               metric=metric,
-                               n_threads=1,
-                               collapse_edges=False)
-except ModuleNotFoundError:
-    try:
-        from ripser import ripser
-    except ModuleNotFoundError:
-        ripser = None
-        logging.log(100,
-                    "Topological features operation requires extra dependencies for time series forecasting, which are"
-                    " not installed. It can influence the performance. Please install them with 'pip install"
-                    " fedot[extra]'")
 
 from joblib import Parallel, delayed
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import \
     DataOperationImplementation
+from fedot.core.operations.evaluation.operation_implementations.data_operations.topological.topological_backend import \
+    ripser, TOPOLOGICAL_BACKEND_AVAILABLE
 from fedot.core.operations.operation_parameters import OperationParameters
 
 
@@ -52,7 +33,7 @@ class TopologicalFeaturesImplementation(DataOperationImplementation):
         return self
 
     def transform(self, input_data: InputData) -> OutputData:
-        if ripser is None:
+        if not TOPOLOGICAL_BACKEND_AVAILABLE:
             raise ModuleNotFoundError("Install topological dependencies with 'pip install fedot[extra]'")
         features = input_data.features
         with Parallel(n_jobs=self.n_jobs, prefer='processes') as parallel:

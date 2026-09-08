@@ -1,11 +1,16 @@
 import json
 import os
 
+import pytest
+
 from fedot.core.operations.evaluation.classification import SkLearnClassificationStrategy
+from fedot.core.operations.evaluation.operation_implementations.data_operations.topological.topological_backend import \
+    TOPOLOGICAL_BACKEND_AVAILABLE
 from fedot.core.repository.json_evaluation import import_enums_from_str, \
     import_strategy_from_str, read_field
 from fedot.core.repository.operation_types_repository import (OperationTypesRepository,
-                                                              get_operation_type_from_id)
+                                                              get_operation_type_from_id,
+                                                              get_operations_for_task)
 from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -117,3 +122,12 @@ def test_pipeline_operation_repo_divide_operations():
 
     assert primary == available_operations
     assert secondary == available_operations
+
+
+@pytest.mark.skipif(not TOPOLOGICAL_BACKEND_AVAILABLE, reason='Topological backend is not installed')
+def test_topological_features_available_for_pipeline_search():
+    task = Task(TaskTypesEnum.ts_forecasting)
+
+    operations = get_operations_for_task(task, mode='data_operation')
+
+    assert 'topological_features' in operations
