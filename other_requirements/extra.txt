@@ -1,8 +1,10 @@
 # DNNs
-# TensorFlow 2.20+ Linux wheels conflict with Triton 3.7+ LLVM symbols and can
-# segfault when PyTorch loads Triton in the same process.
-tensorflow >= 2.8.0, <2.20.0; python_version < '3.14'
-torch >= 1.9.0, <3.0.0
+# TensorFlow 2.20+ Linux wheels conflict with Triton 3.7+ LLVM symbols. Keep
+# the safe TensorFlow line where available and pair Python 3.13 with Triton 3.6.
+tensorflow >= 2.8.0, <2.20.0; python_version < '3.13'
+tensorflow >= 2.20.0, <2.22.0; python_version >= '3.13' and python_version < '3.14'
+torch >= 1.9.0, <3.0.0; python_version < '3.13' or python_version >= '3.14'
+torch >= 1.9.0, <2.12.0; python_version >= '3.13' and python_version < '3.14'
 tabpfn >= 2.0.0, <= 2.2.1; python_version < '3.13'
 
 # Images
