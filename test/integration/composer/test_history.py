@@ -82,8 +82,13 @@ def test_newly_generated_history(n_jobs: int):
     history = auto_model.history
 
     assert history is not None
-    assert len(history.individuals) == num_of_gens + 2  # initial_assumptions + num_of_gens + final_choices
-    assert len(history.archive_history) == num_of_gens + 2  # initial_assumptions + num_of_gens + final_choices
+    # GOLEM keeps the population extension as a separate bookkeeping entry;
+    # it does not consume one of the requested evolutionary generations.
+    expected_history_length = num_of_gens + 3
+    assert len(history.generations) == expected_history_length
+    assert len(history.archive_history) == expected_history_length
+    assert history.generations[0].label == 'initial_assumptions'
+    assert history.generations[1].label == 'extended_initial_assumptions'
     assert len(history.initial_assumptions) >= 2
     assert len(history.final_choices) == 1
     assert isinstance(history.tuning_result, Graph)

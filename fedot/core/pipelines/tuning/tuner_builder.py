@@ -1,6 +1,8 @@
 from datetime import timedelta
 from typing import Iterable, Sequence, Type, Union
 
+import numpy as np
+
 try:
     from golem.core.tuning.iopt_tuner import IOptTuner
 except ModuleNotFoundError:
@@ -98,6 +100,9 @@ class TunerBuilder:
         return self
 
     def build(self, data: InputData) -> BaseTuner:
+        if self.tuner_class is IOptTuner and not hasattr(np, 'infty'):
+            # iOpt 0.2.22 still uses the alias removed in NumPy 2.0.
+            np.infty = np.inf
         if len(self.metric) > 1:
             if self.tuner_class in [OptunaTuner, IOptTuner]:
                 self.additional_params.update({'objectives_number': len(self.metric)})

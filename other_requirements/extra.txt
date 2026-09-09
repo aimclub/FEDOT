@@ -1,18 +1,25 @@
 # DNNs
-tensorflow >= 2.8.0; python_version >= '3.8'
-torch >= 1.9.0
-tabpfn >= 2.0.0, <= 2.2.1
+# TensorFlow 2.20+ Linux wheels conflict with Triton 3.7+ LLVM symbols. Keep
+# the safe TensorFlow line where available and pair Python 3.13 with Triton 3.6.
+tensorflow >= 2.8.0, <2.20.0; python_version < '3.13'
+tensorflow >= 2.20.0, <2.22.0; python_version >= '3.13' and python_version < '3.14'
+torch >= 1.9.0, <3.0.0; python_version < '3.13' or python_version >= '3.14'
+torch >= 1.9.0, <2.12.0; python_version >= '3.13' and python_version < '3.14'
+tabpfn >= 2.0.0, <= 2.2.1; python_version < '3.13'
 
 # Images
-opencv-python >= 4.5.5.64
-Pillow >= 8.2.0
+opencv-python >= 4.5.5.64, <5.0.0
+Pillow >= 8.2.0, <13.0.0
 
 # Texts
-gensim==4.3.2
+gensim==4.3.2; python_version < '3.13'
+gensim>=4.4.0, <5.0.0; python_version >= '3.13' and python_version < '3.14'
 nltk==3.8.1
 
 # Misc
-protobuf~=3.19.0
+protobuf>=3.19.0, <3.20.0; python_version < '3.11'
+protobuf>=3.20.3, <8.0.0; python_version >= '3.11'
 
 # Topological features
-giotto-ph==0.2.4
+giotto-ph==0.2.4; python_version < '3.13'
+ripser>=0.6.0, <1.0.0; python_version >= '3.13'

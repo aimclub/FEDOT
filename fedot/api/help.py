@@ -1,5 +1,5 @@
 from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operation_type_from_id
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
@@ -19,7 +19,7 @@ def print_models_info(task_name):
     for model in repository_operations_list:
         if model.id != 'custom':
             hyperparameters = search_space.get_parameters_for_operation(str(model.id))
-            implementation_info = model.current_strategy(task)(model.id).implementation_info
+            implementation_info = _get_implementation_info(model, task)
             info_lst = [
                 f"Model name - '{model.id}'",
                 f"Available hyperparameters to optimize with tuner - {hyperparameters}",
@@ -42,7 +42,7 @@ def print_data_operations_info(task_name):
     search_space = PipelineSearchSpace()
     for operation in repository_operations_list:
         hyperparameters = search_space.get_parameters_for_operation(str(operation.id))
-        implementation_info = operation.current_strategy(task)(operation.id).implementation_info
+        implementation_info = _get_implementation_info(operation, task)
         info_lst = [
             f"Data operation name - '{operation.id}'",
             f"Available hyperparameters to optimize with tuner - {hyperparameters}",
@@ -73,6 +73,16 @@ def _filter_operations_by_type(repository, task):
                 repository_operations_list.append(operation)
 
     return repository_operations_list
+
+
+def _get_implementation_info(operation, task) -> str:
+    """Return implementation metadata without instantiating regular operations."""
+    strategy = operation.current_strategy(task)
+    operation_type = get_operation_type_from_id(operation.id)
+    implementations = getattr(strategy, '_operations_by_types', {})
+    if operation_type in implementations:
+        return str(implementations[operation_type])
+    return strategy(operation.id).implementation_info
 
 
 def operations_for_task(task_name: str):
