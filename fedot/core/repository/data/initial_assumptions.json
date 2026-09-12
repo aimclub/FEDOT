@@ -1,0 +1,1282 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-12",
+  "scope": {
+    "data_type": "table",
+    "task_types": [
+      "classification",
+      "regression"
+    ],
+    "intended_budget": "from short guarded runs to official 1h8c runs"
+  },
+  "provenance": {
+    "source": "automlbenchmark_experiments.md",
+    "policy": "Only promoted, cross-fold transferable model families that can be represented by registered FEDOT operations are included.",
+    "identity_features_used": false,
+    "outer_test_labels_used_for_profile_matching": false
+  },
+  "consumer_contract": {
+    "primary_profile_policy": "Choose the highest-priority matching non-supplemental profile; use the fallback profile if none matches.",
+    "supplemental_profile_policy": "Append a matching supplemental profile only when its quality_gate passes on train-only out-of-fold predictions.",
+    "deduplicate_pipeline_ids": true,
+    "max_initial_pipelines": 6,
+    "preserve_at_least_one_tree_baseline": true,
+    "default_quality_gate": {
+      "method": "stratified_oof_or_repeated_holdout",
+      "minimum_folds": 3,
+      "selection_data": "outer_train_only",
+      "minimum_relative_gain": 0.002,
+      "require_positive_paired_lower_95": true
+    },
+    "guard_field_semantics": {
+      "rows": "number of outer-training rows",
+      "features": "number of input columns before automatic preprocessing",
+      "dense_cells": "rows multiplied by the effective feature count",
+      "class_work": "rows multiplied by features multiplied by classes",
+      "sampled_nonzero_density": "deterministic train-only finite and non-zero density estimate",
+      "categorical_cardinality_sum": "sum of train-only distinct levels over categorical columns"
+    }
+  },
+  "profiles": {
+    "classification": [
+      {
+        "id": "classification_random_threshold_pair",
+        "priority": 120,
+        "supplemental": false,
+        "metrics": [
+          "logloss"
+        ],
+        "guard": {
+          "rows": {"min": 30000, "max": 100000},
+          "features": {"min": 64, "max": 256},
+          "dense_cells": {"max": 20000000},
+          "classes": {"min": 10, "max": 19},
+          "min_class_rows": {"min": 1000},
+          "feature_count_times_sqrt_class_count": {"max": 640},
+          "numeric_feature_fraction": {"min": 1.0},
+          "storage": {"in": ["dense"]},
+          "budget_seconds": {"min": 180},
+          "cores": {"min": 4}
+        },
+        "pipeline_ids": [
+          "classification_lgbm_random_threshold",
+          "classification_xgboost_supported_multiclass"
+        ],
+        "quality_gate": {
+          "required": true,
+          "minimum_absolute_logloss_gain": 0.005,
+          "compare_with_best_singleton_and_pair": true,
+          "require_positive_paired_lower_95": true
+        }
+      },
+      {
+        "id": "classification_high_work_many_class",
+        "priority": 115,
+        "supplemental": false,
+        "metrics": [
+          "logloss"
+        ],
+        "guard": {
+          "features": {"min": 256},
+          "classes": {"min": 30},
+          "class_work": {"min": 2000000000},
+          "numeric_feature_fraction": {"min": 1.0},
+          "storage": {"in": ["dense"]}
+        },
+        "pipeline_ids": [
+          "classification_lgbm_high_work"
+        ]
+      },
+      {
+        "id": "classification_extreme_wide_numeric",
+        "priority": 110,
+        "supplemental": false,
+        "metrics": [
+          "logloss",
+          "auc"
+        ],
+        "guard": {
+          "rows": {"min": 2500},
+          "features": {"min": 2048},
+          "dense_cells": {"max": 70000000},
+          "class_work": {"max": 700000000},
+          "classes": {"min": 3, "max": 20},
+          "numeric_feature_fraction": {"min": 1.0},
+          "storage": {"in": ["dense"]}
+        },
+        "pipeline_ids": [
+          "classification_xgboost_extreme_wide"
+        ]
+      },
+      {
+        "id": "classification_narrow_many_class",
+        "priority": 105,
+        "supplemental": false,
+        "metrics": [
+          "logloss"
+        ],
+        "guard": {
+          "rows": {"min": 20000},
+          "features": {"max": 64},
+          "dense_cells": {"max": 4000000},
+          "row_class_product": {"max": 7000000},
+          "classes": {"min": 20},
+          "rows_per_class": {"min": 100},
+          "numeric_feature_fraction": {"min": 1.0},
+          "storage": {"in": ["dense"]}
+        },
+        "pipeline_ids": [
+          "classification_xgboost_narrow_many_class",
+          "classification_rf200"
+        ]
+      },
+      {
+        "id": "classification_medium_dense_kernel",
+        "priority": 100,
+        "supplemental": false,
+        "metrics": [
+          "logloss"
+        ],
+        "guard": {
+          "rows": {"min": 5000, "max": 10000},
+          "features": {"min": 256, "max": 1024},
+          "dense_cells": {"max": 6000000},
+          "classes": {"min": 10, "max": 30},
+          "min_class_rows": {"min": 100},
+          "sampled_nonzero_density": {"min": 0.25},
+          "numeric_feature_fraction": {"min": 1.0},
+          "storage": {"in": ["dense"]}
+        },
+        "pipeline_ids": [
+          "classification_scaled_rbf_svc"
+        ]
+      },
+      {
+        "id": "classification_small_dense_kernel",
+        "priority": 97,
+        "supplemental": false,
+        "metrics": [
+          "logloss"
+        ],
+        "guard": {
+          "rows": {"min": 1000, "max": 2500},
+          "features": {"min": 128, "max": 2048},
+          "dense_cells": {"max": 3000000},
+          "classes": {"min": 3, "max": 20},
+          "min_class_rows": {"min": 50},
+          "sampled_nonzero_density": {"min": 0.25},
+          "numeric_feature_fraction": {"min": 1.0},
+          "storage": {"in": ["dense"]}
+        },
+        "pipeline_ids": [
+          "classification_scaled_rbf_svc"
+        ]
+      },
+      {
+        "id": "classification_small_narrow_kernel_challenger",
+        "priority": 95,
+        "supplemental": false,
+        "metrics": [
+          "logloss"
+        ],
+        "guard": {
+          "rows": {"min": 500, "max": 2500},
+          "features": {"min": 16, "max": 127},
+          "dense_cells": {"max": 300000},
+          "classes": {"min": 3, "max": 10},
+          "min_class_rows": {"min": 50},
+          "sampled_nonzero_density": {"min": 0.25},
+          "numeric_feature_fraction": {"min": 1.0},
+          "storage": {"in": ["dense"]}
+        },
+        "pipeline_ids": [
+          "classification_scaled_rbf_svc",
+          "classification_lgbm_standard",
+          "classification_xgboost_standard"
+        ],
+        "quality_gate": {
+          "required_for_svc_singleton": true,
+          "minimum_absolute_logloss_dominance": 0.1
+        }
+      },
+      {
+        "id": "classification_dense_high_width_linear_lgbm",
+        "priority": 91,
+        "supplemental": false,
+        "metrics": [
+          "logloss"
+        ],
+        "guard": {
+          "rows": {"min": 5000},
+          "features": {"min": 1024, "max_exclusive": 2048},
+          "dense_cells": {"max": 20000000},
+          "class_work": {"max": 100000000},
+          "classes": {"min": 3, "max": 20},
+          "min_class_rows": {"min": 100},
+          "sampled_nonzero_density": {"min": 0.5},
+          "numeric_feature_fraction": {"min": 1.0},
+          "storage": {"in": ["dense"]}
+        },
+        "pipeline_ids": [
+          "classification_scaled_logit_multiclass",
+          "classification_lgbm_standard"
+        ]
+      },
+      {
+        "id": "classification_dense_wide_linear_tree_binary",
+        "priority": 90,
+        "supplemental": false,
+        "metrics": [
+          "auc",
+          "logloss"
+        ],
+        "guard": {
+          "rows": {"min": 4500},
+          "effective_features": {"min": 1024, "max_exclusive": 2048},
+          "dense_cells": {"max": 20000000},
+          "classes": {"equals": 2},
+          "min_class_rows": {"min": 100},
+          "storage": {"in": ["dense"]},
+          "categorical_cardinality_sum": {"max": 512}
+        },
+        "pipeline_ids": [
+          "classification_scaled_logit_binary",
+          "classification_xgboost_standard"
+        ]
+      },
+      {
+        "id": "classification_dense_wide_linear_tree_multiclass",
+        "priority": 89,
+        "supplemental": false,
+        "metrics": [
+          "logloss"
+        ],
+        "guard": {
+          "rows": {"min": 5000},
+          "features": {"min": 256, "max_exclusive": 1024},
+          "dense_cells": {"max": 12000000},
+          "class_work": {"max": 100000000},
+          "classes": {"min": 3, "max": 20},
+          "min_class_rows": {"min": 100},
+          "numeric_feature_fraction": {"min": 1.0},
+          "storage": {"in": ["dense"]}
+        },
+        "pipeline_ids": [
+          "classification_scaled_logit_multiclass",
+          "classification_xgboost_standard"
+        ]
+      },
+      {
+        "id": "classification_bounded_midwide_histogram",
+        "priority": 85,
+        "supplemental": false,
+        "metrics": [
+          "logloss"
+        ],
+        "guard": {
+          "rows": {"min": 20000, "max": 100000},
+          "features": {"min": 512, "max": 1024},
+          "dense_cells": {"max": 80000000},
+          "classes": {"min": 5, "max": 20},
+          "min_class_rows": {"min": 500},
+          "sampled_nonzero_density": {"min": 0.15},
+          "numeric_feature_fraction": {"min": 1.0},
+          "storage": {"in": ["dense"]},
+          "bounded_refit_seconds": {"min": 75}
+        },
+        "pipeline_ids": [
+          "classification_xgboost_bounded_histogram",
+          "classification_lgbm_standard"
+        ]
+      },
+      {
+        "id": "classification_default_tabular",
+        "priority": 0,
+        "fallback": true,
+        "supplemental": false,
+        "metrics": [
+          "auc",
+          "logloss",
+          "f1",
+          "accuracy"
+        ],
+        "guard": {
+          "always": true
+        },
+        "pipeline_ids": [
+          "classification_lgbm_standard",
+          "classification_xgboost_standard",
+          "classification_catboost_standard",
+          "classification_rf300"
+        ]
+      }
+    ],
+    "regression": [
+      {
+        "id": "regression_large_grouped_dense",
+        "priority": 115,
+        "supplemental": false,
+        "metrics": [
+          "rmse"
+        ],
+        "guard": {
+          "rows": {"min": 250000, "max": 600000},
+          "features": {"min": 64, "max": 128},
+          "dense_cells": {"max": 60000000},
+          "unique_target_values": {"min": 32, "max": 256},
+          "numeric_feature_fraction": {"min": 1.0},
+          "storage": {"in": ["dense"]}
+        },
+        "pipeline_ids": [
+          "regression_lgbm_large_dense"
+        ]
+      },
+      {
+        "id": "regression_very_large_compact_mixed",
+        "priority": 110,
+        "supplemental": false,
+        "metrics": [
+          "rmse"
+        ],
+        "guard": {
+          "rows": {"min": 255000, "max": 600000},
+          "features": {"min": 8, "max": 24},
+          "dense_cells": {"max": 12000000},
+          "categorical_columns": {"min": 1, "max": 12},
+          "categorical_cardinality_sum": {"max": 1024},
+          "storage": {"in": ["dense"]}
+        },
+        "pipeline_ids": [
+          "regression_lgbm_leaf127",
+          "regression_lgbm_leaf255"
+        ]
+      },
+      {
+        "id": "regression_large_compact_mixed",
+        "priority": 105,
+        "supplemental": false,
+        "metrics": [
+          "rmse"
+        ],
+        "guard": {
+          "rows": {"min": 30000, "max": 200000},
+          "features": {"min": 5, "max": 16},
+          "dense_cells": {"max": 2000000},
+          "categorical_columns": {"min": 1, "max": 8},
+          "categorical_cardinality_sum": {"max": 10000},
+          "storage": {"in": ["dense"]}
+        },
+        "pipeline_ids": [
+          "regression_lgbm_compact",
+          "regression_xgboost_standard",
+          "regression_catboost_standard"
+        ]
+      },
+      {
+        "id": "regression_medium_numeric",
+        "priority": 100,
+        "supplemental": false,
+        "metrics": [
+          "rmse"
+        ],
+        "guard": {
+          "rows": {"min": 10000, "max": 30000},
+          "features": {"min": 8, "max": 64},
+          "dense_cells": {"max": 2000000},
+          "numeric_feature_fraction": {"min": 0.95},
+          "categorical_columns": {"max": 2},
+          "categorical_cardinality_sum": {"max": 128},
+          "storage": {"in": ["dense"]}
+        },
+        "pipeline_ids": [
+          "regression_lgbm_standard",
+          "regression_catboost_standard"
+        ]
+      },
+      {
+        "id": "regression_small_wide_numeric",
+        "priority": 95,
+        "supplemental": false,
+        "metrics": [
+          "rmse"
+        ],
+        "guard": {
+          "rows": {"min": 200, "max": 2000},
+          "features": {"min": 64, "max": 256},
+          "dense_cells": {"max": 500000},
+          "numeric_feature_fraction": {"min": 1.0},
+          "storage": {"in": ["dense"]}
+        },
+        "pipeline_ids": [
+          "regression_lgbm_small",
+          "regression_extra_trees"
+        ]
+      },
+      {
+        "id": "regression_small_classic",
+        "priority": 90,
+        "supplemental": false,
+        "metrics": [
+          "rmse"
+        ],
+        "guard": {
+          "rows": {"min": 350, "max": 1000},
+          "features": {"min": 5, "max": 32},
+          "dense_cells": {"max": 32000},
+          "numeric_feature_fraction": {"min": 0.75},
+          "categorical_columns": {"max": 2},
+          "categorical_cardinality_sum": {"max": 64},
+          "storage": {"in": ["dense"]}
+        },
+        "pipeline_ids": [
+          "regression_xgboost_standard",
+          "regression_catboost_standard",
+          "regression_scaled_ridge10"
+        ],
+        "quality_gate": {
+          "required_for_ridge": true,
+          "minimum_relative_rmse_gain": 0.05
+        }
+      },
+      {
+        "id": "regression_small_mixed",
+        "priority": 85,
+        "supplemental": false,
+        "metrics": [
+          "rmse"
+        ],
+        "guard": {
+          "rows": {"min": 400, "max": 2500},
+          "features": {"min": 4, "max": 128},
+          "dense_cells": {"max": 250000},
+          "categorical_feature_fraction": {"min": 0.5},
+          "categorical_columns": {"max": 64},
+          "categorical_cardinality_sum": {"max": 2048},
+          "storage": {"in": ["dense"]}
+        },
+        "pipeline_ids": [
+          "regression_lgbm_small",
+          "regression_xgboost_standard",
+          "regression_catboost_standard",
+          "regression_rf300"
+        ]
+      },
+      {
+        "id": "regression_guarded_ridge_supplement",
+        "priority": 80,
+        "supplemental": true,
+        "metrics": [
+          "rmse"
+        ],
+        "guard": {
+          "rows": {"min": 200, "max": 2500},
+          "features": {"min": 4, "max": 256},
+          "dense_cells": {"max": 300000},
+          "estimated_encoded_features": {"max": 2048},
+          "storage": {"in": ["dense"]}
+        },
+        "pipeline_ids": [
+          "regression_scaled_ridge001",
+          "regression_scaled_ridge01",
+          "regression_scaled_ridge1",
+          "regression_scaled_ridge10",
+          "regression_scaled_ridge100",
+          "regression_scaled_ridge1000"
+        ],
+        "quality_gate": {
+          "required": true,
+          "select_best_parameter_variant_before_insertion": true,
+          "minimum_relative_rmse_gain": 0.05
+        }
+      },
+      {
+        "id": "regression_default_tabular",
+        "priority": 0,
+        "fallback": true,
+        "supplemental": false,
+        "metrics": [
+          "rmse",
+          "mae"
+        ],
+        "guard": {
+          "always": true
+        },
+        "pipeline_ids": [
+          "regression_lgbm_standard",
+          "regression_xgboost_standard",
+          "regression_catboost_standard",
+          "regression_rf300"
+        ]
+      }
+    ]
+  },
+  "pipelines": {
+    "classification_lgbm_standard": {
+      "task_type": "classification",
+      "cost_tier": "medium",
+      "evidence_role": "general nonlinear probability baseline",
+      "graph": {
+        "total_pipeline_operations": ["lgbm"],
+        "depth": 1,
+        "nodes": [
+          {
+            "operation_id": 0,
+            "operation_type": "lgbm",
+            "operation_name": null,
+            "custom_params": {
+              "n_estimators": 1000,
+              "learning_rate": 0.05,
+              "num_leaves": 31,
+              "min_child_samples": 20
+            },
+            "params": {},
+            "nodes_from": [],
+            "fitted_operation_path": null,
+            "rating": null
+          }
+        ]
+      }
+    },
+    "classification_xgboost_standard": {
+      "task_type": "classification",
+      "cost_tier": "medium",
+      "evidence_role": "general complementary boosting baseline",
+      "graph": {
+        "total_pipeline_operations": ["xgboost"],
+        "depth": 1,
+        "nodes": [
+          {
+            "operation_id": 0,
+            "operation_type": "xgboost",
+            "operation_name": null,
+            "custom_params": {
+              "n_estimators": 1000,
+              "learning_rate": 0.05,
+              "max_depth": 6,
+              "tree_method": "hist"
+            },
+            "params": {},
+            "nodes_from": [],
+            "fitted_operation_path": null,
+            "rating": null
+          }
+        ]
+      }
+    },
+    "classification_catboost_standard": {
+      "task_type": "classification",
+      "cost_tier": "high",
+      "evidence_role": "ordered boosting and native categorical diversity",
+      "graph": {
+        "total_pipeline_operations": ["catboost"],
+        "depth": 1,
+        "nodes": [
+          {
+            "operation_id": 0,
+            "operation_type": "catboost",
+            "operation_name": null,
+            "custom_params": {
+              "num_trees": 1000,
+              "learning_rate": 0.05,
+              "max_depth": 8
+            },
+            "params": {},
+            "nodes_from": [],
+            "fitted_operation_path": null,
+            "rating": null
+          }
+        ]
+      }
+    },
+    "classification_rf300": {
+      "task_type": "classification",
+      "cost_tier": "medium",
+      "evidence_role": "random-subspace probability diversity",
+      "graph": {
+        "total_pipeline_operations": ["rf"],
+        "depth": 1,
+        "nodes": [
+          {
+            "operation_id": 0,
+            "operation_type": "rf",
+            "operation_name": null,
+            "custom_params": {
+              "n_estimators": 300,
+              "max_features": "sqrt",
+              "min_samples_leaf": 1
+            },
+            "params": {},
+            "nodes_from": [],
+            "fitted_operation_path": null,
+            "rating": null
+          }
+        ]
+      }
+    },
+    "classification_rf200": {
+      "task_type": "classification",
+      "cost_tier": "medium",
+      "evidence_role": "memory-bounded many-class shrinkage model",
+      "graph": {
+        "total_pipeline_operations": ["rf"],
+        "depth": 1,
+        "nodes": [
+          {
+            "operation_id": 0,
+            "operation_type": "rf",
+            "operation_name": null,
+            "custom_params": {
+              "n_estimators": 200,
+              "max_features": "sqrt",
+              "min_samples_leaf": 1
+            },
+            "params": {},
+            "nodes_from": [],
+            "fitted_operation_path": null,
+            "rating": null
+          }
+        ]
+      }
+    },
+    "classification_scaled_logit_binary": {
+      "task_type": "classification",
+      "cost_tier": "low",
+      "evidence_role": "strongly regularised dense-wide linear view",
+      "graph": {
+        "total_pipeline_operations": ["scaling", "logit"],
+        "depth": 2,
+        "nodes": [
+          {
+            "operation_id": 1,
+            "operation_type": "scaling",
+            "operation_name": null,
+            "custom_params": {},
+            "params": {},
+            "nodes_from": [],
+            "fitted_operation_path": null,
+            "rating": null
+          },
+          {
+            "operation_id": 0,
+            "operation_type": "logit",
+            "operation_name": null,
+            "custom_params": {
+              "C": 0.001,
+              "solver": "liblinear",
+              "dual": true,
+              "max_iter": 2000
+            },
+            "params": {},
+            "nodes_from": [1],
+            "fitted_operation_path": null,
+            "rating": null
+          }
+        ]
+      }
+    },
+    "classification_scaled_logit_multiclass": {
+      "task_type": "classification",
+      "cost_tier": "low",
+      "evidence_role": "regularised dense-wide multiclass linear view",
+      "graph": {
+        "total_pipeline_operations": ["scaling", "logit"],
+        "depth": 2,
+        "nodes": [
+          {
+            "operation_id": 1,
+            "operation_type": "scaling",
+            "operation_name": null,
+            "custom_params": {},
+            "params": {},
+            "nodes_from": [],
+            "fitted_operation_path": null,
+            "rating": null
+          },
+          {
+            "operation_id": 0,
+            "operation_type": "logit",
+            "operation_name": null,
+            "custom_params": {
+              "C": 0.01,
+              "solver": "liblinear",
+              "dual": true,
+              "max_iter": 2000
+            },
+            "params": {},
+            "nodes_from": [1],
+            "fitted_operation_path": null,
+            "rating": null
+          }
+        ]
+      }
+    },
+    "classification_scaled_rbf_svc": {
+      "task_type": "classification",
+      "cost_tier": "high",
+      "evidence_role": "bounded nonlinear distance view",
+      "graph": {
+        "total_pipeline_operations": ["scaling", "svc"],
+        "depth": 2,
+        "nodes": [
+          {
+            "operation_id": 1,
+            "operation_type": "scaling",
+            "operation_name": null,
+            "custom_params": {},
+            "params": {},
+            "nodes_from": [],
+            "fitted_operation_path": null,
+            "rating": null
+          },
+          {
+            "operation_id": 0,
+            "operation_type": "svc",
+            "operation_name": null,
+            "custom_params": {
+              "kernel": "rbf",
+              "C": 3.0,
+              "gamma": "scale",
+              "probability": true,
+              "cache_size": 2000
+            },
+            "params": {},
+            "nodes_from": [1],
+            "fitted_operation_path": null,
+            "rating": null
+          }
+        ]
+      }
+    },
+    "classification_lgbm_high_work": {
+      "task_type": "classification",
+      "cost_tier": "high",
+      "evidence_role": "bounded high-work multiclass booster",
+      "graph": {
+        "total_pipeline_operations": ["lgbm"],
+        "depth": 1,
+        "nodes": [
+          {
+            "operation_id": 0,
+            "operation_type": "lgbm",
+            "operation_name": null,
+            "custom_params": {
+              "n_estimators": 80,
+              "learning_rate": 0.1,
+              "num_leaves": 27,
+              "min_child_weight": 1.0
+            },
+            "params": {},
+            "nodes_from": [],
+            "fitted_operation_path": null,
+            "rating": null
+          }
+        ]
+      }
+    },
+    "classification_xgboost_extreme_wide": {
+      "task_type": "classification",
+      "cost_tier": "high",
+      "evidence_role": "column-sampled extreme-wide booster",
+      "graph": {
+        "total_pipeline_operations": ["xgboost"],
+        "depth": 1,
+        "nodes": [
+          {
+            "operation_id": 0,
+            "operation_type": "xgboost",
+            "operation_name": null,
+            "custom_params": {
+              "n_estimators": 300,
+              "learning_rate": 0.15,
+              "max_depth": 4,
+              "max_bin": 32,
+              "colsample_bytree": 0.02,
+              "subsample": 0.9,
+              "tree_method": "hist"
+            },
+            "params": {},
+            "nodes_from": [],
+            "fitted_operation_path": null,
+            "rating": null
+          }
+        ]
+      }
+    },
+    "classification_xgboost_narrow_many_class": {
+      "task_type": "classification",
+      "cost_tier": "high",
+      "evidence_role": "regularised narrow many-class booster",
+      "graph": {
+        "total_pipeline_operations": ["xgboost"],
+        "depth": 1,
+        "nodes": [
+          {
+            "operation_id": 0,
+            "operation_type": "xgboost",
+            "operation_name": null,
+            "custom_params": {
+              "n_estimators": 300,
+              "learning_rate": 0.1,
+              "max_depth": 6,
+              "subsample": 0.9,
+              "min_child_weight": 3.0,
+              "tree_method": "hist"
+            },
+            "params": {},
+            "nodes_from": [],
+            "fitted_operation_path": null,
+            "rating": null
+          }
+        ]
+      }
+    },
+    "classification_lgbm_random_threshold": {
+      "task_type": "classification",
+      "cost_tier": "high",
+      "evidence_role": "OOF-gated random-threshold booster",
+      "graph": {
+        "total_pipeline_operations": ["lgbm"],
+        "depth": 1,
+        "nodes": [
+          {
+            "operation_id": 0,
+            "operation_type": "lgbm",
+            "operation_name": null,
+            "custom_params": {
+              "n_estimators": 300,
+              "learning_rate": 0.1,
+              "num_leaves": 31,
+              "min_child_samples": 100,
+              "extra_trees": true
+            },
+            "params": {},
+            "nodes_from": [],
+            "fitted_operation_path": null,
+            "rating": null
+          }
+        ]
+      }
+    },
+    "classification_xgboost_supported_multiclass": {
+      "task_type": "classification",
+      "cost_tier": "high",
+      "evidence_role": "leaf-supported counterpart to random-threshold boosting",
+      "graph": {
+        "total_pipeline_operations": ["xgboost"],
+        "depth": 1,
+        "nodes": [
+          {
+            "operation_id": 0,
+            "operation_type": "xgboost",
+            "operation_name": null,
+            "custom_params": {
+              "n_estimators": 300,
+              "learning_rate": 0.3,
+              "max_depth": 6,
+              "min_child_weight": 3.0,
+              "tree_method": "hist"
+            },
+            "params": {},
+            "nodes_from": [],
+            "fitted_operation_path": null,
+            "rating": null
+          }
+        ]
+      }
+    },
+    "classification_xgboost_bounded_histogram": {
+      "task_type": "classification",
+      "cost_tier": "high",
+      "evidence_role": "deadline-bounded medium-wide histogram refit",
+      "graph": {
+        "total_pipeline_operations": ["xgboost"],
+        "depth": 1,
+        "nodes": [
+          {
+            "operation_id": 0,
+            "operation_type": "xgboost",
+            "operation_name": null,
+            "custom_params": {
+              "n_estimators": 300,
+              "learning_rate": 0.3,
+              "max_depth": 6,
+              "max_bin": 128,
+              "reg_lambda": 3.0,
+              "tree_method": "hist"
+            },
+            "params": {},
+            "nodes_from": [],
+            "fitted_operation_path": null,
+            "rating": null
+          }
+        ]
+      }
+    },
+    "regression_lgbm_standard": {
+      "task_type": "regression",
+      "cost_tier": "medium",
+      "evidence_role": "general nonlinear regression baseline",
+      "graph": {
+        "total_pipeline_operations": ["lgbmreg"],
+        "depth": 1,
+        "nodes": [
+          {
+            "operation_id": 0,
+            "operation_type": "lgbmreg",
+            "operation_name": null,
+            "custom_params": {
+              "n_estimators": 1000,
+              "learning_rate": 0.05,
+              "num_leaves": 63,
+              "min_child_samples": 20
+            },
+            "params": {},
+            "nodes_from": [],
+            "fitted_operation_path": null,
+            "rating": null
+          }
+        ]
+      }
+    },
+    "regression_lgbm_small": {
+      "task_type": "regression",
+      "cost_tier": "low",
+      "evidence_role": "bounded small-table booster",
+      "graph": {
+        "total_pipeline_operations": ["lgbmreg"],
+        "depth": 1,
+        "nodes": [
+          {
+            "operation_id": 0,
+            "operation_type": "lgbmreg",
+            "operation_name": null,
+            "custom_params": {
+              "n_estimators": 500,
+              "learning_rate": 0.05,
+              "num_leaves": 31,
+              "min_child_samples": 20
+            },
+            "params": {},
+            "nodes_from": [],
+            "fitted_operation_path": null,
+            "rating": null
+          }
+        ]
+      }
+    },
+    "regression_lgbm_compact": {
+      "task_type": "regression",
+      "cost_tier": "medium",
+      "evidence_role": "compact mixed-table booster",
+      "graph": {
+        "total_pipeline_operations": ["lgbmreg"],
+        "depth": 1,
+        "nodes": [
+          {
+            "operation_id": 0,
+            "operation_type": "lgbmreg",
+            "operation_name": null,
+            "custom_params": {
+              "n_estimators": 500,
+              "learning_rate": 0.05,
+              "num_leaves": 31,
+              "min_child_samples": 20
+            },
+            "params": {},
+            "nodes_from": [],
+            "fitted_operation_path": null,
+            "rating": null
+          }
+        ]
+      }
+    },
+    "regression_lgbm_leaf127": {
+      "task_type": "regression",
+      "cost_tier": "high",
+      "evidence_role": "large compact mixed-table capacity candidate",
+      "graph": {
+        "total_pipeline_operations": ["lgbmreg"],
+        "depth": 1,
+        "nodes": [
+          {
+            "operation_id": 0,
+            "operation_type": "lgbmreg",
+            "operation_name": null,
+            "custom_params": {
+              "n_estimators": 2000,
+              "learning_rate": 0.05,
+              "num_leaves": 127,
+              "min_child_samples": 20
+            },
+            "params": {},
+            "nodes_from": [],
+            "fitted_operation_path": null,
+            "rating": null
+          }
+        ]
+      }
+    },
+    "regression_lgbm_leaf255": {
+      "task_type": "regression",
+      "cost_tier": "high",
+      "evidence_role": "large compact mixed-table high-capacity candidate",
+      "graph": {
+        "total_pipeline_operations": ["lgbmreg"],
+        "depth": 1,
+        "nodes": [
+          {
+            "operation_id": 0,
+            "operation_type": "lgbmreg",
+            "operation_name": null,
+            "custom_params": {
+              "n_estimators": 2000,
+              "learning_rate": 0.05,
+              "num_leaves": 255,
+              "min_child_samples": 20
+            },
+            "params": {},
+            "nodes_from": [],
+            "fitted_operation_path": null,
+            "rating": null
+          }
+        ]
+      }
+    },
+    "regression_lgbm_large_dense": {
+      "task_type": "regression",
+      "cost_tier": "high",
+      "evidence_role": "deep leaf-supported large dense booster",
+      "graph": {
+        "total_pipeline_operations": ["lgbmreg"],
+        "depth": 1,
+        "nodes": [
+          {
+            "operation_id": 0,
+            "operation_type": "lgbmreg",
+            "operation_name": null,
+            "custom_params": {
+              "n_estimators": 2000,
+              "learning_rate": 0.05,
+              "num_leaves": 255,
+              "min_child_samples": 100
+            },
+            "params": {},
+            "nodes_from": [],
+            "fitted_operation_path": null,
+            "rating": null
+          }
+        ]
+      }
+    },
+    "regression_xgboost_standard": {
+      "task_type": "regression",
+      "cost_tier": "medium",
+      "evidence_role": "general complementary regression booster",
+      "graph": {
+        "total_pipeline_operations": ["xgboostreg"],
+        "depth": 1,
+        "nodes": [
+          {
+            "operation_id": 0,
+            "operation_type": "xgboostreg",
+            "operation_name": null,
+            "custom_params": {
+              "n_estimators": 1000,
+              "learning_rate": 0.05,
+              "max_depth": 6,
+              "tree_method": "hist"
+            },
+            "params": {},
+            "nodes_from": [],
+            "fitted_operation_path": null,
+            "rating": null
+          }
+        ]
+      }
+    },
+    "regression_catboost_standard": {
+      "task_type": "regression",
+      "cost_tier": "high",
+      "evidence_role": "ordered boosting regression diversity",
+      "graph": {
+        "total_pipeline_operations": ["catboostreg"],
+        "depth": 1,
+        "nodes": [
+          {
+            "operation_id": 0,
+            "operation_type": "catboostreg",
+            "operation_name": null,
+            "custom_params": {
+              "num_trees": 1000,
+              "learning_rate": 0.05,
+              "max_depth": 8
+            },
+            "params": {},
+            "nodes_from": [],
+            "fitted_operation_path": null,
+            "rating": null
+          }
+        ]
+      }
+    },
+    "regression_rf300": {
+      "task_type": "regression",
+      "cost_tier": "medium",
+      "evidence_role": "bagged-tree regression diversity",
+      "graph": {
+        "total_pipeline_operations": ["rfr"],
+        "depth": 1,
+        "nodes": [
+          {
+            "operation_id": 0,
+            "operation_type": "rfr",
+            "operation_name": null,
+            "custom_params": {
+              "n_estimators": 300,
+              "min_samples_leaf": 1,
+              "max_features": 1.0
+            },
+            "params": {},
+            "nodes_from": [],
+            "fitted_operation_path": null,
+            "rating": null
+          }
+        ]
+      }
+    },
+    "regression_extra_trees": {
+      "task_type": "regression",
+      "cost_tier": "medium",
+      "evidence_role": "random-threshold small-wide regression model",
+      "graph": {
+        "total_pipeline_operations": ["treg"],
+        "depth": 1,
+        "nodes": [
+          {
+            "operation_id": 0,
+            "operation_type": "treg",
+            "operation_name": null,
+            "custom_params": {
+              "n_estimators": 500,
+              "min_samples_leaf": 1,
+              "max_features": 1.0,
+              "n_jobs": 1
+            },
+            "params": {},
+            "nodes_from": [],
+            "fitted_operation_path": null,
+            "rating": null
+          }
+        ]
+      }
+    },
+    "regression_scaled_ridge001": {
+      "task_type": "regression",
+      "cost_tier": "low",
+      "evidence_role": "OOF-selected regularised linear candidate",
+      "graph": {
+        "total_pipeline_operations": ["scaling", "ridge"],
+        "depth": 2,
+        "nodes": [
+          {"operation_id": 1, "operation_type": "scaling", "operation_name": null, "custom_params": {}, "params": {}, "nodes_from": [], "fitted_operation_path": null, "rating": null},
+          {"operation_id": 0, "operation_type": "ridge", "operation_name": null, "custom_params": {"alpha": 0.01, "solver": "lsqr"}, "params": {}, "nodes_from": [1], "fitted_operation_path": null, "rating": null}
+        ]
+      }
+    },
+    "regression_scaled_ridge01": {
+      "task_type": "regression",
+      "cost_tier": "low",
+      "evidence_role": "OOF-selected regularised linear candidate",
+      "graph": {
+        "total_pipeline_operations": ["scaling", "ridge"],
+        "depth": 2,
+        "nodes": [
+          {"operation_id": 1, "operation_type": "scaling", "operation_name": null, "custom_params": {}, "params": {}, "nodes_from": [], "fitted_operation_path": null, "rating": null},
+          {"operation_id": 0, "operation_type": "ridge", "operation_name": null, "custom_params": {"alpha": 0.1, "solver": "lsqr"}, "params": {}, "nodes_from": [1], "fitted_operation_path": null, "rating": null}
+        ]
+      }
+    },
+    "regression_scaled_ridge1": {
+      "task_type": "regression",
+      "cost_tier": "low",
+      "evidence_role": "OOF-selected regularised linear candidate",
+      "graph": {
+        "total_pipeline_operations": ["scaling", "ridge"],
+        "depth": 2,
+        "nodes": [
+          {"operation_id": 1, "operation_type": "scaling", "operation_name": null, "custom_params": {}, "params": {}, "nodes_from": [], "fitted_operation_path": null, "rating": null},
+          {"operation_id": 0, "operation_type": "ridge", "operation_name": null, "custom_params": {"alpha": 1.0, "solver": "lsqr"}, "params": {}, "nodes_from": [1], "fitted_operation_path": null, "rating": null}
+        ]
+      }
+    },
+    "regression_scaled_ridge10": {
+      "task_type": "regression",
+      "cost_tier": "low",
+      "evidence_role": "OOF-selected regularised linear candidate",
+      "graph": {
+        "total_pipeline_operations": ["scaling", "ridge"],
+        "depth": 2,
+        "nodes": [
+          {"operation_id": 1, "operation_type": "scaling", "operation_name": null, "custom_params": {}, "params": {}, "nodes_from": [], "fitted_operation_path": null, "rating": null},
+          {"operation_id": 0, "operation_type": "ridge", "operation_name": null, "custom_params": {"alpha": 10.0, "solver": "lsqr"}, "params": {}, "nodes_from": [1], "fitted_operation_path": null, "rating": null}
+        ]
+      }
+    },
+    "regression_scaled_ridge100": {
+      "task_type": "regression",
+      "cost_tier": "low",
+      "evidence_role": "OOF-selected regularised linear candidate",
+      "graph": {
+        "total_pipeline_operations": ["scaling", "ridge"],
+        "depth": 2,
+        "nodes": [
+          {"operation_id": 1, "operation_type": "scaling", "operation_name": null, "custom_params": {}, "params": {}, "nodes_from": [], "fitted_operation_path": null, "rating": null},
+          {"operation_id": 0, "operation_type": "ridge", "operation_name": null, "custom_params": {"alpha": 100.0, "solver": "lsqr"}, "params": {}, "nodes_from": [1], "fitted_operation_path": null, "rating": null}
+        ]
+      }
+    },
+    "regression_scaled_ridge1000": {
+      "task_type": "regression",
+      "cost_tier": "low",
+      "evidence_role": "OOF-selected regularised linear candidate",
+      "graph": {
+        "total_pipeline_operations": ["scaling", "ridge"],
+        "depth": 2,
+        "nodes": [
+          {"operation_id": 1, "operation_type": "scaling", "operation_name": null, "custom_params": {}, "params": {}, "nodes_from": [], "fitted_operation_path": null, "rating": null},
+          {"operation_id": 0, "operation_type": "ridge", "operation_name": null, "custom_params": {"alpha": 1000.0, "solver": "lsqr"}, "params": {}, "nodes_from": [1], "fitted_operation_path": null, "rating": null}
+        ]
+      }
+    }
+  },
+  "unrepresented_promoted_families": [
+    {
+      "family": "local_spatial_image_boosting",
+      "reason": "The validated pooling and local-gradient transformation is not a registered FEDOT data operation."
+    },
+    {
+      "family": "grouped_native_exact_one_hot_boosting",
+      "reason": "The validated grouped exact-one-hot representation and calibration contract cannot be reconstructed by the current generic preprocessing nodes."
+    },
+    {
+      "family": "cumulative_ordinal_regression",
+      "reason": "The cumulative probability regressor is an adapter-only estimator rather than a registered FEDOT operation."
+    },
+    {
+      "family": "grouped_sequence_trend_regression",
+      "reason": "The train-recognised repeated-sequence trend expansion is not a registered FEDOT data operation."
+    },
+    {
+      "family": "cross_fitted_target_frequency_regression",
+      "reason": "The leakage-safe cross-fitted target-frequency encoder is not a registered FEDOT operation."
+    },
+    {
+      "family": "rbf_svr_with_target_scaling",
+      "reason": "The current FEDOT svr operation maps to LinearSVR and is not equivalent to the validated RBF-SVR pipeline."
+    },
+    {
+      "family": "extra_trees_classification",
+      "reason": "ExtraTreesClassifier is not currently registered as a FEDOT classification operation."
+    }
+  ]
+}
