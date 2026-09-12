@@ -54,7 +54,11 @@ def test_predefined_initial_assumption():
     available_operations = ['bernb', 'dt', 'knn', 'lda', 'qda', 'logit', 'rf', 'svc',
                             'scaling', 'normalization', 'pca', 'kernel_pca']
 
-    model = Fedot(problem='classification', timeout=1.0,
+    # Keep composition independent of runner load and shared caches: this test checks parameter preservation.
+    model = Fedot(problem='classification', timeout=None, num_of_generations=1,
+                  pop_size=2, cv_folds=2, with_tuning=False, n_jobs=1,
+                  use_operations_cache=False, use_preprocessing_cache=False,
+                  use_predictions_cache=False,
                   logging_level=logging.ERROR, available_operations=available_operations,
                   initial_assumption=initial_pipelines)
     old_params = deepcopy(model.params)
