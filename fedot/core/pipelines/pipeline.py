@@ -454,9 +454,19 @@ class Pipeline(GraphDelegate, Serializable):
         :param n_jobs: required number of the jobs to assign to the nodes
         """
         for node in self.nodes:
-            for param in ['n_jobs', 'num_threads']:
-                if param in node.content['params']:
-                    node.content['params'][param] = n_jobs
+            parameters = node.parameters
+            updated_parameters = {
+                **parameters,
+                **{
+                    param: n_jobs
+                    for param in ['n_jobs', 'num_threads']
+                    if param in parameters
+                },
+            }
+            if updated_parameters != parameters:
+                # Keep the public, serialisable parameters and the
+                # OperationParameters instance used by Node.fit in sync.
+                node.parameters = updated_parameters
 
     @copy_doc(Graph.show)
     def show(self, save_path: Optional[Union[PathLike, str]] = None, engine: Optional[str] = None,

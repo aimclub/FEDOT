@@ -64,6 +64,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         self._log.debug(f'Pipeline {graph_id} fit started')
 
         folds_metrics = []
+        evaluation_failed = False
         for fold_id, (train_data, test_data) in enumerate(self._data_producer()):
             try:
                 prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, self._eval_n_jobs)
@@ -75,6 +76,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
                     save_debug_info_for_pipeline(graph, train_data, test_data, ex, stack_trace)
                     if not is_recording_mode() and 'catboost' not in graph.descriptive_id:
                         raise ex
+                evaluation_failed = True
                 break  # if even one fold fails, the evaluation stops
 
             evaluated_fitness = self._objective(prepared_pipeline,
@@ -88,9 +90,11 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             else:
                 self._log.log_or_raise('warning', ValueError(f'Invalid fitness after objective evaluation. '
                                                              f'Skipping the graph: {graph_id}'))
+                evaluation_failed = True
+                break
             if self._do_unfit:
                 graph.unfit()
-        if folds_metrics:
+        if folds_metrics and not evaluation_failed:
             folds_metrics = tuple(np.mean(folds_metrics, axis=0))  # averages for each metric over folds
             self._log.debug(f'Pipeline {graph_id} with evaluated metrics: {folds_metrics}')
         else:

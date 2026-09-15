@@ -1,5 +1,6 @@
 import datetime
 from copy import deepcopy
+from unittest.mock import Mock
 
 import numpy as np
 import pytest
@@ -123,6 +124,19 @@ def test_pipeline_objective_evaluate_with_cv_fold(classification_dataset):
     fitness = objective_eval(pipeline)
     assert fitness.valid
     assert fitness.value is not None
+
+
+def test_pipeline_objective_evaluate_is_invalid_if_later_fold_fails():
+    pipeline = PipelineBuilder().add_node('logit').build()
+    objective = Mock(is_multi_objective=False)
+    objective.return_value = SingleObjFitness(1.0)
+    data_producer = lambda: iter([(None, None), (None, None)])
+    objective_eval = PipelineObjectiveEvaluate(objective, data_producer, do_unfit=False)
+    objective_eval.prepare_graph = Mock(side_effect=[pipeline, TimeoutError('fold failed')])
+
+    fitness = objective_eval.evaluate(pipeline)
+
+    assert not fitness.valid
 
 
 def test_pipeline_objective_evaluate_with_empty_datasource(classification_dataset):

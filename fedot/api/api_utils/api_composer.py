@@ -164,7 +164,8 @@ class ApiComposer:
 
     def tune_final_pipeline(self, train_data: InputData, pipeline_gp_composed: Pipeline) -> Pipeline:
         """ Launch tuning procedure for obtained pipeline by composer """
-        timeout_for_tuning = abs(self.timer.determine_resources_for_tuning()) / 60
+        timeout_for_tuning_sec = max(0, self.timer.determine_resources_for_tuning())
+        timeout_for_tuning = timeout_for_tuning_sec / 60
         tuner = (TunerBuilder(self.params.task)
                  .with_tuner(SimultaneousTuner)
                  .with_metric(self.metrics[0])
@@ -183,7 +184,7 @@ class ApiComposer:
                 self.log.message('Hyperparameters tuning finished')
         else:
             self.log.message(f'Time for pipeline composing was {str(self.timer.composing_spend_time)}.\n'
-                             f'The remaining {max(0, round(timeout_for_tuning, 1))} seconds are not enough '
+                             f'The remaining {round(timeout_for_tuning_sec, 1)} seconds are not enough '
                              f'to tune the hyperparameters.')
             self.log.message('Composed pipeline returned without tuning.')
             tuned_pipeline = pipeline_gp_composed
