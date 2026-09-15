@@ -1,4 +1,8 @@
+import inspect
+import math
 import os
+import time
+from numbers import Real
 from typing import Optional
 
 import numpy as np
@@ -6,8 +10,10 @@ import pandas as pd
 from catboost import CatBoostClassifier, CatBoostRegressor, Pool
 from lightgbm import LGBMClassifier, LGBMRegressor
 from lightgbm import early_stopping as lgbm_early_stopping
+from lightgbm.callback import EarlyStopException as LGBMEarlyStopException
 from matplotlib import pyplot as plt
 from xgboost import XGBClassifier, XGBRegressor
+from xgboost.callback import TrainingCallback
 from sklearn.multioutput import MultiOutputRegressor, MultiOutputClassifier
 
 from fedot.core.data.data import InputData
@@ -18,8 +24,137 @@ from fedot.core.utils import default_fedot_data_dir, is_multi_output_target
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
+_XGBOOST_CALLBACKS_IN_FIT = 'callbacks' in inspect.signature(XGBClassifier.fit).parameters
+
+
+class _FitTimeLimitCallback(TrainingCallback):
+    """Stop XGBoost at a fit deadline and optionally compensate a short horizon.
+
+    The learning-rate adjustment is deliberately opt-in.  It measures steady-state
+    iteration throughput after a small warm-up and raises eta once only when the
+    fit is projected to complete materially fewer trees than requested.
+    """
+
+    def __init__(self, seconds: Real, *, learning_rate=None, maximum_rounds=None,
+                 adaptive_learning_rate=False):
+        super().__init__()
+        if isinstance(seconds, bool) or not isinstance(seconds, Real):
+            raise ValueError('fit_time_limit must be a positive finite number')
+        seconds = float(seconds)
+        if not np.isfinite(seconds) or seconds <= 0:
+            raise ValueError('fit_time_limit must be a positive finite number')
+        self.seconds = seconds
+        self.learning_rate = learning_rate
+        self.maximum_rounds = maximum_rounds
+        self.adaptive_learning_rate = bool(adaptive_learning_rate)
+        self.deadline = None
+        self.started_at = None
+        self.iteration_starts = []
+        self.projected_rounds = None
+        self.adjusted_learning_rate = None
+
+        if self.adaptive_learning_rate:
+            if isinstance(learning_rate, bool) or not isinstance(learning_rate, Real):
+                raise ValueError('learning_rate must be a positive finite number')
+            if not np.isfinite(learning_rate) or learning_rate <= 0:
+                raise ValueError('learning_rate must be a positive finite number')
+            if isinstance(maximum_rounds, bool) or not isinstance(maximum_rounds, Real):
+                raise ValueError('maximum_rounds must be a positive integer')
+            if not np.isfinite(maximum_rounds) or int(maximum_rounds) != maximum_rounds or maximum_rounds <= 0:
+                raise ValueError('maximum_rounds must be a positive integer')
+            self.learning_rate = float(learning_rate)
+            self.maximum_rounds = int(maximum_rounds)
+
+    def before_training(self, model):
+        self.started_at = time.monotonic()
+        self.deadline = self.started_at + self.seconds
+        self.iteration_starts = []
+        self.projected_rounds = None
+        self.adjusted_learning_rate = None
+        return model
+
+    def before_iteration(self, model, epoch: int, evals_log: dict) -> bool:
+        del evals_log
+        if not self.adaptive_learning_rate:
+            return bool(
+                epoch > 0
+                and self.deadline is not None
+                and time.monotonic() >= self.deadline
+            )
+        now = time.monotonic()
+        if (
+            epoch > 0
+            and self.deadline is not None
+            and now >= self.deadline
+        ):
+            return True
+        self._adjust_learning_rate(model, epoch, now)
+        return False
+
+    def _adjust_learning_rate(self, model, epoch: int, now: float):
+        if not self.adaptive_learning_rate:
+            return
+        self.iteration_starts.append(now)
+        warmup_rounds = 16
+        if epoch != warmup_rounds:
+            return
+        measured_round_times = np.diff(self.iteration_starts[4:])
+        if measured_round_times.size == 0:
+            return
+        seconds_per_round = float(np.median(measured_round_times))
+        if not np.isfinite(seconds_per_round) or seconds_per_round <= 0:
+            return
+        remaining_seconds = max(self.seconds - (now - self.started_at), 0.0)
+        additional_rounds = int(remaining_seconds / (1.15 * seconds_per_round))
+        self.projected_rounds = min(self.maximum_rounds, epoch + additional_rounds)
+        if not warmup_rounds < self.projected_rounds <= 220:
+            return
+        target_learning_rate = self.learning_rate * math.sqrt(
+            (self.maximum_rounds - warmup_rounds)
+            / (self.projected_rounds - warmup_rounds)
+        )
+        target_learning_rate = min(0.2, target_learning_rate)
+        if target_learning_rate <= self.learning_rate:
+            return
+        self.adjusted_learning_rate = target_learning_rate
+        model.set_param({'eta': target_learning_rate})
+
+    def after_training(self, model):
+        self.deadline = None
+        self.started_at = None
+        return model
+
+
+class _LightGBMFitTimeLimitCallback:
+    """Interrupt LightGBM after a positive wall-clock fit allowance."""
+
+    order = 10
+    before_iteration = False
+
+    def __init__(self, seconds: Real):
+        if isinstance(seconds, bool) or not isinstance(seconds, Real):
+            raise ValueError('fit_time_limit must be a positive finite number')
+        seconds = float(seconds)
+        if not np.isfinite(seconds) or seconds <= 0:
+            raise ValueError('fit_time_limit must be a positive finite number')
+        self.seconds = seconds
+        self.deadline = time.monotonic() + seconds
+        self.stopped = False
+
+    def __call__(self, env):
+        if env.iteration > 0 and time.monotonic() >= self.deadline:
+            self.stopped = True
+            raise LGBMEarlyStopException(
+                env.iteration, env.evaluation_result_list
+            )
+
+
 class FedotXGBoostImplementation(ModelImplementation):
-    __operation_params = ['n_jobs', 'use_eval_set']
+    __operation_params = [
+        'use_eval_set',
+        'fit_time_limit',
+        'fit_time_limit_adaptive_learning_rate',
+    ]
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
@@ -27,6 +162,24 @@ class FedotXGBoostImplementation(ModelImplementation):
         self.check_and_update_params()
 
         self.model_params = {k: v for k, v in self.params.to_dict().items() if k not in self.__operation_params}
+        fit_time_limit = self.params.get('fit_time_limit')
+        self.fit_callbacks = list(self.model_params.get('callbacks') or [])
+        if fit_time_limit is not None:
+            self.fit_callbacks.append(
+                _FitTimeLimitCallback(
+                    fit_time_limit,
+                    learning_rate=self.model_params.get('learning_rate'),
+                    maximum_rounds=self.model_params.get('n_estimators'),
+                    adaptive_learning_rate=self.params.get(
+                        'fit_time_limit_adaptive_learning_rate', False
+                    ),
+                )
+            )
+        if self.fit_callbacks:
+            if _XGBOOST_CALLBACKS_IN_FIT:
+                self.model_params.pop('callbacks', None)
+            else:
+                self.model_params['callbacks'] = self.fit_callbacks
         self.model = None
         self.features_names = None
         self.classes_ = None
@@ -53,7 +206,8 @@ class FedotXGBoostImplementation(ModelImplementation):
             self.model.fit(
                 X=X_train, y=y_train,
                 eval_set=[(X_eval, y_eval)],
-                verbose=self.model_params['verbosity']
+                verbose=self.model_params['verbosity'],
+                **self._fit_callback_params(),
             )
         else:
             # Disable parameter used for eval_set
@@ -67,10 +221,16 @@ class FedotXGBoostImplementation(ModelImplementation):
             )
             self.model.fit(
                 X=X_train, y=y_train,
-                verbose=self.model_params['verbosity']
+                verbose=self.model_params['verbosity'],
+                **self._fit_callback_params(),
             )
 
         return self.model
+
+    def _fit_callback_params(self) -> dict:
+        if _XGBOOST_CALLBACKS_IN_FIT and self.fit_callbacks:
+            return {'callbacks': self.fit_callbacks}
+        return {}
 
     def predict(self, input_data: InputData):
         if self.params.get('enable_categorical'):
@@ -142,7 +302,7 @@ class FedotXGBoostRegressionImplementation(FedotXGBoostImplementation):
 
 
 class FedotLightGBMImplementation(ModelImplementation):
-    __operation_params = ['n_jobs', 'use_eval_set', 'enable_categorical']
+    __operation_params = ['use_eval_set', 'enable_categorical', 'fit_time_limit']
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
@@ -192,7 +352,9 @@ class FedotLightGBMImplementation(ModelImplementation):
             X_train, y_train = convert_to_dataframe(
                 input_data, identify_cats=self.params.get('enable_categorical')
             )
-            self.model.fit(X_train, y_train)
+            self.model.fit(
+                X_train, y_train, callbacks=self.update_callbacks()
+            )
 
         return self.model
 
@@ -213,13 +375,17 @@ class FedotLightGBMImplementation(ModelImplementation):
             self.params.update(early_stopping_rounds=None)
 
     def update_callbacks(self) -> list:
-        callback = []
+        callbacks = []
 
         esr = self.params.get('early_stopping_rounds')
         if isinstance(esr, int):
-            lgbm_early_stopping(esr, verbose=self.params.get('verbose'))
+            callbacks.append(lgbm_early_stopping(esr, verbose=self.params.get('verbose')))
 
-        return callback
+        fit_time_limit = self.params.get('fit_time_limit')
+        if fit_time_limit is not None:
+            callbacks.append(_LightGBMFitTimeLimitCallback(fit_time_limit))
+
+        return callbacks
 
     @staticmethod
     def set_eval_metric(n_classes):

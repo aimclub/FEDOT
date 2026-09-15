@@ -52,8 +52,16 @@ class ApiTime:
         return self.assumption_fit_spend_time <= self.timedelta_automl * n_jobs / MINIMAL_PIPELINE_NUMBER_FOR_EVALUATION
 
     def have_time_for_tuning(self):
+        if self.time_for_automl is None:
+            return True
         timeout_for_tuning = self.determine_resources_for_tuning()
-        return timeout_for_tuning >= MINIMAL_SECONDS_FOR_TUNING
+        # The tuner evaluates the initial graph before starting optimisation.
+        # Keep enough time both for this CV evaluation and for a useful search.
+        minimum_tuning_time = (
+            self.assumption_fit_spend_time.total_seconds()
+            + MINIMAL_SECONDS_FOR_TUNING
+        )
+        return timeout_for_tuning >= minimum_tuning_time
 
     @contextmanager
     def launch_composing(self):
@@ -83,15 +91,25 @@ class ApiTime:
     def determine_resources_for_tuning(self):
         """
         Based on time spend for composing and initial pipeline fit determine
-        how much time and how many iterations are needed for tuning
+        how much time is available for tuning.
+
+        A full-data refit is performed after model generation, and GOLEM's
+        tuner performs a final cross-validation check after the timed search.
+        Reserve the estimated cost of both stages here so that tuning cannot
+        consume the entire AutoML budget before them.
 
         """
         all_spend_time = self.composing_spend_time + self.assumption_fit_spend_time_single_fold
+        reserved_time = self.assumption_fit_spend_time_single_fold + self.assumption_fit_spend_time
 
         if self.time_for_automl is not None:
             all_timeout = float(self.time_for_automl)
             timeout_in_sec = datetime.timedelta(minutes=all_timeout).total_seconds()
-            timeout_for_tuning = timeout_in_sec - all_spend_time.total_seconds()
+            timeout_for_tuning = (
+                timeout_in_sec
+                - all_spend_time.total_seconds()
+                - reserved_time.total_seconds()
+            )
         else:
             timeout_for_tuning = all_spend_time.total_seconds()
         return timeout_for_tuning

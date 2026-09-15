@@ -180,6 +180,7 @@ class Fedot:
                     predefined_model, self.train_data, self.log,
                     use_input_preprocessing=self.params.get('use_input_preprocessing'),
                     api_preprocessor=self.data_processor.preprocessor,
+                    n_jobs=self.params.n_jobs,
                 ).fit()
             else:
                 self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(self.train_data)

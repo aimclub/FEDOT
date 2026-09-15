@@ -72,12 +72,16 @@ class TableTypesCorrector:
 
     def convert_data_for_fit(self, data: InputData):
         """ If column contain several data types - perform correction procedure """
-        # Convert features to have an ability to insert str into float table or vice versa
-        data.features = data.features.astype(object)
-
         # Determine types for each column in features and target if it is necessary
         self.features_columns_info = define_column_types(data.features)
         self.target_columns_info = define_column_types(data.target)
+
+        # Mixed tables must stay mutable by column because type correction can
+        # replace numbers with strings and vice versa.  Homogeneous numeric
+        # matrices do not need an object copy: keeping their native dtype avoids
+        # boxing every cell before the vectorised numeric fast path below.
+        if not _is_homogeneous_numeric_table(data.features):
+            data.features = data.features.astype(object)
 
         # Correct types in features table
         data.features = self.feature_types_converting(features=data.features)
@@ -308,6 +312,11 @@ class TableTypesCorrector:
                 cat_col_ids = num_df.columns
 
             if np.size(cat_col_ids) > 0:
+                # Homogeneous numeric input is deliberately kept numeric during
+                # type detection.  Promote it only if the low-cardinality
+                # heuristic actually needs to insert string categories.
+                if data.features.dtype != object:
+                    data.features = data.features.astype(object)
                 # Convert into string
                 data.features[:, cat_col_ids] = num_df.apply(
                     convert_num_column_into_string_array).to_numpy()
@@ -407,6 +416,10 @@ def define_column_types(table: Optional[np.ndarray]) -> pd.DataFrame:
     """ Prepare information about types per columns. For each column store unique
     types, which column contains.
     """
+    fast_numeric_info = _homogeneous_numeric_column_types(table)
+    if fast_numeric_info is not None:
+        return fast_numeric_info
+
     table_of_types = pd.DataFrame(table, copy=True)
     table_of_types = table_of_types.replace({np.nan: None}).applymap(lambda el: TYPE_TO_ID[type(el)])
 
@@ -438,6 +451,90 @@ def define_column_types(table: Optional[np.ndarray]) -> pd.DataFrame:
 
     # Combine all dataframes
     return pd.concat([uniques, types_counts, nans_ids])
+
+
+def _is_homogeneous_numeric_table(table: Optional[np.ndarray]) -> bool:
+    """Return whether a table has one native scalar numeric dtype.
+
+    Object arrays still use the established cell-wise inspection because they
+    can contain different Python types even when their values look numeric.
+    Complex arrays are excluded as they are not supported by ``TYPE_TO_ID``.
+    """
+    if table is None:
+        return False
+    array = np.asarray(table)
+    return array.ndim in (1, 2) and array.dtype.kind in "biuf"
+
+
+def _homogeneous_numeric_column_types(
+    table: Optional[np.ndarray],
+) -> Optional[pd.DataFrame]:
+    """Build the usual column-type summary without visiting every numeric cell.
+
+    The former implementation boxed a dense numeric matrix into Python objects
+    and called ``type`` for each value.  Its result is fully determined by the
+    native dtype and, for floating-point input, the positions of NaNs.  Computing
+    that information vectorially makes preprocessing scale with NumPy operations
+    while retaining the exact dataframe contract used by mixed-type handling.
+    """
+    if not _is_homogeneous_numeric_table(table):
+        return None
+
+    array = np.asarray(table)
+    if array.ndim == 1:
+        array = array.reshape(-1, 1)
+    row_count, column_count = array.shape
+    columns = np.arange(column_count)
+
+    if array.dtype.kind == "f":
+        nan_mask = np.isnan(array)
+        nan_counts = nan_mask.sum(axis=0, dtype=int)
+        scalar_type_id = TYPE_TO_ID[float]
+    else:
+        nan_mask = None
+        nan_counts = np.zeros(column_count, dtype=int)
+        scalar_type_id = TYPE_TO_ID[bool] if array.dtype.kind == "b" else TYPE_TO_ID[int]
+
+    info = pd.DataFrame(
+        index=[
+            _TYPES,
+            _FLOAT_NUMBER,
+            _INT_NUMBER,
+            _STR_NUMBER,
+            _NAN_NUMBER,
+            _NAN_IDS,
+        ],
+        columns=columns,
+        dtype=object,
+    )
+    non_nan_counts = row_count - nan_counts
+    info.loc[_FLOAT_NUMBER] = (
+        non_nan_counts if scalar_type_id == TYPE_TO_ID[float] else 0
+    )
+    info.loc[_INT_NUMBER] = (
+        non_nan_counts if scalar_type_id == TYPE_TO_ID[int] else 0
+    )
+    info.loc[_STR_NUMBER] = 0
+    info.loc[_NAN_NUMBER] = nan_counts
+
+    nan_type_id = TYPE_TO_ID[type(None)]
+    for column in columns:
+        type_ids = [scalar_type_id]
+        if nan_counts[column]:
+            type_ids.append(nan_type_id)
+        # Lists are intentional here. Pandas unwraps a one-element ndarray into
+        # a zero-dimensional scalar when assigning an individual object cell,
+        # while the downstream contract requires a sized sequence.
+        info.at[_TYPES, column] = type_ids
+        info.at[_NAN_IDS, column] = (
+            np.flatnonzero(nan_mask[:, column]).tolist()
+            if nan_mask is not None
+            else []
+        )
+
+    for row in (_FLOAT_NUMBER, _INT_NUMBER, _STR_NUMBER, _NAN_NUMBER):
+        info.loc[row] = info.loc[row].astype(int)
+    return info
 
 
 def _find_mixed_types_columns(columns_info: pd.DataFrame) -> pd.DataFrame:
