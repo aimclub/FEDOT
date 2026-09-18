@@ -14,8 +14,10 @@ from fedot.core.constants import FAST_TRAIN_PRESET_NAME
 from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.data.multimodal.supplementary_data import SupplementaryData
-from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
-    PCAImplementation
+from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
+from fedot.core.operations.evaluation.operation_implementations.data_operations.features_reducing import (
+    PCAImplementation,
+)
 from fedot.core.operations.evaluation.operation_implementations.models.discriminant_analysis import \
     LDAImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.naive import \
@@ -368,17 +370,19 @@ def test_svc_fit_correct(data_fixture, request):
 
 def test_pca_model_removes_redundant_features_correct():
     n_informative = 5
-    data = classification_dataset_with_redundant_features(n_samples=100, n_features=10,
-                                                          n_informative=n_informative)
-    train_data, test_data = train_test_data_setup(data=data)
+    data = classification_dataset_with_redundant_features(
+        n_samples=100, n_features=10, n_informative=n_informative)
+    tensor_data = TensorDataCreator.create(
+        data.features.astype(np.float32),
+        target=data.target,
+        backend_name='cpu',
+    )
 
-    first_node = PipelineNode('normalization')
-    second_node = PipelineNode('pca', nodes_from=[first_node])
-    pipeline = Pipeline(nodes=[first_node, second_node])
-    train_predicted = pipeline.fit(train_data)
-    transformed_features = train_predicted.predict
+    pca = PCAImplementation(OperationParameters(n_components=0.7))
+    pca.fit(tensor_data)
+    transformed = pca.transform(tensor_data)
 
-    assert transformed_features.shape[1] < data.features.shape[1]
+    assert transformed.features.shape[1] < data.features.shape[1]
 
 
 def test_glm_indexes_correct():
@@ -427,17 +431,22 @@ def test_lda_model_fit_with_incorrect_data():
 
 
 def test_pca_model_fit_with_wide_table():
-    """
-    The default value of n_components is 'mle' causes an error if the number of columns
-    is greater than the number of rows in the dataset. If this happens, the number
-    of n_components will be defined as 0.5
-    """
-    pca_data = get_pca_incorrect_data()
-    pca_model = PCAImplementation()
-    pca_model.fit(pca_data)
+    """Wide tables (n_features > n_samples) resolve ``n_components`` during fit."""
+    features = np.array(
+        [
+            [1.0, 1.5, 2.0, 2.5, 3.0, 3.5],
+            [2.0, 2.5, 3.0, 3.5, 4.0, 4.5],
+            [1.0, 5.0, 4.5, 0.5, 1.0, 1.5],
+        ],
+        dtype=np.float32,
+    )
+    tensor_data = TensorDataCreator.create(features, backend_name='cpu')
+    pca_model = PCAImplementation(OperationParameters(n_components='mle'))
+    pca_model.fit(tensor_data)
 
     params = pca_model.get_params()
     assert 'n_components' in params.changed_parameters.keys()
+    assert isinstance(params.changed_parameters['n_components'], int)
 
 
 def test_ts_naive_average_forecast_correctly():

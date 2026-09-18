@@ -1,7 +1,7 @@
 import torch
 
 from fedot.preprocessing.planner.planner import PreprocessingPlan
-from fedot.preprocessing.tools.preprocessor_types import PreprocessingStepEnum
+from fedot.preprocessing.tools.preprocessor_types import PreprocessingStepEnum, step_method_handlers
 from fedot.preprocessing.tools.index_mapping_tools import update_indices
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.prepared_data.prepared_data import PreparedData
@@ -12,8 +12,12 @@ def copy_handler_mapping(handler_mapping: dict) -> dict:
 
     Outer and inner dicts are copied so instance updates (e.g. custom steps)
     cannot mutate a shared class-/module-level mapping.
+    ``OptionalStepSpec`` entries are copied as plain ``{method: handler_cls}``.
     """
-    return {step: dict(methods) for step, methods in handler_mapping.items()}
+    return {
+        step: dict(step_method_handlers(methods))
+        for step, methods in handler_mapping.items()
+    }
 
 
 def update_handler_mapping(plan: PreprocessingPlan,

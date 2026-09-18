@@ -12,7 +12,10 @@ from fedot.core.data.multimodal.supplementary_data import SupplementaryData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_imbalanced_class import \
     ResampleImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations. \
-    sklearn_transformations import ImputationImplementation, PCAImplementation, PolyFeaturesImplementation
+    sklearn_transformations import ImputationImplementation, PolyFeaturesImplementation
+from fedot.core.operations.evaluation.operation_implementations.data_operations.features_reducing import (
+    PCAImplementation,
+)
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
     CutImplementation, LaggedTransformationImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
@@ -673,32 +676,28 @@ def test_correctness_resample_operation_with_dynamic_replace_param(strategy, bal
     assert resample.replace == expected
 
 
-def test_pca_transform_initializes_feature_types_when_absent():
-    input_data = InputData(
-        idx=np.arange(0, 8),
-        features=np.array([
-            [0.1, 1.0, 2.0],
-            [0.2, 0.9, 2.1],
-            [0.3, 1.2, 1.9],
-            [0.4, 1.1, 2.2],
-            [0.5, 0.8, 2.3],
-            [0.6, 1.3, 2.4],
-            [0.7, 1.4, 2.5],
-            [0.8, 1.5, 2.6],
-        ], dtype=float),
-        target=np.array([[0], [1], [0], [1], [0], [1], [0], [1]]),
-        task=Task(TaskTypesEnum.classification),
-        data_type=DataTypesEnum.table,
-    )
+def test_pca_transform_reduces_feature_space():
+    from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
+
+    features = np.array([
+        [0.1, 1.0, 2.0],
+        [0.2, 0.9, 2.1],
+        [0.3, 1.2, 1.9],
+        [0.4, 1.1, 2.2],
+        [0.5, 0.8, 2.3],
+        [0.6, 1.3, 2.4],
+        [0.7, 1.4, 2.5],
+        [0.8, 1.5, 2.6],
+    ], dtype=np.float32)
+    tensor_data = TensorDataCreator.create(features, backend_name='cpu')
 
     operation = PCAImplementation(OperationParameters(n_components=2))
-    operation.fit(input_data)
-    transformed = operation.transform(input_data)
+    operation.fit(tensor_data)
+    transformed = operation.transform(tensor_data)
 
-    assert transformed.supplementary_data.col_type_ids is not None
-    assert 'features' in transformed.supplementary_data.col_type_ids
-    assert transformed.supplementary_data.col_type_ids[
-        'features'].shape[0] == transformed.predict.shape[1]
+    assert transformed.features.shape == (features.shape[0], 2)
+    assert transformed.numerical_idx == [0, 1]
+    assert transformed.categorical_idx == []
 
 
 def test_poly_features_transform_initializes_feature_types_when_absent():

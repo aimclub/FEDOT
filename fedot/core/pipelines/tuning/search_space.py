@@ -476,27 +476,49 @@ class PipelineSearchSpace(SearchSpace):
                     'type': 'categorical'},
             },
             'pca': {
+                # Variance-ratio floats in (0, 1]: 1.0 is 100% variance, not
+                # one component (that is int 1). Same numeric choices as
+                # truncated_svd, different meaning (not a feature fraction).
+                # ``mle`` is omitted: it needs n_samples >= n_features.
                 'n_components': {
-                    'hyperopt-dist': hp.uniform,
-                    'sampling-scope': [0.1, 0.99],
-                    'type': 'continuous'}
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[
+                        'auto', 'elbow', 'broken_stick',
+                        0.1, 0.25, 0.5, 0.75, 0.9, 0.99, 1.0,
+                    ]],
+                    'type': 'categorical'}
+            },
+            'truncated_svd': {
+                # Feature-fraction floats in (0, 1]: 1.0 is all features,
+                # 0.5 → round(0.5 * n_features), not PCA variance.
+                'n_components': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[
+                        'auto', 'elbow', 'broken_stick',
+                        0.1, 0.25, 0.5, 0.75, 0.9, 0.99, 1.0,
+                    ]],
+                    'type': 'categorical'},
+                'n_iter': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [2, 10],
+                    'type': 'discrete'},
+                'n_oversamples': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [2, 20],
+                    'type': 'discrete'},
             },
             'optional_preprocessing': {
-                'use_imputation': {
-                    'hyperopt-dist': hp.choice,
-                    'sampling-scope': [[True, False]],
-                    'type': 'categorical'},
                 'imputation_method': {
                     'hyperopt-dist': hp.choice,
                     'sampling-scope': [['auto', 'mean', 'median', 'mode', 'none']],
                     'type': 'categorical'},
-                'use_scaling': {
-                    'hyperopt-dist': hp.choice,
-                    'sampling-scope': [[True, False]],
-                    'type': 'categorical'},
                 'scaling_method': {
                     'hyperopt-dist': hp.choice,
                     'sampling-scope': [['auto', 'standard', 'min_max', 'robust', 'none']],
+                    'type': 'categorical'},
+                'filtering_method': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [['auto', 'quantile', 'variance', 'none']],
                     'type': 'categorical'},
             },
             'dask_pca': {

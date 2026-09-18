@@ -1,7 +1,11 @@
 from typing import Any, FrozenSet, Mapping, Optional
 
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.preprocessing.tools.preprocessor_types import PreprocessingStepEnum
+from fedot.preprocessing.tools.preprocessor_types import (
+    OptionalStepSpec,
+    PreprocessingStepEnum,
+    step_method_handlers,
+)
 
 OPTIONAL_NONE_METHOD_ALIASES = {'none', 'None', False}
 OPTIONAL_AUTO_METHOD_ALIASES = {None, 'auto', 'Auto'}
@@ -28,48 +32,57 @@ def is_optional_none_method(method: Any) -> bool:
     return normalize_optional_method_name(method) in OPTIONAL_NONE_METHOD_ALIASES
 
 
-def _optional_handler_mappings():
+def _optional_mapping_for_data_type(data_type: DataTypesEnum) -> Mapping:
     from fedot.preprocessing.tools.methods_mapping import (
         PREPROCESSING_OPTIONAL_MAPPING,
         TS_PREPROCESSING_MAPPING,
     )
 
-    return (PREPROCESSING_OPTIONAL_MAPPING, TS_PREPROCESSING_MAPPING)
+    return (
+        TS_PREPROCESSING_MAPPING
+        if data_type == DataTypesEnum.ts
+        else PREPROCESSING_OPTIONAL_MAPPING
+    )
 
 
 def _handler_methods_for_data_type(
     step: PreprocessingStepEnum,
     data_type: DataTypesEnum,
 ) -> Mapping[Any, Any]:
-    from fedot.preprocessing.tools.methods_mapping import (
-        PREPROCESSING_OPTIONAL_MAPPING,
-        TS_PREPROCESSING_MAPPING,
-    )
-
-    mapping = (
-        TS_PREPROCESSING_MAPPING
-        if data_type == DataTypesEnum.ts
-        else PREPROCESSING_OPTIONAL_MAPPING
-    )
-    return mapping.get(step, {})
+    return step_method_handlers(_optional_mapping_for_data_type(data_type).get(step))
 
 
-def _method_names_from_mappings(step: PreprocessingStepEnum) -> set:
-    names: set = set()
-    for mapping in _optional_handler_mappings():
-        for method in mapping.get(step, {}):
-            names.add(normalize_optional_method_name(method))
-    return names
+def _method_names_for_data_type(
+    step: PreprocessingStepEnum,
+    data_type: DataTypesEnum,
+) -> set:
+    return {
+        normalize_optional_method_name(method)
+        for method in _handler_methods_for_data_type(step, data_type)
+    }
 
 
-def supported_optional_imputation_method_names() -> FrozenSet[Any]:
-    """Flat-knob allowlist: auto/none + honest method values from handler mappings."""
-    return frozenset({'auto', 'none'} | _method_names_from_mappings(PreprocessingStepEnum.imputation))
+def flat_optional_steps(data_type: DataTypesEnum) -> Mapping[PreprocessingStepEnum, bool]:
+    """Flat knobs for ``data_type`` from that mapping's ``OptionalStepSpec``.
+
+    Only steps with non-``None`` ``flat_auto_default`` expose ``<step>_method``.
+    """
+    steps: dict[PreprocessingStepEnum, bool] = {}
+    for step, entry in _optional_mapping_for_data_type(data_type).items():
+        if not isinstance(entry, OptionalStepSpec):
+            continue
+        if entry.flat_auto_default is None:
+            continue
+        steps[step] = entry.flat_auto_default
+    return steps
 
 
-def supported_optional_scaling_method_names() -> FrozenSet[Any]:
-    """Flat-knob allowlist: auto/none + honest method values from handler mappings."""
-    return frozenset({'auto', 'none'} | _method_names_from_mappings(PreprocessingStepEnum.scaling))
+def supported_optional_method_names(
+    step: PreprocessingStepEnum,
+    data_type: DataTypesEnum,
+) -> FrozenSet[Any]:
+    """Flat-knob allowlist for ``data_type``: auto/none + that mapping's methods."""
+    return frozenset({'auto', 'none'} | _method_names_for_data_type(step, data_type))
 
 
 def resolve_optional_method(
@@ -90,35 +103,31 @@ def resolve_optional_method(
     raise KeyError(method_name)
 
 
-def supported_optional_strategy_steps() -> FrozenSet[PreprocessingStepEnum]:
-    """Steps allowed in optional strategy = keys of handler mappings + custom."""
-    steps = {PreprocessingStepEnum.custom}
-    for mapping in _optional_handler_mappings():
-        steps.update(mapping)
-    return frozenset(steps)
+def supported_optional_strategy_steps(
+    data_type: DataTypesEnum,
+) -> FrozenSet[PreprocessingStepEnum]:
+    """Steps allowed in ``strategy`` for ``data_type``: that mapping's keys + custom."""
+    return frozenset(
+        {PreprocessingStepEnum.custom, *_optional_mapping_for_data_type(data_type)}
+    )
 
 
 def allowed_optional_strategy_methods(
     step: PreprocessingStepEnum,
+    data_type: DataTypesEnum,
 ) -> Optional[FrozenSet[Any]]:
-    """Methods allowed for a step, derived from handler mapping keys.
+    """Methods allowed for a step on ``data_type``, from that mapping's keys.
 
     ``custom`` accepts any method (implementation is provided by the caller).
-    Imputation/scaling also accept ``auto`` / ``none``.
+    Mapped steps also accept ``auto`` / ``none``.
     """
     if step == PreprocessingStepEnum.custom:
         return None
 
-    methods: set = set()
-    for mapping in _optional_handler_mappings():
-        step_methods = mapping.get(step)
-        if not step_methods:
-            continue
-        methods.update(step_methods)
-        methods.update(normalize_optional_method_name(method) for method in step_methods)
-
-    if step in {PreprocessingStepEnum.imputation, PreprocessingStepEnum.scaling}:
-        methods.update(OPTIONAL_AUTO_METHOD_ALIASES)
-        methods.update(OPTIONAL_NONE_METHOD_ALIASES)
+    step_methods = _handler_methods_for_data_type(step, data_type)
+    methods: set = set(step_methods)
+    methods.update(normalize_optional_method_name(method) for method in step_methods)
+    methods.update(OPTIONAL_AUTO_METHOD_ALIASES)
+    methods.update(OPTIONAL_NONE_METHOD_ALIASES)
 
     return frozenset(methods)
