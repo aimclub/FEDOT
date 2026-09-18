@@ -16,11 +16,6 @@ class PipelineOperationsByRole:
         }
 
 
-def filter_available_pipeline_operations(preset_operations: Iterable[str],
-                                         available_operations: Iterable[str]) -> Tuple[str, ...]:
-    return tuple(sorted(set(preset_operations).intersection(available_operations)))
-
-
 def build_pipeline_operations_by_role(available_operations: Iterable[str],
                                       task_type: TaskTypesEnum,
                                       ts_data_operations: Iterable[str] = (),

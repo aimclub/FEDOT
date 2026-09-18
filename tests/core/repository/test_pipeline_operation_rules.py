@@ -1,17 +1,7 @@
 from fedot.core.repository.pipeline_operation_rules import (
     build_pipeline_operations_by_role,
-    filter_available_pipeline_operations,
 )
 from fedot.core.repository.tasks import TaskTypesEnum
-
-
-def test_filter_available_pipeline_operations_returns_sorted_intersection():
-    filtered = filter_available_pipeline_operations(
-        preset_operations=['ridge', 'rf', 'external_linear'],
-        available_operations=['external_linear', 'ridge', 'external_linear'],
-    )
-
-    assert filtered == ('external_linear', 'ridge')
 
 
 def test_build_pipeline_operations_by_role_returns_all_operations_for_non_ts_task():
