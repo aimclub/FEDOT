@@ -3,8 +3,8 @@ from typing import Dict, List
 import numpy as np
 from golem.core.log import default_log
 
-from fedot.core.data.data import OutputData
-from fedot.core.data.supplementary_data import SupplementaryData
+from fedot.core.data.input_data.data import OutputData
+from fedot.core.data.multimodal.supplementary_data import SupplementaryData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.preprocessing.data_types import TableTypesCorrector
 
@@ -23,7 +23,8 @@ class SupplementaryDataMerger:
             previous_operations=None,  # is set by Node after merge
             obligatorily_preprocessed=self.all_preprocessed(),
             optionally_preprocessed=self.all_preprocessed(is_obligatory=False),
-            non_int_idx=None,  # is set elsewhere (by preprocessor or during pipeline fit/predict)
+            # is set elsewhere (by preprocessor or during pipeline fit/predict)
+            non_int_idx=None,
             col_type_ids=self.merge_column_types()
         )
 
@@ -70,7 +71,8 @@ class SupplementaryDataMerger:
             input_ids.extend(id_mask)
 
             # Keep dataflow length for each feature separately
-            flow_mask = [output.supplementary_data.data_flow_length] * num_features
+            flow_mask = [
+                output.supplementary_data.data_flow_length] * num_features
             flow_lens.extend(flow_mask)
 
         features_mask = {'input_ids': input_ids, 'flow_lens': flow_lens}
@@ -88,7 +90,8 @@ class SupplementaryDataMerger:
         new_target_type_ids = None
         for output in self.outputs:
             if output.supplementary_data.col_type_ids is None:
-                self.log.debug('Perform determination of column types in DataMerger')
+                self.log.debug(
+                    'Perform determination of column types in DataMerger')
                 table_corr = TableTypesCorrector()
                 output.supplementary_data.col_type_ids = table_corr.prepare_column_types_info(output.predict,
                                                                                               output.target,
@@ -98,5 +101,6 @@ class SupplementaryDataMerger:
 
             if output.supplementary_data.is_main_target:
                 # Target can be None for predict stage
-                new_target_type_ids = output.supplementary_data.col_type_ids.get('target')
+                new_target_type_ids = output.supplementary_data.col_type_ids.get(
+                    'target')
         return {'features': np.array(new_feature_type_ids), 'target': new_target_type_ids}

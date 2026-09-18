@@ -13,7 +13,7 @@ from datetime import timedelta
 
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.metrics_repository import ClassificationMetricsEnum
@@ -43,13 +43,15 @@ def create_multi_clf_examples_from_excel(file_path: str, return_df: bool = False
     ensure_directory_exists(directory_names)
     if return_df:
         # Need to return dataframe and path to the file in csv format
-        path = os.path.join(directory_names[0], directory_names[1], directory_names[2], file_csv_name)
+        path = os.path.join(
+            directory_names[0], directory_names[1], directory_names[2], file_csv_name)
         full_file_path = os.path.join(str(fedot_project_root()), path)
         save_file_to_csv(df, full_file_path)
         return df, full_file_path
     else:
         # Need to return only paths to the files with train and test data
-        full_train_file_path, full_test_file_path = get_split_data_paths(directory_names)
+        full_train_file_path, full_test_file_path = get_split_data_paths(
+            directory_names)
         save_file_to_csv(train, full_train_file_path)
         save_file_to_csv(train, full_test_file_path)
         return full_train_file_path, full_test_file_path
@@ -62,7 +64,8 @@ def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = timedelt
     # the search of the models provided by the framework
     # that can be used as nodes in a pipeline for the selected task
     models_repo = OperationTypesRepository()
-    available_model_types = models_repo.suitable_operation(task_type=task.task_type, tags=['simple'])
+    available_model_types = models_repo.suitable_operation(
+        task_type=task.task_type, tags=['simple'])
 
     metric_function = ClassificationMetricsEnum.ROCAUC_penalty
 
@@ -72,7 +75,8 @@ def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = timedelt
 
     # Create the genetic programming-based composer, that allow to find
     # the optimal structure of the composite model
-    builder = ComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function)
+    builder = ComposerBuilder(task).with_requirements(
+        composer_requirements).with_metrics(metric_function)
     composer = builder.build()
 
     # run the search of best suitable model
@@ -83,7 +87,8 @@ def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = timedelt
 
 
 def apply_model_to_data(model: Pipeline, data_path: str):
-    df, file_path = create_multi_clf_examples_from_excel(data_path, return_df=True)
+    df, file_path = create_multi_clf_examples_from_excel(
+        data_path, return_df=True)
     dataset_to_apply = InputData.from_csv(file_path, target_columns=None)
     evo_predicted = model.predict(dataset_to_apply)
     df['forecast'] = probs_to_labels(evo_predicted.predict)
@@ -109,7 +114,8 @@ if __name__ == '__main__':
     file_path_second = data_path.joinpath('example2.xlsx')
     file_path_third = data_path.joinpath('example3.xlsx')
 
-    train_file_path, test_file_path = create_multi_clf_examples_from_excel(file_path_first)
+    train_file_path, test_file_path = create_multi_clf_examples_from_excel(
+        file_path_first)
     test_data = InputData.from_csv(test_file_path)
 
     fitted_model = get_model(train_file_path)
@@ -119,8 +125,10 @@ if __name__ == '__main__':
     roc_auc_score = validate_model_quality(fitted_model, test_file_path)
     print(f'ROC AUC metric is {roc_auc_score}')
 
-    final_prediction_first = apply_model_to_data(fitted_model, file_path_second)
+    final_prediction_first = apply_model_to_data(
+        fitted_model, file_path_second)
     print(final_prediction_first['forecast'])
 
-    final_prediction_second = apply_model_to_data(fitted_model, file_path_third)
+    final_prediction_second = apply_model_to_data(
+        fitted_model, file_path_third)
     print(final_prediction_second['forecast'])

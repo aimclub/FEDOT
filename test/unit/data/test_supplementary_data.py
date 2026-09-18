@@ -1,10 +1,10 @@
 import numpy as np
 import pytest
 
-from fedot.core.data.data import OutputData
+from fedot.core.data.input_data.data import OutputData
 from fedot.core.data.merge.data_merger import DataMerger
 from fedot.core.data.merge.supplementary_data_merger import SupplementaryDataMerger
-from fedot.core.data.supplementary_data import SupplementaryData
+from fedot.core.data.multimodal.supplementary_data import SupplementaryData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -23,14 +23,16 @@ def outputs_table_with_different_types():
     data_info_first = SupplementaryData(col_type_ids={'features': np.array([TYPE_TO_ID[str], TYPE_TO_ID[float]]),
                                                       'target': np.array([TYPE_TO_ID[int]])})
     output_first = OutputData(idx=idx, features=None,
-                              predict=np.array([['a', 1.1], ['b', 2], ['c', 3]], dtype=object),
+                              predict=np.array(
+                                  [['a', 1.1], ['b', 2], ['c', 3]], dtype=object),
                               task=task, target=target, data_type=DataTypesEnum.table,
                               supplementary_data=data_info_first)
 
     data_info_second = SupplementaryData(col_type_ids={'features': np.array([TYPE_TO_ID[float]]),
                                                        'target': np.array([TYPE_TO_ID[int]])})
     output_second = OutputData(idx=idx, features=None,
-                               predict=np.array([[2.5], [2.1], [9.3]], dtype=float),
+                               predict=np.array(
+                                   [[2.5], [2.1], [9.3]], dtype=float),
                                task=task, target=target, data_type=DataTypesEnum.table,
                                supplementary_data=data_info_second)
 
@@ -52,10 +54,13 @@ def test_parent_mask_correct(unequal_outputs_table):  # noqa, fixture
 
     # Calculate parent mask from outputs
     main_output = DataMerger.find_main_output(unequal_outputs_table)
-    p_mask = SupplementaryDataMerger(unequal_outputs_table, main_output).prepare_parent_mask()
+    p_mask = SupplementaryDataMerger(
+        unequal_outputs_table, main_output).prepare_parent_mask()
 
-    assert tuple(p_mask['input_ids']) == tuple(correct_parent_mask['input_ids'])
-    assert tuple(p_mask['flow_lens']) == tuple(correct_parent_mask['flow_lens'])
+    assert tuple(p_mask['input_ids']) == tuple(
+        correct_parent_mask['input_ids'])
+    assert tuple(p_mask['flow_lens']) == tuple(
+        correct_parent_mask['flow_lens'])
 
 
 def test_calculate_data_flow_len_correct():
@@ -105,7 +110,8 @@ def test_define_parents_with_equal_lengths():
     features_mask = np.array(sd.compound_mask)
     unique_features_masks = np.unique(features_mask)
 
-    model_parent, data_parent = sd.define_parents(unique_features_masks, task=TaskTypesEnum.ts_forecasting)
+    model_parent, data_parent = sd.define_parents(
+        unique_features_masks, task=TaskTypesEnum.ts_forecasting)
 
     assert model_parent == '00'
     assert data_parent == '10'
@@ -125,4 +131,5 @@ def test_define_types_after_merging(outputs_table_with_different_types):
     ancestor_target_type = outputs[0].supplementary_data.col_type_ids['target'][0]
     assert target_type_ids[0] == ancestor_target_type
     assert len(feature_type_ids) == 3
-    assert tuple(feature_type_ids) == (TYPE_TO_ID[str], TYPE_TO_ID[float], TYPE_TO_ID[float])
+    assert tuple(feature_type_ids) == (
+        TYPE_TO_ID[str], TYPE_TO_ID[float], TYPE_TO_ID[float])

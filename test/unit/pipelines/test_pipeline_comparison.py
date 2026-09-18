@@ -42,7 +42,8 @@ def pipeline_second():
     for model_type in ('knn', 'lda'):
         new_node.nodes_from.append(PipelineNode(model_type))
     pipeline = pipeline_first()
-    pipeline.update_subtree(pipeline.root_node.nodes_from[0].nodes_from[1], new_node)
+    pipeline.update_subtree(
+        pipeline.root_node.nodes_from[0].nodes_from[1], new_node)
 
     return pipeline
 

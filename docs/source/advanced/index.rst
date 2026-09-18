@@ -8,6 +8,7 @@ Advanced usage
    automated_pipelines_design
    hyperparameters_tuning
    data_preprocessing
+   sampling_stage
    project_import_export
    pipeline_import_export
    cli_call

@@ -23,8 +23,8 @@ Use FEDOT in automated mode to get pipeline with automatically composed architec
 .. code-block:: python
 
     from fedot.api.main import Fedot
-    from fedot.core.data.data import InputData
-    from fedot.core.data.data_split import train_test_data_setup
+    from fedot.core.data.input_data.data import InputData
+    from fedot.core.data.split.data_split import train_test_data_setup
     from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
     # specify the task and the forecast length (required depth of forecast)
@@ -99,8 +99,8 @@ See how to tune pipeline hyperparameters in :doc:`/advanced/hyperparameters_tuni
 .. code-block:: python
 
     from fedot.api.main import Fedot
-    from fedot.core.data.data import InputData
-    from fedot.core.data.data_split import train_test_data_setup
+    from fedot.core.data.input_data.data import InputData
+    from fedot.core.data.split.data_split import train_test_data_setup
     from fedot.core.pipelines.pipeline_builder import PipelineBuilder
     from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
@@ -190,7 +190,7 @@ Train test split
 To split InputData use ``train_test_data_setup`` method.
 ``split_ratio`` and ``shuffle``, and ``stratify`` are ignored for time-series forecasting.
 
-.. autofunction:: fedot.core.data.data_split.train_test_data_setup
+.. autofunction:: fedot.core.data.split.data_split.train_test_data_setup
 
 The method uses ``forecast_length`` specified in the ``data.task``.
 
@@ -267,8 +267,8 @@ Example of in-sample forecast.
 .. code-block:: python
 
     from fedot.api.main import Fedot
-    from fedot.core.data.data import InputData
-    from fedot.core.data.data_split import train_test_data_setup
+    from fedot.core.data.input_data.data import InputData
+    from fedot.core.data.split.data_split import train_test_data_setup
     from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
     # set task type and forecast length
@@ -356,8 +356,8 @@ Example of forecast with default horizon.
 .. code-block:: python
 
     from fedot.api.main import Fedot
-    from fedot.core.data.data import InputData
-    from fedot.core.data.data_split import train_test_data_setup
+    from fedot.core.data.input_data.data import InputData
+    from fedot.core.data.split.data_split import train_test_data_setup
     from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
     # set task type and forecast length
@@ -436,8 +436,8 @@ to expand training sample - after lagged transformation you get more train/targe
 .. code-block:: python
 
     from fedot.api.main import Fedot
-    from fedot.core.data.data import InputData
-    from fedot.core.data.data_split import train_test_data_setup
+    from fedot.core.data.input_data.data import InputData
+    from fedot.core.data.split.data_split import train_test_data_setup
     from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
     # name of the column with target time-series

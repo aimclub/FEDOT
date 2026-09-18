@@ -6,8 +6,10 @@ from fedot.core.utils import set_random_seed
 
 
 def run_classification_multiobj_example(visualization=False, timeout=1, with_tuning=True):
-    train_data = pd.read_csv(f'{fedot_project_root()}/examples/data/Hill_Valley_with_noise_Training.data')
-    test_data = pd.read_csv(f'{fedot_project_root()}/examples/data/Hill_Valley_with_noise_Testing.data')
+    train_data = pd.read_csv(
+        f'{fedot_project_root()}/examples/data/Hill_Valley_with_noise_Training.data')
+    test_data = pd.read_csv(
+        f'{fedot_project_root()}/examples/data/Hill_Valley_with_noise_Testing.data')
     target = test_data['class']
     del test_data['class']
     problem = 'classification'

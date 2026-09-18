@@ -5,7 +5,7 @@ import numpy as np
 from golem.core.log import default_log
 from golem.utilities.requirements_notificator import warn_requirement
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
@@ -43,7 +43,8 @@ class PretrainedEmbeddingsImplementation(DataOperationImplementation):
         :return output_data: output data with transformed features table
         """
 
-        embed_data = np.stack([self.vectorize_avg(text, self.model) for text in input_data.features])
+        embed_data = np.stack([self.vectorize_avg(text, self.model)
+                              for text in input_data.features])
         output_data = self._convert_to_output(input_data,
                                               embed_data,
                                               data_type=DataTypesEnum.table)
@@ -77,5 +78,7 @@ class PretrainedEmbeddingsImplementation(DataOperationImplementation):
         model_path = api.load(f"{model_name}", return_path=True)
 
         if os.path.exists(model_path):
-            self.logger.info('Embeddings are already downloaded. Loading model...')
-            self.model = KeyedVectors.load_word2vec_format(model_path, binary=False)
+            self.logger.info(
+                'Embeddings are already downloaded. Loading model...')
+            self.model = KeyedVectors.load_word2vec_format(
+                model_path, binary=False)

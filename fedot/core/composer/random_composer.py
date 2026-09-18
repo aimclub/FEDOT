@@ -2,7 +2,7 @@ from golem.core.optimisers.fitness import Fitness
 from golem.core.optimisers.random.random_search import RandomSearchOptimizer
 
 from fedot.core.composer.composer import Composer
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.pipelines.pipeline import Pipeline
 

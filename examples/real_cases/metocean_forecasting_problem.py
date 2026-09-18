@@ -35,7 +35,8 @@ def prepare_input_data(train_file_path, test_file_path, history_size: int = 1000
 def run_metocean_forecasting_problem(train_file_path, test_file_path,
                                      forecast_length=1, visualization=False, timeout=5):
     # Prepare data for train and test
-    ssh_history, ws_history, ssh_obs = prepare_input_data(train_file_path, test_file_path)
+    ssh_history, ws_history, ssh_obs = prepare_input_data(
+        train_file_path, test_file_path)
 
     historical_data = {
         'ws': ws_history,  # additional variable
@@ -43,7 +44,8 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path,
     }
 
     fedot = Fedot(problem='ts_forecasting',
-                  task_params=TsForecastingParams(forecast_length=forecast_length),
+                  task_params=TsForecastingParams(
+                      forecast_length=forecast_length),
                   timeout=timeout, logging_level=logging.FATAL)
 
     pipeline = fedot.fit(features=historical_data, target=ssh_history)

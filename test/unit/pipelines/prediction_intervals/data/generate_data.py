@@ -7,7 +7,7 @@ import pickle
 from numpy import genfromtxt
 
 from fedot.core.repository.tasks import TsForecastingParams, Task, TaskTypesEnum
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot import Fedot
 from fedot.core.repository.dataset_types import DataTypesEnum
 
@@ -19,7 +19,8 @@ fig, ax = plt.subplots()
 ax.plot(range(200), ts_train)
 ax.plot(range(200, 220), ts_test)
 
-task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=20))
+task = Task(TaskTypesEnum.ts_forecasting,
+            TsForecastingParams(forecast_length=20))
 idx = np.array(range(len(np.array(ts_train))))
 train_input = InputData(idx=idx,
                         features=ts_train,

@@ -2,7 +2,7 @@ from typing import Union, List
 
 from golem.core.log import LoggerAdapter
 from golem.core.optimisers.opt_history_objects.individual import Individual
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.ts_wrappers import out_of_sample_ts_forecast
 
@@ -44,11 +44,13 @@ def solver_best_pipelines_quantiles(train_input: InputData,
     elif number_models > number_avaliable_pipelines:
         index_iterations = number_avaliable_pipelines
         if show_progress:
-            logger.info('number_models > number of avaliable pipelines. ' + message)
+            logger.info(
+                'number_models > number of avaliable pipelines. ' + message)
     else:
         index_iterations = number_models
         if show_progress:
-            logger.info(f'{number_models} best pipelines will be used for training.')
+            logger.info(
+                f'{number_models} best pipelines will be used for training.')
 
     for ind in all_pipelines[:index_iterations]:
 
@@ -59,7 +61,8 @@ def solver_best_pipelines_quantiles(train_input: InputData,
             pipeline.show()
 
         pipeline.fit(train_input)
-        preds = out_of_sample_ts_forecast(pipeline=pipeline, input_data=train_input, horizon=horizon)
+        preds = out_of_sample_ts_forecast(
+            pipeline=pipeline, input_data=train_input, horizon=horizon)
         predictions.append(preds)
 
     return predictions

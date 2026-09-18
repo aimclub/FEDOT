@@ -7,7 +7,7 @@ from golem.core.log import default_log
 from golem.core.optimisers.genetic.evaluation import DelegateEvaluator
 from golem.utilities.serializable import Serializable
 
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.remote.infrastructure.clients.client import Client
 from fedot.utilities.pattern_wrappers import singleton
 

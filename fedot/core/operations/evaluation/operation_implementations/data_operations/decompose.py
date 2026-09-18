@@ -3,7 +3,7 @@ from typing import Optional
 import numpy as np
 from sklearn.preprocessing import OneHotEncoder
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
@@ -61,7 +61,8 @@ class DecomposerImplementation(DataOperationImplementation):
             data_parent = features_mask[min_flow_length_i]
 
         # Get prediction from "Model parent"
-        prev_prediction_id = np.ravel(np.argwhere(features_mask == model_parent))
+        prev_prediction_id = np.ravel(
+            np.argwhere(features_mask == model_parent))
         prev_prediction = features[:, prev_prediction_id]
 
         # Get prediction from "Data parent" - it must be the last parent in parent list

@@ -71,7 +71,8 @@ class OperationsCacheDB(BaseCacheDB):
                         self._inc_eff(cur, 'pipelines_hit')
                     self._inc_eff(cur, 'nodes_total', len(uids))
                     self._inc_eff(cur, 'pipelines_total')
-                retrieved = [pickle.loads(x) if x is not None else None for (x,) in retrieved]
+                retrieved = [pickle.loads(
+                    x) if x is not None else None for (x,) in retrieved]
                 return retrieved
 
     def add_operations(self, uid_val_lst: List[Tuple[str, 'IOperation']]):
@@ -94,7 +95,8 @@ class OperationsCacheDB(BaseCacheDB):
                             f'Size: {serialized_size:.2f} bytes (limit: {MAX_BLOB_SIZE} bytes)'
                         )
                     pickled.append((uid, sqlite3.Binary(serialized)))
-                cur.executemany(f'INSERT OR IGNORE INTO {self._main_table} VALUES (?, ?);', pickled)
+                cur.executemany(
+                    f'INSERT OR IGNORE INTO {self._main_table} VALUES (?, ?);', pickled)
 
     def _init_db(self):
         """

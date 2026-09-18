@@ -5,7 +5,7 @@ import numpy as np
 from golem.core.log import default_log, Log
 
 from fedot import Fedot
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.prediction_intervals.params import PredictionIntervalsParams
 from fedot.core.pipelines.prediction_intervals.solvers.best_pipelines_quantiles import solver_best_pipelines_quantiles
 from fedot.core.pipelines.prediction_intervals.solvers.last_generation_quantile_loss import solver_last_generation_ql
@@ -117,8 +117,10 @@ class PredictionIntervals:
                                   low_tuner=params.ql_low_tuner,
                                   logger=self.logger)
 
-    regime_up = {'quantile': 'quantile_up', 'mean': 'mean', 'median': 'median', 'absolute_bounds': 'max'}
-    regime_low = {'quantile': 'quantile_low', 'mean': 'mean', 'median': 'median', 'absolute_bounds': 'min'}
+    regime_up = {'quantile': 'quantile_up', 'mean': 'mean',
+                 'median': 'median', 'absolute_bounds': 'max'}
+    regime_low = {'quantile': 'quantile_low', 'mean': 'mean',
+                  'median': 'median', 'absolute_bounds': 'min'}
 
     def fit(self, train_input: InputData):
         """This method creates several np.arrays that will be used in method 'forecast' to build prediction intervals.
@@ -149,18 +151,22 @@ class PredictionIntervals:
                dictionary of upper and low prediction intervals.
         """
         if not self.is_fitted:
-            raise ValueError('PredictionIntervals instance is not fitted! Fit the instance first.')
+            raise ValueError(
+                'PredictionIntervals instance is not fitted! Fit the instance first.')
 
         if self.method == 'last_generation_ql':
-            quantiles_up = compute_prediction_intervals(self.up_predictions, nominal_error=self.nominal_error)
-            quantiles_low = compute_prediction_intervals(self.low_predictions, nominal_error=self.nominal_error)
+            quantiles_up = compute_prediction_intervals(
+                self.up_predictions, nominal_error=self.nominal_error)
+            quantiles_low = compute_prediction_intervals(
+                self.low_predictions, nominal_error=self.nominal_error)
 
             up_int = quantiles_up[self.regime_up[regime]]
             low_int = quantiles_low[self.regime_low[regime]]
 
         elif self.method in ['best_pipelines_quantiles', 'mutation_of_best_pipeline']:
 
-            quantiles = compute_prediction_intervals(self.all_predictions, nominal_error=self.nominal_error)
+            quantiles = compute_prediction_intervals(
+                self.all_predictions, nominal_error=self.nominal_error)
             up_int = quantiles['quantile_up']
             low_int = quantiles['quantile_low']
 
@@ -197,7 +203,8 @@ class PredictionIntervals:
         """Method for plotting obtained prediction intervals, model forecast and test data."""
 
         if self.is_forecasted is False:
-            raise ValueError('Prediction intervals are not built! Use fit and then forecast methods first.')
+            raise ValueError(
+                'Prediction intervals are not built! Use fit and then forecast methods first.')
 
         plot_prediction_intervals(model_forecast=self.model_forecast,
                                   up_int=self.up_int,
@@ -215,7 +222,8 @@ class PredictionIntervals:
         """Method for plotting prediction intervals built on base quantiles, model forecast and test data."""
 
         if self.base_quantiles_are_computed is False:
-            raise ValueError('Base quantiles are not computed! Use get_base_quantiles method first.')
+            raise ValueError(
+                'Base quantiles are not computed! Use get_base_quantiles method first.')
 
         plot_prediction_intervals(model_forecast=self.model_forecast,
                                   up_int=self.base_quantiles['up'],

@@ -10,7 +10,7 @@ FEDOT's API supports multimodal data from the box. The only thing you need is to
 .. code-block:: python
 
     from fedot.api.main import Fedot
-    from fedot.core.data.data_split import train_test_data_setup
+    from fedot.core.data.split.data_split import train_test_data_setup
     from fedot.core.data.multi_modal import MultiModalData
 
     data = MultiModalData.from_csv(file_path='multimodal_dataset.csv', task='classification', target_columns='target_column',

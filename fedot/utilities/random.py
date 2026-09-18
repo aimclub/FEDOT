@@ -13,11 +13,13 @@ class ImplementationRandomStateHandler(RandomStateHandler):
         self.implementation_old_random_state = None
 
     def __enter__(self):
-        self.implementation_old_random_state = _set_operation_random_seed(self.implementation, self._seed)
+        self.implementation_old_random_state = _set_operation_random_seed(
+            self.implementation, self._seed)
         return super().__enter__()
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
-        _set_operation_random_seed(self.implementation, self.implementation_old_random_state)
+        _set_operation_random_seed(
+            self.implementation, self.implementation_old_random_state)
         return super().__exit__(exc_type, exc_value, exc_traceback)
 
 

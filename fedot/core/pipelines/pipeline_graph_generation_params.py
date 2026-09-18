@@ -14,7 +14,8 @@ from fedot.core.repository.tasks import Task
 
 
 def get_pipeline_generation_params(requirements: Optional[PipelineComposerRequirements] = None,
-                                   rules_for_constraint: Sequence[VerifierRuleType] = tuple(DEFAULT_DAG_RULES),
+                                   rules_for_constraint: Sequence[VerifierRuleType] = tuple(
+                                       DEFAULT_DAG_RULES),
                                    task: Optional[Task] = None) -> GraphGenerationParams:
     if requirements is None and task is not None:
         ops = get_operations_for_task(task)
@@ -22,7 +23,8 @@ def get_pipeline_generation_params(requirements: Optional[PipelineComposerRequir
     else:
         requirements = requirements or PipelineComposerRequirements()
     advisor = PipelineChangeAdvisor(task)
-    node_factory = PipelineOptNodeFactory(requirements, advisor) if requirements else None
+    node_factory = PipelineOptNodeFactory(
+        requirements, advisor) if requirements else None
     adapter = PipelineAdapter()
     verifier = GraphVerifier(rules_for_constraint, adapter)
     random_pipeline_factory = RandomPipelineFactory(verifier, node_factory)

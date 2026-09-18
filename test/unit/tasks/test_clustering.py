@@ -1,6 +1,6 @@
 import numpy as np
 
-from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from test.integration.models.test_split_train_test import get_roc_auc_value, get_synthetic_input_data

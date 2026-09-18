@@ -51,7 +51,8 @@ def generate_so_complex_pipeline():
     node_imp = PipelineNode('simple_imputation')
     node_lagged = PipelineNode('lagged', nodes_from=[node_imp])
     node_ridge = PipelineNode('ridge', nodes_from=[node_lagged])
-    node_decompose = PipelineNode('decompose', nodes_from=[node_lagged, node_ridge])
+    node_decompose = PipelineNode('decompose', nodes_from=[
+                                  node_lagged, node_ridge])
     node_pca = PipelineNode('pca', nodes_from=[node_decompose])
     node_final = PipelineNode('ridge', nodes_from=[node_ridge, node_pca])
     pipeline = Pipeline(node_final)
@@ -132,7 +133,8 @@ def test_pipelines_adapt_properly(pipeline):
 
     opt_graph = adapter.adapt(pipeline)
 
-    assert all(isinstance(node, OptNode) for node in opt_graph.nodes)  # checking strict type equality!
+    assert all(isinstance(node, OptNode)
+               for node in opt_graph.nodes)  # checking strict type equality!
     assert _check_nodes_references_correct(opt_graph)
     assert verifier(opt_graph)
 

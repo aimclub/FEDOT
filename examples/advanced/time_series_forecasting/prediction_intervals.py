@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from fedot import Fedot
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.repository.tasks import TsForecastingParams, Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 
@@ -27,7 +27,8 @@ def build_pred_ints(start=5000, end=7000, horizon=200):
     ax.plot(range(len(ts)), ts)
     ax.plot(range(len(ts), len(ts) + len(ts_test)), ts_test)
 
-    task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=horizon))
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=horizon))
     idx = np.arange(len(ts))
     train_input = InputData(idx=idx,
                             features=ts,
@@ -44,7 +45,8 @@ def build_pred_ints(start=5000, end=7000, horizon=200):
     model.forecast()
 
     # initilize PredictionIntervals instance
-    params = PredictionIntervalsParams(number_mutations=50, show_progress=False, mutations_choice='different')
+    params = PredictionIntervalsParams(
+        number_mutations=50, show_progress=False, mutations_choice='different')
     pred_ints = PredictionIntervals(model=model,
                                     horizon=horizon,
                                     method='mutation_of_best_pipeline',

@@ -12,13 +12,14 @@ from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposer
 from examples.advanced.time_series_forecasting.composing_pipelines import get_available_operations
 from fedot import Fedot
 from fedot.core.composer.composer_builder import ComposerBuilder
+from fedot.core.optimisers.objective.data_source_context import build_internal_composer_data_source_context
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import TsForecastingParams
 from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
-from fedot.core.data.cv_folds import cv_generator
+from fedot.core.data.split.cv_folds import cv_generator
 from test.unit.tasks.test_forecasting import get_simple_ts_pipeline, get_ts_data
 
 log = default_log(prefix=__name__)
@@ -72,7 +73,8 @@ def test_tuner_cv_correct():
 
     simple_pipeline = get_simple_ts_pipeline(window_size=2)
 
-    max_window = int(time_series.features.shape[0] / (folds + 1)) - (forecast_len * validation_blocks) - 1
+    max_window = int(
+        time_series.features.shape[0] / (folds + 1)) - (forecast_len * validation_blocks) - 1
     ppl_ss = PipelineSearchSpace({'lagged': {'window_size': {'hyperopt-dist': hp.uniformint,
                                                              'sampling-scope': [2, max_window],
                                                              'type': 'discrete'}}})
@@ -119,7 +121,10 @@ def test_composer_cv_correct():
         with_metrics(metric_function).with_initial_pipelines([init_pipeline])
     composer = builder.build()
 
-    obtained_pipeline = composer.compose_pipeline(data=time_series)
+    obtained_pipeline = composer.compose_pipeline(
+        data=time_series,
+        data_source_context=build_internal_composer_data_source_context(time_series, cv_folds=2),
+    )
     assert isinstance(obtained_pipeline, Pipeline)
 
 

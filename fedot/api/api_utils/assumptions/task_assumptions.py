@@ -17,13 +17,15 @@ class TaskAssumptions:
     @staticmethod
     def for_task(task: Task, repository: OperationTypesRepository) -> 'TaskAssumptions':
         assumptions_by_task = {
-            TaskTypesEnum.classification: ClassificationAssumptions,
+            TaskTypesEnum.classification: TensorClassificationAssumptions,
             TaskTypesEnum.regression: RegressionAssumptions,
             TaskTypesEnum.ts_forecasting: TSForecastingAssumptions,
         }
-        assumptions_cls: TaskAssumptions = assumptions_by_task.get(task.task_type)
+        assumptions_cls: TaskAssumptions = assumptions_by_task.get(
+            task.task_type)
         if not assumptions_cls:
-            raise NotImplementedError(f"Don't have assumptions for task type: {task.task_type}")
+            raise NotImplementedError(
+                f"Don't have assumptions for task type: {task.task_type}")
         return assumptions_cls(repository)
 
     @abstractmethod
@@ -92,8 +94,8 @@ class RegressionAssumptions(TaskAssumptions):
     def builders(self):
         return {
             'rfr': PipelineBuilder().add_node('rfr'),
-            'ridge': PipelineBuilder().add_node('ridge'),
-            'lgbmreg': PipelineBuilder().add_node('lgbmreg'),
+            # 'ridge': PipelineBuilder().add_node('ridge'),
+            # 'lgbmreg': PipelineBuilder().add_node('lgbmreg'),
         }
 
     def ensemble_operation(self) -> str:
@@ -113,17 +115,36 @@ class ClassificationAssumptions(TaskAssumptions):
     @property
     def builders(self):
         return {
-            'gbm_linear': PipelineBuilder().
-            add_branch('catboost', 'xgboost', 'lgbm').join_branches('logit'),
-            'catboost': PipelineBuilder().add_node('catboost'),
-            'xgboost': PipelineBuilder().add_node('xgboost'),
-            'lgbm': PipelineBuilder().add_node('lgbm'),
+            # 'gbm_linear': PipelineBuilder().
+            # add_branch('catboost', 'xgboost', 'lgbm').join_branches('logit'),
+            # 'catboost': PipelineBuilder().add_node('catboost'),
+            # 'xgboost': PipelineBuilder().add_node('xgboost'),
+            # 'lgbm': PipelineBuilder().add_node('lgbm'),
             'rf': PipelineBuilder().add_node('rf'),
-            'logit': PipelineBuilder().add_node('logit'),
+            # 'logit': PipelineBuilder().add_node('logit'),
         }
 
     def ensemble_operation(self) -> str:
         return 'rf'
+
+    def processing_builders(self) -> List[PipelineBuilder]:
+        return list(self.builders.values())
+
+    def fallback_builder(self, operations_filter: OperationsFilter) -> PipelineBuilder:
+        random_choice_node = operations_filter.sample()
+        return PipelineBuilder().add_node(random_choice_node)
+
+
+class TensorClassificationAssumptions(TaskAssumptions):
+
+    @property
+    def builders(self):
+        return {
+            'torch_linear': PipelineBuilder().add_node('torch_linear'),
+        }
+
+    def ensemble_operation(self) -> str:
+        return 'torch_linear'
 
     def processing_builders(self) -> List[PipelineBuilder]:
         return list(self.builders.values())

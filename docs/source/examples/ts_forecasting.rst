@@ -20,8 +20,8 @@ You also can find another ways of data passing in  `this example <data>`.
 
 .. code-block:: python
 
-    from fedot.core.data.data import InputData
-    from fedot.core.data.data_split import train_test_data_setup
+    from fedot.core.data.input_data.data import InputData
+    from fedot.core.data.split.data_split import train_test_data_setup
     from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
     # specify the task and the forecast length (required depth of forecast)

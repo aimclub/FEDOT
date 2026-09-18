@@ -1,0 +1,440 @@
+from abc import ABC, abstractmethod
+import time
+from copy import deepcopy
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Sequence, Union
+
+import numpy as np
+import pandas as pd
+from golem.core.log import LoggerAdapter, default_log
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.metrics import f1_score, r2_score
+from sklearn.model_selection import train_test_split
+
+from fedot.api.sampling_stage.config import SamplingConfig, validate_sampling_config
+from fedot.api.sampling_stage.providers import SamplingProvider, SamplingZooProvider
+from fedot.core.data.input_data.data import InputData, InputDataList, data_type_is_table
+from fedot.core.pipelines.ensembling.routing import SamplingRoutingContext
+from fedot.core.repository.tasks import TaskTypesEnum
+
+
+@dataclass
+class SamplingStageOutput:
+    """Materialized result of sampling: transformed train data, metadata and optional routing state."""
+
+    train_data: Union[InputData, InputDataList]
+    metadata: Dict[str, Any]
+    elapsed_seconds: float
+    updated_timeout_minutes: Optional[float]
+    routing_context: Optional[SamplingRoutingContext] = None
+
+
+@dataclass(frozen=True)
+class SamplingExecutionContext:
+    config: SamplingConfig
+    provider: SamplingProvider
+    task_type: TaskTypesEnum
+    total_timeout_minutes: Optional[float]
+    train_data: InputData
+    started_at: float
+    budget_seconds: float
+
+
+class SamplingExecutionStrategy(ABC):
+    """Base class for sampling execution strategies with shared execution helpers."""
+
+    @abstractmethod
+    def execute(self, context: SamplingExecutionContext) -> SamplingStageOutput:
+        pass
+
+    def _flatten_target(self, target: Any) -> np.ndarray:
+        values = np.asarray(target)
+        if values.ndim > 1 and values.shape[1] == 1:
+            values = values.reshape(-1)
+        return values
+
+    def _compute_updated_timeout(self,
+                                 elapsed_seconds: float,
+                                 total_timeout_minutes: Optional[float],
+                                 min_automl_time_minutes: float) -> Optional[float]:
+        if total_timeout_minutes is None:
+            return None
+
+        remaining = float(total_timeout_minutes) - elapsed_seconds / 60.0
+        return float(max(min_automl_time_minutes, remaining))
+
+    def _raise_if_budget_exceeded(self, started_at: float, budget_seconds: float) -> None:
+        elapsed = time.perf_counter() - started_at
+        if elapsed > budget_seconds:
+            raise TimeoutError(
+                f'Sampling stage exceeded its dynamic cap: elapsed={elapsed:.2f}s, budget={budget_seconds:.2f}s.'
+            )
+
+
+class SubsetSamplingExecutionStrategy(SamplingExecutionStrategy):
+    def execute(self, context: SamplingExecutionContext) -> SamplingStageOutput:
+        effective_size_result = self._select_effective_ratio(context)
+
+        self._raise_if_budget_exceeded(context.started_at, context.budget_seconds)
+        final_provider_result = context.provider.sample(
+            features=context.train_data.to_dataframe(),
+            target=self._flatten_target(context.train_data.target),
+            strategy=context.config.strategy,
+            strategy_params=context.config.strategy_params,
+            strategy_kind=context.config.strategy_kind,
+            injectable_params={'ratio': effective_size_result['selected_ratio']},
+        )
+
+        selected_indices = self._validate_indices(
+            final_provider_result.sample_indices,
+            upper_bound=len(context.train_data.idx),
+            data_label='full train data',
+        )
+        reduced_data = self._subset_by_positions(context.train_data, selected_indices)
+
+        elapsed_seconds = time.perf_counter() - context.started_at
+        timeout_after_stage = self._compute_updated_timeout(
+            elapsed_seconds, context.total_timeout_minutes, context.config.min_automl_time_minutes
+        )
+        metadata = {
+            'status': 'applied',
+            'provider': context.config.provider,
+            'strategy': context.config.strategy,
+            'selected_ratio': effective_size_result['selected_ratio'],
+            'selected_delta': effective_size_result['selected_delta'],
+            'baseline_score': effective_size_result['baseline_score'],
+            'selected_score': effective_size_result['selected_score'],
+            'rows_before': int(len(context.train_data.idx)),
+            'rows_after': int(len(reduced_data.idx)),
+            'elapsed_seconds': elapsed_seconds,
+            'budget_seconds': context.budget_seconds,
+            'protocol_trials': effective_size_result['trials'],
+            'provider_meta': final_provider_result.meta,
+        }
+        return SamplingStageOutput(
+            train_data=reduced_data,
+            metadata=metadata,
+            elapsed_seconds=elapsed_seconds,
+            updated_timeout_minutes=timeout_after_stage,
+        )
+
+    def _select_effective_ratio(self, context: SamplingExecutionContext) -> Dict[str, Any]:
+        # Subset sampling uses a cheap internal protocol first and only applies the selected ratio
+        # to the full train data after the quality drop stays within the configured threshold.
+        train_split, valid_split = self._split_for_protocol(context.train_data, context)
+        baseline_score = self._score_light_model(train_split, valid_split, context)
+        trials: List[Dict[str, Any]] = []
+        selected_ratio = None
+        selected_delta = None
+        selected_score = None
+
+        for ratio in sorted(context.config.candidate_ratios):
+            self._raise_if_budget_exceeded(context.started_at, context.budget_seconds)
+            provider_result = context.provider.sample(
+                features=train_split.to_dataframe(),
+                target=self._flatten_target(train_split.target),
+                strategy=context.config.strategy,
+                strategy_params=context.config.strategy_params,
+                strategy_kind=context.config.strategy_kind,
+                injectable_params={'ratio': ratio},
+            )
+            candidate_indices = self._validate_indices(
+                provider_result.sample_indices,
+                upper_bound=len(train_split.idx),
+                data_label='train split',
+            )
+            candidate_split = self._subset_by_positions(train_split, candidate_indices)
+            candidate_score = self._score_light_model(candidate_split, valid_split, context)
+            delta = self._calculate_relative_delta(baseline_score, candidate_score)
+
+            trials.append({
+                'ratio': float(ratio),
+                'score': float(candidate_score),
+                'delta': float(delta),
+                'sample_size': int(len(candidate_indices)),
+            })
+
+            if delta <= context.config.delta_metric_threshold:
+                selected_ratio = float(ratio)
+                selected_delta = float(delta)
+                selected_score = float(candidate_score)
+                break
+
+        if selected_ratio is None:
+            raise ValueError(
+                'No candidate ratio satisfied "delta_metric_threshold". '
+                f'Checked ratios: {sorted(context.config.candidate_ratios)}, '
+                f'threshold={context.config.delta_metric_threshold}.'
+            )
+
+        return {
+            'selected_ratio': selected_ratio,
+            'selected_delta': selected_delta,
+            'selected_score': selected_score,
+            'baseline_score': float(baseline_score),
+            'trials': trials,
+        }
+
+    def _split_for_protocol(self,
+                            train_data: InputData,
+                            context: SamplingExecutionContext) -> Sequence[InputData]:
+        indices = np.arange(len(train_data.idx))
+        target = self._flatten_target(train_data.target)
+        stratify_target = target if context.task_type == TaskTypesEnum.classification else None
+        try:
+            train_ids, valid_ids = train_test_split(
+                indices,
+                test_size=context.config.validation_size,
+                random_state=context.config.random_state,
+                stratify=stratify_target,
+            )
+        except ValueError:
+            train_ids, valid_ids = train_test_split(
+                indices,
+                test_size=context.config.validation_size,
+                random_state=context.config.random_state,
+                stratify=None,
+            )
+        return self._subset_by_positions(train_data, train_ids), self._subset_by_positions(train_data, valid_ids)
+
+    def _score_light_model(self,
+                           train_data: InputData,
+                           valid_data: InputData,
+                           context: SamplingExecutionContext) -> float:
+        x_train_df, x_valid_df = self._prepare_feature_matrices(train_data.features, valid_data.features)
+        y_train = self._flatten_target(train_data.target)
+        y_valid = self._flatten_target(valid_data.target)
+
+        if context.task_type == TaskTypesEnum.classification:
+            model = RandomForestClassifier(
+                n_estimators=100,
+                random_state=context.config.random_state,
+                n_jobs=-1,
+            )
+            model.fit(x_train_df, y_train)
+            prediction = model.predict(x_valid_df)
+            return float(f1_score(y_valid, prediction, average='macro'))
+
+        model = RandomForestRegressor(
+            n_estimators=100,
+            random_state=context.config.random_state,
+            n_jobs=1,
+        )
+        model.fit(x_train_df, y_train)
+        prediction = model.predict(x_valid_df)
+        return float(r2_score(y_valid, prediction))
+
+    def _prepare_feature_matrices(self, train_features: Any, valid_features: Any) -> Sequence[pd.DataFrame]:
+        x_train_df = pd.get_dummies(pd.DataFrame(train_features), dummy_na=True)
+        x_valid_df = pd.get_dummies(pd.DataFrame(valid_features), dummy_na=True)
+        x_valid_df = x_valid_df.reindex(columns=x_train_df.columns, fill_value=0)
+        return x_train_df, x_valid_df
+
+    def _calculate_relative_delta(self, baseline_score: float, sampled_score: float) -> float:
+        score_drop = max(0.0, baseline_score - sampled_score)
+        denominator = max(abs(baseline_score), 1e-12)
+        return float(score_drop / denominator)
+
+    def _validate_indices(self, indices: np.ndarray, upper_bound: int, data_label: str) -> np.ndarray:
+        values = np.asarray(indices)
+        if values.ndim != 1:
+            raise ValueError(f'Sampled indices for {data_label} must be a 1D array.')
+        if len(values) == 0:
+            raise ValueError(f'Sampled indices for {data_label} must not be empty.')
+
+        try:
+            values = values.astype(int)
+        except Exception as ex:
+            raise ValueError(f'Sampled indices for {data_label} must be integer-like. Details: {ex}')
+
+        if len(np.unique(values)) != len(values):
+            raise ValueError(f'Sampled indices for {data_label} must be unique.')
+
+        if values.min() < 0 or values.max() >= upper_bound:
+            raise ValueError(
+                f'Sampled indices for {data_label} are out of bounds. '
+                f'Allowed range: [0, {upper_bound - 1}].'
+            )
+
+        return values
+
+    def _subset_by_positions(self, data: InputData, positions: np.ndarray) -> InputData:
+        return data.subset_by_positions(positions)
+
+
+class ChunkingSamplingExecutionStrategy(SamplingExecutionStrategy):
+    def execute(self, context: SamplingExecutionContext) -> SamplingStageOutput:
+        self._raise_if_budget_exceeded(context.started_at, context.budget_seconds)
+        provider_result = context.provider.sample(
+            features=context.train_data.to_dataframe(),
+            target=self._flatten_target(context.train_data.target),
+            strategy=context.config.strategy,
+            strategy_params=context.config.strategy_params,
+            strategy_kind=context.config.strategy_kind,
+            injectable_params=None,
+        )
+
+        partitions = provider_result.partitions
+        chunked_data = self._partitions_to_input_data_list(partitions, context.train_data)
+        routing_context = self._build_routing_context(
+            provider_result=provider_result,
+            partition_names=tuple(str(name) for name in partitions.keys()),
+        )
+        rows_after = sum(len(chunk.idx) for chunk in chunked_data)
+
+        elapsed_seconds = time.perf_counter() - context.started_at
+        timeout_after_stage = self._compute_updated_timeout(
+            elapsed_seconds, context.total_timeout_minutes, context.config.min_automl_time_minutes
+        )
+        metadata = {
+            'status': 'applied',
+            'provider': context.config.provider,
+            'strategy': context.config.strategy,
+            'rows_before': len(context.train_data.idx),
+            'rows_after': rows_after,
+            'elapsed_seconds': elapsed_seconds,
+            'budget_seconds': context.budget_seconds,
+            'n_partitions': len(partitions),
+            'provider_meta': provider_result.meta,
+        }
+        return SamplingStageOutput(
+            train_data=chunked_data,
+            metadata=metadata,
+            elapsed_seconds=elapsed_seconds,
+            updated_timeout_minutes=timeout_after_stage,
+            routing_context=routing_context,
+        )
+
+    def _partitions_to_input_data_list(self,
+                                       partitions: Dict[str, Any],
+                                       original_input_data: InputData) -> InputDataList:
+        input_data_list: InputDataList = []
+
+        for partition_data in partitions.values():
+            x_partition = partition_data['feature']
+            y_partition = partition_data['target']
+
+            if isinstance(x_partition, pd.DataFrame):
+                indices = x_partition.index.values
+                x_values = x_partition.to_numpy()
+            else:
+                indices = np.arange(len(x_partition))
+                x_values = np.asarray(x_partition)
+
+            if isinstance(y_partition, (pd.Series, pd.DataFrame)):
+                y_partition = y_partition.to_numpy()
+
+            categorical_features = None
+            if original_input_data.categorical_idx is not None and len(original_input_data.categorical_idx) > 0:
+                categorical_features = x_values[:, original_input_data.categorical_idx]
+
+            input_data_list.append(InputData(
+                idx=np.asarray(indices),
+                features=x_values,
+                target=y_partition,
+                task=deepcopy(original_input_data.task),
+                data_type=original_input_data.data_type,
+                supplementary_data=original_input_data.supplementary_data,
+                categorical_features=categorical_features,
+                categorical_idx=original_input_data.categorical_idx,
+                numerical_idx=original_input_data.numerical_idx,
+                encoded_idx=original_input_data.encoded_idx,
+                features_names=original_input_data.features_names,
+            ))
+
+        return input_data_list
+
+    def _build_routing_context(self,
+                               provider_result: Any,
+                               partition_names: Sequence[str]) -> Optional[SamplingRoutingContext]:
+        predictor = getattr(provider_result, 'partition_predictor', None)
+        if predictor is None:
+            return None
+        if not callable(getattr(predictor, 'predict_partition_proba', None)) \
+                and not callable(getattr(predictor, 'predict_partitions', None)):
+            return None
+        return SamplingRoutingContext.from_predictor(
+            predictor=predictor,
+            partition_names=partition_names,
+        )
+
+
+class SamplingStageExecutor:
+    _EXECUTION_STRATEGIES = {
+        'chunking': ChunkingSamplingExecutionStrategy,
+        'subset': SubsetSamplingExecutionStrategy,
+    }
+
+    def __init__(self,
+                 sampling_config: Dict[str, Any],
+                 task_type: TaskTypesEnum,
+                 total_timeout_minutes: Optional[float],
+                 log: Optional[LoggerAdapter] = None,
+                 provider: Optional[SamplingProvider] = None):
+        self.config: SamplingConfig = validate_sampling_config(sampling_config)
+        if self.config is None:
+            raise ValueError('Sampling stage config must not be None when executor is created.')
+
+        self.task_type = task_type
+        self.total_timeout_minutes = total_timeout_minutes
+        self.log = log or default_log(self)
+        self.provider = provider or self._create_provider(self.config.provider)
+        strategy_cls = self._EXECUTION_STRATEGIES.get(self.config.strategy_kind)
+        if strategy_cls is None:
+            raise ValueError(f'Unknown strategy_kind: {self.config.strategy_kind}')
+        self.execution_strategy = strategy_cls()
+
+    def execute(self, train_data: InputData) -> SamplingStageOutput:
+        self._validate_task_compatibility(train_data)
+
+        context = SamplingExecutionContext(
+            config=self.config,
+            provider=self.provider,
+            task_type=self.task_type,
+            total_timeout_minutes=self.total_timeout_minutes,
+            train_data=train_data,
+            started_at=time.perf_counter(),
+            budget_seconds=self._compute_budget_seconds(self.config, self.total_timeout_minutes),
+        )
+        return self.execution_strategy.execute(context)
+
+    def _validate_task_compatibility(self, train_data: InputData) -> None:
+        if self.task_type not in (TaskTypesEnum.classification, TaskTypesEnum.regression):
+            raise ValueError('Sampling stage supports only classification/regression tasks in V1.')
+
+        if not isinstance(train_data, InputData):
+            raise ValueError('Sampling stage supports only InputData in V1.')
+
+        if not data_type_is_table(train_data):
+            raise ValueError('Sampling stage supports only tabular InputData in V1.')
+
+        if train_data.target is None:
+            raise ValueError('Sampling stage requires non-empty target in train data.')
+
+        if len(train_data.idx) < 5:
+            raise ValueError('Sampling stage requires at least 5 rows in train data.')
+
+    @staticmethod
+    def _compute_budget_seconds(config: SamplingConfig,
+                                total_timeout_minutes: Optional[float]) -> float:
+        if total_timeout_minutes is None:
+            return float(config.infinite_timeout_cap_minutes * 60)
+
+        total_seconds = float(total_timeout_minutes * 60)
+        max_share_seconds = total_seconds * config.cap_max_timeout_share
+        guaranteed_remaining_seconds = config.min_automl_time_minutes * 60
+        max_by_remaining = max(0.0, total_seconds - guaranteed_remaining_seconds)
+        budget_seconds = min(max_share_seconds, max_by_remaining)
+
+        if budget_seconds <= 0:
+            raise ValueError(
+                'Sampling stage has zero budget due to timeout constraints. '
+                f'Increase timeout or reduce min_automl_time_minutes ({config.min_automl_time_minutes}).'
+            )
+
+        return float(budget_seconds)
+
+    def _create_provider(self, provider_name: str) -> SamplingProvider:
+        if provider_name == 'sampling_zoo':
+            return SamplingZooProvider()
+        raise ValueError(f'Unknown sampling provider: {provider_name}')

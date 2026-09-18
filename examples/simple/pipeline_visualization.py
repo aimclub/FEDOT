@@ -10,7 +10,8 @@ def generate_pipeline() -> Pipeline:
     node_first = PipelineNode('kmeans', nodes_from=[node_scaling])
     node_second = PipelineNode('rf', nodes_from=[node_scaling])
     node_third = PipelineNode('linear', nodes_from=[node_scaling])
-    node_root = PipelineNode('logit', nodes_from=[node_first, node_second, node_third, node_scaling])
+    node_root = PipelineNode('logit', nodes_from=[
+                             node_first, node_second, node_third, node_scaling])
 
     return Pipeline(node_root)
 
@@ -22,7 +23,8 @@ def show_default(pipeline: Pipeline):
 
 def show_customized(pipeline: Pipeline):
     """ Show with adjusted sizes and green nodes. """
-    pipeline.show(node_color='green', edge_curvature_scale=1.2, node_size_scale=2.0, font_size_scale=1.4)
+    pipeline.show(node_color='green', edge_curvature_scale=1.2,
+                  node_size_scale=2.0, font_size_scale=1.4)
 
 
 def show_custom_colors(pipeline: Pipeline):
@@ -70,7 +72,8 @@ def main():
     show_customized(pipeline)
     show_custom_colors(pipeline)
     show_complex_colors(pipeline)
-    show_complex_colors(PipelineBuilder(*pipeline.nodes).add_node('xgboost').build())
+    show_complex_colors(PipelineBuilder(
+        *pipeline.nodes).add_node('xgboost').build())
     show_pyvis(pipeline)
     show_pyvis_custom_colors(pipeline)
     try:

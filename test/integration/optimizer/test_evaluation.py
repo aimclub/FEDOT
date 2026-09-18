@@ -17,8 +17,10 @@ from test.unit.validation.test_table_cv import get_classification_data
 
 def set_up_tests():
     adapter = PipelineAdapter()
-    pipelines = [pipeline_first(), pipeline_second(), pipeline_third(), pipeline_fourth()]
-    population = [Individual(adapter.adapt(pipeline)) for pipeline in pipelines]
+    pipelines = [pipeline_first(), pipeline_second(),
+                 pipeline_third(), pipeline_fourth()]
+    population = [Individual(adapter.adapt(pipeline))
+                  for pipeline in pipelines]
     return adapter, population
 
 
@@ -46,7 +48,8 @@ def test_dispatchers_with_and_without_multiprocessing(dispatcher):
     evaluated_population = evaluator(population)
     fitness = [x.fitness for x in evaluated_population]
     assert all(x.valid for x in fitness), "At least one fitness value is invalid"
-    assert len(population) == len(evaluated_population), "Not all pipelines was evaluated"
+    assert len(population) == len(
+        evaluated_population), "Not all pipelines was evaluated"
 
 
 @pytest.mark.parametrize(
@@ -79,7 +82,8 @@ def test_dispatcher_with_timeout(dispatcher: ObjectiveEvaluationDispatcher):
     fitness = [x.fitness for x in evaluated_population]
     assert all(x.valid for x in fitness), "At least one fitness value is invalid"
     assert len(evaluated_population) >= 1, "At least one pipeline is evaluated"
-    assert len(evaluated_population) < len(population), "Not all pipelines should be evaluated (not enough time)"
+    assert len(evaluated_population) < len(
+        population), "Not all pipelines should be evaluated (not enough time)"
 
     timeout = datetime.timedelta(minutes=5)
     with OptimisationTimer(timeout=timeout) as t:
@@ -87,4 +91,5 @@ def test_dispatcher_with_timeout(dispatcher: ObjectiveEvaluationDispatcher):
         evaluated_population = evaluator(population)
     fitness = [x.fitness for x in evaluated_population]
     assert all(x.valid for x in fitness), "At least one fitness value is invalid"
-    assert len(population) == len(evaluated_population), "Not all pipelines was evaluated"
+    assert len(population) == len(
+        evaluated_population), "Not all pipelines was evaluated"
