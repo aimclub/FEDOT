@@ -1,5 +1,6 @@
 import json
 import logging
+from functools import lru_cache
 import os
 from collections import defaultdict
 from dataclasses import dataclass
@@ -7,6 +8,8 @@ from typing import Dict, List, Optional, TYPE_CHECKING, Union
 
 from golem.core.log import default_log
 
+from fedot.core.operations.evaluation.operation_implementations.data_operations.topological.topological_backend import \
+    TOPOLOGICAL_BACKEND_AVAILABLE
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.json_evaluation import import_enums_from_str, import_strategy_from_str, read_field
 from fedot.core.repository.operation_query import (
@@ -21,12 +24,7 @@ from fedot.core.repository.operation_query import (
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.extensions.operation_rules import get_extension_operation_names, should_include_extensions
 
-EXTRA_TS_INSTALLED = True
-try:
-    from gph import ripser_parallel as ripser
-    dummy_var = ripser  # for pep8
-except ModuleNotFoundError:
-    EXTRA_TS_INSTALLED = False
+EXTRA_TS_INSTALLED = TOPOLOGICAL_BACKEND_AVAILABLE
 
 if TYPE_CHECKING:
     from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
@@ -467,6 +465,39 @@ def get_operations_for_task(task: Optional[Task], data_type: Optional[DataTypesE
     model_types = repo.suitable_operation(task_type, data_type=data_type, tags=tags, forbidden_tags=forbidden_tags,
                                           preset=normalized_preset)
     return model_types
+
+
+def get_all_operations_for_task(task: Optional[Task] = None, mode: str = 'all') -> List[str]:
+    """Function returns aliases of every operation registered for the task.
+
+    Unlike :func:`get_operations_for_task`, the default tag exclusions do not
+    apply, so operations tagged as deprecated, non-default or expensive are
+    included. Use this where the complete universe of operations matters -
+    e.g. to recognise an operation the user requested explicitly - rather
+    than to choose default candidates.
+
+    Args:
+        task: task to solve
+        mode: ``all``, ``model`` or ``data_operation``, as in
+            :func:`get_operations_for_task`
+
+    Returns:
+        list: operation aliases
+    """
+    if mode not in AVAILABLE_REPO_NAMES:
+        raise ValueError(f'Such mode "{mode}" is not supported')
+    task_type = task.task_type if task else None
+    # The verification rules ask for these lists on every checked graph; the
+    # registry is static, so the scan is done once per (task, mode). A copy is
+    # returned to keep the cache safe from mutation by callers.
+    return list(_all_operations_for_task_type(task_type, mode))
+
+
+@lru_cache(maxsize=None)
+def _all_operations_for_task_type(task_type: Optional[TaskTypesEnum], mode: str) -> tuple:
+    repo = OperationTypesRepository(mode)
+    return tuple(sorted(op.id for op in repo.operations
+                        if task_type is None or task_type in op.task_type))
 
 
 def get_operation_type_from_id(operation_id):

@@ -15,6 +15,10 @@ from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 
+class DataMergeError(ValueError):
+    """Raised when outputs of pipeline branches cannot be merged."""
+
+
 class DataMerger:
     """
     Base class for merging a number of OutputData from one or several parent nodes
@@ -37,7 +41,7 @@ class DataMerger:
         idx_list = [np.asarray(output.idx) for output in outputs]
         self.common_indices = find_common_elements(*idx_list)
         if len(self.common_indices) == 0:
-            raise ValueError('There are no common indices for outputs')
+            raise DataMergeError('There are no common indices for outputs')
 
         # Find first output with the main target & resulting task
         self.main_output = DataMerger.find_main_output(outputs)

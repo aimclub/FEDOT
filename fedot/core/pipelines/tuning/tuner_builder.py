@@ -1,6 +1,8 @@
 from datetime import timedelta
 from typing import Iterable, Sequence, Type, Union
 
+import numpy as np
+
 try:
     from golem.core.tuning.iopt_tuner import IOptTuner
 except ModuleNotFoundError:
@@ -125,6 +127,9 @@ class TunerBuilder:
         return tuner
 
     def build(self, tensor_data: TensorData) -> BaseTuner:
+        if self.tuner_class is IOptTuner and not hasattr(np, 'infty'):
+            # iOpt 0.2.22 still uses the alias removed in NumPy 2.0.
+            np.infty = np.inf
         # TODO @artemlunev: refactor data_splitter to use tensor data
         data_splitter = DataSourceSplitter(
             self.cv_folds, validation_blocks=self.validation_blocks)

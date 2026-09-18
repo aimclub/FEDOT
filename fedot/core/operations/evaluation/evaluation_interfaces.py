@@ -5,8 +5,6 @@ from typing import Optional
 
 import numpy as np
 from golem.core.log import default_log
-from lightgbm.sklearn import LGBMClassifier, LGBMRegressor
-from sklearn.cluster import KMeans as SklearnKmeans
 from sklearn.ensemble import (
     AdaBoostRegressor,
     ExtraTreesRegressor,
@@ -26,7 +24,6 @@ from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB, MultinomialNB
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-from xgboost import XGBClassifier, XGBRegressor
 
 from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.data.tensor_data.tensor_data import TensorData
@@ -158,7 +155,6 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
 
             .. details:: possible operations:
 
-                - ``xgbreg``-> XGBRegressor
                 - ``adareg``-> AdaBoostRegressor
                 - ``gbr``-> GradientBoostingRegressor
                 - ``dtreg``-> DecisionTreeRegressor
@@ -169,22 +165,17 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
                 - ``lasso``-> SklearnLassoReg
                 - ``svr``-> SklearnSVR
                 - ``sgdr``-> SklearnSGD
-                - ``lgbmreg``-> LGBMRegressor
-                - ``xgboost``-> XGBClassifier
                 - ``logit``-> SklearnLogReg
                 - ``bernb``-> SklearnBernoulliNB
                 - ``multinb``-> SklearnMultinomialNB
                 - ``dt``-> DecisionTreeClassifier
                 - ``rf``-> RandomForestClassifier
                 - ``mlp``-> MLPClassifier
-                - ``lgbm``-> LGBMClassifier
-                - ``kmeans``-> SklearnKmeans
 
         params: hyperparameters to fit the operation with
     """
 
     _operations_by_types = {
-        'xgbreg': XGBRegressor,
         'adareg': AdaBoostRegressor,
         'gbr': GradientBoostingRegressor,
         'dtreg': DecisionTreeRegressor,
@@ -195,18 +186,13 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'lasso': SklearnLassoReg,
         'svr': SklearnSVR,
         'sgdr': SklearnSGD,
-        'lgbmreg': LGBMRegressor,
 
-        'xgboost': XGBClassifier,
         'logit': SklearnLogReg,
         'bernb': SklearnBernoulliNB,
         'multinb': SklearnMultinomialNB,
         'dt': DecisionTreeClassifier,
         'rf': RandomForestClassifier,
         'mlp': MLPClassifier,
-        'lgbm': LGBMClassifier,
-
-        'kmeans': SklearnKmeans,
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):

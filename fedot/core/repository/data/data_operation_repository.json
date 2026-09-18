@@ -463,7 +463,6 @@
     "ransac_lin_reg": {
       "meta": "regression_preprocessing",
       "presets": [
-        "fast_train",
         "*tree"
       ],
       "tags": [

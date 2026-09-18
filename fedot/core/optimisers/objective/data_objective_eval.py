@@ -10,6 +10,7 @@ from golem.core.optimisers.objective.objective_eval import ObjectiveEvaluate
 
 from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.predictions_cache import PredictionsCache
+from fedot.core.data.merge.data_merger import DataMergeError
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.utilities.debug import is_recording_mode
 from fedot.core.data.tensor_data import TensorData
@@ -67,9 +68,8 @@ class PipelineObjectiveEvaluateWithTensorData(ObjectiveEvaluate[Pipeline]):
             except Exception as ex:
                 self._log.warning(f'Unsuccessful pipeline fit during fitness evaluation. '
                                   f'Skipping the pipeline. Exception <{ex}> on {graph_id}')
-                prepared_pipeline = self.prepare_graph(
-                    graph, train_data, fold_id, self._eval_n_jobs)
-                if is_test_session() and not isinstance(ex, TimeoutError):
+                expected_fit_errors = (TimeoutError, DataMergeError)
+                if is_test_session() and not isinstance(ex, expected_fit_errors):
                     stack_trace = traceback.format_exc()
                     # TODO @romankuklo: refactor this - change with trace in new cache
                     # save_debug_info_for_pipeline(

@@ -89,7 +89,8 @@ class RegRANSACImplementation(FilterImplementation):
                                    input_data.target.squeeze())
                 if self.operation.inlier_mask_.mean() >= self.min_inliers_ratio:
                     return self.operation
-            except ValueError:
+            # LinAlgError does not inherit from ValueError in every supported NumPy version.
+            except (ValueError, np.linalg.LinAlgError):
                 pass
 
             self.log.info(
@@ -97,6 +98,8 @@ class RegRANSACImplementation(FilterImplementation):
             residual_threshold = residual_threshold + residual_threshold_step
             iter_ += 1
 
+        # Do not filter the data if no fit retained a sufficient number of inliers.
+        self.operation.inlier_mask_ = None
         return self.operation
 
 

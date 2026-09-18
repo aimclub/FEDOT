@@ -54,7 +54,7 @@ class OperationsCacheDB(BaseCacheDB):
 
         :return retrieved: list of operations taken from DB table with None where it wasn't present
         """
-        with closing(sqlite3.connect(self.db_path)) as conn:
+        with closing(self.connect()) as conn:
             with conn:
                 cur = conn.cursor()
                 tmp_name = self._create_temp_for_ordered_select(cur, uids)
@@ -81,7 +81,7 @@ class OperationsCacheDB(BaseCacheDB):
 
         :param uid_val_lst: list of pairs (uid -> operation) to be saved
         """
-        with closing(sqlite3.connect(self.db_path)) as conn:
+        with closing(self.connect()) as conn:
             with conn:
                 cur = conn.cursor()
                 pickled = []
@@ -102,7 +102,7 @@ class OperationsCacheDB(BaseCacheDB):
         """
         Initializes DB working table.
         """
-        with closing(sqlite3.connect(self.db_path)) as conn:
+        with closing(self.connect()) as conn:
             with conn:
                 cur = conn.cursor()
                 cur.execute((

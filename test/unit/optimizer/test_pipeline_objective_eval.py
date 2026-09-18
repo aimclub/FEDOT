@@ -172,6 +172,23 @@ def test_pipeline_objective_evaluate_with_time_constraint(classification_dataset
     assert fitness.value is not None
 
 
+def test_pipeline_objective_evaluate_skips_pipeline_with_incompatible_branch_indices(classification_dataset,
+                                                                                     monkeypatch):
+    pipeline = sample_pipeline()
+    data_producer = DataSourceSplitter(cv_folds=None).build(classification_dataset)
+    objective_eval = PipelineObjectiveEvaluate(MetricsObjective(ClassificationMetricsEnum.ROCAUC_penalty),
+                                               data_producer=data_producer)
+
+    def raise_data_merge_error(*args, **kwargs):
+        raise DataMergeError('There are no common indices for outputs')
+
+    monkeypatch.setattr(objective_eval, 'prepare_graph', raise_data_merge_error)
+
+    fitness = objective_eval(pipeline)
+
+    assert not fitness.valid
+
+
 @pytest.mark.parametrize(
     'metrics',
     [[],
