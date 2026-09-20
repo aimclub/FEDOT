@@ -4,7 +4,7 @@ import numpy as np
 
 from fedot.core.data.data import InputData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_filters import \
-    NonLinearRegRANSACImplementation
+    IsolationForestRegImplementation, NonLinearRegRANSACImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -30,3 +30,19 @@ def test_ransac_falls_back_to_unfiltered_data_when_inliers_ratio_is_too_low():
     assert implementation.operation.inlier_mask_ is None
     np.testing.assert_array_equal(transformed_data.idx, data.idx)
     np.testing.assert_array_equal(transformed_data.predict, data.features)
+
+
+def test_isolation_forest_falls_back_to_unfiltered_data_when_no_inliers_found():
+    data = InputData(idx=np.arange(5),
+                     features=np.arange(10).reshape(5, 2),
+                     target=np.arange(5),
+                     task=Task(TaskTypesEnum.regression),
+                     data_type=DataTypesEnum.table)
+    implementation = IsolationForestRegImplementation(OperationParameters())
+    implementation._get_inlier_mask = Mock(return_value=np.zeros(len(data.idx), dtype=bool))
+
+    transformed_data = implementation.transform_for_fit(data)
+
+    np.testing.assert_array_equal(transformed_data.idx, data.idx)
+    np.testing.assert_array_equal(transformed_data.predict, data.features)
+    np.testing.assert_array_equal(transformed_data.target, data.target)

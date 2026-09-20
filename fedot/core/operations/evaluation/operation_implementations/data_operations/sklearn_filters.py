@@ -184,7 +184,14 @@ class IsolationForestRegImplementation(DataOperationImplementation):
         """
         # For fit stage - filter data
         mask = self._get_inlier_mask(input_data)
-        input_data = update_data(input_data, mask)
+        # IsolationForest may classify every sample as an outlier (in particular
+        # for small intermediate datasets).  Passing an empty dataset to the next
+        # pipeline node makes even a single branch impossible to merge.  In that
+        # case filtering is not useful, so preserve the original data.
+        if np.any(mask):
+            input_data = update_data(input_data, mask)
+        else:
+            self.log.info("Isolation Forest found no inliers. Return all objects")
 
         output_data = self._convert_to_output(input_data,
                                               input_data.features)
