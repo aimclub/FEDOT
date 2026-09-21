@@ -1,4 +1,4 @@
-﻿from copy import copy
+from copy import copy
 from typing import Optional
 
 from fedot.api.api_utils.assumptions.assumption_rules import (

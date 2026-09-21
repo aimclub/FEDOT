@@ -1,4 +1,4 @@
-﻿import numpy as np
+import numpy as np
 
 from fedot import Fedot
 from fedot.api.api_utils.api_data import ApiDataProcessor

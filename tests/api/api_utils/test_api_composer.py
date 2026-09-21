@@ -1,4 +1,4 @@
-﻿from contextlib import nullcontext
+from contextlib import nullcontext
 from types import SimpleNamespace
 
 import numpy as np

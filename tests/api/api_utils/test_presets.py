@@ -1,4 +1,4 @@
-﻿import fedot.api.api_utils.presets as presets_module
+import fedot.api.api_utils.presets as presets_module
 from fedot.api.api_utils.presets import OperationsPreset
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 

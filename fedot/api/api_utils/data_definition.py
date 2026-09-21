@@ -1,4 +1,4 @@
-﻿from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod
 from copy import deepcopy
 from os import PathLike
 from typing import Union, Optional

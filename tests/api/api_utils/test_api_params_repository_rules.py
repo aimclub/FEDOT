@@ -1,4 +1,4 @@
-﻿import pytest
+import pytest
 from dataclasses import dataclass
 
 from fedot.api.api_utils.api_params_repository_rules import (

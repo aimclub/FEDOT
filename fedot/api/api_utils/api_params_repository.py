@@ -1,4 +1,4 @@
-﻿import datetime
+import datetime
 from typing import Sequence
 
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum

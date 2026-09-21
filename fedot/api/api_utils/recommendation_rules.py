@@ -1,4 +1,4 @@
-﻿from dataclasses import dataclass
+from dataclasses import dataclass
 from functools import partial
 from inspect import signature
 from typing import Any, Callable, Dict, Iterable, Optional, Sequence

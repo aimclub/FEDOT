@@ -1,4 +1,4 @@
-﻿from dataclasses import dataclass
+from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
 from fedot.core.constants import AUTO_PRESET_NAME, DEFAULT_FORECAST_LENGTH
