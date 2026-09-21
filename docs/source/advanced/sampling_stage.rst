@@ -1,5 +1,5 @@
 Sampling Stage Before AutoML Search
-==================================
+===================================
 
 FEDOT supports an optional ``sampling_stage`` in ``Fedot.fit()``.
 This stage runs before evolutionary pipeline composition and can reduce

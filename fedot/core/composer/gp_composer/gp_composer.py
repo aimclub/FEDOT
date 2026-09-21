@@ -11,9 +11,6 @@ from golem.core.optimisers.optimizer import GraphOptimizer
 from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.composer.composer import Composer
-from fedot.core.optimisers.objective.data_objective_eval import (
-    PipelineObjectiveEvaluateWithTensorData,
-)
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_composer_requirements import (
     PipelineComposerRequirements,
@@ -21,6 +18,9 @@ from fedot.core.pipelines.pipeline_composer_requirements import (
 from fedot.core.composer.schemas import validate_parallelization_mode
 from fedot.core.utils import default_fedot_data_dir
 from fedot.core.optimisers.objective.data_source_context import ComposerTensorDataSourceContext
+from fedot.core.optimisers.objective.data_source_context import build_internal_composer_tensor_data_source_context
+from fedot.core.data.tensor_data import TensorData
+from fedot.core.optimisers.evaluation_hooks import EvaluationRequest, EvolutionHooks, configure_golem_evaluation
 
 
 class GPComposer(Composer):
@@ -37,13 +37,23 @@ class GPComposer(Composer):
     def __init__(self, optimizer: GraphOptimizer,
                  composer_requirements: PipelineComposerRequirements,
                  operations_cache: Optional[OperationsCache] = None,
-                 predictions_cache: Optional[PredictionsCache] = None):
+                 predictions_cache: Optional[PredictionsCache] = None, *,
+                 evolution_hooks: Optional[EvolutionHooks] = None):
         super().__init__(optimizer, composer_requirements)
         self.composer_requirements = composer_requirements
         self.operations_cache: Optional[OperationsCache] = operations_cache
         self.predictions_cache: Optional[PredictionsCache] = predictions_cache
+        self.evolution_hooks = evolution_hooks or EvolutionHooks()
 
         self.best_models: Collection[Pipeline] = ()
+
+    def compose_pipeline(self, data: Union[TensorData, ComposerTensorDataSourceContext]):
+        """Concrete Composer facade for the current TensorData boundary."""
+        if isinstance(data, TensorData):
+            data = build_internal_composer_tensor_data_source_context(data, self.composer_requirements.cv_folds)
+        if not isinstance(data, ComposerTensorDataSourceContext):
+            raise TypeError('compose_pipeline requires TensorData or ComposerTensorDataSourceContext')
+        return self.compose_pipeline_with_tensor_data(data)
 
     def compose_pipeline_with_tensor_data(
         self,
@@ -57,14 +67,18 @@ class GPComposer(Composer):
             n_jobs_for_evaluation = self.composer_requirements.n_jobs
 
         # Define objective function
-        objective_evaluator = PipelineObjectiveEvaluateWithTensorData(
+        hooks = self.evolution_hooks
+        configure_golem_evaluation(self.optimizer, hooks)
+        objective_evaluator = hooks.evaluator_factory(EvaluationRequest(
             objective=self.optimizer.objective,
             data_producer=data_source_context.data_producer,
             time_constraint=self.composer_requirements.max_graph_fit_time,
             operations_cache=self.operations_cache,
             predictions_cache=self.predictions_cache,
             validation_blocks=data_source_context.validation_blocks,
-            eval_n_jobs=n_jobs_for_evaluation)
+            eval_n_jobs=n_jobs_for_evaluation,
+            retry_policy=hooks.retry_policy, validator=hooks.validator,
+            expected_folds=hooks.expected_folds, cache_namespace=hooks.cache_namespace))
         objective_function = objective_evaluator.evaluate
 
         # Define callback for computing intermediate metrics if needed
@@ -73,7 +87,10 @@ class GPComposer(Composer):
                 objective_evaluator.evaluate_intermediate_metrics)
 
         # Finally, run optimization process
-        opt_result = self.optimizer.optimise(objective_function)
+        try:
+            opt_result = self.optimizer.optimise(objective_function)
+        finally:
+            objective_evaluator.clear_results()
 
         best_model, self.best_models = self._convert_opt_results_to_pipeline(
             opt_result)

@@ -61,6 +61,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+test = [
+    "hypothesis>=6,<7",
+]
 docs = [
     "setuptools<81",
     "sphinx==5.3.0",

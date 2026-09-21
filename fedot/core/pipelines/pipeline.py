@@ -17,6 +17,7 @@ from golem.utilities.serializable import Serializable
 from golem.visualisation.graph_viz import NodeColorType
 
 from fedot.core.caching.operations_cache import OperationsCache
+from fedot.core.caching.evaluation_session import PredictionCacheSession
 from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.data.input_data.data import InputData
 from fedot.core.data.multimodal.multi_modal import MultiModalData
@@ -72,23 +73,44 @@ class Pipeline(GraphDelegate, Serializable):
                              predictions_cache: Optional[PredictionsCache] = None,
                              fold_id: Optional[int] = None) -> TensorData:
         """Runs TensorData training process in all pipeline nodes with time limit."""
-        time = int(time.total_seconds())
+        time = time.total_seconds()
+        if time <= 0:
+            raise ValueError('pipeline time limit must be positive')
         process_state_dict = {}
         fitted_operations = []
+        cache_session = PredictionCacheSession(predictions_cache) if predictions_cache is not None else None
+        # func_timeout cannot synchronously stop a native call. A timed worker
+        # must never publish late fitted state into the caller-owned graph.
+        worker_graph = deepcopy(self)
+
+        def fit_owned_graph():
+            try:
+                worker_graph._fit(tensor_data, process_state_dict,
+                                  fitted_operations, cache_session, fold_id)
+            finally:
+                worker_graph.unfit()
+
         try:
             func_timeout.func_timeout(
                 time, copy_context().run,
-                args=(self._fit, tensor_data, process_state_dict,
-                      fitted_operations, predictions_cache, fold_id)
+                args=(fit_owned_graph,)
             )
         except func_timeout.FunctionTimedOut:
             raise TimeoutError(
-                f'Pipeline fitness evaluation time limit is expired (more then {time} seconds)')
-
-        self.computation_time = process_state_dict['computation_time_in_seconds']
-        for node_num, _ in enumerate(self.nodes):
-            self.nodes[node_num].fitted_operation = fitted_operations[node_num]
-        return process_state_dict['train_predicted']
+                f'Pipeline fitness evaluation time limit is expired (more than {time} seconds)') from None
+        else:
+            self.computation_time = process_state_dict['computation_time_in_seconds']
+            for node_num, _ in enumerate(self.nodes):
+                self.nodes[node_num].fitted_operation = fitted_operations[node_num]
+                self.nodes[node_num].parameters = deepcopy(worker_graph.nodes[node_num].parameters)
+            if cache_session is not None:
+                cache_session.commit()
+            return process_state_dict['train_predicted']
+        finally:
+            process_state_dict.clear()
+            fitted_operations.clear()
+            if cache_session is not None:
+                cache_session.close()
 
     # TODO romankuklo: add preprocessing after new features creating
 

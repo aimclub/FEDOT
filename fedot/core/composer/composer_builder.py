@@ -15,6 +15,7 @@ from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
+from fedot.core.optimisers.evaluation_hooks import EvolutionHooks
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
@@ -58,6 +59,13 @@ class ComposerBuilder:
 
         self.operations_cache: Optional[OperationsCache] = None
         self.predictions_cache: Optional[PredictionsCache] = None
+        self.evolution_hooks: Optional[EvolutionHooks] = None
+
+    def with_evolution_hooks(self, hooks: EvolutionHooks):
+        if not isinstance(hooks, EvolutionHooks):
+            raise TypeError('hooks must be EvolutionHooks')
+        self.evolution_hooks = hooks
+        return self
 
     def with_composer(self, composer_cls: Optional[Type[Composer]]):
         if composer_cls is not None:
@@ -158,9 +166,10 @@ class ComposerBuilder:
                                        graph_generation_params=self.graph_generation_params,
                                        graph_optimizer_params=self.optimizer_parameters)
 
+        hook_options = {'evolution_hooks': self.evolution_hooks} if self.evolution_hooks is not None else {}
         composer = self.composer_cls(optimiser,
                                      self.composer_requirements,
                                      self.operations_cache,
-                                     self.predictions_cache)
+                                     self.predictions_cache, **hook_options)
 
         return composer
