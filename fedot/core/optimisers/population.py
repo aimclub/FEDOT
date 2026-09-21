@@ -126,7 +126,7 @@ class ReproductionPolicy:
     required_valid_ratio: float = 1.0
 
     def __post_init__(self):
-        if type(self.seed) is not int or type(self.max_attempts) is not int or self.max_attempts < 1:
+        if not isinstance(self.seed, int) or not isinstance(self.max_attempts, int) or self.max_attempts < 1:
             raise ValueError('seed must be an integer; max_attempts must be positive')
         if isinstance(self.required_valid_ratio, bool) or not isfinite(self.required_valid_ratio) or not (
                 0 < self.required_valid_ratio <= 1):
@@ -205,7 +205,7 @@ class BoundedReproduction:
     def reproduce(self, population: PopulationT, evaluator: EvaluationOperator) -> PopulationT:
         parents = tuple(population)
         target = self.target_size()
-        if type(target) is not int or target < 1:
+        if not isinstance(target, int) or target < 1:
             raise ValueError('population size must be a positive integer')
         required = ceil(target * self.policy.required_valid_ratio)
         collected, seen, steps, duplicate_count = {}, set(), [], 0
