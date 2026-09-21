@@ -50,9 +50,10 @@ class PipelineObjectiveEvaluateWithTensorData(ObjectiveEvaluate[Pipeline]):
                  cache_namespace: str = 'fedot-evaluation-v1',
                  result_cache_size: int = 256):
         super().__init__(objective, eval_n_jobs=eval_n_jobs)
-        if expected_folds is not None and (not isinstance(expected_folds, int) or expected_folds < 1):
+        if expected_folds is not None and (
+                isinstance(expected_folds, bool) or not isinstance(expected_folds, int) or expected_folds < 1):
             raise ValueError('expected_folds must be a positive integer or None')
-        if not isinstance(result_cache_size, int) or result_cache_size < 0:
+        if isinstance(result_cache_size, bool) or not isinstance(result_cache_size, int) or result_cache_size < 0:
             raise ValueError('result_cache_size must be a nonnegative integer')
         if not isinstance(retry_policy, RetryPolicy):
             raise TypeError('retry_policy must be RetryPolicy')

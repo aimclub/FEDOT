@@ -32,3 +32,13 @@ def test_full_evaluation_averages_all_folds_and_rejects_any_missing_fold(values)
 def test_retry_config_never_coerces_invalid_transport_values(kwargs):
     with pytest.raises((TypeError, ValueError)):
         RetryPolicy(**kwargs)
+
+
+@pytest.mark.parametrize('factory', [
+    lambda: FoldRecord(True, (1.0,), 1, 'cache'),
+    lambda: FoldRecord(0, (1.0,), True, 'cache'),
+    lambda: EvaluationComplete('candidate', True, (FoldRecord(0, (1.0,), 1, 'cache'),), ()),
+])
+def test_evaluation_records_reject_boolean_integer_fields(factory):
+    with pytest.raises(ValueError):
+        factory()

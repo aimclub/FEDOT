@@ -63,6 +63,12 @@ def evaluator(folds=2, objective=None, **options):
         lambda: [(data(i), data(i + 10)) for i in range(folds)], **options)
 
 
+@pytest.mark.parametrize('options', [dict(expected_folds=True), dict(result_cache_size=True)])
+def test_evaluator_rejects_boolean_integer_options(options):
+    with pytest.raises(ValueError):
+        evaluator(**options)
+
+
 def test_second_fold_failure_never_returns_partial_fitness():
     graph = RecordingPipeline([None, ValueError('second fold failed')])
     evaluate = evaluator()

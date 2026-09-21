@@ -83,3 +83,8 @@ def test_public_request_factory_applies_retry_and_count_contract():
 def test_builder_rejects_untyped_hook_configuration():
     with pytest.raises(TypeError, match='EvolutionHooks'):
         ComposerBuilder(training_data().task).with_evolution_hooks({'retry': 3})
+
+
+def test_hooks_reject_boolean_fold_count():
+    with pytest.raises(ValueError, match='expected_folds'):
+        EvolutionHooks(expected_folds=True)

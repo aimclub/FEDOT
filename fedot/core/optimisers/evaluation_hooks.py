@@ -80,7 +80,10 @@ class EvolutionHooks:
             raise TypeError('retry_policy must be RetryPolicy')
         if self.reproduction is not None and not isinstance(self.reproduction, ReproductionPolicy):
             raise TypeError('reproduction must be ReproductionPolicy or None')
-        if self.expected_folds is not None and (not isinstance(self.expected_folds, int) or self.expected_folds < 1):
+        if self.expected_folds is not None and (
+                isinstance(self.expected_folds, bool)
+                or not isinstance(self.expected_folds, int)
+                or self.expected_folds < 1):
             raise ValueError('expected_folds must be a positive integer or None')
         if not isinstance(self.cache_namespace, str) or not self.cache_namespace.strip():
             raise ValueError('cache_namespace must be a nonempty string')

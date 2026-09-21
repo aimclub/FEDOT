@@ -1,6 +1,7 @@
 from copy import deepcopy
 import random
 from types import SimpleNamespace
+from unittest.mock import Mock
 
 import numpy as np
 import pytest
@@ -243,3 +244,13 @@ def test_reproduction_accepts_worker_parameter_normalization_by_requested_uid():
 def test_invalid_reproduction_policy_is_rejected(policy):
     with pytest.raises((ValueError, TypeError)):
         ReproductionPolicy(**policy)
+
+
+def test_reproduction_rejects_boolean_plan_and_population_sizes():
+    policy = ReproductionPolicy()
+    with pytest.raises(ValueError, match='invalid reproduction state'):
+        plan_reproduction(policy, False, 1, 1, 0, 1)
+
+    reproduction = BoundedReproduction(Mock(), policy, lambda: True)
+    with pytest.raises(ValueError, match='population size'):
+        reproduction.reproduce([], Mock())

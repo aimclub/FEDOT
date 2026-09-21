@@ -42,7 +42,7 @@ class TensorDataCacheContext:
     backend: str = 'cpu'
 
     def __post_init__(self):
-        if not isinstance(self.fold_id, int) or self.fold_id < 0:
+        if isinstance(self.fold_id, bool) or not isinstance(self.fold_id, int) or self.fold_id < 0:
             raise ValueError('fold_id must be a nonnegative integer')
         for name in ('data_id', 'preparation_id', 'candidate_id', 'namespace', 'backend'):
             if not isinstance(getattr(self, name), str) or not getattr(self, name).strip():

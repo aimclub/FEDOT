@@ -126,7 +126,9 @@ class ReproductionPolicy:
     required_valid_ratio: float = 1.0
 
     def __post_init__(self):
-        if not isinstance(self.seed, int) or not isinstance(self.max_attempts, int) or self.max_attempts < 1:
+        if (isinstance(self.seed, bool) or not isinstance(self.seed, int)
+                or isinstance(self.max_attempts, bool) or not isinstance(self.max_attempts, int)
+                or self.max_attempts < 1):
             raise ValueError('seed must be an integer; max_attempts must be positive')
         if isinstance(self.required_valid_ratio, bool) or not isfinite(self.required_valid_ratio) or not (
                 0 < self.required_valid_ratio <= 1):
@@ -142,7 +144,10 @@ class ReproductionStep:
 
 def plan_reproduction(policy: ReproductionPolicy, generation: int, attempt: int,
                       target_size: int, collected: int, parent_count: int) -> ReproductionStep:
-    if min(generation, collected, parent_count) < 0 or target_size < 1 or not 1 <= attempt <= policy.max_attempts:
+    values = (generation, attempt, target_size, collected, parent_count)
+    if any(isinstance(value, bool) or not isinstance(value, int) for value in values) \
+            or min(generation, collected, parent_count) < 0 or target_size < 1 \
+            or not 1 <= attempt <= policy.max_attempts:
         raise ValueError('invalid reproduction state')
     seed_bytes = f'{policy.seed}:{generation}:{attempt}'.encode('ascii')
     seed = int.from_bytes(sha256(seed_bytes).digest()[:4], 'big')
@@ -205,7 +210,7 @@ class BoundedReproduction:
     def reproduce(self, population: PopulationT, evaluator: EvaluationOperator) -> PopulationT:
         parents = tuple(population)
         target = self.target_size()
-        if not isinstance(target, int) or target < 1:
+        if isinstance(target, bool) or not isinstance(target, int) or target < 1:
             raise ValueError('population size must be a positive integer')
         required = ceil(target * self.policy.required_valid_ratio)
         collected, seen, steps, duplicate_count = {}, set(), [], 0

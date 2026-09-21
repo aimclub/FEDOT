@@ -37,7 +37,7 @@ class RetryPolicy:
     retryable: tuple[FailureKind, ...] = (FailureKind.TRANSIENT,)
 
     def __post_init__(self):
-        if not isinstance(self.max_attempts, int) or self.max_attempts < 1:
+        if isinstance(self.max_attempts, bool) or not isinstance(self.max_attempts, int) or self.max_attempts < 1:
             raise ValueError('max_attempts must be a positive integer')
         if not isinstance(self.retryable, tuple) or any(
                 not isinstance(kind, FailureKind) for kind in self.retryable):
@@ -66,11 +66,9 @@ class FoldRecord:
     cache_key: str
 
     def __post_init__(self):
-        if not isinstance(
-                self.fold_id,
-                int) or not isinstance(
-                self.attempts,
-                int) or self.fold_id < 0 or self.attempts < 1:
+        invalid_type = (isinstance(self.fold_id, bool) or not isinstance(self.fold_id, int)
+                        or isinstance(self.attempts, bool) or not isinstance(self.attempts, int))
+        if invalid_type or self.fold_id < 0 or self.attempts < 1:
             raise ValueError('fold_id and attempts are out of range')
         if not isinstance(self.metrics, tuple) or not self.metrics or not all(map(isfinite, self.metrics)):
             raise ValueError('fold metrics must be a nonempty finite tuple')
@@ -86,7 +84,8 @@ class EvaluationComplete:
     def __post_init__(self):
         if not isinstance(self.folds, tuple) or not isinstance(self.attempts, tuple):
             raise TypeError('folds and attempts must be immutable tuples')
-        if not isinstance(self.expected_folds, int) or self.expected_folds < 1 or tuple(
+        if isinstance(self.expected_folds, bool) or not isinstance(self.expected_folds, int) \
+                or self.expected_folds < 1 or tuple(
                 f.fold_id for f in self.folds) != tuple(range(self.expected_folds)):
             raise ValueError('a complete evaluation must contain every fold exactly once, in order')
         if len({len(f.metrics) for f in self.folds}) != 1:
@@ -108,7 +107,9 @@ class EvaluationIncomplete:
     def __post_init__(self):
         if not isinstance(self.folds, tuple) or not isinstance(self.attempts, tuple):
             raise TypeError('folds and attempts must be immutable tuples')
-        if self.expected_folds < 0 or tuple(f.fold_id for f in self.folds) != tuple(range(len(self.folds))):
+        if isinstance(self.expected_folds, bool) or not isinstance(self.expected_folds, int) \
+                or self.expected_folds < 0 \
+                or tuple(f.fold_id for f in self.folds) != tuple(range(len(self.folds))):
             raise ValueError('incomplete evaluation must contain an ordered successful prefix')
 
 

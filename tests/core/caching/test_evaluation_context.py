@@ -55,6 +55,11 @@ def test_context_dimensions_never_alias(field, value):
     assert first.key != replace(first, **{field: value}).key
 
 
+def test_context_rejects_boolean_fold_id():
+    with pytest.raises(ValueError, match='fold_id'):
+        TensorDataCacheContext('data', 'preparation', True, 'candidate')
+
+
 def test_preparation_snapshot_changes_identity():
     td = create_data(np.array([[1., 2.], [3., 4.]]), target=np.array([0, 1]), use_cache=False)
     changed = deepcopy(td)
