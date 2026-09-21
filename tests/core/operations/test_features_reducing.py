@@ -324,7 +324,13 @@ def test_pca_fit_rejects_too_few_finite_samples(train_td):
     features = train_td.features[:3].clone()
     features[0, 0] = float('nan')
     features[1, 1] = float('nan')
-    data = replace(train_td, features=features, fingerprint=None)
+    data = replace(
+        train_td,
+        features=features,
+        idx=train_td.idx[:3],
+        target=train_td.target[:3],
+        fingerprint=None,
+    )
     impl = PCAImplementation(OperationParameters(n_components=1))
     with pytest.raises(FedotValidationError, match='at least 2 finite samples'):
         impl.fit(data)

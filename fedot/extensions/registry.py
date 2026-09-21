@@ -1,123 +1,89 @@
+"""One context-local registry; scopes publish a complete validated batch."""
 import importlib
-import inspect
-from typing import Any, Dict, Iterable, Tuple
+from collections.abc import Mapping
+from contextlib import contextmanager
+from contextvars import ContextVar
+from dataclasses import replace
+from typing import Iterable, Tuple
 
 from pymonad.either import Left, Right
 from pymonad.maybe import Just, Nothing
 
+from fedot.extensions.call_rules import invoke_factory
 from fedot.extensions.contracts import (
-    ExtensionError,
-    ExtensionManifest,
-    ExternalModelSpec,
-    RegisteredExtension,
+    ExtensionContractError, ExtensionError, ExtensionManifest, RegisteredExtension,
+    unwrap_extension_result,
+)
+from fedot.extensions.registration_rules import plan_registration
+from fedot.extensions.validation import (
+    validate_extension_manifest, validate_external_model_spec, validate_external_transform_spec,
 )
 
-_REGISTERED_EXTENSIONS: Dict[str, ExtensionManifest] = {}
+_REGISTERED_EXTENSIONS = ContextVar('fedot_extensions', default=())
 
 
-def validate_extension_manifest(manifest: Any):
-    if not isinstance(manifest, ExtensionManifest):
-        return Left(ExtensionError(code='invalid_manifest_type',
-                                   message='Extension manifest must be an ExtensionManifest instance.'))
+def _reserved_operation_names():
+    # Read the active catalog without caching scoped extensions in it.
+    from fedot.core.repository.operation_types_repository import OperationTypesRepository
 
-    if not manifest.name.strip():
-        return Left(ExtensionError(code='empty_extension_name',
-                                   message='Extension manifest name must be non-empty.'))
-
-    if not manifest.version.strip():
-        return Left(ExtensionError(code='empty_extension_version',
-                                   message='Extension manifest version must be non-empty.'))
-
-    if not manifest.models:
-        return Left(ExtensionError(code='empty_models',
-                                   message='Extension manifest must expose at least one model.'))
-
-    seen_names = set()
-    for model in manifest.models:
-        model_validation = validate_external_model_spec(model)
-        if model_validation.is_left():
-            return model_validation
-        if model.name in seen_names:
-            return Left(ExtensionError(code='duplicate_model_name',
-                                       message=f'Duplicate model name "{model.name}" in extension manifest.',
-                                       details={'extension': manifest.name}))
-        seen_names.add(model.name)
-
-    return Right(manifest)
+    return tuple(operation.id for operation in OperationTypesRepository('all').operations)
 
 
-def validate_external_model_spec(model: Any):
-    if not isinstance(model, ExternalModelSpec):
-        return Left(ExtensionError(code='invalid_model_spec_type',
-                                   message='External model spec must be an ExternalModelSpec instance.'))
-
-    if not model.name.strip():
-        return Left(ExtensionError(code='empty_model_name',
-                                   message='External model name must be non-empty.'))
-
-    if not callable(model.factory):
-        return Left(ExtensionError(code='invalid_model_factory',
-                                   message=f'Factory for model "{model.name}" must be callable.'))
-
-    if not model.capabilities.tasks:
-        return Left(ExtensionError(code='empty_model_tasks',
-                                   message=f'Model "{model.name}" must declare supported tasks.'))
-
-    if not model.capabilities.data_types:
-        return Left(ExtensionError(code='empty_model_data_types',
-                                   message=f'Model "{model.name}" must declare supported data types.'))
-
-    return Right(model)
+def register_extensions(manifests: Iterable[ExtensionManifest], *, dry_run=False):
+    manifests = tuple(manifests)
+    current = _REGISTERED_EXTENSIONS.get()
+    plan = plan_registration(manifests, current, _reserved_operation_names())
+    if plan.is_left() or dry_run:
+        return plan
+    _REGISTERED_EXTENSIONS.set(current + manifests)
+    return Right(tuple(RegisteredExtension(manifest) for manifest in manifests))
 
 
 def register_extension(manifest: ExtensionManifest):
-    validation = validate_extension_manifest(manifest)
-    if validation.is_left():
-        return validation
+    result = register_extensions((manifest,))
+    return result if result.is_left() else Right(result.value[0])
 
-    if manifest.name in _REGISTERED_EXTENSIONS:
-        return Left(ExtensionError(code='duplicate_extension',
-                                   message=f'Extension "{manifest.name}" is already registered.'))
 
-    _REGISTERED_EXTENSIONS[manifest.name] = manifest
-    return Right(RegisteredExtension(manifest=manifest))
+@contextmanager
+def extension_scope(*manifests: ExtensionManifest):
+    """Inherit visible registrations, reject shadowing, restore on every exit."""
+    token = _REGISTERED_EXTENSIONS.set(_REGISTERED_EXTENSIONS.get())
+    try:
+        registered = unwrap_extension_result(register_extensions(manifests))
+        yield registered
+    finally:
+        _REGISTERED_EXTENSIONS.reset(token)
 
 
 def get_registered_extensions() -> Tuple[RegisteredExtension, ...]:
-    return tuple(RegisteredExtension(manifest=manifest) for manifest in _REGISTERED_EXTENSIONS.values())
+    return tuple(RegisteredExtension(manifest) for manifest in _REGISTERED_EXTENSIONS.get())
 
 
 def get_registered_extension(extension_name: str):
-    manifest = _REGISTERED_EXTENSIONS.get(extension_name)
-    if manifest is None:
-        return Nothing
-    return Just(RegisteredExtension(manifest=manifest))
+    for manifest in _REGISTERED_EXTENSIONS.get():
+        if manifest.name == extension_name:
+            return Just(RegisteredExtension(manifest))
+    return Nothing
 
 
 def clear_extension_registry() -> None:
-    _REGISTERED_EXTENSIONS.clear()
+    _REGISTERED_EXTENSIONS.set(())
 
 
 def load_extension_manifest(module_name: str):
     try:
         module = importlib.import_module(module_name)
-    except Exception as ex:
-        return Left(ExtensionError(code='module_import_failed',
-                                   message=f'Unable to import extension module "{module_name}".',
-                                   details={'exception': str(ex)}))
-
+    except Exception as exc:
+        return Left(ExtensionError('module_import_failed',
+                                   f'Unable to import extension module "{module_name}".', cause=exc))
     manifest = getattr(module, 'FEDOT_EXTENSION_MANIFEST', None)
     if manifest is None:
-        return Left(ExtensionError(code='manifest_not_found',
-                                   message=f'Extension module "{module_name}" must expose FEDOT_EXTENSION_MANIFEST.'))
-
-    if manifest.module is None:
-        manifest = ExtensionManifest(name=manifest.name,
-                                     version=manifest.version,
-                                     models=manifest.models,
-                                     module=module_name,
-                                     description=manifest.description)
-    return validate_extension_manifest(manifest)
+        return Left(ExtensionError('manifest_not_found',
+                                   f'Module "{module_name}" must expose FEDOT_EXTENSION_MANIFEST.'))
+    validation = validate_extension_manifest(manifest)
+    if validation.is_left():
+        return validation
+    return Right(replace(manifest, module=module_name) if manifest.module is None else manifest)
 
 
 def discover_extensions(module_names: Iterable[str]):
@@ -130,37 +96,32 @@ def discover_extensions(module_names: Iterable[str]):
     return Right(tuple(manifests))
 
 
-def smoke_test_extension(manifest: ExtensionManifest):
+def smoke_test_extension(manifest: ExtensionManifest, parameters=None):
+    """Factory smoke only; TensorData pipeline coverage lives in integration tests."""
+    from fedot.extensions.parameter_rules import resolve_extension_params
+
     validation = validate_extension_manifest(manifest)
     if validation.is_left():
         return validation
-
-    for model in manifest.models:
-        signature = inspect.signature(model.factory)
-        positional_required = [
-            parameter for parameter in signature.parameters.values()
-            if parameter.default is inspect._empty
-            and parameter.kind in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)
-        ]
-        if len(positional_required) > 1:
-            return Left(ExtensionError(
-                code='invalid_factory_signature',
-                message=f'Factory for model "{model.name}" must accept zero or one positional argument.',
-                details={'required_args': [
-                    parameter.name for parameter in positional_required]},
-            ))
-
+    prepared = []
+    if parameters is None:
+        parameters = {}
+    if not isinstance(parameters, Mapping) or not all(isinstance(key, str) for key in parameters):
+        return Left(ExtensionError('invalid_parameters', 'Smoke parameters must be an operation-keyed mapping.'))
+    operation_names = {spec.name for spec in manifest.models + manifest.transforms}
+    if set(parameters) - operation_names:
+        return Left(ExtensionError('invalid_parameters', 'Smoke parameters contain an unknown operation.'))
+    for spec in manifest.models + manifest.transforms:
+        params = resolve_extension_params(spec, parameters.get(spec.name))
+        if params.is_left():
+            return params
+        prepared.append((spec, params.value))
+    for spec, params in prepared:
         try:
-            instance = model.factory(None)
-        except TypeError:
-            instance = model.factory()
-        except Exception as ex:
-            return Left(ExtensionError(code='factory_smoke_test_failed',
-                                       message=f'Factory smoke test failed for model "{model.name}".',
-                                       details={'exception': str(ex)}))
-
+            instance = invoke_factory(spec.factory, params, 'factory_smoke_test_failed')
+        except ExtensionContractError as exc:
+            return Left(exc.error)
         if instance is None:
-            return Left(ExtensionError(code='factory_returned_none',
-                                       message=f'Factory for model "{model.name}" returned None.'))
-
+            return Left(ExtensionError('factory_returned_none',
+                                       f'Factory for "{spec.name}" returned None.'))
     return Right(manifest)

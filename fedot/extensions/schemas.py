@@ -18,8 +18,9 @@ def build_hyperparams_schema(hyperparams_schema: ModelHyperparamsSchema) -> Type
     }
     for key in allowed_keys:
         default = hyperparams_schema.defaults.get(key)
-        is_required = key in hyperparams_schema.required and default is None
-        if default is not None:
+        has_default = key in hyperparams_schema.defaults
+        is_required = key in hyperparams_schema.required and not has_default
+        if has_default:
             attrs[key] = fields.Raw(load_default=default, allow_none=True)
         elif is_required:
             attrs[key] = fields.Raw(required=True)

@@ -63,7 +63,7 @@ def test_operation_factory_returns_extension_model_for_registered_operation():
         clear_extension_registry()
 
 
-def test_extension_model_uses_custom_strategy_adapter_for_runtime_init():
+def test_extension_model_uses_tensor_strategy_adapter_for_runtime_init():
     clear_extension_registry()
     register_extension(_make_manifest())
 
@@ -84,8 +84,8 @@ def test_extension_model_uses_custom_strategy_adapter_for_runtime_init():
 
         metadata = model.metadata
 
-        assert strategy.operation_id == 'custom'
-        assert implementation.fitted_model.was_fitted is True
+        assert strategy.operation_id == 'external_factory_model'
+        assert implementation.was_fitted is True
         assert implementation.params.get('alpha') == 2.0
         assert implementation.params.get('beta') == 0.5
         assert metadata.input_types == [DataTypesEnum.table]

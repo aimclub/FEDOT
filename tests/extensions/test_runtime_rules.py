@@ -93,3 +93,21 @@ def test_runtime_rules_return_left_when_required_extension_params_are_missing():
         assert params.monoid[0].details['required'] == ['alpha']
     finally:
         clear_extension_registry()
+
+
+def test_legacy_callback_adapter_still_fits_and_predicts():
+    from fedot.extensions import extension_scope
+
+    with extension_scope(_make_manifest()):
+        params = build_extension_strategy_params('external_runtime_model', {'alpha': 1.0})
+        features = np.ones((4, 2))
+        fitted = params['model_fit'](np.arange(4), features, np.ones(4), params)
+        prediction, output_type = params['model_predict'](fitted, np.arange(4), features, params)
+        assert fitted.was_fitted
+        np.testing.assert_array_equal(prediction, np.zeros(4))
+        assert output_type in ('table', 'tabular')
+
+
+def test_missing_operation_preserves_typed_failure():
+    result = try_build_extension_strategy_params('unregistered_operation')
+    assert result.monoid[0].code == 'operation_not_registered'

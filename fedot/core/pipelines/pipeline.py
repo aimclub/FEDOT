@@ -1,4 +1,5 @@
 from copy import deepcopy
+from contextvars import copy_context
 from datetime import timedelta
 from os import PathLike
 from typing import Dict, List, Optional, Sequence, Tuple, Union
@@ -76,8 +77,8 @@ class Pipeline(GraphDelegate, Serializable):
         fitted_operations = []
         try:
             func_timeout.func_timeout(
-                time, self._fit,
-                args=(tensor_data, process_state_dict,
+                time, copy_context().run,
+                args=(self._fit, tensor_data, process_state_dict,
                       fitted_operations, predictions_cache, fold_id)
             )
         except func_timeout.FunctionTimedOut:

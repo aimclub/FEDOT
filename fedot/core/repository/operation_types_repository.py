@@ -340,6 +340,8 @@ class OperationTypesRepository:
                     data_type=data_type,
                     tags=tags,
                     forbidden_tags=forbidden_tags,
+                    repository_kind=query.repository_kind,
+                    is_full_match=is_full_match,
                 )
             )
 

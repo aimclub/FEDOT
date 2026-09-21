@@ -1,11 +1,13 @@
+from collections.abc import Mapping
 from typing import Any, Dict, Optional, Tuple, Union
 
 from pymonad.either import Left, Right
 
 from fedot.core.operations.operation_parameters import OperationParameters
-from fedot.extensions.contracts import ExtensionError, ExternalModelSpec
+from fedot.extensions.contracts import ExtensionError, ExternalOperationSpec
 from fedot.validation.errors import FedotValidationError
 from fedot.extensions.schemas import validate_extension_hyperparams
+from fedot.extensions.validation import validate_operation_spec
 
 
 RuntimeReservedKeys = ('model_fit', 'model_predict')
@@ -23,8 +25,14 @@ def find_missing_required_params(required: Tuple[str, ...], params: Dict[str, An
     return tuple(param_name for param_name in required if param_name not in params)
 
 
-def resolve_extension_params(model_spec: ExternalModelSpec,
+def resolve_extension_params(model_spec: ExternalOperationSpec,
                              user_params: Optional[Dict[str, Any]] = None):
+    validation = validate_operation_spec(model_spec)
+    if validation.is_left():
+        return validation
+    if user_params is not None and (not isinstance(user_params, Mapping)
+                                    or not all(isinstance(key, str) for key in user_params)):
+        return Left(ExtensionError('invalid_parameters', 'Parameters must be a string-keyed mapping.'))
     normalized_user_params = normalize_extension_user_params(user_params)
     resolved_params = apply_extension_defaults(
         model_spec.hyperparams_schema.defaults, normalized_user_params)

@@ -1,10 +1,11 @@
-﻿from fedot.core.operations.automl import AutoML
+from fedot.core.operations.automl import AutoML
 from fedot.core.operations.data_operation import DataOperation
 from fedot.core.operations.extension_model import ExtensionModel
+from fedot.core.operations.extension_transform import ExtensionTransform
 from fedot.core.operations.model import Model
 from fedot.core.operations.operation import Operation
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operation_type_from_id
-from fedot.extensions.runtime_rules import is_extension_operation_name
+from fedot.extensions.runtime_rules import get_extension_transform_spec, is_extension_operation_name
 
 
 class OperationFactory:
@@ -30,6 +31,8 @@ class OperationFactory:
             operation = Model(operation_type=self.operation_name)
         elif self.operation_type == 'extension_model':
             operation = ExtensionModel(operation_type=self.operation_name)
+        elif self.operation_type == 'extension_transform':
+            operation = ExtensionTransform(operation_type=self.operation_name)
         elif self.operation_type == 'data_operation':
             operation = DataOperation(operation_type=self.operation_name)
         elif self.operation_type == 'automl':
@@ -65,6 +68,8 @@ class OperationFactory:
             operation_type = 'data_operation'
         elif any(operation_name == model.id for model in models_automl):
             operation_type = 'automl'
+        elif get_extension_transform_spec(operation_name) is not None:
+            operation_type = 'extension_transform'
         elif is_extension_operation_name(operation_name):
             operation_type = 'extension_model'
         else:
