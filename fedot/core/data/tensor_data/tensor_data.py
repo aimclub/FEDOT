@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field, fields
+from copy import deepcopy
 import sys
 from typing import Optional, Union, Dict, Any, Tuple
 from fedot.core.data.common.types import IndexType
@@ -10,6 +11,7 @@ import torch
 import logging
 from fedot.core.data.tensor_data.tools import get_device_from_str, tensor_memory_usage, td_values_equal
 from fedot.core.data.common.types import TensorLike
+from fedot.core.data.tensor_data.contracts import PreparationState, validate_runtime_data
 
 logger = logging.getLogger(__name__)
 
@@ -37,8 +39,8 @@ class TensorData:
             normalized to `DataTypesEnum.ts`.
         state: Data processing state, usually `StateEnum.FIT`. It controls whether
             pipeline is fitted or reused for transform-like processing.
-        idx: Sample or feature index metadata. During current creator preprocessing
-            it is initialized from the final feature tensor width.
+        idx: One label per sample on axis 0. Creation preserves labels when rows
+            with missing targets are removed; omitted labels are row positions.
         features: Prepared feature tensor. This field is required. Raw arrays/dataframes/files are read by
             `DataReader`, cleaned, optionally reshaped for time series, transformed
             by obligatory services, converted to `torch.Tensor`, and finally moved
@@ -55,11 +57,10 @@ class TensorData:
             merged with indices used by preprocessing plans.
         numerical_idx: Indices of final feature columns not listed in
             `categorical_idx`.
-        features_names: Source feature names used to resolve string indices such as
-            `target_idx`, `categorical_idx`, and `ts_terms_idx`.
-        idx_mapping: Mapping between original row positions and rows kept after
-            preprocessing. It is created before target extraction and updated by
-            obligatory tabular services.
+        features_names: Names of prepared columns in output order. Source names
+            are retained in `preparation_state.schema` for selector resolution.
+        idx_mapping: Mapping from current feature column to source feature column.
+            This is not a row mapping. Expanded columns may share one source.
         ts_orientation: Time-series layout hint, for example `"long"` or `"wide"`.
         ts_terms_idx: Index/name of the term column for long-format time series.
             It can be normalized or updated during time-series preprocessing.
@@ -106,14 +107,37 @@ class TensorData:
     # hashes
     fingerprint: Optional[str] = None
     trace_uuid: Optional[str] = None
+    preparation_state: Optional[PreparationState] = field(
+        default=None, repr=False, compare=False)
+
+    def __post_init__(self):
+        # Direct construction borrows tensor storage; create_data owns its output
+        # tensors. Mutable metadata is always private to the new container.
+        for name in ('task', 'idx', 'target_idx', 'categorical_idx', 'numerical_idx',
+                     'features_names', 'idx_mapping', 'dataloader_kwargs', 'ts_terms_idx'):
+            value = getattr(self, name)
+            setattr(self, name, value.clone() if isinstance(
+                value, torch.Tensor) else deepcopy(value))
+        self.validate()
+
+    def validate(self):
+        """Check row alignment and tensor devices; return self without mutation."""
+        validate_runtime_data(self)
+        return self
+
+    @property
+    def device(self):
+        """Device owned by prepared tensor storage, independent of Backend()."""
+        return self.features.device if isinstance(self.features, torch.Tensor) else None
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, TensorData):
             return False
 
         return all(
-            td_values_equal(getattr(self, field.name), getattr(other, field.name))
-            for field in fields(self)
+            td_values_equal(getattr(self, field.name),
+                            getattr(other, field.name))
+            for field in fields(self) if field.compare
         )
 
     @property
@@ -161,8 +185,11 @@ class TensorData:
         """
         Move tensor fields to the given device in place.
 
-        This method mutates `features` and `target` when they are torch tensors and
-        returns `self` to support chained calls.
+        This explicitly mutating operation moves features, target, predictions,
+        and tensor row labels together. It does not change the global Backend or
+        the fitted handlers' preparation backend. If a transfer fails, no fields
+        are replaced. Directly constructed tensor storage may alias caller data;
+        create_data results do not share source tensor storage.
 
         Args:
             device (Union[str, torch.device]): Target device, for example `"cpu"`
@@ -172,10 +199,11 @@ class TensorData:
             TensorData: The same instance with tensor fields moved to `device`.
         """
         device = get_device_from_str(device)
-        if isinstance(self.features, torch.Tensor):
-            self.features = self.features.to(device)
-        if self.target is not None:
-            self.target = self.target.to(device)
+        moved = {name: getattr(self, name).to(device)
+                 for name in ('features', 'target', 'predict', 'idx')
+                 if isinstance(getattr(self, name), torch.Tensor)}
+        for name, value in moved.items():
+            setattr(self, name, value)
         return self
 
 

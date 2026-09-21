@@ -123,7 +123,7 @@ def test_normalize_for_hash_converts_supported_runtime_values():
         'tensor': tensor,
     })
 
-    assert normalized['path'] == 'data/file.csv'
+    assert normalized['path'] == str(Path('data/file.csv'))
     assert normalized['method'] == ScalingMethodEnum.standard.value
     assert normalized['features']['shape'] == (2, 2)
     assert normalized['features']['dtype'] == 'int64'
@@ -266,12 +266,14 @@ def test_preprocessing_handler_hash_changes_for_fitted_attributes():
 @pytest.mark.unit
 def test_preprocessing_plan_hash_is_order_sensitive():
     first_step = _make_scaling_step(StandartScaling(), features_idx=[0])
-    second_step = _make_scaling_step(MinMaxNormalization(), features_idx=[1], method=ScalingMethodEnum.min_max)
+    second_step = _make_scaling_step(MinMaxNormalization(), features_idx=[
+                                     1], method=ScalingMethodEnum.min_max)
 
     plan = PreprocessingPlan([first_step, second_step])
     same_plan = PreprocessingPlan([
         _make_scaling_step(StandartScaling(), features_idx=[0]),
-        _make_scaling_step(MinMaxNormalization(), features_idx=[1], method=ScalingMethodEnum.min_max),
+        _make_scaling_step(MinMaxNormalization(), features_idx=[
+                           1], method=ScalingMethodEnum.min_max),
     ])
     reordered_plan = PreprocessingPlan([second_step, first_step])
 
@@ -286,8 +288,10 @@ def test_preprocessing_plan_hash_changes_for_step_configuration_and_implementati
     changed_scaling.scale_values = torch.tensor([10.0])
 
     plan = PreprocessingPlan([_make_scaling_step(scaling, features_idx=[0])])
-    changed_features_idx_plan = PreprocessingPlan([_make_scaling_step(StandartScaling(), features_idx=[1])])
-    changed_state_plan = PreprocessingPlan([_make_scaling_step(changed_scaling, features_idx=[0])])
+    changed_features_idx_plan = PreprocessingPlan(
+        [_make_scaling_step(StandartScaling(), features_idx=[1])])
+    changed_state_plan = PreprocessingPlan(
+        [_make_scaling_step(changed_scaling, features_idx=[0])])
 
     assert Hasher.hash(plan) != Hasher.hash(changed_features_idx_plan)
     assert Hasher.hash(plan) != Hasher.hash(changed_state_plan)

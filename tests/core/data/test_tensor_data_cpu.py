@@ -3,6 +3,7 @@ import pandas as pd
 import pytest
 import torch
 
+import fedot.core.data.reader.ucr_loader as ucr_loader_module
 from fedot.core.backend.backend import Backend
 from fedot.core.data.common.enums import StateEnum
 from fedot.core.data.reader.ucr_loader import TSLoader
@@ -143,12 +144,13 @@ def test_from_tensor():
 
 
 @pytest.mark.integration
-def test_loader():
+def test_loader(tmp_path, monkeypatch):
     """
     Test TensorData creation using UCR dataset loaded via TSLoader, ensuring that both training
     and test datasets are correctly converted into TensorData objects with valid feature
     and target tensors.
     """
+    monkeypatch.setattr(ucr_loader_module, 'PROJECT_PATH', str(tmp_path))
     name = "AbnormalHeartbeat"
     X_train, y_train, X_test, y_test = TSLoader.download_by_url(
         dataset_name=name)

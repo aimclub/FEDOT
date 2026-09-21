@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+import torch
 
 from fedot.core.backend.backend import Backend
 from fedot.core.caching.cacher import Cacher
@@ -51,9 +52,11 @@ def test_tensor_data_creator_normalizes_backend_and_initializes_data_spec(monkey
     the spec through reader/preprocessing/conversion stages.
     """
     backend_calls = []
+    initial_backend = Backend().name
 
     def fake_backend_set(self, name):
         backend_calls.append(name)
+        self.name = name
 
     def fake_read(self, source_data, spec):
         spec.features = source_data['features']
@@ -64,16 +67,19 @@ def test_tensor_data_creator_normalizes_backend_and_initializes_data_spec(monkey
         self.spec.plan_hash = 'plan-test-hash'
         return None
 
-    monkeypatch.setattr(Backend, 'set', fake_backend_set)
+    monkeypatch.setattr(Backend, '_set_backend', fake_backend_set)
     monkeypatch.setattr(DataReader, 'read', fake_read)
     monkeypatch.setattr(TensorDataCreator,
                         'preprocess_data', fake_preprocess_data)
     monkeypatch.setattr(TensorDataCreator, 'to_tensor_data',
-                        lambda self: self.spec)
+                        lambda self: TensorData(
+                            task=self.spec.task, data_type=self.spec.data_type,
+                            state=self.spec.state, features=torch.as_tensor(self.spec.features)))
     monkeypatch.setattr(TensorDataCreator, 'to_backend',
                         lambda self, tensor_data: tensor_data)
     monkeypatch.setattr(Hasher, 'hash', lambda data, **kwargs: 'test-hash')
-    monkeypatch.setattr(Cacher, 'cache_tensor_data', lambda self, **kwargs: None)
+    monkeypatch.setattr(Cacher, 'cache_tensor_data',
+                        lambda self, **kwargs: None)
 
     spec = TensorDataCreator.create(
         {'features': np.array([[1, 2], [3, 4]])},
@@ -82,8 +88,9 @@ def test_tensor_data_creator_normalizes_backend_and_initializes_data_spec(monkey
         state='predict',
     )
 
-    assert backend_calls == ['gpu']
-    assert isinstance(spec, DataSpec)
+    assert backend_calls == ['gpu', initial_backend]
+    assert Backend().name == initial_backend
+    assert isinstance(spec, TensorData)
     assert spec.task.task_type.value == 'classification'
     assert spec.state.value == 'predict'
 

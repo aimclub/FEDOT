@@ -135,7 +135,7 @@ class Pipeline(GraphDelegate, Serializable):
             output_mode, result.task.task_type)
         if postprocess_plan.should_restore_inverse_target_encoding:
             result.predict = ObligatoryService.inverse_transform_target(
-                result.predict, result.trace_uuid)
+                result.predict, result.trace_uuid, result.preparation_state)
         if postprocess_plan.should_flatten_prediction and result.predict is not None:
             result.predict = result.predict.ravel()
         return result
@@ -213,7 +213,8 @@ class Pipeline(GraphDelegate, Serializable):
                 fold_id: Optional[int] = None) -> TensorData:
         validate_pipeline_is_fitted(self.is_fitted)
 
-        modes = resolve_pipeline_predict_modes(output_mode, tensor_data.task.task_type)
+        modes = resolve_pipeline_predict_modes(
+            output_mode, tensor_data.task.task_type)
 
         copied_tensor_data = deepcopy(tensor_data)
 

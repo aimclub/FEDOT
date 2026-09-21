@@ -4,14 +4,13 @@ from typing import List
 
 from fedot.preprocessing.planner.auto_create_step import AUTO_CREATE_STEP_MAPPING
 from fedot.core.data.tensor_data.tensor_data import TensorData
-from fedot.core.data.tensor_data.tools import get_idx_from_features_names
+from fedot.preprocessing.planner.column_selection import resolve_optional_columns
 from fedot.preprocessing.tools.preprocessor_types import (
     PreprocessingStep,
     PreprocessingStepEnum,
     ScalingMethodEnum,
 )
 from fedot.preprocessing.planner.planner import PreprocessingPlan
-from fedot.preprocessing.tools.index_mapping_tools import update_indices
 
 
 logger = logging.getLogger(__name__)
@@ -41,9 +40,8 @@ def get_steps_from_params(data: TensorData, step_name: PreprocessingStepEnum, pa
     """
     steps = []
     for step_params in params:
-        features_idx = get_idx_from_features_names(
-            step_params['features_idx'], data.features_names)
-        features_idx = update_indices(data.idx_mapping, features_idx)
+        features_idx = resolve_optional_columns(
+            data, step_params['features_idx'])
         step = PreprocessingStep(
             step_name, step_params['method'], features_idx)
         if step_params['step_args'] is not None:

@@ -1,3 +1,4 @@
+from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -6,6 +7,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.data.common.enums import StateEnum, TSOrientationEnum
 from fedot.core.data.tensor_data.rules import DEFAULT_DATALOADER_KWARGS, build_load_data_spec_normalization
 from fedot.core.data.common.types import IndexType, TensorLike
+from fedot.core.data.tensor_data.contracts import PreparationState
 
 
 @dataclass
@@ -41,7 +43,7 @@ class DataSpec:
         ts_init_shape: Original time-series shape captured during preprocessing.
         predict: Optional externally provided predictions.
         idx: Optional sample index.
-        idx_mapping: Mapping between original and preprocessed row indices.
+        idx_mapping: Mapping from current feature columns to source columns.
         dataloader_kwargs: Dataloader options merged with defaults.
         delimiter: CSV/TSV delimiter for file inputs.
         max_rows: Optional row limit for file inputs.
@@ -51,7 +53,8 @@ class DataSpec:
             `index_col` is not provided.
     """
 
-    task: Optional[Union[Task, str]] = Task(TaskTypesEnum.classification)
+    task: Optional[Union[Task, str]] = field(
+        default_factory=lambda: Task(TaskTypesEnum.classification))
     data_type: Optional[Union[DataTypesEnum, str]] = DataTypesEnum.tabular
 
     features: TensorLike = None
@@ -84,6 +87,8 @@ class DataSpec:
     possible_idx_keywords: Optional[List[str]] = None
     trace_uuid: Optional[str] = None
     use_cache: bool = True
+    preparation_state: Optional[PreparationState] = field(
+        default=None, repr=False)
 
     def __post_init__(self):
         """
@@ -109,14 +114,17 @@ class DataSpec:
             ts_terms_idx=self.ts_terms_idx,
             features_names=self.features_names,
         )
-        self.task = normalization.task
+        self.task = deepcopy(normalization.task)
         self.state = normalization.state
         self.data_type = normalization.data_type
         self.ts_orientation = normalization.ts_orientation
-        self.embedding_strategy = normalization.embedding_strategy
-        self.dataloader_kwargs = normalization.dataloader_kwargs
+        self.embedding_strategy = deepcopy(normalization.embedding_strategy)
+        self.dataloader_kwargs = deepcopy(normalization.dataloader_kwargs)
         self.target_idx = normalization.target_idx
         self.categorical_idx = normalization.categorical_idx
         self.numerical_idx = normalization.numerical_idx
         self.ts_terms_idx = normalization.ts_terms_idx
         self.features_names = normalization.features_names
+        self.encoding_strategy = deepcopy(self.encoding_strategy)
+        self.custom_strategy = deepcopy(self.custom_strategy)
+        self.idx_mapping = dict(self.idx_mapping)
