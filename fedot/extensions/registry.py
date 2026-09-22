@@ -1,6 +1,8 @@
 """One context-local registry; scopes publish a complete validated batch."""
 from copy import deepcopy
+from hashlib import sha256
 import importlib
+import inspect
 from collections.abc import Mapping
 from contextlib import contextmanager
 from contextvars import ContextVar
@@ -21,6 +23,44 @@ from fedot.extensions.validation import (
 )
 
 _REGISTERED_EXTENSIONS = ContextVar('fedot_extensions', default=())
+
+
+def _factory_identity(factory) -> tuple[str, str, str]:
+    target = inspect.unwrap(factory)
+    module = getattr(target, '__module__', type(target).__module__)
+    qualname = getattr(target, '__qualname__', type(target).__qualname__)
+    try:
+        implementation = inspect.getsource(target).encode('utf-8')
+    except (OSError, TypeError):
+        code = getattr(target, '__code__', None)
+        implementation = code.co_code if code is not None else b''
+    return module, qualname, sha256(implementation).hexdigest()
+
+
+def registered_extensions_identity() -> str:
+    """Return a stable identity for the active extension implementations."""
+    from fedot.core.caching.normalization import stable_hash
+
+    manifests = []
+    for manifest in _REGISTERED_EXTENSIONS.get():
+        manifests.append({
+            'name': manifest.name,
+            'version': manifest.version,
+            'module': manifest.module,
+            'models': tuple({
+                'name': spec.name,
+                'factory': _factory_identity(spec.factory),
+                'capabilities': spec.capabilities,
+                'hyperparams_schema': spec.hyperparams_schema,
+            } for spec in manifest.models),
+            'transforms': tuple({
+                'name': spec.name,
+                'factory': _factory_identity(spec.factory),
+                'capabilities': spec.capabilities,
+                'hyperparams_schema': spec.hyperparams_schema,
+            } for spec in manifest.transforms),
+        })
+    return stable_hash(tuple(manifests), digest_size=32)
 
 
 def _snapshot_manifest(manifest: ExtensionManifest) -> ExtensionManifest:

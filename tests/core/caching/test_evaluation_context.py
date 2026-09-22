@@ -14,6 +14,9 @@ from fedot.core.caching.index_db import CacheIndexDB
 from fedot.core.data.tensor_data import TensorData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.extensions import (
+    ExtensionManifest, ExternalModelSpec, ModelCapabilities, extension_scope,
+)
 from fedot.preprocessing.planner import PreprocessingPlan
 
 
@@ -49,7 +52,8 @@ def test_identity_ignores_derived_trace_fields_and_is_stable_for_copies():
 
 
 @pytest.mark.parametrize('field,value', [('candidate_id', 'other'), ('fold_id', 1), ('namespace', 'new-version'),
-                                         ('preparation_id', 'new-plan'), ('backend', 'other-device'), ('data_id', 'new-data')])
+                                         ('preparation_id', 'new-plan'), ('backend', 'other-device'),
+                                         ('data_id', 'new-data'), ('extensions_id', 'new-extensions')])
 def test_context_dimensions_never_alias(field, value):
     first = context(data())
     assert first.key != replace(first, **{field: value}).key
@@ -65,6 +69,56 @@ def test_preparation_snapshot_changes_identity():
     changed = deepcopy(td)
     changed.preparation_state = replace(td.preparation_state, input_hash='other-training-input')
     assert tensor_data_identity(td) != tensor_data_identity(changed)
+
+
+def _extension_factory_a(_params=None):
+    return object()
+
+
+def _extension_factory_b(_params=None):
+    return {'fitted': False}
+
+
+def _extension_manifest(version, factory=_extension_factory_a):
+
+    return ExtensionManifest(
+        name='cache_identity_extension',
+        version=version,
+        models=(ExternalModelSpec(
+            name='cache_identity_model',
+            factory=factory,
+            capabilities=ModelCapabilities(
+                tasks=(TaskTypesEnum.regression,),
+                data_types=(DataTypesEnum.table,),
+            ),
+        ),),
+    )
+
+
+def test_context_identity_tracks_active_extension_version_and_scope():
+    td = data()
+    baseline = context(td)
+
+    with extension_scope(_extension_manifest('1.0.0')):
+        first = context(td)
+    with extension_scope(_extension_manifest('2.0.0')):
+        second = context(td)
+
+    assert first.extensions_id != second.extensions_id
+    assert first.key != second.key
+    assert context(td) == baseline
+
+
+def test_context_identity_tracks_extension_implementation_without_version_change():
+    td = data()
+
+    with extension_scope(_extension_manifest('1.0.0', _extension_factory_a)):
+        first = context(td)
+    with extension_scope(_extension_manifest('1.0.0', _extension_factory_b)):
+        second = context(td)
+
+    assert first.extensions_id != second.extensions_id
+    assert first.key != second.key
 
 
 def test_scoped_tensor_cache_roundtrip_and_context_miss(isolated_cache_dir):

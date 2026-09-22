@@ -1,9 +1,10 @@
 """Content-complete TensorData identities for evaluation-scoped cache entries."""
-from dataclasses import dataclass, fields
+from dataclasses import dataclass, field, fields
 from hashlib import sha256
 
 from fedot.core.caching.normalization import stable_hash
 from fedot.core.data.tensor_data import TensorData
+from fedot.extensions.registry import registered_extensions_identity
 
 
 def preparation_identity(data: TensorData) -> str:
@@ -40,11 +41,12 @@ class TensorDataCacheContext:
     candidate_id: str
     namespace: str = 'fedot-evaluation-v1'
     backend: str = 'cpu'
+    extensions_id: str = field(default_factory=registered_extensions_identity)
 
     def __post_init__(self):
         if isinstance(self.fold_id, bool) or not isinstance(self.fold_id, int) or self.fold_id < 0:
             raise ValueError('fold_id must be a nonnegative integer')
-        for name in ('data_id', 'preparation_id', 'candidate_id', 'namespace', 'backend'):
+        for name in ('data_id', 'preparation_id', 'candidate_id', 'namespace', 'backend', 'extensions_id'):
             if not isinstance(getattr(self, name), str) or not getattr(self, name).strip():
                 raise ValueError(f'{name} must be a nonempty string')
 
