@@ -99,12 +99,12 @@ class Pipeline(GraphDelegate, Serializable):
             raise TimeoutError(
                 f'Pipeline fitness evaluation time limit is expired (more than {time} seconds)') from None
         else:
+            if cache_session is not None:
+                cache_session.commit()
             self.computation_time = process_state_dict['computation_time_in_seconds']
             for node_num, _ in enumerate(self.nodes):
                 self.nodes[node_num].fitted_operation = fitted_operations[node_num]
                 self.nodes[node_num].parameters = deepcopy(worker_graph.nodes[node_num].parameters)
-            if cache_session is not None:
-                cache_session.commit()
             return process_state_dict['train_predicted']
         finally:
             process_state_dict.clear()

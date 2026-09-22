@@ -62,6 +62,33 @@ def test_timed_worker_releases_owned_state_on_success(monkeypatch):
     graph.unfit()
 
 
+def test_timed_worker_does_not_publish_state_when_cache_commit_fails(monkeypatch):
+    graph = Pipeline(PrimaryNode('torch_linear'))
+    data = TensorData(Task(TaskTypesEnum.regression), DataTypesEnum.table, torch.ones((2, 2)))
+    backend = Mock()
+    backend.save_node_prediction.side_effect = RuntimeError('cache commit failed')
+
+    def fit(self, tensor_data, state, fitted, predictions_cache, fold_id):
+        self.nodes[0].fitted_operation = 'fitted-model'
+        predictions_cache.save_node_prediction('node', 'raw', fold_id, tensor_data)
+        state.update(train_predicted=tensor_data, computation_time_in_seconds=1)
+        fitted.append(self.nodes[0].fitted_operation)
+
+    monkeypatch.setattr(Pipeline, '_fit', fit)
+
+    with pytest.raises(RuntimeError, match='cache commit failed'):
+        graph.fit(
+            data,
+            time_constraint=timedelta(seconds=1),
+            predictions_cache=backend,
+            fold_id=0,
+        )
+
+    assert not graph.is_fitted
+    assert graph.computation_time is None
+    backend.save_node_prediction.assert_called_once()
+
+
 def test_timed_worker_cannot_publish_late_prediction_after_timeout(monkeypatch):
     graph = Pipeline(PrimaryNode('torch_linear'))
     data = TensorData(Task(TaskTypesEnum.regression), DataTypesEnum.table, torch.ones((2, 2)))
