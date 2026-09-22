@@ -1,16 +1,20 @@
 import numpy as np
+import pytest
 
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.extensions.contracts import (
+    ExtensionContractError,
     ExtensionManifest,
     ExternalModelSpec,
     ModelCapabilities,
     ModelHyperparamsSchema,
 )
 from fedot.extensions.registry import clear_extension_registry, register_extension
+from fedot.extensions.runtime_contracts import ModelInput
 from fedot.extensions.runtime_rules import (
     build_extension_strategy_params,
+    fit_model,
     get_extension_data_types,
     get_extension_model_spec,
     get_extension_tensor_data_types,
@@ -27,6 +31,30 @@ class _ExternalEstimator:
     def fit(self, features, target):
         self.was_fitted = True
         return self
+
+    def predict(self, features):
+        return np.zeros(features.shape[0])
+
+
+class _NoneReturningEstimator(_ExternalEstimator):
+    def fit(self, features, target):
+        self.was_fitted = True
+        return None
+
+
+class _FittedEstimator:
+    def predict(self, features):
+        return np.ones(features.shape[0])
+
+
+class _FunctionalEstimator:
+    def fit(self, features, target):
+        return _FittedEstimator()
+
+
+class _InvalidFitEstimator:
+    def fit(self, features, target):
+        return 42
 
     def predict(self, features):
         return np.zeros(features.shape[0])
@@ -52,6 +80,25 @@ def _make_manifest():
                 ),
             ),
         ),
+    )
+
+
+def _model_spec(factory):
+    return ExternalModelSpec(
+        name='fit_contract_model',
+        factory=factory,
+        capabilities=ModelCapabilities(
+            tasks=(TaskTypesEnum.regression,),
+            data_types=(DataTypesEnum.table,),
+        ),
+    )
+
+
+def _model_input():
+    return ModelInput(
+        features=np.ones((4, 2)),
+        target=np.ones(4),
+        idx=np.arange(4),
     )
 
 
@@ -106,6 +153,37 @@ def test_legacy_callback_adapter_still_fits_and_predicts():
         assert fitted.was_fitted
         np.testing.assert_array_equal(prediction, np.zeros(4))
         assert output_type in ('table', 'tabular')
+
+
+@pytest.mark.parametrize('estimator_type', [_ExternalEstimator, _NoneReturningEstimator])
+def test_fit_model_retains_in_place_instance_for_self_or_none(estimator_type):
+    instance = estimator_type()
+
+    fitted = fit_model(_model_spec(lambda: instance), _model_input(), {})
+
+    assert fitted is instance
+    assert fitted.was_fitted is True
+
+
+def test_fit_model_uses_new_functional_fit_result():
+    original = _FunctionalEstimator()
+
+    fitted = fit_model(_model_spec(lambda: original), _model_input(), {})
+
+    assert fitted is not original
+    assert isinstance(fitted, _FittedEstimator)
+    np.testing.assert_array_equal(fitted.predict(np.ones((4, 2))), np.ones(4))
+
+
+def test_fit_model_rejects_invalid_functional_fit_result():
+    with pytest.raises(ExtensionContractError) as error:
+        fit_model(_model_spec(_InvalidFitEstimator), _model_input(), {})
+
+    assert error.value.code == 'invalid_fit_result'
+    assert error.value.error.details == {
+        'expected_methods': ['predict', 'predict_proba'],
+        'result_type': 'int',
+    }
 
 
 def test_missing_operation_preserves_typed_failure():

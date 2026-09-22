@@ -109,9 +109,25 @@ def _call_with_supported_signature(method, *candidate_args):
 
 
 def _fit_instance(instance, data, params):
-    _call_with_supported_signature(
+    fitted = _call_with_supported_signature(
         _method(instance, 'fit'), (data.features, data.target), (data.features,),
         (data.idx, data.features, data.target, params), (data.idx, data.features, data.target))
+    return instance if fitted is None else fitted
+
+
+def _validate_fitted_instance(original, fitted, expected_methods):
+    if any(callable(getattr(fitted, method, None)) for method in expected_methods):
+        return fitted
+    if fitted is original:
+        _method(fitted, expected_methods[0])
+    raise ExtensionContractError(ExtensionError(
+        'invalid_fit_result',
+        'Extension fit returned an object without the required runtime interface.',
+        {
+            'expected_methods': list(expected_methods),
+            'result_type': type(fitted).__name__,
+        },
+    ))
 
 
 def _check_target(spec, data):
@@ -122,10 +138,8 @@ def _check_target(spec, data):
 def fit_model(spec: ExternalModelSpec, data: ModelInput, params) -> ExternalModelImplementation:
     _check_target(spec, data)
     instance = _instantiate_model(spec, params)
-    if not callable(getattr(instance, 'predict', None)):
-        _method(instance, 'predict_proba')
-    _fit_instance(instance, data, params)
-    return instance
+    fitted = _fit_instance(instance, data, params)
+    return _validate_fitted_instance(instance, fitted, ('predict', 'predict_proba'))
 
 
 def _validate_array(value, n_rows, field):
@@ -158,9 +172,10 @@ def predict_model(spec: ExternalModelSpec, instance, data: ModelInput, params,
 def fit_transformer(spec: ExternalTransformSpec, data: TransformInput, params) -> TransformImplementation:
     _check_target(spec, data)
     instance = _instantiate_model(spec, params)
-    _method(instance, 'transform')
     if spec.capabilities.requires_fit:
-        _fit_instance(instance, data, params)
+        fitted = _fit_instance(instance, data, params)
+        return _validate_fitted_instance(instance, fitted, ('transform',))
+    _method(instance, 'transform')
     return instance
 
 
