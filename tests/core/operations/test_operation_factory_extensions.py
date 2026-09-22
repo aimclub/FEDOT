@@ -90,5 +90,6 @@ def test_extension_model_uses_tensor_strategy_adapter_for_runtime_init():
         assert implementation.params.get('beta') == 0.5
         assert metadata.input_types == [DataTypesEnum.table]
         assert metadata.output_types == [DataTypesEnum.table]
+        assert metadata.presets == []
     finally:
         clear_extension_registry()

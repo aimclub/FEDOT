@@ -1,8 +1,13 @@
 from dataclasses import dataclass
-from typing import Iterable, Optional, Sequence, Tuple
+from typing import Optional, Sequence, Tuple
 
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_query import RepositoryKind
+from fedot.core.repository.operation_query import (
+    OperationQuery,
+    RepositoryKind,
+    matches_operation_query,
+    normalize_operation_query,
+)
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.extensions.registry import get_registered_extensions
 from fedot.extensions.contracts import ExternalModelSpec
@@ -15,7 +20,16 @@ class ExtensionOperationView:
     tasks: Tuple[TaskTypesEnum, ...]
     data_types: Tuple[DataTypesEnum, ...]
     tags: Tuple[str, ...]
+    presets: Tuple[str, ...] = ()
     repository_kind: RepositoryKind = RepositoryKind.model
+
+    @property
+    def task_type(self) -> Tuple[TaskTypesEnum, ...]:
+        return self.tasks
+
+    @property
+    def input_types(self) -> Tuple[DataTypesEnum, ...]:
+        return build_extension_data_type_view(self.data_types).input_types
 
 
 def should_include_extensions(repository_kind: RepositoryKind) -> bool:
@@ -31,42 +45,51 @@ def get_extension_operation_views() -> Tuple[ExtensionOperationView, ...]:
                 name=model.name,
                 tasks=tuple(model.capabilities.tasks),
                 data_types=tuple(model.capabilities.data_types),
-                tags=tuple(model.capabilities.tags),
+                tags=tuple(dict.fromkeys(
+                    ('external',) + model.capabilities.tags)),
                 repository_kind=(RepositoryKind.model if isinstance(model, ExternalModelSpec)
                                  else RepositoryKind.data_operation),
             ))
     return tuple(views)
 
 
-def filter_extension_operation_views(task_type: Optional[TaskTypesEnum],
-                                     data_type: Optional[DataTypesEnum],
+def _operation_query(task_type,
+                     data_type,
+                     tags,
+                     forbidden_tags,
+                     repository_kind,
+                     is_full_match) -> OperationQuery:
+    if isinstance(task_type, OperationQuery):
+        return task_type
+    return OperationQuery(
+        repository_kind=repository_kind,
+        task_type=task_type,
+        data_type=data_type,
+        tags=tuple(tags or ()),
+        forbidden_tags=tuple(forbidden_tags or ()),
+        is_full_match=is_full_match,
+    )
+
+
+def filter_extension_operation_views(task_type: Optional[TaskTypesEnum] = None,
+                                     data_type: Optional[DataTypesEnum] = None,
                                      tags: Optional[Sequence[str]] = None,
                                      forbidden_tags: Optional[Sequence[str]] = None,
                                      repository_kind: RepositoryKind = RepositoryKind.all,
                                      is_full_match: bool = False) -> Tuple[ExtensionOperationView, ...]:
-    requested_tags = tuple(tags or ())
-    forbidden = set(forbidden_tags or ())
-    views = []
-    for view in get_extension_operation_views():
-        if repository_kind not in (RepositoryKind.all, view.repository_kind):
-            continue
-        if task_type is not None and task_type not in view.tasks:
-            continue
-        if data_type is not None:
-            requested_type = build_extension_data_type_view((data_type,)).tensor_types[0]
-            if requested_type not in build_extension_data_type_view(view.data_types).tensor_types:
-                continue
-        tag_matches = tuple(tag in view.tags for tag in requested_tags)
-        if requested_tags and not (all(tag_matches) if is_full_match else any(tag_matches)):
-            continue
-        if forbidden and any(tag in forbidden for tag in view.tags):
-            continue
-        views.append(view)
-    return tuple(views)
+    query = _operation_query(
+        task_type, data_type, tags, forbidden_tags, repository_kind, is_full_match)
+    normalized_query = normalize_operation_query(query)
+    return tuple(
+        view
+        for view in get_extension_operation_views()
+        if normalized_query.repository_kind in (RepositoryKind.all, view.repository_kind)
+        and matches_operation_query(view, normalized_query)
+    )
 
 
-def get_extension_operation_names(task_type: Optional[TaskTypesEnum],
-                                  data_type: Optional[DataTypesEnum],
+def get_extension_operation_names(task_type: Optional[TaskTypesEnum] = None,
+                                  data_type: Optional[DataTypesEnum] = None,
                                   tags: Optional[Sequence[str]] = None,
                                   forbidden_tags: Optional[Sequence[str]] = None,
                                   repository_kind: RepositoryKind = RepositoryKind.all,

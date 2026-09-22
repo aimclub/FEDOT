@@ -26,17 +26,21 @@ class ExtensionOperationMixin:
     def metadata(self) -> OperationMetaInfo:
         spec = require_extension_spec(self.operation_type)
         caps = spec.capabilities
-        input_types = list(build_extension_data_type_view(caps.data_types).input_types)
-        output_types = ((caps.output_data_type,) if caps.output_data_type is not None else caps.data_types)
+        input_types = list(build_extension_data_type_view(
+            caps.data_types).input_types)
+        output_types = ((caps.output_data_type,)
+                        if caps.output_data_type is not None else caps.data_types)
         return OperationMetaInfo(
             id=self.operation_type,
             input_types=input_types,
-            output_types=list(build_extension_data_type_view(output_types).input_types),
+            output_types=list(build_extension_data_type_view(
+                output_types).input_types),
             task_type=list(caps.tasks),
-            supported_strategies={task: self.strategy_type for task in caps.tasks},
+            supported_strategies={
+                task: self.strategy_type for task in caps.tasks},
             allowed_positions=['any'],
             tags=list(dict.fromkeys(('external',) + caps.tags)),
-            presets=['best_quality', 'fast_train', 'stable', 'gpu', 'automl', 'ts'],
+            presets=[],
         )
 
 
