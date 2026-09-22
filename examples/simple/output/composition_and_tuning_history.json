@@ -1,0 +1,1604 @@
+{
+  "schema_version": 1,
+  "generations": [
+    {
+      "generation": 0,
+      "label": "initial_assumptions",
+      "metadata": {},
+      "individuals": [
+        {
+          "uid": "770de742-db1a-4104-9962-2f76d3ebcb98",
+          "fitness": [
+            -0.6666666666666666,
+            0.3
+          ],
+          "parent_uids": [],
+          "structure": {
+            "depth": 2,
+            "length": 3,
+            "nodes": [
+              {
+                "uid": "d193654c-5685-4116-ae7a-6c3b9ae72bfb",
+                "operation": "logit",
+                "parent_uids": [
+                  "6a28fa5c-b7e9-4c29-aa0f-d86e8f2be6ab",
+                  "f2d40701-c721-475d-ab06-fc2f22da59f4"
+                ]
+              },
+              {
+                "uid": "6a28fa5c-b7e9-4c29-aa0f-d86e8f2be6ab",
+                "operation": "catboost",
+                "parent_uids": []
+              },
+              {
+                "uid": "f2d40701-c721-475d-ab06-fc2f22da59f4",
+                "operation": "knn",
+                "parent_uids": []
+              }
+            ]
+          },
+          "hyperparameters": [
+            {
+              "node_uid": "d193654c-5685-4116-ae7a-6c3b9ae72bfb",
+              "operation": "logit",
+              "parameters": {}
+            },
+            {
+              "node_uid": "6a28fa5c-b7e9-4c29-aa0f-d86e8f2be6ab",
+              "operation": "catboost",
+              "parameters": {
+                "n_jobs": 1,
+                "num_trees": 3000,
+                "learning_rate": 0.03,
+                "l2_leaf_reg": 0.01,
+                "bootstrap_type": "Bernoulli",
+                "grow_policy": "SymmetricTree",
+                "max_depth": 5,
+                "min_data_in_leaf": 1,
+                "one_hot_max_size": 10,
+                "fold_permutation_block": 1,
+                "boosting_type": "Plain",
+                "od_type": "Iter",
+                "od_wait": 100,
+                "max_bin": 32,
+                "feature_border_type": "GreedyLogSum",
+                "nan_mode": "Min",
+                "verbose": false,
+                "allow_writing_files": false,
+                "use_eval_set": true,
+                "use_best_model": true,
+                "enable_categorical": true
+              }
+            },
+            {
+              "node_uid": "f2d40701-c721-475d-ab06-fc2f22da59f4",
+              "operation": "knn",
+              "parameters": {}
+            }
+          ]
+        },
+        {
+          "uid": "1d5756f7-afe7-499b-ab7f-82d21738a193",
+          "fitness": [
+            -0.6875,
+            0.3
+          ],
+          "parent_uids": [],
+          "structure": {
+            "depth": 2,
+            "length": 3,
+            "nodes": [
+              {
+                "uid": "0488f6c9-6787-4e14-a063-3e8df050827b",
+                "operation": "rf",
+                "parent_uids": [
+                  "18261179-41b3-4f18-910a-802175271ec8",
+                  "6e154e82-77ea-4506-ab6d-29c9990f44cd"
+                ]
+              },
+              {
+                "uid": "18261179-41b3-4f18-910a-802175271ec8",
+                "operation": "xgboost",
+                "parent_uids": []
+              },
+              {
+                "uid": "6e154e82-77ea-4506-ab6d-29c9990f44cd",
+                "operation": "knn",
+                "parent_uids": []
+              }
+            ]
+          },
+          "hyperparameters": [
+            {
+              "node_uid": "0488f6c9-6787-4e14-a063-3e8df050827b",
+              "operation": "rf",
+              "parameters": {
+                "n_jobs": 1
+              }
+            },
+            {
+              "node_uid": "18261179-41b3-4f18-910a-802175271ec8",
+              "operation": "xgboost",
+              "parameters": {
+                "n_jobs": 1,
+                "verbosity": 0,
+                "booster": "gbtree",
+                "tree_method": "auto",
+                "enable_categorical": true,
+                "use_eval_set": true,
+                "early_stopping_rounds": 30
+              }
+            },
+            {
+              "node_uid": "6e154e82-77ea-4506-ab6d-29c9990f44cd",
+              "operation": "knn",
+              "parameters": {}
+            }
+          ]
+        },
+        {
+          "uid": "24cded45-a1ee-4b24-bf2f-442b3de4e48b",
+          "fitness": [
+            -0.6666666666666666,
+            0.3
+          ],
+          "parent_uids": [],
+          "structure": {
+            "depth": 2,
+            "length": 3,
+            "nodes": [
+              {
+                "uid": "d06e922d-028c-471d-ac64-ad97168fcae1",
+                "operation": "catboost",
+                "parent_uids": [
+                  "f352d868-4b5c-4315-83f8-d8833bb862aa",
+                  "6c0f9650-250d-4b14-9d73-9183b0893737"
+                ]
+              },
+              {
+                "uid": "f352d868-4b5c-4315-83f8-d8833bb862aa",
+                "operation": "knn",
+                "parent_uids": []
+              },
+              {
+                "uid": "6c0f9650-250d-4b14-9d73-9183b0893737",
+                "operation": "catboost",
+                "parent_uids": []
+              }
+            ]
+          },
+          "hyperparameters": [
+            {
+              "node_uid": "d06e922d-028c-471d-ac64-ad97168fcae1",
+              "operation": "catboost",
+              "parameters": {
+                "n_jobs": 1,
+                "num_trees": 3000,
+                "learning_rate": 0.03,
+                "l2_leaf_reg": 0.01,
+                "bootstrap_type": "Bernoulli",
+                "grow_policy": "SymmetricTree",
+                "max_depth": 5,
+                "min_data_in_leaf": 1,
+                "one_hot_max_size": 10,
+                "fold_permutation_block": 1,
+                "boosting_type": "Plain",
+                "od_type": "Iter",
+                "od_wait": 100,
+                "max_bin": 32,
+                "feature_border_type": "GreedyLogSum",
+                "nan_mode": "Min",
+                "verbose": false,
+                "allow_writing_files": false,
+                "use_eval_set": true,
+                "use_best_model": true,
+                "enable_categorical": true
+              }
+            },
+            {
+              "node_uid": "f352d868-4b5c-4315-83f8-d8833bb862aa",
+              "operation": "knn",
+              "parameters": {}
+            },
+            {
+              "node_uid": "6c0f9650-250d-4b14-9d73-9183b0893737",
+              "operation": "catboost",
+              "parameters": {
+                "n_jobs": 1,
+                "num_trees": 3000,
+                "learning_rate": 0.03,
+                "l2_leaf_reg": 0.01,
+                "bootstrap_type": "Bernoulli",
+                "grow_policy": "SymmetricTree",
+                "max_depth": 5,
+                "min_data_in_leaf": 1,
+                "one_hot_max_size": 10,
+                "fold_permutation_block": 1,
+                "boosting_type": "Plain",
+                "od_type": "Iter",
+                "od_wait": 100,
+                "max_bin": 32,
+                "feature_border_type": "GreedyLogSum",
+                "nan_mode": "Min",
+                "verbose": false,
+                "allow_writing_files": false,
+                "use_eval_set": true,
+                "use_best_model": true,
+                "enable_categorical": true
+              }
+            }
+          ]
+        },
+        {
+          "uid": "acb262aa-9089-4421-94be-23fac063aa75",
+          "fitness": [
+            -0.6875,
+            0.3
+          ],
+          "parent_uids": [],
+          "structure": {
+            "depth": 2,
+            "length": 3,
+            "nodes": [
+              {
+                "uid": "4d53399a-320a-43c0-b87a-58d0bc439d3e",
+                "operation": "xgboost",
+                "parent_uids": [
+                  "9c753d04-8dca-4f56-8f5f-e5330213757d",
+                  "4718dc83-b752-49c1-92dc-1fc6b1eee49f"
+                ]
+              },
+              {
+                "uid": "9c753d04-8dca-4f56-8f5f-e5330213757d",
+                "operation": "rf",
+                "parent_uids": []
+              },
+              {
+                "uid": "4718dc83-b752-49c1-92dc-1fc6b1eee49f",
+                "operation": "logit",
+                "parent_uids": []
+              }
+            ]
+          },
+          "hyperparameters": [
+            {
+              "node_uid": "4d53399a-320a-43c0-b87a-58d0bc439d3e",
+              "operation": "xgboost",
+              "parameters": {
+                "n_jobs": 1,
+                "verbosity": 0,
+                "booster": "gbtree",
+                "tree_method": "auto",
+                "enable_categorical": true,
+                "use_eval_set": true,
+                "early_stopping_rounds": 30
+              }
+            },
+            {
+              "node_uid": "9c753d04-8dca-4f56-8f5f-e5330213757d",
+              "operation": "rf",
+              "parameters": {
+                "n_jobs": 1
+              }
+            },
+            {
+              "node_uid": "4718dc83-b752-49c1-92dc-1fc6b1eee49f",
+              "operation": "logit",
+              "parameters": {}
+            }
+          ]
+        },
+        {
+          "uid": "d76d2999-4dd0-437a-8f86-025f2bb4ad91",
+          "fitness": [
+            -0.625,
+            0.3
+          ],
+          "parent_uids": [],
+          "structure": {
+            "depth": 2,
+            "length": 3,
+            "nodes": [
+              {
+                "uid": "2ca68b82-83b2-41fd-a9c4-1b55cde39238",
+                "operation": "xgboost",
+                "parent_uids": [
+                  "2d178618-93b8-43de-b0fe-282e48461d18",
+                  "27c12b8c-cb5d-4160-8338-25183adc6cc9"
+                ]
+              },
+              {
+                "uid": "2d178618-93b8-43de-b0fe-282e48461d18",
+                "operation": "lgbm",
+                "parent_uids": []
+              },
+              {
+                "uid": "27c12b8c-cb5d-4160-8338-25183adc6cc9",
+                "operation": "knn",
+                "parent_uids": []
+              }
+            ]
+          },
+          "hyperparameters": [
+            {
+              "node_uid": "2ca68b82-83b2-41fd-a9c4-1b55cde39238",
+              "operation": "xgboost",
+              "parameters": {
+                "n_jobs": 1,
+                "verbosity": 0,
+                "booster": "gbtree",
+                "tree_method": "auto",
+                "enable_categorical": true,
+                "use_eval_set": true,
+                "early_stopping_rounds": 30
+              }
+            },
+            {
+              "node_uid": "2d178618-93b8-43de-b0fe-282e48461d18",
+              "operation": "lgbm",
+              "parameters": {
+                "boosting_type": "gbdt",
+                "max_depth": -1,
+                "bagging_fraction": 0.85,
+                "extra_trees": false,
+                "enable_categorical": true,
+                "use_eval_set": true,
+                "early_stopping_rounds": 30,
+                "n_jobs": 1,
+                "verbose": -1
+              }
+            },
+            {
+              "node_uid": "27c12b8c-cb5d-4160-8338-25183adc6cc9",
+              "operation": "knn",
+              "parameters": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "generation": 1,
+      "label": "",
+      "metadata": {},
+      "individuals": [
+        {
+          "uid": "1d5756f7-afe7-499b-ab7f-82d21738a193",
+          "fitness": [
+            -0.6875,
+            0.3
+          ],
+          "parent_uids": [],
+          "structure": {
+            "depth": 2,
+            "length": 3,
+            "nodes": [
+              {
+                "uid": "0488f6c9-6787-4e14-a063-3e8df050827b",
+                "operation": "rf",
+                "parent_uids": [
+                  "18261179-41b3-4f18-910a-802175271ec8",
+                  "6e154e82-77ea-4506-ab6d-29c9990f44cd"
+                ]
+              },
+              {
+                "uid": "18261179-41b3-4f18-910a-802175271ec8",
+                "operation": "xgboost",
+                "parent_uids": []
+              },
+              {
+                "uid": "6e154e82-77ea-4506-ab6d-29c9990f44cd",
+                "operation": "knn",
+                "parent_uids": []
+              }
+            ]
+          },
+          "hyperparameters": [
+            {
+              "node_uid": "0488f6c9-6787-4e14-a063-3e8df050827b",
+              "operation": "rf",
+              "parameters": {
+                "n_jobs": 1
+              }
+            },
+            {
+              "node_uid": "18261179-41b3-4f18-910a-802175271ec8",
+              "operation": "xgboost",
+              "parameters": {
+                "n_jobs": 1,
+                "verbosity": 0,
+                "booster": "gbtree",
+                "tree_method": "auto",
+                "enable_categorical": true,
+                "use_eval_set": true,
+                "early_stopping_rounds": 30
+              }
+            },
+            {
+              "node_uid": "6e154e82-77ea-4506-ab6d-29c9990f44cd",
+              "operation": "knn",
+              "parameters": {}
+            }
+          ]
+        },
+        {
+          "uid": "614a53eb-dac3-4963-9e8e-1a71832bf1a5",
+          "fitness": [
+            -0.6666666666666666,
+            0.3
+          ],
+          "parent_uids": [
+            "24cded45-a1ee-4b24-bf2f-442b3de4e48b",
+            "acb262aa-9089-4421-94be-23fac063aa75"
+          ],
+          "structure": {
+            "depth": 2,
+            "length": 3,
+            "nodes": [
+              {
+                "uid": "9ba85f3d-9672-4188-98c2-06c531dcd64f",
+                "operation": "catboost",
+                "parent_uids": [
+                  "a57fdabb-d91c-421e-89e8-9b1071a5ca41",
+                  "a1223ad8-7f9e-42b8-a9a9-285613a58908"
+                ]
+              },
+              {
+                "uid": "a57fdabb-d91c-421e-89e8-9b1071a5ca41",
+                "operation": "knn",
+                "parent_uids": []
+              },
+              {
+                "uid": "a1223ad8-7f9e-42b8-a9a9-285613a58908",
+                "operation": "catboost",
+                "parent_uids": []
+              }
+            ]
+          },
+          "hyperparameters": [
+            {
+              "node_uid": "9ba85f3d-9672-4188-98c2-06c531dcd64f",
+              "operation": "catboost",
+              "parameters": {
+                "n_jobs": 1,
+                "num_trees": 3000,
+                "learning_rate": 0.03,
+                "l2_leaf_reg": 0.01,
+                "bootstrap_type": "Bernoulli",
+                "grow_policy": "SymmetricTree",
+                "max_depth": 5,
+                "min_data_in_leaf": 1,
+                "one_hot_max_size": 10,
+                "fold_permutation_block": 1,
+                "boosting_type": "Plain",
+                "od_type": "Iter",
+                "od_wait": 100,
+                "max_bin": 32,
+                "feature_border_type": "GreedyLogSum",
+                "nan_mode": "Min",
+                "verbose": false,
+                "allow_writing_files": false,
+                "use_eval_set": true,
+                "use_best_model": true,
+                "enable_categorical": true
+              }
+            },
+            {
+              "node_uid": "a57fdabb-d91c-421e-89e8-9b1071a5ca41",
+              "operation": "knn",
+              "parameters": {}
+            },
+            {
+              "node_uid": "a1223ad8-7f9e-42b8-a9a9-285613a58908",
+              "operation": "catboost",
+              "parameters": {
+                "n_jobs": 1,
+                "num_trees": 3000,
+                "learning_rate": 0.03,
+                "l2_leaf_reg": 0.01,
+                "bootstrap_type": "Bernoulli",
+                "grow_policy": "SymmetricTree",
+                "max_depth": 5,
+                "min_data_in_leaf": 1,
+                "one_hot_max_size": 10,
+                "fold_permutation_block": 1,
+                "boosting_type": "Plain",
+                "od_type": "Iter",
+                "od_wait": 100,
+                "max_bin": 32,
+                "feature_border_type": "GreedyLogSum",
+                "nan_mode": "Min",
+                "verbose": false,
+                "allow_writing_files": false,
+                "use_eval_set": true,
+                "use_best_model": true,
+                "enable_categorical": true
+              }
+            }
+          ]
+        },
+        {
+          "uid": "5f3dc6f5-ba8f-44f0-817d-0f92044e4896",
+          "fitness": [
+            -0.6875,
+            0.4
+          ],
+          "parent_uids": [
+            "b64d58d2-e4af-4949-908e-152fdcc23f91"
+          ],
+          "structure": {
+            "depth": 3,
+            "length": 4,
+            "nodes": [
+              {
+                "uid": "889859f5-4977-4ada-9ebb-b8dbe8b68d1c",
+                "operation": "rf",
+                "parent_uids": [
+                  "63e5ce36-79f9-4a6a-b4fb-f476dc7098a0",
+                  "62adacc7-ae80-4960-af1b-8972a1773794"
+                ]
+              },
+              {
+                "uid": "63e5ce36-79f9-4a6a-b4fb-f476dc7098a0",
+                "operation": "xgboost",
+                "parent_uids": []
+              },
+              {
+                "uid": "62adacc7-ae80-4960-af1b-8972a1773794",
+                "operation": "logit",
+                "parent_uids": [
+                  "70eeb58b-b130-49ea-ae03-b3c592e3af95"
+                ]
+              },
+              {
+                "uid": "70eeb58b-b130-49ea-ae03-b3c592e3af95",
+                "operation": "knn",
+                "parent_uids": []
+              }
+            ]
+          },
+          "hyperparameters": [
+            {
+              "node_uid": "889859f5-4977-4ada-9ebb-b8dbe8b68d1c",
+              "operation": "rf",
+              "parameters": {
+                "n_jobs": 1
+              }
+            },
+            {
+              "node_uid": "63e5ce36-79f9-4a6a-b4fb-f476dc7098a0",
+              "operation": "xgboost",
+              "parameters": {
+                "n_jobs": 1,
+                "verbosity": 0,
+                "booster": "gbtree",
+                "tree_method": "auto",
+                "enable_categorical": true,
+                "use_eval_set": true,
+                "early_stopping_rounds": 30
+              }
+            },
+            {
+              "node_uid": "62adacc7-ae80-4960-af1b-8972a1773794",
+              "operation": "logit",
+              "parameters": {}
+            },
+            {
+              "node_uid": "70eeb58b-b130-49ea-ae03-b3c592e3af95",
+              "operation": "knn",
+              "parameters": {}
+            }
+          ]
+        },
+        {
+          "uid": "14b97803-f50f-42a1-bc47-67e9785861cc",
+          "fitness": [
+            -0.7083333333333334,
+            0.3
+          ],
+          "parent_uids": [
+            "a1a0819f-d5ac-4807-a412-563f0b5f4a4b"
+          ],
+          "structure": {
+            "depth": 2,
+            "length": 3,
+            "nodes": [
+              {
+                "uid": "f917b469-9374-4bc1-94ca-479d6641ad48",
+                "operation": "rf",
+                "parent_uids": [
+                  "d2f72ad8-0ab0-4154-9207-746b162ff7b3",
+                  "da6987d0-18f7-4584-91c7-b4cde3660e0c"
+                ]
+              },
+              {
+                "uid": "d2f72ad8-0ab0-4154-9207-746b162ff7b3",
+                "operation": "catboost",
+                "parent_uids": []
+              },
+              {
+                "uid": "da6987d0-18f7-4584-91c7-b4cde3660e0c",
+                "operation": "lgbm",
+                "parent_uids": []
+              }
+            ]
+          },
+          "hyperparameters": [
+            {
+              "node_uid": "f917b469-9374-4bc1-94ca-479d6641ad48",
+              "operation": "rf",
+              "parameters": {
+                "n_jobs": 1
+              }
+            },
+            {
+              "node_uid": "d2f72ad8-0ab0-4154-9207-746b162ff7b3",
+              "operation": "catboost",
+              "parameters": {
+                "n_jobs": 1,
+                "num_trees": 3000,
+                "learning_rate": 0.03,
+                "l2_leaf_reg": 0.01,
+                "bootstrap_type": "Bernoulli",
+                "grow_policy": "SymmetricTree",
+                "max_depth": 5,
+                "min_data_in_leaf": 1,
+                "one_hot_max_size": 10,
+                "fold_permutation_block": 1,
+                "boosting_type": "Plain",
+                "od_type": "Iter",
+                "od_wait": 100,
+                "max_bin": 32,
+                "feature_border_type": "GreedyLogSum",
+                "nan_mode": "Min",
+                "verbose": false,
+                "allow_writing_files": false,
+                "use_eval_set": true,
+                "use_best_model": true,
+                "enable_categorical": true
+              }
+            },
+            {
+              "node_uid": "da6987d0-18f7-4584-91c7-b4cde3660e0c",
+              "operation": "lgbm",
+              "parameters": {
+                "boosting_type": "gbdt",
+                "max_depth": -1,
+                "bagging_fraction": 0.85,
+                "extra_trees": false,
+                "enable_categorical": true,
+                "use_eval_set": true,
+                "early_stopping_rounds": 30,
+                "n_jobs": 1,
+                "verbose": -1
+              }
+            }
+          ]
+        },
+        {
+          "uid": "a83cd528-ac81-4f7f-9796-c98f511a88d1",
+          "fitness": [
+            -0.6875,
+            0.3
+          ],
+          "parent_uids": [
+            "24cded45-a1ee-4b24-bf2f-442b3de4e48b",
+            "acb262aa-9089-4421-94be-23fac063aa75"
+          ],
+          "structure": {
+            "depth": 2,
+            "length": 3,
+            "nodes": [
+              {
+                "uid": "5736e2b4-85df-4754-96e2-a649a0abb081",
+                "operation": "xgboost",
+                "parent_uids": [
+                  "16be098a-158f-45ea-97e3-9380bc59a79f",
+                  "79ba6965-1bbc-4579-8190-cd656fc64c58"
+                ]
+              },
+              {
+                "uid": "16be098a-158f-45ea-97e3-9380bc59a79f",
+                "operation": "rf",
+                "parent_uids": []
+              },
+              {
+                "uid": "79ba6965-1bbc-4579-8190-cd656fc64c58",
+                "operation": "logit",
+                "parent_uids": []
+              }
+            ]
+          },
+          "hyperparameters": [
+            {
+              "node_uid": "5736e2b4-85df-4754-96e2-a649a0abb081",
+              "operation": "xgboost",
+              "parameters": {
+                "n_jobs": 1,
+                "verbosity": 0,
+                "booster": "gbtree",
+                "tree_method": "auto",
+                "enable_categorical": true,
+                "use_eval_set": true,
+                "early_stopping_rounds": 30
+              }
+            },
+            {
+              "node_uid": "16be098a-158f-45ea-97e3-9380bc59a79f",
+              "operation": "rf",
+              "parameters": {
+                "n_jobs": 1
+              }
+            },
+            {
+              "node_uid": "79ba6965-1bbc-4579-8190-cd656fc64c58",
+              "operation": "logit",
+              "parameters": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "generation": 2,
+      "label": "",
+      "metadata": {},
+      "individuals": [
+        {
+          "uid": "14b97803-f50f-42a1-bc47-67e9785861cc",
+          "fitness": [
+            -0.7083333333333334,
+            0.3
+          ],
+          "parent_uids": [
+            "a1a0819f-d5ac-4807-a412-563f0b5f4a4b"
+          ],
+          "structure": {
+            "depth": 2,
+            "length": 3,
+            "nodes": [
+              {
+                "uid": "f917b469-9374-4bc1-94ca-479d6641ad48",
+                "operation": "rf",
+                "parent_uids": [
+                  "d2f72ad8-0ab0-4154-9207-746b162ff7b3",
+                  "da6987d0-18f7-4584-91c7-b4cde3660e0c"
+                ]
+              },
+              {
+                "uid": "d2f72ad8-0ab0-4154-9207-746b162ff7b3",
+                "operation": "catboost",
+                "parent_uids": []
+              },
+              {
+                "uid": "da6987d0-18f7-4584-91c7-b4cde3660e0c",
+                "operation": "lgbm",
+                "parent_uids": []
+              }
+            ]
+          },
+          "hyperparameters": [
+            {
+              "node_uid": "f917b469-9374-4bc1-94ca-479d6641ad48",
+              "operation": "rf",
+              "parameters": {
+                "n_jobs": 1
+              }
+            },
+            {
+              "node_uid": "d2f72ad8-0ab0-4154-9207-746b162ff7b3",
+              "operation": "catboost",
+              "parameters": {
+                "n_jobs": 1,
+                "num_trees": 3000,
+                "learning_rate": 0.03,
+                "l2_leaf_reg": 0.01,
+                "bootstrap_type": "Bernoulli",
+                "grow_policy": "SymmetricTree",
+                "max_depth": 5,
+                "min_data_in_leaf": 1,
+                "one_hot_max_size": 10,
+                "fold_permutation_block": 1,
+                "boosting_type": "Plain",
+                "od_type": "Iter",
+                "od_wait": 100,
+                "max_bin": 32,
+                "feature_border_type": "GreedyLogSum",
+                "nan_mode": "Min",
+                "verbose": false,
+                "allow_writing_files": false,
+                "use_eval_set": true,
+                "use_best_model": true,
+                "enable_categorical": true
+              }
+            },
+            {
+              "node_uid": "da6987d0-18f7-4584-91c7-b4cde3660e0c",
+              "operation": "lgbm",
+              "parameters": {
+                "boosting_type": "gbdt",
+                "max_depth": -1,
+                "bagging_fraction": 0.85,
+                "extra_trees": false,
+                "enable_categorical": true,
+                "use_eval_set": true,
+                "early_stopping_rounds": 30,
+                "n_jobs": 1,
+                "verbose": -1
+              }
+            }
+          ]
+        },
+        {
+          "uid": "d5127fec-3ecc-48aa-a923-57e7ec670bf2",
+          "fitness": [
+            -0.7291666666666666,
+            0.3
+          ],
+          "parent_uids": [
+            "14b97803-f50f-42a1-bc47-67e9785861cc"
+          ],
+          "structure": {
+            "depth": 2,
+            "length": 3,
+            "nodes": [
+              {
+                "uid": "bc07a879-e8d0-43fb-a613-f7eb49e73ad2",
+                "operation": "rf",
+                "parent_uids": [
+                  "68db4709-90ac-40a2-a2bf-39819332b072",
+                  "43daa124-6718-4f4f-9843-83957e8ce9cc"
+                ]
+              },
+              {
+                "uid": "68db4709-90ac-40a2-a2bf-39819332b072",
+                "operation": "catboost",
+                "parent_uids": []
+              },
+              {
+                "uid": "43daa124-6718-4f4f-9843-83957e8ce9cc",
+                "operation": "rf",
+                "parent_uids": []
+              }
+            ]
+          },
+          "hyperparameters": [
+            {
+              "node_uid": "bc07a879-e8d0-43fb-a613-f7eb49e73ad2",
+              "operation": "rf",
+              "parameters": {
+                "n_jobs": 1
+              }
+            },
+            {
+              "node_uid": "68db4709-90ac-40a2-a2bf-39819332b072",
+              "operation": "catboost",
+              "parameters": {
+                "n_jobs": 1,
+                "num_trees": 3000,
+                "learning_rate": 0.03,
+                "l2_leaf_reg": 0.01,
+                "bootstrap_type": "Bernoulli",
+                "grow_policy": "SymmetricTree",
+                "max_depth": 5,
+                "min_data_in_leaf": 1,
+                "one_hot_max_size": 10,
+                "fold_permutation_block": 1,
+                "boosting_type": "Plain",
+                "od_type": "Iter",
+                "od_wait": 100,
+                "max_bin": 32,
+                "feature_border_type": "GreedyLogSum",
+                "nan_mode": "Min",
+                "verbose": false,
+                "allow_writing_files": false,
+                "use_eval_set": true,
+                "use_best_model": true,
+                "enable_categorical": true
+              }
+            },
+            {
+              "node_uid": "43daa124-6718-4f4f-9843-83957e8ce9cc",
+              "operation": "rf",
+              "parameters": {
+                "n_jobs": 1
+              }
+            }
+          ]
+        },
+        {
+          "uid": "6dae1cec-f306-4cfa-996c-49572808fa55",
+          "fitness": [
+            -0.6875,
+            0.3
+          ],
+          "parent_uids": [
+            "1d5756f7-afe7-499b-ab7f-82d21738a193"
+          ],
+          "structure": {
+            "depth": 2,
+            "length": 3,
+            "nodes": [
+              {
+                "uid": "395ffe11-be5e-43c3-bcc1-0391f35b18af",
+                "operation": "rf",
+                "parent_uids": [
+                  "77978a93-8e67-47ae-9c88-4d4fd35b39e9",
+                  "7063bf16-048a-4346-99db-57873a69b84d"
+                ]
+              },
+              {
+                "uid": "77978a93-8e67-47ae-9c88-4d4fd35b39e9",
+                "operation": "xgboost",
+                "parent_uids": []
+              },
+              {
+                "uid": "7063bf16-048a-4346-99db-57873a69b84d",
+                "operation": "knn",
+                "parent_uids": []
+              }
+            ]
+          },
+          "hyperparameters": [
+            {
+              "node_uid": "395ffe11-be5e-43c3-bcc1-0391f35b18af",
+              "operation": "rf",
+              "parameters": {
+                "n_jobs": 1
+              }
+            },
+            {
+              "node_uid": "77978a93-8e67-47ae-9c88-4d4fd35b39e9",
+              "operation": "xgboost",
+              "parameters": {
+                "n_jobs": 1,
+                "verbosity": 0,
+                "booster": "gbtree",
+                "tree_method": "auto",
+                "enable_categorical": true,
+                "use_eval_set": true,
+                "early_stopping_rounds": 30
+              }
+            },
+            {
+              "node_uid": "7063bf16-048a-4346-99db-57873a69b84d",
+              "operation": "knn",
+              "parameters": {}
+            }
+          ]
+        },
+        {
+          "uid": "95c748b1-f221-4fca-83c2-d95a8091ce7c",
+          "fitness": [
+            -0.6875,
+            0.4
+          ],
+          "parent_uids": [
+            "14b97803-f50f-42a1-bc47-67e9785861cc"
+          ],
+          "structure": {
+            "depth": 3,
+            "length": 4,
+            "nodes": [
+              {
+                "uid": "b53b1000-ad6c-4f36-a3b7-10b9ff44f2f1",
+                "operation": "rf",
+                "parent_uids": [
+                  "19403673-bc10-4f53-8cd6-9ab3b4194758",
+                  "c412182c-dd85-460b-8a59-61f1b5a793af"
+                ]
+              },
+              {
+                "uid": "19403673-bc10-4f53-8cd6-9ab3b4194758",
+                "operation": "catboost",
+                "parent_uids": []
+              },
+              {
+                "uid": "c412182c-dd85-460b-8a59-61f1b5a793af",
+                "operation": "lgbm",
+                "parent_uids": []
+              },
+              {
+                "uid": "6a9b1099-c70d-4595-aca5-513ffa89393e",
+                "operation": "rf",
+                "parent_uids": [
+                  "b53b1000-ad6c-4f36-a3b7-10b9ff44f2f1"
+                ]
+              }
+            ]
+          },
+          "hyperparameters": [
+            {
+              "node_uid": "b53b1000-ad6c-4f36-a3b7-10b9ff44f2f1",
+              "operation": "rf",
+              "parameters": {
+                "n_jobs": 1
+              }
+            },
+            {
+              "node_uid": "19403673-bc10-4f53-8cd6-9ab3b4194758",
+              "operation": "catboost",
+              "parameters": {
+                "n_jobs": 1,
+                "num_trees": 3000,
+                "learning_rate": 0.03,
+                "l2_leaf_reg": 0.01,
+                "bootstrap_type": "Bernoulli",
+                "grow_policy": "SymmetricTree",
+                "max_depth": 5,
+                "min_data_in_leaf": 1,
+                "one_hot_max_size": 10,
+                "fold_permutation_block": 1,
+                "boosting_type": "Plain",
+                "od_type": "Iter",
+                "od_wait": 100,
+                "max_bin": 32,
+                "feature_border_type": "GreedyLogSum",
+                "nan_mode": "Min",
+                "verbose": false,
+                "allow_writing_files": false,
+                "use_eval_set": true,
+                "use_best_model": true,
+                "enable_categorical": true
+              }
+            },
+            {
+              "node_uid": "c412182c-dd85-460b-8a59-61f1b5a793af",
+              "operation": "lgbm",
+              "parameters": {
+                "boosting_type": "gbdt",
+                "max_depth": -1,
+                "bagging_fraction": 0.85,
+                "extra_trees": false,
+                "enable_categorical": true,
+                "use_eval_set": true,
+                "early_stopping_rounds": 30,
+                "n_jobs": 1,
+                "verbose": -1
+              }
+            },
+            {
+              "node_uid": "6a9b1099-c70d-4595-aca5-513ffa89393e",
+              "operation": "rf",
+              "parameters": {
+                "n_jobs": 1
+              }
+            }
+          ]
+        },
+        {
+          "uid": "51f21abb-c37d-4f2b-a93a-b1ab51e244ad",
+          "fitness": [
+            -0.75,
+            0.3
+          ],
+          "parent_uids": [
+            "5f3dc6f5-ba8f-44f0-817d-0f92044e4896"
+          ],
+          "structure": {
+            "depth": 2,
+            "length": 3,
+            "nodes": [
+              {
+                "uid": "d96ca52c-0502-4a74-926f-812426d19cd4",
+                "operation": "rf",
+                "parent_uids": [
+                  "261151b9-6a59-475f-a7eb-58f1621cb7ce",
+                  "836cfa3a-8b0f-4039-98e1-5221d2359364"
+                ]
+              },
+              {
+                "uid": "261151b9-6a59-475f-a7eb-58f1621cb7ce",
+                "operation": "xgboost",
+                "parent_uids": []
+              },
+              {
+                "uid": "836cfa3a-8b0f-4039-98e1-5221d2359364",
+                "operation": "logit",
+                "parent_uids": []
+              }
+            ]
+          },
+          "hyperparameters": [
+            {
+              "node_uid": "d96ca52c-0502-4a74-926f-812426d19cd4",
+              "operation": "rf",
+              "parameters": {
+                "n_jobs": 1
+              }
+            },
+            {
+              "node_uid": "261151b9-6a59-475f-a7eb-58f1621cb7ce",
+              "operation": "xgboost",
+              "parameters": {
+                "n_jobs": 1,
+                "verbosity": 0,
+                "booster": "gbtree",
+                "tree_method": "auto",
+                "enable_categorical": true,
+                "use_eval_set": true,
+                "early_stopping_rounds": 30
+              }
+            },
+            {
+              "node_uid": "836cfa3a-8b0f-4039-98e1-5221d2359364",
+              "operation": "logit",
+              "parameters": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "generation": 3,
+      "label": "final_choices",
+      "metadata": {},
+      "individuals": [
+        {
+          "uid": "51f21abb-c37d-4f2b-a93a-b1ab51e244ad",
+          "fitness": [
+            -0.75,
+            0.3
+          ],
+          "parent_uids": [
+            "5f3dc6f5-ba8f-44f0-817d-0f92044e4896"
+          ],
+          "structure": {
+            "depth": 2,
+            "length": 3,
+            "nodes": [
+              {
+                "uid": "d96ca52c-0502-4a74-926f-812426d19cd4",
+                "operation": "rf",
+                "parent_uids": [
+                  "261151b9-6a59-475f-a7eb-58f1621cb7ce",
+                  "836cfa3a-8b0f-4039-98e1-5221d2359364"
+                ]
+              },
+              {
+                "uid": "261151b9-6a59-475f-a7eb-58f1621cb7ce",
+                "operation": "xgboost",
+                "parent_uids": []
+              },
+              {
+                "uid": "836cfa3a-8b0f-4039-98e1-5221d2359364",
+                "operation": "logit",
+                "parent_uids": []
+              }
+            ]
+          },
+          "hyperparameters": [
+            {
+              "node_uid": "d96ca52c-0502-4a74-926f-812426d19cd4",
+              "operation": "rf",
+              "parameters": {
+                "n_jobs": 1
+              }
+            },
+            {
+              "node_uid": "261151b9-6a59-475f-a7eb-58f1621cb7ce",
+              "operation": "xgboost",
+              "parameters": {
+                "n_jobs": 1,
+                "verbosity": 0,
+                "booster": "gbtree",
+                "tree_method": "auto",
+                "enable_categorical": true,
+                "use_eval_set": true,
+                "early_stopping_rounds": 30
+              }
+            },
+            {
+              "node_uid": "836cfa3a-8b0f-4039-98e1-5221d2359364",
+              "operation": "logit",
+              "parameters": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "generation": 4,
+      "label": "tuning_start",
+      "metadata": {
+        "tuner": "SimultaneousTuner"
+      },
+      "individuals": [
+        {
+          "uid": "96491859-3ae8-4d6f-ab9d-a584ca1ec175",
+          "fitness": [
+            -0.7125
+          ],
+          "parent_uids": [],
+          "structure": {
+            "depth": 2,
+            "length": 3,
+            "nodes": [
+              {
+                "uid": "d4e81747-cdaa-453a-a48a-5330346dbbb3",
+                "operation": "rf",
+                "parent_uids": [
+                  "8c8d8567-54a0-4db6-b943-881d60691492",
+                  "f1e32ec8-f086-4d39-bd05-81463c97967a"
+                ]
+              },
+              {
+                "uid": "8c8d8567-54a0-4db6-b943-881d60691492",
+                "operation": "xgboost",
+                "parent_uids": []
+              },
+              {
+                "uid": "f1e32ec8-f086-4d39-bd05-81463c97967a",
+                "operation": "logit",
+                "parent_uids": []
+              }
+            ]
+          },
+          "hyperparameters": [
+            {
+              "node_uid": "d4e81747-cdaa-453a-a48a-5330346dbbb3",
+              "operation": "rf",
+              "parameters": {
+                "n_jobs": 1
+              }
+            },
+            {
+              "node_uid": "8c8d8567-54a0-4db6-b943-881d60691492",
+              "operation": "xgboost",
+              "parameters": {
+                "n_jobs": 1,
+                "verbosity": 0,
+                "booster": "gbtree",
+                "tree_method": "auto",
+                "enable_categorical": true,
+                "use_eval_set": true,
+                "early_stopping_rounds": 30
+              }
+            },
+            {
+              "node_uid": "f1e32ec8-f086-4d39-bd05-81463c97967a",
+              "operation": "logit",
+              "parameters": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "generation": 5,
+      "label": "tuning_iteration_0",
+      "metadata": {
+        "tuner": "SimultaneousTuner"
+      },
+      "individuals": [
+        {
+          "uid": "21f3546b-b702-4171-b9bc-dbe63c9355d1",
+          "fitness": [
+            -0.7333333333333334
+          ],
+          "parent_uids": [
+            "96491859-3ae8-4d6f-ab9d-a584ca1ec175"
+          ],
+          "structure": {
+            "depth": 2,
+            "length": 3,
+            "nodes": [
+              {
+                "uid": "d4e81747-cdaa-453a-a48a-5330346dbbb3",
+                "operation": "rf",
+                "parent_uids": [
+                  "8c8d8567-54a0-4db6-b943-881d60691492",
+                  "f1e32ec8-f086-4d39-bd05-81463c97967a"
+                ]
+              },
+              {
+                "uid": "8c8d8567-54a0-4db6-b943-881d60691492",
+                "operation": "xgboost",
+                "parent_uids": []
+              },
+              {
+                "uid": "f1e32ec8-f086-4d39-bd05-81463c97967a",
+                "operation": "logit",
+                "parent_uids": []
+              }
+            ]
+          },
+          "hyperparameters": [
+            {
+              "node_uid": "d4e81747-cdaa-453a-a48a-5330346dbbb3",
+              "operation": "rf",
+              "parameters": {
+                "n_jobs": 1,
+                "bootstrap": true,
+                "criterion": "entropy",
+                "max_features": 0.20831847051901142,
+                "min_samples_leaf": 7,
+                "min_samples_split": 3
+              }
+            },
+            {
+              "node_uid": "8c8d8567-54a0-4db6-b943-881d60691492",
+              "operation": "xgboost",
+              "parameters": {
+                "n_jobs": 1,
+                "verbosity": 0,
+                "booster": "gbtree",
+                "tree_method": "auto",
+                "enable_categorical": true,
+                "use_eval_set": true,
+                "early_stopping_rounds": 30,
+                "alpha": 977,
+                "colsample_bytree": 0.49007049379755574,
+                "lambda": 363,
+                "learning_rate": 0.035441909936042945,
+                "max_depth": 6,
+                "min_child_weight": 8,
+                "scale_pos_weight": 20,
+                "subsample": 0.41445434938728265
+              }
+            },
+            {
+              "node_uid": "f1e32ec8-f086-4d39-bd05-81463c97967a",
+              "operation": "logit",
+              "parameters": {
+                "C": 6.199056189693606
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "generation": 6,
+      "label": "tuning_iteration_1",
+      "metadata": {
+        "tuner": "SimultaneousTuner"
+      },
+      "individuals": [
+        {
+          "uid": "df412719-8528-4150-8227-ac0b470f8f35",
+          "fitness": [
+            -0.7166666666666667
+          ],
+          "parent_uids": [
+            "96491859-3ae8-4d6f-ab9d-a584ca1ec175"
+          ],
+          "structure": {
+            "depth": 2,
+            "length": 3,
+            "nodes": [
+              {
+                "uid": "d4e81747-cdaa-453a-a48a-5330346dbbb3",
+                "operation": "rf",
+                "parent_uids": [
+                  "8c8d8567-54a0-4db6-b943-881d60691492",
+                  "f1e32ec8-f086-4d39-bd05-81463c97967a"
+                ]
+              },
+              {
+                "uid": "8c8d8567-54a0-4db6-b943-881d60691492",
+                "operation": "xgboost",
+                "parent_uids": []
+              },
+              {
+                "uid": "f1e32ec8-f086-4d39-bd05-81463c97967a",
+                "operation": "logit",
+                "parent_uids": []
+              }
+            ]
+          },
+          "hyperparameters": [
+            {
+              "node_uid": "d4e81747-cdaa-453a-a48a-5330346dbbb3",
+              "operation": "rf",
+              "parameters": {
+                "n_jobs": 1,
+                "bootstrap": true,
+                "criterion": "gini",
+                "max_features": 0.290980731216752,
+                "min_samples_leaf": 1,
+                "min_samples_split": 7
+              }
+            },
+            {
+              "node_uid": "8c8d8567-54a0-4db6-b943-881d60691492",
+              "operation": "xgboost",
+              "parameters": {
+                "n_jobs": 1,
+                "verbosity": 0,
+                "booster": "dart",
+                "tree_method": "auto",
+                "enable_categorical": true,
+                "use_eval_set": true,
+                "early_stopping_rounds": 30,
+                "alpha": 772,
+                "colsample_bytree": 0.21866551497632292,
+                "lambda": 816,
+                "learning_rate": 0.005099297171521718,
+                "max_depth": 3,
+                "min_child_weight": 9,
+                "scale_pos_weight": 14,
+                "subsample": 0.4082580328077325
+              }
+            },
+            {
+              "node_uid": "f1e32ec8-f086-4d39-bd05-81463c97967a",
+              "operation": "logit",
+              "parameters": {
+                "C": 2.3655060430048205
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "generation": 7,
+      "label": "tuning_iteration_2",
+      "metadata": {
+        "tuner": "SimultaneousTuner"
+      },
+      "individuals": [
+        {
+          "uid": "0f265b3e-305e-4e6d-9f1d-e6fedbb546c1",
+          "fitness": [
+            -0.7416666666666667
+          ],
+          "parent_uids": [
+            "96491859-3ae8-4d6f-ab9d-a584ca1ec175"
+          ],
+          "structure": {
+            "depth": 2,
+            "length": 3,
+            "nodes": [
+              {
+                "uid": "d4e81747-cdaa-453a-a48a-5330346dbbb3",
+                "operation": "rf",
+                "parent_uids": [
+                  "8c8d8567-54a0-4db6-b943-881d60691492",
+                  "f1e32ec8-f086-4d39-bd05-81463c97967a"
+                ]
+              },
+              {
+                "uid": "8c8d8567-54a0-4db6-b943-881d60691492",
+                "operation": "xgboost",
+                "parent_uids": []
+              },
+              {
+                "uid": "f1e32ec8-f086-4d39-bd05-81463c97967a",
+                "operation": "logit",
+                "parent_uids": []
+              }
+            ]
+          },
+          "hyperparameters": [
+            {
+              "node_uid": "d4e81747-cdaa-453a-a48a-5330346dbbb3",
+              "operation": "rf",
+              "parameters": {
+                "n_jobs": 1,
+                "bootstrap": true,
+                "criterion": "gini",
+                "max_features": 0.5160237408579904,
+                "min_samples_leaf": 10,
+                "min_samples_split": 6
+              }
+            },
+            {
+              "node_uid": "8c8d8567-54a0-4db6-b943-881d60691492",
+              "operation": "xgboost",
+              "parameters": {
+                "n_jobs": 1,
+                "verbosity": 0,
+                "booster": "dart",
+                "tree_method": "auto",
+                "enable_categorical": true,
+                "use_eval_set": true,
+                "early_stopping_rounds": 30,
+                "alpha": 483,
+                "colsample_bytree": 0.08859354326947506,
+                "lambda": 489,
+                "learning_rate": 0.05142037290063646,
+                "max_depth": 3,
+                "min_child_weight": 12,
+                "scale_pos_weight": 18,
+                "subsample": 0.7304499903921856
+              }
+            },
+            {
+              "node_uid": "f1e32ec8-f086-4d39-bd05-81463c97967a",
+              "operation": "logit",
+              "parameters": {
+                "C": 3.0155282877765512
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "generation": 8,
+      "label": "tuning_results",
+      "metadata": {
+        "tuner": "SimultaneousTuner"
+      },
+      "individuals": [
+        {
+          "uid": "d9688d04-1fce-4dc1-8061-3295473fafa9",
+          "fitness": [
+            -0.7416666666666667
+          ],
+          "parent_uids": [
+            "96491859-3ae8-4d6f-ab9d-a584ca1ec175"
+          ],
+          "structure": {
+            "depth": 2,
+            "length": 3,
+            "nodes": [
+              {
+                "uid": "d4e81747-cdaa-453a-a48a-5330346dbbb3",
+                "operation": "rf",
+                "parent_uids": [
+                  "8c8d8567-54a0-4db6-b943-881d60691492",
+                  "f1e32ec8-f086-4d39-bd05-81463c97967a"
+                ]
+              },
+              {
+                "uid": "8c8d8567-54a0-4db6-b943-881d60691492",
+                "operation": "xgboost",
+                "parent_uids": []
+              },
+              {
+                "uid": "f1e32ec8-f086-4d39-bd05-81463c97967a",
+                "operation": "logit",
+                "parent_uids": []
+              }
+            ]
+          },
+          "hyperparameters": [
+            {
+              "node_uid": "d4e81747-cdaa-453a-a48a-5330346dbbb3",
+              "operation": "rf",
+              "parameters": {
+                "n_jobs": 1,
+                "bootstrap": true,
+                "criterion": "gini",
+                "max_features": 0.5160237408579904,
+                "min_samples_leaf": 10,
+                "min_samples_split": 6
+              }
+            },
+            {
+              "node_uid": "8c8d8567-54a0-4db6-b943-881d60691492",
+              "operation": "xgboost",
+              "parameters": {
+                "n_jobs": 1,
+                "verbosity": 0,
+                "booster": "dart",
+                "tree_method": "auto",
+                "enable_categorical": true,
+                "use_eval_set": true,
+                "early_stopping_rounds": 30,
+                "alpha": 483,
+                "colsample_bytree": 0.08859354326947506,
+                "lambda": 489,
+                "learning_rate": 0.05142037290063646,
+                "max_depth": 3,
+                "min_child_weight": 12,
+                "scale_pos_weight": 18,
+                "subsample": 0.7304499903921856
+              }
+            },
+            {
+              "node_uid": "f1e32ec8-f086-4d39-bd05-81463c97967a",
+              "operation": "logit",
+              "parameters": {
+                "C": 3.0155282877765512
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
