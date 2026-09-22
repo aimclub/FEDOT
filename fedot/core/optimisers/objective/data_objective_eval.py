@@ -1,166 +1,248 @@
-import traceback
+"""Effectful evaluator; decisions and outcomes live in evaluation_contracts."""
+import sys
+from collections import OrderedDict
+from dataclasses import replace
 from datetime import timedelta
+from math import isfinite
 from typing import Callable, Iterable, Optional, Tuple
 
-import numpy as np
-from golem.core.log import default_log, is_test_session
+from golem.core.log import default_log
 from golem.core.optimisers.fitness import Fitness
 from golem.core.optimisers.objective.objective import Objective, to_fitness
 from golem.core.optimisers.objective.objective_eval import ObjectiveEvaluate
 
+from fedot.core.caching.evaluation_context import TensorDataCacheContext
+from fedot.core.caching.evaluation_session import PredictionCacheSession, snapshot_operations
+from fedot.core.caching.normalization import stable_hash
 from fedot.core.caching.operations_cache import OperationsCache
-from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.caching.predictions_cache import PredictionsCache
-from fedot.core.data.data import InputData
 from fedot.core.data.merge.data_merger import DataMergeError
-from fedot.core.operations.model import Model
+from fedot.core.data.tensor_data import TensorData
+from fedot.core.optimisers.objective.evaluation_contracts import (
+    AttemptRecord, EvaluationComplete, EvaluationFailure, EvaluationIncomplete,
+    EvaluationOutcome, EvaluationReused, FailureKind, FoldRecord,
+    PipelineValidator, RetryPolicy, failure_from_exception, should_retry, validate_pipeline,
+)
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.utilities.debug import is_recording_mode, save_debug_info_for_pipeline
 
-DataSource = Callable[[], Iterable[Tuple[InputData, InputData]]]
+TensorDataSource = Callable[[], Iterable[Tuple[TensorData, TensorData]]]
+DataSource = TensorDataSource
+EXPECTED_ERRORS = (TimeoutError, DataMergeError, ValueError, TypeError, RuntimeError, ArithmeticError)
 
 
-class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
-    """
-    Evaluator of Objective that requires train and test data for metric evaluation.
-    Its role is to prepare graph on train-data and then evaluate metrics on test data.
+class PipelineObjectiveEvaluateWithTensorData(ObjectiveEvaluate[Pipeline]):
+    """Evaluate every fold or return invalid fitness, never a partial average.
 
-    :param objective: Objective for evaluating metrics on pipelines.
-    :param data_producer: Producer of data folds, each fold is a tuple of (train_data, test_data).
-    If it returns a single fold, it's effectively a hold-out validation. For many folds it's k-folds.
-    :param time_constraint: Optional time constraint for pipeline.fit.
-    :param validation_blocks: Number of validation blocks, optional, used only for time series validation.
-    :param operations_cache: Cache manager for fitted models, optional.
-    :param preprocessing_cache: Cache manager for optional preprocessing encoders and imputers, optional.
-    :param eval_n_jobs: number of jobs used to evaluate the objective.
-    :params do_unfit: unfit graph after evaluation
+    ``evaluate`` keeps the GOLEM Fitness API. ``evaluate_result`` exposes the
+    immutable diagnostic outcome. Retries are opt-in and scoped to one fold.
+    ``do_unfit=False`` retains only the final successful model for legacy callers;
+    intermediate and failed attempts always release their fitted state.
     """
 
-    def __init__(self,
-                 objective: Objective,
-                 data_producer: DataSource,
+    def __init__(self, objective: Objective, data_producer: TensorDataSource,
                  time_constraint: Optional[timedelta] = None,
                  validation_blocks: Optional[int] = None,
                  operations_cache: Optional[OperationsCache] = None,
-                 preprocessing_cache: Optional[PreprocessingCache] = None,
                  predictions_cache: Optional[PredictionsCache] = None,
-                 eval_n_jobs: int = 1,
-                 do_unfit: bool = True):
+                 eval_n_jobs: int = 1, do_unfit: bool = True, *,
+                 retry_policy: RetryPolicy = RetryPolicy(),
+                 validator: PipelineValidator = validate_pipeline,
+                 expected_folds: Optional[int] = None,
+                 cache_namespace: str = 'fedot-evaluation-v1',
+                 result_cache_size: int = 256):
         super().__init__(objective, eval_n_jobs=eval_n_jobs)
+        if expected_folds is not None and (
+                isinstance(expected_folds, bool) or not isinstance(expected_folds, int) or expected_folds < 1):
+            raise ValueError('expected_folds must be a positive integer or None')
+        if isinstance(result_cache_size, bool) or not isinstance(result_cache_size, int) or result_cache_size < 0:
+            raise ValueError('result_cache_size must be a nonnegative integer')
+        if not isinstance(retry_policy, RetryPolicy):
+            raise TypeError('retry_policy must be RetryPolicy')
+        if not isinstance(cache_namespace, str) or not cache_namespace.strip():
+            raise ValueError('cache_namespace must be a nonempty string')
         self._data_producer = data_producer
         self._time_constraint = time_constraint
         self._validation_blocks = validation_blocks
         self._operations_cache = operations_cache
-        self._preprocessing_cache = preprocessing_cache
         self._predictions_cache = predictions_cache
         self._log = default_log(self)
         self._do_unfit = do_unfit
+        self.retry_policy = retry_policy
+        self.validator = validator
+        self.expected_folds = expected_folds
+        self.cache_namespace = cache_namespace
+        self.result_cache_size = result_cache_size
+        self._completed = OrderedDict()
+        self._fold_context_version = None
+        self._fold_context_templates = ()
+        self.last_outcome: Optional[EvaluationOutcome] = None
 
     def evaluate(self, graph: Pipeline) -> Fitness:
-        # Seems like a workaround for situation when logger is lost
-        #  when adapting and restoring it to/from OptGraph.
+        outcome = self.evaluate_result(graph)
+        if isinstance(outcome, EvaluationReused):
+            outcome = outcome.original
+        values = outcome.metrics if isinstance(outcome, EvaluationComplete) else None
+        return to_fitness(values, self._objective.is_multi_objective)
+
+    def evaluate_result(self, graph: Pipeline) -> EvaluationOutcome:
+        """Own the lifecycle of a single candidate. No TensorData is retained."""
         graph.log = self._log
+        candidate_id = graph.descriptive_id
+        self.last_outcome = None
+        try:
+            validation = self.validator(graph)
+            if not validation.valid:
+                return self._reject(graph, FailureKind.VALIDATION, '; '.join(validation.violations))
+            folds = tuple(self._data_producer())
+            count = self.expected_folds if self.expected_folds is not None else len(folds)
+            if not folds or len(folds) != count:
+                return self._reject(graph, FailureKind.DATA,
+                                    f'expected {count} folds, received {len(folds)}', count)
+            contexts = self._build_fold_contexts(folds, candidate_id)
+        except EXPECTED_ERRORS as error:
+            return self._reject(graph, FailureKind.DATA, str(error))
 
-        graph_id = graph.root_node.descriptive_id
-        self._log.debug(f'Pipeline {graph_id} fit started')
+        evaluation_key = stable_hash((tuple(c.key for c in contexts), self._validation_blocks,
+                                      tuple(self._objective.metric_names), self._eval_n_jobs,
+                                      str(self._time_constraint), self._objective.is_multi_objective))
+        if self._do_unfit and evaluation_key in self._completed:
+            self._completed.move_to_end(evaluation_key)
+            if graph.is_fitted:
+                cleanup = self._release(graph)
+                if cleanup is not None:
+                    self.last_outcome = EvaluationIncomplete(candidate_id, count, (), (), cleanup)
+                    return self.last_outcome
+            self.last_outcome = EvaluationReused(self._completed[evaluation_key])
+            return self.last_outcome
+        if graph.is_fitted and len(folds) > 1:
+            return self._reject(graph, FailureKind.VALIDATION,
+                                'a prefitted pipeline cannot be reused across multiple folds', count)
 
-        folds_metrics = []
-        for fold_id, (train_data, test_data) in enumerate(self._data_producer()):
+        records, attempts = [], []
+        for fold_id, ((train, test), context) in enumerate(zip(folds, contexts)):
+            for attempt in range(1, self.retry_policy.max_attempts + 1):
+                metrics, failure, cleanup_failure = self._attempt(
+                    graph, train, test, context.key, fold_id == count - 1,
+                    len(records[0].metrics) if records else None)
+                attempts.append(AttemptRecord(fold_id, attempt, failure, cleanup_failure))
+                if cleanup_failure is not None:
+                    failure = cleanup_failure
+                if failure is None:
+                    records.append(FoldRecord(fold_id, metrics, attempt, context.key))
+                    break
+                if not should_retry(self.retry_policy, failure, attempt):
+                    self.last_outcome = EvaluationIncomplete(
+                        candidate_id, count, tuple(records), tuple(attempts), failure)
+                    return self.last_outcome
+
+        outcome = EvaluationComplete(candidate_id, count, tuple(records), tuple(attempts))
+        if self._do_unfit and self.result_cache_size:
+            self._completed[evaluation_key] = outcome
+            while len(self._completed) > self.result_cache_size:
+                self._completed.popitem(last=False)
+        self.last_outcome = outcome
+        return outcome
+
+    def _attempt(self, graph, train, test, cache_key, final_fold, expected_metrics):
+        metrics, failure, cleanup_failure = (), None, None
+        phase = FailureKind.FIT
+        session = PredictionCacheSession(self._predictions_cache) if self._predictions_cache is not None else None
+        operations = []
+        try:
+            prepared = self.prepare_graph(graph, train, cache_key, self._eval_n_jobs, prediction_cache=session)
+            phase = FailureKind.METRIC
+            objective = getattr(self._objective, 'evaluate_strict', self._objective)
+            fitness = objective(prepared, reference_data=test,
+                                validation_blocks=self._validation_blocks,
+                                predictions_cache=session, fold_id=cache_key)
+            metrics = tuple(float(x) for x in fitness.values) if fitness.valid else ()
+            if not metrics or not all(map(isfinite, metrics)):
+                failure = EvaluationFailure(FailureKind.METRIC, 'objective returned invalid or nonfinite fitness')
+            elif expected_metrics is not None and len(metrics) != expected_metrics:
+                failure = EvaluationFailure(FailureKind.METRIC, 'metric dimension changed between folds')
+            if failure is None:
+                if self._operations_cache is not None:
+                    operations = snapshot_operations(graph)
+        except EXPECTED_ERRORS as error:
+            failure = failure_from_exception(error, phase)
+        finally:
+            # Unexpected exceptions also release state, then propagate unchanged.
+            retain = not self._do_unfit and final_fold and failure is None and metrics and sys.exc_info()[0] is None
+            if not retain:
+                cleanup_failure = self._release(graph)
             try:
-                prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, self._eval_n_jobs)
-            except Exception as ex:
-                self._log.warning(f'Unsuccessful pipeline fit during fitness evaluation. '
-                                  f'Skipping the pipeline. Exception <{ex}> on {graph_id}')
-                expected_fit_errors = (TimeoutError, DataMergeError)
-                if is_test_session() and not isinstance(ex, expected_fit_errors):
-                    stack_trace = traceback.format_exc()
-                    save_debug_info_for_pipeline(graph, train_data, test_data, ex, stack_trace)
-                    if not is_recording_mode() and 'catboost' not in graph.descriptive_id:
-                        raise ex
-                break  # if even one fold fails, the evaluation stops
+                if failure is None and cleanup_failure is None and sys.exc_info()[0] is None:
+                    if self._operations_cache is not None:
+                        self._operations_cache.save_nodes(operations, cache_key)
+                    if session is not None:
+                        session.commit()
+            except (OSError, ValueError, RuntimeError) as error:
+                failure = EvaluationFailure(FailureKind.CACHE, str(error), type(error).__name__)
+                if retain:
+                    cleanup_failure = self._release(graph)
+            finally:
+                operations.clear()
+                if session is not None:
+                    session.close()
+        return metrics, failure, cleanup_failure
 
-            evaluated_fitness = self._objective(prepared_pipeline,
-                                                reference_data=test_data,
-                                                validation_blocks=self._validation_blocks,
-                                                predictions_cache=self._predictions_cache,
-                                                fold_id=fold_id)
+    @staticmethod
+    def _release(graph):
+        try:
+            graph.unfit()
+        except Exception as error:
+            # Resource-release errors are terminal and never retryable.
+            return EvaluationFailure(FailureKind.CLEANUP, str(error), type(error).__name__)
+        return None
 
-            if evaluated_fitness.valid:
-                folds_metrics.append(evaluated_fitness.values)
-            else:
-                self._log.log_or_raise('warning', ValueError(f'Invalid fitness after objective evaluation. '
-                                                             f'Skipping the graph: {graph_id}'))
-            if self._do_unfit:
-                graph.unfit()
-        if folds_metrics:
-            folds_metrics = tuple(np.mean(folds_metrics, axis=0))  # averages for each metric over folds
-            self._log.debug(f'Pipeline {graph_id} with evaluated metrics: {folds_metrics}')
-        else:
-            folds_metrics = None
-
-        # prepared_pipeline.
-        if self._predictions_cache is not None:
-            self._log.debug(f"Predictions cache effectiveness ratio: {self._predictions_cache.effectiveness_ratio}")
-
-        return to_fitness(folds_metrics, self._objective.is_multi_objective)
-
-    def prepare_graph(self, graph: Pipeline, train_data: InputData,
-                      fold_id: Optional[int] = None, n_jobs: int = -1) -> Pipeline:
-        """
-        Fit pipeline before metric evaluation can be performed.
-        :param graph: pipeline for train & validation
-        :param train_data: InputData for training pipeline
-        :param fold_id: id of the fold in cross-validation, used for cache requests.
-        :param n_jobs: number of parallel jobs for preparation
-        """
+    def _reject(self, graph, kind, message, count=0):
+        failure = EvaluationFailure(kind, message)
         if graph.is_fitted:
-            # the expected behaviour for the remote evaluation
+            failure = self._release(graph) or failure
+        self.last_outcome = EvaluationIncomplete(
+            graph.descriptive_id, count, (), (), failure)
+        return self.last_outcome
+
+    def clear_results(self):
+        """Release bounded diagnostic memoization at the end of a session."""
+        self._completed.clear()
+        self._fold_context_version = None
+        self._fold_context_templates = ()
+        self.last_outcome = None
+
+    def _build_fold_contexts(self, folds, candidate_id):
+        """Reuse data identities only for an explicitly versioned split source."""
+        data_version = getattr(self._data_producer, 'evaluation_data_version', None)
+        if data_version is None:
+            return tuple(TensorDataCacheContext.from_fold(
+                train, test, fold_id, candidate_id, self.cache_namespace)
+                for fold_id, (train, test) in enumerate(folds))
+
+        from fedot.extensions.registry import registered_extensions_identity
+
+        context_version = (data_version, registered_extensions_identity())
+        if context_version != self._fold_context_version:
+            self._fold_context_templates = tuple(TensorDataCacheContext.from_fold(
+                train, test, fold_id, '__evaluation_data__', self.cache_namespace)
+                for fold_id, (train, test) in enumerate(folds))
+            self._fold_context_version = context_version
+        return tuple(replace(context, candidate_id=candidate_id)
+                     for context in self._fold_context_templates)
+
+    def prepare_graph(self, graph: Pipeline, train_data: TensorData,
+                      fold_id=None, n_jobs: int = -1, *, prediction_cache=None) -> Pipeline:
+        if graph.is_fitted:
             return graph
-
-        graph.unfit()
-
-        # load preprocessing
-        graph.try_load_from_cache(self._operations_cache, self._preprocessing_cache, fold_id)
-        graph.fit(
-            train_data,
-            n_jobs=n_jobs,
-            time_constraint=self._time_constraint,
-            predictions_cache=self._predictions_cache,
-            fold_id=fold_id
-        )
-
         if self._operations_cache is not None:
-            self._operations_cache.save_pipeline(graph, fold_id)
-        if self._preprocessing_cache is not None:
-            self._preprocessing_cache.add_preprocessor(graph, fold_id)
-
+            graph.try_load_from_cache(self._operations_cache, fold_id)
+        graph.fit(train_data, n_jobs=n_jobs, time_constraint=self._time_constraint,
+                  predictions_cache=self._predictions_cache if prediction_cache is None else prediction_cache,
+                  fold_id=fold_id)
         return graph
 
     def evaluate_intermediate_metrics(self, graph: Pipeline):
-        """Evaluate intermediate metrics"""
-        # Get the last fold
-        last_fold = None
-        fold_id = None
-        for fold_id, last_fold in enumerate(self._data_producer()):
-            pass
-        # And so test only on the last fold
-        train_data, test_data = last_fold
-        graph.try_load_from_cache(self._operations_cache, self._preprocessing_cache, fold_id)
-        for node in graph.nodes:
-            if not isinstance(node.operation, Model):
-                continue
-            intermediate_graph = Pipeline(node, use_input_preprocessing=graph.use_input_preprocessing)
-            intermediate_graph.fit(
-                train_data,
-                time_constraint=self._time_constraint,
-                n_jobs=self._eval_n_jobs,
-            )
-            intermediate_fitness = self._objective(intermediate_graph,
-                                                   reference_data=test_data,
-                                                   validation_blocks=self._validation_blocks)
-            # saving only the most important first metric
-            node.metadata.metric = intermediate_fitness.values[0]
+        """Intermediate-node metrics are not part of the TensorData contract yet."""
 
     @property
-    def input_data(self):
+    def tensor_data(self):
         return self._data_producer.args[0]

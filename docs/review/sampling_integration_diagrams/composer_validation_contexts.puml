@@ -1,0 +1,57 @@
+@startuml composer_validation_contexts
+title Composer validation contexts: internal CV vs external holdout
+
+skinparam shadowing false
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+class GPComposer {
+  +compose_pipeline(data, data_source_context)
+}
+
+class PipelineObjectiveEvaluate {
+  +evaluate(pipeline)
+}
+
+class ComposerDataSourceContext {
+  +mode: ComposerDataSourceMode
+  +data_producer
+  +validation_blocks
+}
+
+enum ComposerDataSourceMode {
+  internal_split
+  external_holdout
+}
+
+class DataSourceSplitter {
+  +build(data)
+  +build_external_holdout(train_data, validation_data)
+}
+
+class "Regular AutoML" as RegularPath
+class "Chunked ensemble AutoML" as EnsemblePath
+class "InputData train" as TrainData
+class "InputData common validation" as ValidationData
+
+RegularPath --> DataSourceSplitter : build_internal_composer_data_source_context(data, cv_folds)
+EnsemblePath --> DataSourceSplitter : build_external_holdout_composer_data_source_context(chunk, validation)
+
+DataSourceSplitter --> ComposerDataSourceContext
+ComposerDataSourceContext --> ComposerDataSourceMode
+GPComposer --> ComposerDataSourceContext
+PipelineObjectiveEvaluate --> ComposerDataSourceContext : reads train/validation folds
+
+ComposerDataSourceContext --> TrainData
+ComposerDataSourceContext --> ValidationData : external_holdout only
+
+note right of ComposerDataSourceContext
+  Before:
+  composer validation was effectively tied to requirements/cv_folds.
+
+  Now:
+  runtime validation data lives in ComposerDataSourceContext.
+  Chunked ensembles use a shared external validation set.
+end note
+
+@enduml

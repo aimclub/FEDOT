@@ -31,8 +31,10 @@ def test_cache_api(task_type, metric_name):
             task_params=TsForecastingParams(forecast_length=forecast_length),
             **DEFAULT_TESTS_CACHE_API_PARAMS)
     else:
-        train_data, test_data, _ = get_dataset(task_type, n_samples=100, n_features=10, iris_dataset=False)
-        model = Fedot(problem=task_type, metric=metric_name, **DEFAULT_TESTS_CACHE_API_PARAMS)
+        train_data, test_data, _ = get_dataset(
+            task_type, n_samples=100, n_features=10, iris_dataset=False)
+        model = Fedot(problem=task_type, metric=metric_name,
+                      **DEFAULT_TESTS_CACHE_API_PARAMS)
 
     model.fit(features=train_data)
     model.predict(features=test_data)

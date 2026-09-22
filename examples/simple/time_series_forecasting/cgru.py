@@ -30,7 +30,8 @@ def cgru_forecasting():
          'label': 'prediction'},
         get_border_line_info(test_data.idx[0],
                              prediction,
-                             np.ravel(np.concatenate([test_data.features, test_data.target])),
+                             np.ravel(np.concatenate(
+                                 [test_data.features, test_data.target])),
                              'Border line')
     ]
 

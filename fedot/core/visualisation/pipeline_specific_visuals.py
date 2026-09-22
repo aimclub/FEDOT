@@ -16,10 +16,12 @@ GraphType = Graph
 
 
 def get_palette_based_on_default_tags() -> LabelsColorMapType:
-    default_tags = [*OperationTypesRepository.DEFAULT_MODEL_TAGS, *OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS]
+    default_tags = [*OperationTypesRepository.DEFAULT_MODEL_TAGS,
+                    *OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS]
     p_1 = sns.color_palette('tab20')
     colour_period = 2  # diverge similar nearby colors
-    p_1 = [p_1[i // (len(p_1) // colour_period) + i * colour_period % len(p_1)] for i in range(len(p_1))]
+    p_1 = [p_1[i // (len(p_1) // colour_period) + i *
+               colour_period % len(p_1)] for i in range(len(p_1))]
     p_2 = sns.color_palette('Set3')
     palette = np.vstack([p_1, p_2])
     palette_map = {tag: palette[i] for i, tag in enumerate(default_tags)}
@@ -47,8 +49,10 @@ def get_pipeline_show_default_params() -> Dict[str, Any]:
 class PipelineHistoryVisualizer(OptHistoryVisualizer):
     def __init__(self, history: OptHistory, visuals_params: Optional[Dict[str, Any]] = None):
         visuals_params = visuals_params if visuals_params is not None else {}
-        visuals_params['tags_map'] = visuals_params.get('tags_map') or get_visualization_tags_map()
-        visuals_params['palette'] = visuals_params.get('palette') or get_palette_based_on_default_tags()
+        visuals_params['tags_map'] = visuals_params.get(
+            'tags_map') or get_visualization_tags_map()
+        visuals_params['palette'] = visuals_params.get(
+            'palette') or get_palette_based_on_default_tags()
         visuals_params['graph_show_params'] = (visuals_params.get('graph_show_params') or
                                                get_pipeline_show_default_params())
 

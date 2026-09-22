@@ -2,16 +2,26 @@ import math
 import os
 import platform
 import random
+import re
 import tempfile
 from pathlib import Path
 from typing import Optional, Union
+from urllib.parse import urlparse, unquote
 
 import numpy as np
 import pandas as pd
 from golem.utilities.random import RandomStateHandler
 from sklearn.model_selection import train_test_split
 
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
+
+from dotenv import load_dotenv
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+load_dotenv()
 
 DEFAULT_PARAMS_STUB = 'default_params'
 NESTED_PARAMS_LABEL = 'nested_space'
@@ -26,13 +36,58 @@ def default_fedot_data_dir() -> str:
     """ Returns the folder where all the output data
     is recorded to. Default: home/FEDOT
     """
-    temp_dir = Path("/tmp" if platform.system() == "Darwin" else tempfile.gettempdir())
+    temp_dir = Path("/tmp" if platform.system() ==
+                    "Darwin" else tempfile.gettempdir())
     default_data_path = os.path.join(temp_dir, 'FEDOT')
 
     if 'FEDOT' not in os.listdir(temp_dir):
         os.mkdir(default_data_path)
 
     return default_data_path
+
+
+def cache_dir() -> Path:
+    """
+    Return the cache directory path, creating it if necessary.
+
+    If `CACHE_PATH` is set in environment variables, it is used as the cache
+    directory path. Relative paths are resolved against the default FEDOT data
+    directory. If `CACHE_PATH` is not set, `<default_fedot_data_dir>/cache` is used.
+
+    Returns:
+        Path: Path to the cache directory.
+
+    Raises:
+        OSError: If the cache directory cannot be created or the path exists
+            but is not a directory.
+    """
+    default_data_dir = Path(default_fedot_data_dir())
+    env_cache_path = os.getenv("CACHE_PATH")
+
+    if env_cache_path:
+        cache_path = Path(env_cache_path).expanduser()
+
+        if not cache_path.is_absolute():
+            cache_path = default_data_dir / cache_path
+    else:
+        cache_path = default_data_dir / "cache"
+
+    if cache_path.exists():
+        if not cache_path.is_dir():
+            raise OSError(f"Cache path exists but is not a directory: {cache_path}")
+
+        logger.info(f"Cache directory already exists: {cache_path}")
+        return cache_path
+
+    try:
+        cache_path.mkdir(parents=True, exist_ok=False)
+    except OSError as ex:
+        raise OSError(f"Cannot create cache directory: {cache_path}") from ex
+
+    return cache_path
+
+
+CACHE_DIR = cache_dir()
 
 
 def labels_to_dummy_probs(prediction: np.array):
@@ -53,7 +108,8 @@ def probs_to_labels(prediction: np.array):
 
 def split_data(df: pd.DataFrame, t_size: float = 0.2):
     """ Split pandas DataFrame into train and test parts """
-    train, test = train_test_split(df.iloc[:, :], test_size=t_size, random_state=42)
+    train, test = train_test_split(
+        df.iloc[:, :], test_size=t_size, random_state=42)
     return train, test
 
 
@@ -62,16 +118,22 @@ def save_file_to_csv(df: pd.DataFrame, path_to_save: str):
 
 
 def get_split_data_paths(directory_names: list):
-    train_file_path = os.path.join(directory_names[0], directory_names[1], directory_names[2], 'train.csv')
-    full_train_file_path = os.path.join(str(fedot_project_root()), train_file_path)
-    test_file_path = os.path.join(directory_names[0], directory_names[1], directory_names[2], 'test.csv')
-    full_test_file_path = os.path.join(str(fedot_project_root()), test_file_path)
+    train_file_path = os.path.join(
+        directory_names[0], directory_names[1], directory_names[2], 'train.csv')
+    full_train_file_path = os.path.join(
+        str(fedot_project_root()), train_file_path)
+    test_file_path = os.path.join(
+        directory_names[0], directory_names[1], directory_names[2], 'test.csv')
+    full_test_file_path = os.path.join(
+        str(fedot_project_root()), test_file_path)
     return full_train_file_path, full_test_file_path
 
 
 def ensure_directory_exists(dir_names: list):
-    main_dir = os.path.join(str(fedot_project_root()), dir_names[0], dir_names[1])
-    dataset_dir = os.path.join(str(fedot_project_root()), dir_names[0], dir_names[1], dir_names[2])
+    main_dir = os.path.join(str(fedot_project_root()),
+                            dir_names[0], dir_names[1])
+    dataset_dir = os.path.join(
+        str(fedot_project_root()), dir_names[0], dir_names[1], dir_names[2])
     if not os.path.exists(main_dir):
         os.mkdir(main_dir)
     if not os.path.exists(dataset_dir):
@@ -99,7 +161,8 @@ def df_to_html(df: pd.DataFrame, save_path: Union[str, os.PathLike], name: str =
     '''
     from bs4 import BeautifulSoup
 
-    df_styler = df.round(3).style.highlight_max(props='color: blue; font-weight: bold;', axis=1)
+    df_styler = df.round(3).style.highlight_max(
+        props='color: blue; font-weight: bold;', axis=1)
     df_styler.format(precision=3)
     if caption:
         df_styler.set_caption(caption)
@@ -147,3 +210,30 @@ def is_multi_output_target(train_data: InputData) -> bool:
 def is_multi_output_model(operation_impl) -> bool:
     """Check if operation is configured for multi-output target."""
     return getattr(operation_impl, 'is_multi_target', False)
+
+
+def extract_dataset_name_from_url(url: str) -> str:
+    """
+    Extracts dataset name from URL.
+
+    Args:
+        url (str): URL of the dataset
+
+    Examples:
+        "http://www.timeseriesclassification.com/aeon-toolkit/dataset_name.zip" -> "dataset_name"
+        "http://example.com/data/dataset.csv.zip" -> "dataset"
+        "http://example.com/data/dataset_name.tar.gz" -> "dataset_name"
+    """
+    parsed_url = urlparse(url)
+    path = unquote(parsed_url.path)
+
+    parts = path.split('/')
+    if not parts:
+        raise ValueError(f"Invalid URL format: {url}")
+
+    filename = parts[-1]
+
+    dataset_name = re.sub(r'\.(zip|csv|tar|gz|rar|7z|bz2)$',
+                          '', filename, flags=re.IGNORECASE)
+
+    return dataset_name

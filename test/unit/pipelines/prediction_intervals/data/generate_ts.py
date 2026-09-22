@@ -5,7 +5,8 @@ import numpy as np
 
 def synthetic_series(start, end):
 
-    trend = np.array([5 * np.sin(x / 20) + 0.1 * x - 2 * np.sqrt(x) for x in range(start, end)])
+    trend = np.array([5 * np.sin(x / 20) + 0.1 * x - 2 * np.sqrt(x)
+                     for x in range(start, end)])
     noise = np.random.normal(loc=0, scale=1, size=end - start)
 
     return trend + noise

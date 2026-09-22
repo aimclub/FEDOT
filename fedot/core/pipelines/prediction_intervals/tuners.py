@@ -5,7 +5,7 @@ from golem.core.tuning.simultaneous import SimultaneousTuner
 from fedot.core.composer.metrics import QualityMetric
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.repository.tasks import Task
 
 from fedot.core.pipelines.prediction_intervals.metrics import quantile_loss
@@ -39,7 +39,8 @@ def quantile_loss_tuners(up_quantile: float,
 
         @staticmethod
         def metric(reference: InputData, predicted: OutputData) -> float:
-            value = quantile_loss(reference.target, predicted.predict, quantile=low_quantile)
+            value = quantile_loss(
+                reference.target, predicted.predict, quantile=low_quantile)
             return value
 
     class Quantile_Loss_up(QualityMetric):
@@ -47,7 +48,8 @@ def quantile_loss_tuners(up_quantile: float,
 
         @staticmethod
         def metric(reference: InputData, predicted: OutputData) -> float:
-            value = quantile_loss(reference.target, predicted.predict, quantile=up_quantile)
+            value = quantile_loss(
+                reference.target, predicted.predict, quantile=up_quantile)
             return value
 
     composer_requirements = PipelineComposerRequirements()

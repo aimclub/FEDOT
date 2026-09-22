@@ -33,7 +33,7 @@ _exceptions = {
     'fedot.core.optimisers.objective.data_objective_eval',
     'fedot.core.optimisers.objective.data_source_splitter',
     'fedot.core.visualisation.pipeline_specific_visuals',
-    'import PipelineObjectiveEvaluate',
+    'import PipelineObjectiveEvaluateWithTensorData',
     'import init_backward_serialize_compat',
 }
 

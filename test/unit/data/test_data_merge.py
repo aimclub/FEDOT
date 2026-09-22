@@ -6,9 +6,9 @@ import numpy as np
 import pytest
 
 from examples.simple.regression.regression_with_tuning import get_regression_dataset
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.data.merge.data_merger import DataMerger
-from fedot.core.data.supplementary_data import SupplementaryData
+from fedot.core.data.multimodal.supplementary_data import SupplementaryData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -48,7 +48,8 @@ def output_tables(request):
         idx = np.arange(0, samples)
         generated_features = np.random.sample((samples, num_features))
         # add some random noise to predictions
-        generated_predict = 0.1 * np.random.sample((samples, num_features)) * generated_target
+        generated_predict = 0.1 * \
+            np.random.sample((samples, num_features)) * generated_target
         data_info = SupplementaryData()
         output_data = OutputData(idx=idx,
                                  features=generated_features,
@@ -98,14 +99,16 @@ def generate_output_tables(input_lengths: List[int],
     # With this index step almost for sure all indices must overlap all others
     #  but yet have distinct elements that are unique for them
     idx_start = 0
-    index_range_step = min(input_lengths) // (len(input_lengths) + 1) if overlapping else 0
+    index_range_step = min(
+        input_lengths) // (len(input_lengths) + 1) if overlapping else 0
     for input_len, main_target in zip(input_lengths, main_targets):
         if unique:
             idx = np.arange(idx_start, idx_start + input_len)
         else:
             # Ensure there will be repetitions in index by constraining idx_range < input_len
             idx_range = input_len // 2
-            idx = np.random.randint(idx_start, idx_start + idx_range, input_len)
+            idx = np.random.randint(
+                idx_start, idx_start + idx_range, input_len)
         idx_start += index_range_step
 
         features = np.random.randint(0, input_len, (input_len, num_features))
@@ -156,7 +159,8 @@ def test_data_merge_in_pipeline():
     node_scaling = PipelineNode('scaling')
 
     node_lin_ransac = PipelineNode('ransac_lin_reg', nodes_from=[node_scaling])
-    node_final = PipelineNode('ridge', nodes_from=[node_lin_ransac, node_scaling])
+    node_final = PipelineNode(
+        'ridge', nodes_from=[node_lin_ransac, node_scaling])
     pipeline = Pipeline(node_final)
 
     features_options = {'informative': 2, 'bias': 2.0}
@@ -203,12 +207,14 @@ def test_data_merge_common_index_empty(unequal_outputs_table):
 
 def test_data_merge_tables_with_equal_length_but_different_indices():
     input_len = 30
-    outputs = generate_output_tables(input_lengths=[input_len] * 3, overlapping=True, unique=True)
+    outputs = generate_output_tables(
+        input_lengths=[input_len] * 3, overlapping=True, unique=True)
 
     merged_data = DataMerger.get(outputs).merge()
 
     assert 0 < len(merged_data.idx) < input_len
-    assert all(np.isin(merged_data.idx, output.idx).all() for output in outputs)
+    assert all(np.isin(merged_data.idx, output.idx).all()
+               for output in outputs)
 
 
 def test_data_merge_tables_with_unequal_nonunique_indices():
@@ -229,7 +235,8 @@ def test_data_merge_datatypes_compatibility():
 def test_data_merge_no_main_targets():
     """ Test that without main targets the 'nearest' auxiliary is selected. """
     num_outputs = 3
-    outputs = generate_output_tables([30] * num_outputs, main_targets=[False] * num_outputs)
+    outputs = generate_output_tables(
+        [30] * num_outputs, main_targets=[False] * num_outputs)
 
     outputs[0].supplementary_data.data_flow_length = 3
     outputs[1].supplementary_data.data_flow_length = 1  # priority output

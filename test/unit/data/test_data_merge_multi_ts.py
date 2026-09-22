@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from fedot.core.data.data import OutputData
+from fedot.core.data.input_data.data import OutputData
 from fedot.core.data.merge.data_merger import DataMerger
-from fedot.core.data.supplementary_data import SupplementaryData
+from fedot.core.data.multimodal.supplementary_data import SupplementaryData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -65,7 +65,8 @@ def test_data_merge_multi_ts_equal(equal_outputs_multi_ts):
     merged_data = DataMerger.get([output1, output2]).merge()
 
     assert np.equal(merged_data.idx, output1.idx).all()
-    true_shape = (len(output1.idx), output1.predict.shape[1] + output2.predict.shape[1])
+    true_shape = (len(output1.idx),
+                  output1.predict.shape[1] + output2.predict.shape[1])
     assert merged_data.features.shape == true_shape
 
 
@@ -75,5 +76,6 @@ def test_data_merge_multi_ts_unequal(unequal_outputs_multi_ts):
     merged_data = DataMerger.get([output1, output2]).merge()
 
     assert np.equal(merged_data.idx, output_true_idx.idx).all()
-    true_shape = (len(output_true_idx.predict), output1.predict.shape[1] + output2.predict.shape[1])
+    true_shape = (len(output_true_idx.predict),
+                  output1.predict.shape[1] + output2.predict.shape[1])
     assert merged_data.features.shape == true_shape

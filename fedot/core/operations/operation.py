@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Dict, Optional, TYPE_CHECKING, Union
+from typing import Any, Dict, Optional, TYPE_CHECKING, Union, Tuple
 
 from golem.core.log import default_log
 from golem.serializers.serializer import register_serializable
@@ -9,7 +9,9 @@ from golem.serializers.serializer import register_serializable
 if TYPE_CHECKING:
     from fedot.core.caching.predictions_cache import PredictionsCache
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
+from fedot.core.data.tensor_data.tensor_data import TensorData
+from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.hyperparameters_preprocessing import HyperparametersPreprocessor
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
@@ -39,13 +41,16 @@ class Operation:
     def _init(self, task: Task, **kwargs):
         params = kwargs.get('params')
         if not params:
-            params = OperationParameters.from_operation_type(self.operation_type)
+            params = OperationParameters.from_operation_type(
+                self.operation_type)
         if isinstance(params, dict):
-            params = OperationParameters.from_operation_type(self.operation_type, **params)
+            params = OperationParameters.from_operation_type(
+                self.operation_type, **params)
         params_for_fit = HyperparametersPreprocessor(operation_type=self.operation_type,
                                                      n_samples_data=kwargs.get('n_samples_data')) \
             .correct(params.to_dict())
-        params_for_fit = OperationParameters.from_operation_type(self.operation_type, **params_for_fit)
+        params_for_fit = OperationParameters.from_operation_type(
+            self.operation_type, **params_for_fit)
         try:
             self._eval_strategy = \
                 _eval_strategy_for_task(self.operation_type,
@@ -71,137 +76,117 @@ class Operation:
 
     @property
     def metadata(self) -> OperationMetaInfo:
-        operation_info = self.operations_repo.operation_info_by_id(self.operation_type)
+        operation_info = self.operations_repo.operation_info_by_id(
+            self.operation_type)
         if not operation_info:
-            raise ValueError(f'{self.__class__.__name__} {self.operation_type} not found')
+            raise ValueError(
+                f'{self.__class__.__name__} {self.operation_type} not found')
         return operation_info
 
     def fit(self,
             params: Optional[Union[OperationParameters, dict]],
-            data: InputData,
+            data: TensorData,
             predictions_cache: Optional[PredictionsCache] = None,
             fold_id: Optional[int] = None,
-            descriptive_id: Optional[str] = None):
-        """This method is used for defining and running of the evaluation strategy
-        to train the operation with the data provided
-
-        Args:
-            params: hyperparameters for operation
-            data: data used for operation training
-
-        Returns:
-            tuple: trained operation and prediction on train data
-        """
-        self._init(data.task, params=params, n_samples_data=data.features.shape[0])
+            descriptive_id: Optional[str] = None) -> Tuple[Any, TensorData]:
+        """Trains the operation on TensorData and returns the node output."""
+        self._init(
+            data.task,
+            params=params,
+            n_samples_data=data.features.shape[0],
+        )
 
         self.fitted_operation = self._eval_strategy.fit(train_data=data)
 
-        predict_train = self.predict_for_fit(
-            self.fitted_operation, data, params, predictions_cache=predictions_cache, fold_id=fold_id,
-            descriptive_id=descriptive_id)
+        output = self.predict_for_fit(
+            fitted_operation=self.fitted_operation,
+            data=data,
+            params=params,
+            predictions_cache=predictions_cache,
+            fold_id=fold_id,
+        )
+        return self.fitted_operation, output
 
-        return self.fitted_operation, predict_train
+    def _is_tensor_transform_operation(self) -> bool:
+        from fedot.core.operations.data_operation import DataOperation
+
+        return isinstance(self, DataOperation)
 
     def predict(self,
                 fitted_operation,
-                data: InputData,
-                params: Optional[Union[OperationParameters, dict]] = None,
+                data: TensorData,
+                params: Optional[OperationParameters] = None,
                 output_mode: str = 'default',
                 predictions_cache: Optional[PredictionsCache] = None,
                 fold_id: Optional[int] = None,
-                descriptive_id: Optional[str] = None):
-        """This method is used for defining and running of the evaluation strategy
-        to predict with the data provided
-
-        Args:
-            fitted_operation: trained operation object
-            data: data used for prediction
-            params: hyperparameters for operation
-            output_mode: string with information about output of operation,
-            for example, is the operation predict probabilities or class labels
-        """
-        return self._predict(fitted_operation, data, params, output_mode, is_fit_stage=False,
-                             predictions_cache=predictions_cache, fold_id=fold_id, descriptive_id=descriptive_id)
+                descriptive_id: Optional[str] = None) -> TensorData:
+        return self._predict(
+            fitted_operation=fitted_operation,
+            data=data, params=params,
+            output_mode=output_mode,
+            is_fit_stage=False,
+            predictions_cache=predictions_cache,
+            fold_id=fold_id,
+            descriptive_id=descriptive_id,
+        )
 
     def predict_for_fit(self,
                         fitted_operation,
-                        data: InputData,
+                        data: TensorData,
                         params: Optional[OperationParameters] = None,
                         output_mode: str = 'default',
                         predictions_cache: Optional[PredictionsCache] = None,
                         fold_id: Optional[int] = None,
-                        descriptive_id: Optional[str] = None):
-        """This method is used for defining and running of the evaluation strategy
-        to predict with the data provided during fit stage
-
-        Args:
-            fitted_operation: trained operation object
-            data: data used for prediction
-            params: hyperparameters for operation
-            output_mode: string with information about output of operation,
-                for example, is the operation predict probabilities or class labels
-        """
-        return self._predict(fitted_operation, data, params, output_mode, is_fit_stage=True,
-                             predictions_cache=predictions_cache, fold_id=fold_id, descriptive_id=descriptive_id)
+                        descriptive_id: Optional[str] = None) -> TensorData:
+        return self._predict(
+            fitted_operation=fitted_operation,
+            data=data,
+            params=params,
+            output_mode=output_mode,
+            is_fit_stage=True,
+            predictions_cache=predictions_cache,
+            fold_id=fold_id,
+            descriptive_id=descriptive_id,
+        )
 
     def _predict(self,
                  fitted_operation,
-                 data: InputData,
+                 data: TensorData,
                  params: Optional[OperationParameters] = None,
                  output_mode: str = 'default',
                  is_fit_stage: bool = False,
                  predictions_cache: Optional[PredictionsCache] = None,
                  fold_id: Optional[int] = None,
-                 descriptive_id: Optional[str] = None):
+                 descriptive_id: Optional[str] = None) -> TensorData:
+        self._init(
+            data.task,
+            output_mode=output_mode,
+            params=params,
+            n_samples_data=data.features.shape[0],
+        )
 
-        is_main_target = data.supplementary_data.is_main_target
-        data_flow_length = data.supplementary_data.data_flow_length
-        self._init(data.task, output_mode=output_mode, params=params, n_samples_data=data.features.shape[0])
+        result_data = None
 
-        prediction = None
-        if is_fit_stage:
-            if predictions_cache is not None:
-                prediction = predictions_cache.load_node_prediction(
-                    descriptive_id, output_mode, fold_id, is_fit=is_fit_stage)
+        if predictions_cache is not None:
+            result_data = predictions_cache.load_node_prediction(
+                descriptive_id, output_mode, fold_id, is_fit=is_fit_stage)
 
-            if prediction is None:
-                prediction = self._eval_strategy.predict_for_fit(
+        # TODO @romankuklo: change with new cache implementation (if/else)
+        if result_data is None:
+            if is_fit_stage:
+                result_data = self._eval_strategy.predict_for_fit(
+                    trained_operation=fitted_operation,
+                    predict_data=data)
+            else:
+                result_data = self._eval_strategy.predict(
                     trained_operation=fitted_operation,
                     predict_data=data)
 
-                if predictions_cache is not None:
-                    predictions_cache.save_node_prediction(
-                        descriptive_id, output_mode, fold_id, prediction, is_fit=is_fit_stage)
-        else:
-            if predictions_cache is not None:
-                prediction = predictions_cache.load_node_prediction(descriptive_id, output_mode, fold_id)
+        if predictions_cache is not None:
+            predictions_cache.save_node_prediction(
+                descriptive_id, output_mode, fold_id, result_data, is_fit=is_fit_stage)
 
-            if prediction is None:
-                prediction = self._eval_strategy.predict(
-                    trained_operation=fitted_operation,
-                    predict_data=data)
-
-                if predictions_cache is not None:
-                    predictions_cache.save_node_prediction(
-                        descriptive_id, output_mode, fold_id, prediction)
-        prediction = self.assign_tabular_column_types(prediction, output_mode)
-
-        # any inplace operations here are dangerous!
-        if is_main_target is False:
-            prediction.supplementary_data.is_main_target = is_main_target
-
-        prediction.supplementary_data.data_flow_length = data_flow_length
-        return prediction
-
-    @staticmethod
-    @abstractmethod
-    def assign_tabular_column_types(output_data: OutputData, output_mode: str) -> OutputData:
-        """Assign types for columns based on task and output_mode (for classification)\n
-        For example, pipeline for solving time series forecasting task contains lagged and ridge operations.
-        ``ts_type -> lagged -> tabular type``\n
-        So, there is a need to assign column types to new data
-        """
-        raise AbstractMethodNotImplementError
+        return result_data
 
     def __str__(self):
         return f'{self.operation_type}'
@@ -244,13 +229,17 @@ def _eval_strategy_for_task(operation_type: str, current_task_type: TaskTypesEnu
 
         # Search the supplementary task types, that can be included in pipeline
         # which solves main task
-        globally_compatible_task_types = compatible_task_types(current_task_type)
+        globally_compatible_task_types = compatible_task_types(
+            current_task_type)
         globally_set = set(globally_compatible_task_types)
 
-        comp_types_acceptable_for_operation = sorted(list(set_acceptable_types.intersection(globally_set)))
+        comp_types_acceptable_for_operation = sorted(
+            list(set_acceptable_types.intersection(globally_set)))
         if len(comp_types_acceptable_for_operation) == 0:
-            raise ValueError(f'Operation {operation_type} can not be used as a part of {current_task_type}.')
+            raise ValueError(
+                f'Operation {operation_type} can not be used as a part of {current_task_type}.')
         current_task_type = comp_types_acceptable_for_operation[0]
 
-    strategy = operations_repo.operation_info_by_id(operation_type).current_strategy(current_task_type)
+    strategy = operations_repo.operation_info_by_id(
+        operation_type).current_strategy(current_task_type)
     return strategy

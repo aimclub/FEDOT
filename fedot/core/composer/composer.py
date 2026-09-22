@@ -6,8 +6,8 @@ from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from golem.core.optimisers.optimization_parameters import OptimizationParameters
 from golem.core.optimisers.optimizer import GraphOptimizer
 
-from fedot.core.data.data import InputData
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 

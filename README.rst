@@ -77,6 +77,24 @@ FEDOT предоставляет возможность использовать
 
   $ pip install fedot[extra]
 
+Дополнительные группы зависимостей (см. ``setup.py`` и каталог ``other_requirements/``): ``docs``, ``examples``, ``profilers``, ``sampling_zoo``. Последняя подтягивает пакет `sampling-zoo <https://pypi.org/project/sampling-zoo/>`_ с PyPI для этапа сэмплирования. Несколько extras задаются в квадратных скобках, например: ``pip install "fedot[sampling_zoo,examples]"``.
+
+Для установки из клона репозитория создайте виртуальное окружение и выполните установку в режиме разработки (ядро — из ``requirements.txt``):
+
+.. code-block::
+
+  $ python3 -m venv .venv && source .venv/bin/activate
+  $ pip install -U pip setuptools wheel
+  $ pip install -e .
+
+Опциональные extras из того же клона, например:
+
+.. code-block::
+
+  $ pip install -e ".[sampling_zoo]"
+
+В ``pyproject.toml`` указана секция ``[dependency-groups]`` (PEP 735) для инструментов, которые её читают; обычный ``pip install -e .`` не ставит эти группы автоматически — используйте extras выше.
+
 - Контенер **Docker**
 
 Информацию по доступным образам можно посмотреть `здесь <https://github.com/aimclub/FEDOT/tree/master/docker/README.rst>`_.

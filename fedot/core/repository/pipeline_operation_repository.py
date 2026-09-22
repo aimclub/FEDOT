@@ -1,8 +1,11 @@
 import itertools
-from typing import List, Optional, Dict
+from typing import Dict, List, Optional
 
 from fedot.core.repository.graph_operation_repository import GraphOperationRepository
 from fedot.core.repository.operation_types_repository import get_operations_for_task
+from fedot.core.repository.pipeline_operation_rules import (
+    build_pipeline_operations_by_role,
+)
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
@@ -36,6 +39,7 @@ class PipelineOperationRepository(GraphOperationRepository):
         all_operations = sorted(set(available_operations))
         primary_operations, secondary_operations = self.divide_operations(all_operations, task)
         self.operations_by_keys = {'primary': primary_operations, 'secondary': secondary_operations}
+        return self
 
     def get_operations(self, is_primary: bool) -> List[str]:
         """ Get pipeline operations by specified model key """
@@ -57,18 +61,21 @@ class PipelineOperationRepository(GraphOperationRepository):
                                                          mode='data_operation',
                                                          tags=["non_lagged"])
             # Remove exog data operation from the list
-            ts_data_operations.remove('exog_ts')
+            if 'exog_ts' in ts_data_operations:
+                ts_data_operations.remove('exog_ts')
 
             ts_primary_models = get_operations_for_task(task=task,
                                                         mode='model',
                                                         tags=["non_lagged"])
-            # Union of the models and data operations
-            ts_primary_operations = ts_data_operations + ts_primary_models
-
-            # Filter - remain only operations, which were in available ones
-            primary_operations = sorted(list(set(ts_primary_operations).intersection(available_operations)))
-            secondary_operations = available_operations
+            operations_by_role = build_pipeline_operations_by_role(
+                available_operations=available_operations,
+                task_type=task.task_type,
+                ts_data_operations=ts_data_operations,
+                ts_primary_models=ts_primary_models,
+            )
         else:
-            primary_operations = available_operations
-            secondary_operations = available_operations
-        return primary_operations, secondary_operations
+            operations_by_role = build_pipeline_operations_by_role(
+                available_operations=available_operations,
+                task_type=task.task_type,
+            )
+        return list(operations_by_role.primary), list(operations_by_role.secondary)

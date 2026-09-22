@@ -23,6 +23,7 @@ networkx>=2.4, <4.0.0, !=2.7.*, !=2.8.1, !=2.8.2, !=2.8.3
 scikit-learn>=1.0.0, <1.7.0; python_version < '3.13'
 scikit-learn>=1.7.0, <2.0.0; python_version >= '3.13'
 sktime>=0.16.1, <2.0.0
+sentence-transformers==3.0.1
 
 # Analysis and optimizations
 hyperopt==0.2.7
@@ -35,6 +36,10 @@ matplotlib>=3.3.1, <4.0.0
 pyvis==0.2.1
 seaborn>=0.9.0, <1.0.0
 
+# Validation
+marshmallow>=3.20,<4
+typing>=3.7.0
+
 # Misc
 setuptools<81
 func_timeout==4.3.5
@@ -46,3 +51,11 @@ fsspec>=2024, <2027
 # Tests
 pytest>=6.2.0, <10.0.0
 testfixtures>=6.18.0, <9.0.0
+
+
+pymonad==2.4.0
+python-dotenv>=1,<2
+cloudpickle>=3,<4
+
+# cupy-cuda12x==13.5.1
+# cudf-cu12==25.8.0

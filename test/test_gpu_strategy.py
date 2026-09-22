@@ -2,7 +2,7 @@ from typing import Tuple
 
 from cuml.svm import SVC
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.operations.evaluation.gpu.classification import CuMLClassificationStrategy
 from fedot.core.operations.evaluation.gpu.common import CuMLEvaluationStrategy
 from test.integration.models.test_split_train_test import get_synthetic_input_data

@@ -53,9 +53,17 @@ dependencies = [
     "fsspec>=2024,<2027",
     "pytest>=6.2.0,<10.0.0",
     "testfixtures>=6.18.0,<9.0.0",
+    "marshmallow>=3.20,<4",
+    "pymonad==2.4.0",
+    "python-dotenv>=1,<2",
+    "cloudpickle>=3,<4",
+    "sampling-zoo>=0.1.0",
 ]
 
 [project.optional-dependencies]
+test = [
+    "hypothesis>=6,<7",
+]
 docs = [
     "setuptools<81",
     "sphinx==5.3.0",
@@ -88,6 +96,10 @@ profilers = [
     "gprof2dot==2021.2.21",
     "objgraph==3.5.0",
     "memory_profiler==0.61.0",
+]
+gpu = [
+    "cupy-cuda12x==13.5.1",
+    "cudf-cu12==25.8.0",
 ]
 
 [project.urls]

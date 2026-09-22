@@ -60,7 +60,8 @@ class OneOperationProblem(Problem):
     def __init__(self, operation_types: Union[List[str], str]):
         super().__init__(operation_types)
         self.params: dict = \
-            self.operation_params_with_bounds_by_operation_name.get(self.operation_types[0])
+            self.operation_params_with_bounds_by_operation_name.get(
+                self.operation_types[0])
         self.num_vars: int = len(self.params)
         self.names: List[str] = list(self.params.keys())
         self.bounds: List[list] = list(self.params.values())
@@ -73,7 +74,8 @@ class OneOperationProblem(Problem):
                 new_params[self.names[index]] = value
             converted_samples.append(new_params)
 
-        converted_and_cleaned_samples = self.clean_sample_variables(converted_samples)
+        converted_and_cleaned_samples = self.clean_sample_variables(
+            converted_samples)
 
         return converted_and_cleaned_samples
 
@@ -92,7 +94,8 @@ class OneOperationProblem(Problem):
 
         converted_samples: List[list] = []
         for index, param in enumerate(self.names):
-            samples_per_param = [{param: value} for value in transposed_samples[index]]
+            samples_per_param = [{param: value}
+                                 for value in transposed_samples[index]]
             cleaned = self.clean_sample_variables(samples_per_param)
             converted_samples.append(cleaned)
 
@@ -127,13 +130,15 @@ class MultiOperationsProblem(Problem):
                 if params_names is not None:
                     new_params_values_per_operation = \
                         sample[border_index:border_index + len(params_names)]
-                    node_params = dict(zip(params_names, new_params_values_per_operation))
+                    node_params = dict(
+                        zip(params_names, new_params_values_per_operation))
                     new_params_per_operation.append(node_params)
                     border_index += len(params_names)
                 else:
                     new_params_per_operation.append(None)
 
-            cleaned_new_params_per_params = self.clean_sample_variables(new_params_per_operation)
+            cleaned_new_params_per_params = self.clean_sample_variables(
+                new_params_per_operation)
             all_operations_new_params.append(cleaned_new_params_per_params)
 
         return all_operations_new_params

@@ -36,7 +36,8 @@ def run_experiments(timeout: float = None, partitions_n=10, n_jobs=-1):
 
     data_len = len(train_data)
 
-    partitions = [int(data_len * (i / partitions_n)) for i in range(1, partitions_n + 1)]
+    partitions = [int(data_len * (i / partitions_n))
+                  for i in range(1, partitions_n + 1)]
 
     pipelines_count, times = [{1: [], n_jobs: []} for _ in range(2)]
 
@@ -52,16 +53,19 @@ def run_experiments(timeout: float = None, partitions_n=10, n_jobs=-1):
             times[_n_jobs].append((timeit.default_timer() - start_time) / 60)
             c_pipelines = _count_pipelines(auto_model.history)
             pipelines_count[_n_jobs].append(c_pipelines)
-            print(f'\tDataset length: {partition}, number of pipelines: {c_pipelines}')
+            print(
+                f'\tDataset length: {partition}, number of pipelines: {c_pipelines}')
 
     plt.title('Comparison parallel mode with a single mode')
     plt.xlabel('rows in train dataset')
     plt.ylabel('Num of pipelines that were evaluated correctly')
-    c_norm = colors.Normalize(vmin=timeout - timeout / 2, vmax=timeout + timeout / 2)
+    c_norm = colors.Normalize(
+        vmin=timeout - timeout / 2, vmax=timeout + timeout / 2)
     plt.plot(partitions, pipelines_count[1], label='one process', zorder=1)
     plt.scatter(partitions, pipelines_count[1], c=times[1],
                 cmap=cm.get_cmap('cool'), norm=c_norm, zorder=2)
-    plt.plot(partitions, pipelines_count[n_jobs], label=f'{n_jobs} processes', zorder=1)
+    plt.plot(partitions, pipelines_count[n_jobs],
+             label=f'{n_jobs} processes', zorder=1)
     plt.scatter(partitions, pipelines_count[n_jobs], c=times[n_jobs],
                 cmap=cm.get_cmap('cool'), norm=c_norm, zorder=2)
     print(times)

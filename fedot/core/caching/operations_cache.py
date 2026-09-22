@@ -52,7 +52,8 @@ class OperationsCache(BaseCache):
         """
         try:
             nodes_lst = ensure_wrapped_in_sequence(nodes)
-            structural_ids = [_get_structural_id(node, fold_id) for node in nodes_lst]
+            structural_ids = [_get_structural_id(
+                node, fold_id) for node in nodes_lst]
             cached_ops = self._db.get_operations(structural_ids)
             for idx, cached_op in enumerate(cached_ops):
                 if cached_op is not None:

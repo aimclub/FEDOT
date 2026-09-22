@@ -9,7 +9,7 @@ from sklearn.tree._tree import TREE_LEAF
 
 from fedot.core.composer.metrics import Metric
 from fedot.core.composer.metrics import R2, F1
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -39,17 +39,19 @@ class SurrogateExplainer(Explainer):
         self.score: Optional[float] = None
 
         if not isinstance(surrogate, str):
-            raise ValueError(f'{surrogate} is not supported as a surrogate model')
+            raise ValueError(
+                f'{surrogate} is not supported as a surrogate model')
         if surrogate not in self.surrogates_default_params:
-            raise ValueError(f'{type(surrogate)} is not supported as a surrogate model')
+            raise ValueError(
+                f'{type(surrogate)} is not supported as a surrogate model')
 
         self.surrogate_str = surrogate
-        self.surrogate = get_simple_pipeline(self.surrogate_str, self.surrogates_default_params[surrogate],
-                                             model.use_input_preprocessing)
+        self.surrogate = get_simple_pipeline(self.surrogate_str, self.surrogates_default_params[surrogate])
 
     def explain(self, data: InputData, visualization: bool = False, **kwargs):
         try:
-            self.score = fit_naive_surrogate_model(self.model, self.surrogate, data)
+            self.score = fit_naive_surrogate_model(
+                self.model, self.surrogate, data)
 
         except Exception as ex:
             print(f'Failed to fit the surrogate: {ex}')
@@ -83,23 +85,24 @@ class SurrogateExplainer(Explainer):
             }
             # Plot parameters defined by user
             kwargs_params = \
-                {par: kwargs[par] for par in kwargs if par in signature(tree.plot_tree).parameters}
+                {par: kwargs[par] for par in kwargs if par in signature(
+                    tree.plot_tree).parameters}
 
             plot_params.update(kwargs_params)
 
-            tree.plot_tree(self.surrogate.root_node.fitted_operation, **plot_params)
+            tree.plot_tree(
+                self.surrogate.root_node.fitted_operation, **plot_params)
 
         if save_path is not None:
             plt.savefig(save_path)
             print(f'Saved the plot to "{os.path.abspath(save_path)}"')
 
 
-def get_simple_pipeline(model: str, custom_params: dict = None,
-                        use_input_preprocessing: bool = True) -> 'Pipeline':
+def get_simple_pipeline(model: str, custom_params: dict = None) -> 'Pipeline':
     surrogate_node = PipelineNode(model)
     if custom_params:
         surrogate_node.parameters = custom_params
-    return Pipeline(surrogate_node, use_input_preprocessing=use_input_preprocessing)
+    return Pipeline(surrogate_node)
 
 
 def fit_naive_surrogate_model(
@@ -119,7 +122,8 @@ def fit_naive_surrogate_model(
     surrogate_model.fit(data)
 
     data_c = deepcopy(data)
-    data_c.target = surrogate_model.predict(data, output_mode=output_mode).predict
+    data_c.target = surrogate_model.predict(
+        data, output_mode=output_mode).predict
     score = round(abs(metric.metric(data_c, prediction)), 2)
 
     return score
@@ -157,5 +161,6 @@ def prune_duplicate_leaves(mdl):
     :param mdl: `DecisionTree` or `DecisionTreeRegressor` instance by sklearn.
     """
     # Remove leaves if both
-    decisions = mdl.tree_.value.argmax(axis=2).flatten().tolist()  # Decision for each node
+    decisions = mdl.tree_.value.argmax(
+        axis=2).flatten().tolist()  # Decision for each node
     prune_index(mdl.tree_, decisions)

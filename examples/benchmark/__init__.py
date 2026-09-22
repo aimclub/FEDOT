@@ -1,0 +1,1 @@
+"""Benchmark examples for FEDOT."""

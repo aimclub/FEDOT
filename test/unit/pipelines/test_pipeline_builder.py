@@ -18,8 +18,10 @@ def test_pipeline_builder_with_empty_inputs():
     assert PipelineBuilder().build() is None
     assert PipelineBuilder().add_node(None).build() is None
     assert PipelineBuilder().grow_branches(None, None, None).build() is None
-    assert PipelineBuilder().join_branches('operation_a').build() is None  # empty join is empty
-    assert PipelineBuilder().join_branches(None).build() is None  # empty join is empty
+    assert PipelineBuilder().join_branches(
+        'operation_a').build() is None  # empty join is empty
+    assert PipelineBuilder().join_branches(
+        None).build() is None  # empty join is empty
 
 
 def test_pipeline_builder_with_prebuilt_nodes():
@@ -28,10 +30,13 @@ def test_pipeline_builder_with_prebuilt_nodes():
     secondary_f = PipelineNode('operation_f', nodes_from=[primary_b])
 
     # create builder with prebuilt nodes
-    assert graphs_same(Pipeline(primary_a), PipelineBuilder(PipelineNode('operation_a')).build())
-    assert graphs_same(Pipeline(secondary_f), PipelineBuilder(copy(secondary_f)).build())
+    assert graphs_same(Pipeline(primary_a), PipelineBuilder(
+        PipelineNode('operation_a')).build())
+    assert graphs_same(Pipeline(secondary_f),
+                       PipelineBuilder(copy(secondary_f)).build())
     # build two parallel branches
-    assert graphs_same(Pipeline([primary_a, primary_b]), PipelineBuilder(primary_a, primary_b).build())
+    assert graphs_same(Pipeline([primary_a, primary_b]), PipelineBuilder(
+        primary_a, primary_b).build())
 
 
 def test_pipeline_builder_with_linear_structure():
@@ -39,10 +44,13 @@ def test_pipeline_builder_with_linear_structure():
     secondary_f = PipelineNode('operation_f', nodes_from=[primary_a])
 
     # build single node
-    assert graphs_same(Pipeline(primary_a), PipelineBuilder().add_node('operation_a').build())
-    assert graphs_same(Pipeline(primary_a), PipelineBuilder().add_sequence('operation_a').build())
+    assert graphs_same(Pipeline(primary_a),
+                       PipelineBuilder().add_node('operation_a').build())
+    assert graphs_same(Pipeline(primary_a),
+                       PipelineBuilder().add_sequence('operation_a').build())
     # index overflow is ok
-    assert graphs_same(Pipeline(primary_a), PipelineBuilder().add_node('operation_a', branch_idx=42).build())
+    assert graphs_same(Pipeline(primary_a), PipelineBuilder().add_node(
+        'operation_a', branch_idx=42).build())
 
     # build linear sequence
     assert graphs_same(Pipeline(secondary_f),
@@ -82,7 +90,8 @@ def test_pipeline_builder_with_joined_branches():
     primary_a = PipelineNode('operation_a')
     secondary_f = PipelineNode('operation_f', nodes_from=[primary_a])
     secondary_a = PipelineNode('operation_a', nodes_from=[primary_a])
-    joined_f = PipelineNode('operation_f', nodes_from=[secondary_f, secondary_a])  # joined
+    joined_f = PipelineNode('operation_f', nodes_from=[
+                            secondary_f, secondary_a])  # joined
 
     # joined branch
     assert graphs_same(Pipeline([secondary_f, secondary_a]),
@@ -108,16 +117,20 @@ def test_pipeline_builder_copy_semantic():
     assert graphs_same(builder.build(), builder.build())
     # but different objects
     assert id(builder.build()) != id(builder.build())
-    assert all([id(n1) != id(n2) for n1, n2 in zip(builder.to_nodes(), builder.to_nodes())])
+    assert all([id(n1) != id(n2)
+               for n1, n2 in zip(builder.to_nodes(), builder.to_nodes())])
 
 
 def test_pipeline_builder_merge_empty():
     builder_one_to_one = PipelineBuilder().add_sequence('operation_a', 'operation_f')
 
     # empty left, empty right, empty both
-    assert builder_one_to_one == merge_pipeline_builders(builder_one_to_one, PipelineBuilder())
-    assert builder_one_to_one == merge_pipeline_builders(PipelineBuilder(), builder_one_to_one)
-    assert len(merge_pipeline_builders(PipelineBuilder(), PipelineBuilder()).heads) == 0
+    assert builder_one_to_one == merge_pipeline_builders(
+        builder_one_to_one, PipelineBuilder())
+    assert builder_one_to_one == merge_pipeline_builders(
+        PipelineBuilder(), builder_one_to_one)
+    assert len(merge_pipeline_builders(
+        PipelineBuilder(), PipelineBuilder()).heads) == 0
 
 
 def test_pipeline_builder_merge_single_node():
@@ -125,7 +138,8 @@ def test_pipeline_builder_merge_single_node():
     builder_b = PipelineBuilder().add_sequence('operation_f')
     builder_ab = PipelineBuilder().add_sequence('operation_a', 'operation_f')
 
-    assert builders_same(builder_ab, merge_pipeline_builders(builder_a, builder_b))
+    assert builders_same(
+        builder_ab, merge_pipeline_builders(builder_a, builder_b))
 
 
 def test_pipeline_builder_merge_duplicate():
@@ -134,18 +148,22 @@ def test_pipeline_builder_merge_duplicate():
     # duplicate builder
     assert builders_same(
         merge_pipeline_builders(builder_one_to_one, builder_one_to_one),
-        PipelineBuilder().add_sequence('operation_a', 'operation_f', 'operation_a', 'operation_f')
+        PipelineBuilder().add_sequence(
+            'operation_a', 'operation_f', 'operation_a', 'operation_f')
     )
     # check that builder state is preserved after merge and can be reused
     assert graphs_same(
         builder_one_to_one.build(),
-        Pipeline(PipelineNode('operation_f', nodes_from=[PipelineNode('operation_a')]))
+        Pipeline(PipelineNode('operation_f', nodes_from=[
+                 PipelineNode('operation_a')]))
     )
 
 
 def test_pipeline_builder_merge_one_to_one():
-    builder_many_to_one = PipelineBuilder().add_branch('operation_b', 'operation_d').join_branches('operation_f')
-    builder_one_to_many = PipelineBuilder().add_node('operation_c').add_branch('operation_g', 'operation_a')
+    builder_many_to_one = PipelineBuilder().add_branch(
+        'operation_b', 'operation_d').join_branches('operation_f')
+    builder_one_to_many = PipelineBuilder().add_node(
+        'operation_c').add_branch('operation_g', 'operation_a')
 
     # merge one final to one initial node
     assert builders_same(
@@ -157,7 +175,8 @@ def test_pipeline_builder_merge_one_to_one():
 
 
 def test_pipeline_builder_merge_one_to_many():
-    builder_many_to_one = PipelineBuilder().add_branch('operation_b', 'operation_d').join_branches('operation_f')
+    builder_many_to_one = PipelineBuilder().add_branch(
+        'operation_b', 'operation_d').join_branches('operation_f')
     builder_many_to_many = PipelineBuilder().add_branch('operation_b', 'operation_d').grow_branches('operation_f',
                                                                                                     'operation_h')
 
@@ -172,7 +191,8 @@ def test_pipeline_builder_merge_one_to_many():
 
 def test_pipeline_builder_merge_many_to_one():
     builder_one_to_one = PipelineBuilder().add_sequence('operation_a', 'operation_f')
-    builder_one_to_many = PipelineBuilder().add_node('operation_c').add_branch('operation_g', 'operation_a')
+    builder_one_to_many = PipelineBuilder().add_node(
+        'operation_c').add_branch('operation_g', 'operation_a')
 
     # merge many final to one initial node
     assert builders_same(
@@ -184,16 +204,20 @@ def test_pipeline_builder_merge_many_to_one():
 
 
 def test_pipeline_builder_merge_many_to_many_undefined():
-    builder_one_to_many = PipelineBuilder().add_node('operation_c').add_branch('operation_g', 'operation_a')
+    builder_one_to_many = PipelineBuilder().add_node(
+        'operation_c').add_branch('operation_g', 'operation_a')
     builder_many_to_many = PipelineBuilder().add_branch('operation_b', 'operation_d').grow_branches('operation_f',
                                                                                                     'operation_h')
     # many to many result undefined
-    assert merge_pipeline_builders(builder_one_to_many, builder_many_to_many) is None
+    assert merge_pipeline_builders(
+        builder_one_to_many, builder_many_to_many) is None
 
 
 def test_pipeline_builder_merge_interface():
-    builder_one_to_many = PipelineBuilder().add_node('operation_c').add_branch('operation_g', 'operation_a')
-    builder_many_to_one = PipelineBuilder().add_branch('operation_b', 'operation_d').join_branches('operation_f')
+    builder_one_to_many = PipelineBuilder().add_node(
+        'operation_c').add_branch('operation_g', 'operation_a')
+    builder_many_to_one = PipelineBuilder().add_branch(
+        'operation_b', 'operation_d').join_branches('operation_f')
 
     assert builders_same(
         merge_pipeline_builders(builder_many_to_one, builder_one_to_many),

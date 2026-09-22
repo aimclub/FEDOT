@@ -1,6 +1,6 @@
 from matplotlib import pyplot as plt
 
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.ts_wrappers import fitted_values, in_sample_fitted_values
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from test.unit.pipelines.test_pipeline_ts_wrappers import get_simple_short_lagged_pipeline
@@ -31,10 +31,14 @@ def show_fitted_time_series(len_forecast=24):
     # In-sample forecasting fitted values
     in_sample_validated = in_sample_fitted_values(ts_input, train_predicted)
 
-    plt.plot(range(len(ts_input.idx)), ts_input.target, label='Actual time series', alpha=0.8)
-    plt.plot(fitted_ts_10.idx, fitted_ts_10.predict, label='Fitted values horizon 10', alpha=0.2)
-    plt.plot(fitted_ts_act.idx, fitted_ts_act.predict, label='Fitted values all', alpha=0.2)
-    plt.plot(in_sample_validated.idx, in_sample_validated.predict, label='In-sample fitted values')
+    plt.plot(range(len(ts_input.idx)), ts_input.target,
+             label='Actual time series', alpha=0.8)
+    plt.plot(fitted_ts_10.idx, fitted_ts_10.predict,
+             label='Fitted values horizon 10', alpha=0.2)
+    plt.plot(fitted_ts_act.idx, fitted_ts_act.predict,
+             label='Fitted values all', alpha=0.2)
+    plt.plot(in_sample_validated.idx, in_sample_validated.predict,
+             label='In-sample fitted values')
     plt.legend()
     plt.grid()
     plt.show()

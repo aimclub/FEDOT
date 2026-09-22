@@ -10,7 +10,7 @@ from golem.core.log import default_log
 from scipy.ndimage import gaussian_filter
 from sklearn.decomposition import TruncatedSVD
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
     DataOperationImplementation
 )
@@ -65,7 +65,8 @@ class LaggedImplementation(DataOperationImplementation):
         forecast_length = new_input_data.task.task_params.forecast_length
 
         # Correct window size parameter
-        self._check_and_correct_window_size(new_input_data.features, forecast_length)
+        self._check_and_correct_window_size(
+            new_input_data.features, forecast_length)
 
         self._apply_transformation_for_predict(new_input_data)
 
@@ -88,7 +89,8 @@ class LaggedImplementation(DataOperationImplementation):
         forecast_length = new_input_data.task.task_params.forecast_length
 
         # Correct window size parameter
-        self._check_and_correct_window_size(new_input_data.features, forecast_length)
+        self._check_and_correct_window_size(
+            new_input_data.features, forecast_length)
 
         target = np.array(new_input_data.target)
         features = np.array(new_input_data.features)
@@ -117,11 +119,14 @@ class LaggedImplementation(DataOperationImplementation):
             Returns:
 
             """
-        max_allowed_window_size = max(1, len(time_series) - forecast_length - 1)
+        max_allowed_window_size = max(
+            1, len(time_series) - forecast_length - 1)
 
         if self.window_size == 0:
-            selector = WindowSizeSelector(method=WindowSizeSelectorMethodsEnum.HAC, window_range=(5, 60))
-            new = int(selector.apply(time_series) * time_series.shape[0] * 0.01)
+            selector = WindowSizeSelector(
+                method=WindowSizeSelectorMethodsEnum.HAC, window_range=(5, 60))
+            new = int(selector.apply(time_series)
+                      * time_series.shape[0] * 0.01)
             new = min(max_allowed_window_size, new)
             self.log.message((f"Window size of lagged transformation was changed "
                               f"by WindowSizeSelector from {self.params.get('window_size')} to {new}"))
@@ -188,7 +193,8 @@ class LaggedImplementation(DataOperationImplementation):
                                                   self.n_components,
                                                   self.use_svd)
             # Transform target
-            current_target = self._current_target_for_each_ts(current_ts_id, target)
+            current_target = self._current_target_for_each_ts(
+                current_ts_id, target)
             new_idx, transformed_cols, new_target = prepare_target(all_idx=input_data.idx,
                                                                    idx=new_idx,
                                                                    features_columns=transformed_cols,
@@ -302,8 +308,10 @@ class LaggedImplementation(DataOperationImplementation):
                 current_ts = np.ravel(input_data.features[:, current_ts_id])
 
             if self.sparse_transform:
-                self.log.debug('Sparse lagged transformation applied. If new data were used. Call fit method')
-                transformed_cols = self._update_features_for_sparse(current_ts, old_idx)
+                self.log.debug(
+                    'Sparse lagged transformation applied. If new data were used. Call fit method')
+                transformed_cols = self._update_features_for_sparse(
+                    current_ts, old_idx)
                 # Take last row in the lagged table and reshape into array with 1 row and n columns
                 current_ts = transformed_cols[-1].reshape(1, -1)
 
@@ -317,7 +325,8 @@ class LaggedImplementation(DataOperationImplementation):
                                                                       last_part_of_ts)
 
         if input_data.data_type == DataTypesEnum.multi_ts:
-            all_transformed_features = np.expand_dims(all_transformed_features[0], axis=0)
+            all_transformed_features = np.expand_dims(
+                all_transformed_features[0], axis=0)
         self.features_columns = all_transformed_features
         return all_transformed_features
 
@@ -589,7 +598,8 @@ class NumericalDerivativeFilterImplementation(DataOperationImplementation):
                 differential_ts = self._differential_filter(ts)
                 full_differential_ts.append(differential_ts)
             output_data = self._convert_to_output(input_data,
-                                                  np.array(full_differential_ts).T,
+                                                  np.array(
+                                                      full_differential_ts).T,
                                                   data_type=input_data.data_type)
         else:
             differential_ts = np.ravel(self._differential_filter(source_ts))
@@ -614,7 +624,8 @@ class NumericalDerivativeFilterImplementation(DataOperationImplementation):
 
         # Take the differentials in the center of the domain
         for center_window in range(self.window_size, ts_len - self.window_size):
-            points = np.arange(center_window - self.window_size, center_window + self.window_size)
+            points = np.arange(center_window - self.window_size,
+                               center_window + self.window_size)
             # Fit to a Chebyshev polynomial
             # this is the same as any polynomial since we're on a fixed grid but it's better conditioned :)
             poly = np.polynomial.chebyshev.Chebyshev.fit(x[points], ts[points], self.poly_degree,
@@ -625,9 +636,11 @@ class NumericalDerivativeFilterImplementation(DataOperationImplementation):
         coordsupp_1 = x[0:self.window_size]
         supp_2 = ts[-self.window_size:]
         coordsupp_2 = x[-self.window_size:]
-        poly = np.polynomial.chebyshev.Chebyshev.fit(coordsupp_1, supp_1, self.window_size - 1)
+        poly = np.polynomial.chebyshev.Chebyshev.fit(
+            coordsupp_1, supp_1, self.window_size - 1)
         der_f[0:self.window_size] = poly.deriv(m=self.order)(coordsupp_1)
-        poly = np.polynomial.chebyshev.Chebyshev.fit(coordsupp_2, supp_2, self.window_size - 1)
+        poly = np.polynomial.chebyshev.Chebyshev.fit(
+            coordsupp_2, supp_2, self.window_size - 1)
         der_f[-self.window_size:] = poly.deriv(m=self.order)(coordsupp_2)
         for _ in range(self.order):
             supp_1 = np.gradient(supp_1, coordsupp_1, edge_order=2)
@@ -669,7 +682,8 @@ class CutImplementation(DataOperationImplementation):
     def _correct_cut_part(self):
         if not 0 < self.cut_part <= 0.9:
             # Default parameter
-            self.log.info(f"Change invalid parameter cut_part ({self.cut_part}) on default value (0.5)")
+            self.log.info(
+                f"Change invalid parameter cut_part ({self.cut_part}) on default value (0.5)")
             self.params.update(cut_part=0.5)
 
     def fit(self, input_data: InputData):
@@ -785,7 +799,8 @@ def _sparse_matrix(logger, features_columns: np.array, n_components_perc=0.5, us
             n_components = int(features_columns.shape[1] * n_components_perc)
         if n_components >= features_columns.shape[0]:
             n_components = features_columns.shape[0] - 1
-        logger.info(f'Initial approximation of number of components set as {n_components}')
+        logger.info(
+            f'Initial approximation of number of components set as {n_components}')
 
         # Forming the first value of explained variance
         components = _get_svd(features_columns, n_components)

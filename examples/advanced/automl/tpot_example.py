@@ -3,7 +3,7 @@ import numpy as np
 from examples.advanced.time_series_forecasting.composing_pipelines import visualise
 from examples.simple.pipeline_import_export import create_correct_path
 from fedot.core.composer.metrics import root_mean_squared_error
-from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from sklearn.metrics import roc_auc_score as roc_auc, mean_absolute_error
@@ -56,7 +56,8 @@ def tpot_classification_pipeline_evaluation():
     json_path_load = create_correct_path(pipeline_path)
     new_pipeline = Pipeline.from_serialized(json_path_load)
 
-    predicted_output_after_export = new_pipeline.predict(test_data, output_mode="full_probs")
+    predicted_output_after_export = new_pipeline.predict(
+        test_data, output_mode="full_probs")
     prediction_after_export = predicted_output_after_export.predict[:, 0]
 
     print(f'After import {prediction_after_export[:4]}')

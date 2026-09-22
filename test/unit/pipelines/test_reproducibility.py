@@ -1,6 +1,6 @@
 import numpy as np
 
-from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.split.data_split import train_test_data_setup
 from test.integration.quality.test_synthetic_tasks import get_regression_pipeline, get_regression_data
 
 

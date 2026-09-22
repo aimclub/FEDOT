@@ -41,7 +41,8 @@ def test_api_predict_correct(task_type, metric_name):
         'timeout': 2,
         'preset': 'fast_train'
     }
-    model = Fedot(problem=task_type, metric=metric_name, **changed_api_params, cv_folds=2)
+    model = Fedot(problem=task_type, metric=metric_name,
+                  **changed_api_params, cv_folds=2)
     fedot_model = model.fit(features=train_data)
     prediction = model.predict(features=test_data)
     metric = model.get_metrics(metric_names=metric_name, rounding_order=5)
@@ -51,7 +52,8 @@ def test_api_predict_correct(task_type, metric_name):
     # composing and tuning was applied
     assert model.history is not None
     assert model.history.tuning_result is not None
-    assert is_predict_ignores_target(model.predict, model.train_data, 'features')
+    assert is_predict_ignores_target(
+        model.predict, model.train_data, 'features')
 
 
 @pytest.mark.parametrize('task_type, metric_name, pred_model', [
@@ -70,10 +72,12 @@ def test_api_tune_correct(task_type, metric_name, pred_model):
             problem=task_type,
             task_params=TsForecastingParams(forecast_length=forecast_length))
     else:
-        train_data, test_data, _ = get_dataset(task_type, n_samples=100, n_features=10, iris_dataset=False)
+        train_data, test_data, _ = get_dataset(
+            task_type, n_samples=100, n_features=10, iris_dataset=False)
         model = Fedot(problem=task_type)
 
-    base_pipeline = deepcopy(model.fit(features=train_data, predefined_model=pred_model))
+    base_pipeline = deepcopy(
+        model.fit(features=train_data, predefined_model=pred_model))
     pred_before = model.predict(features=test_data)
 
     tuned_pipeline = deepcopy(model.tune(timeout=tuning_timeout, n_jobs=1))
@@ -94,13 +98,15 @@ def test_api_tune_correct(task_type, metric_name, pred_model):
     ],
 )
 def test_api_fit_atomized_model(task_type, metric_name, pred_model):
-    train_data, test_data, _ = get_dataset(task_type, n_samples=100, n_features=5, iris_dataset=False)
+    train_data, test_data, _ = get_dataset(
+        task_type, n_samples=100, n_features=5, iris_dataset=False)
 
     auto_model = Fedot(
         problem=task_type,
         metric=metric_name,
         **TESTS_MAIN_API_DEFAULT_PARAMS,
-        initial_assumption=PipelineBuilder().add_node("scaling").add_node(pred_model).build()
+        initial_assumption=PipelineBuilder().add_node(
+            "scaling").add_node(pred_model).build()
     )
 
     auto_model.fit(features=train_data)
@@ -110,16 +116,19 @@ def test_api_fit_atomized_model(task_type, metric_name, pred_model):
     prev_model.unfit()
 
     atomized_model = Pipeline(
-        PipelineNode(operation_type=AtomizedModel(prev_model), nodes_from=[PipelineNode("normalization")])
+        PipelineNode(operation_type=AtomizedModel(prev_model),
+                     nodes_from=[PipelineNode("normalization")])
     )
 
     auto_model_from_atomized = Fedot(
         problem=task_type, metric=metric_name, **TESTS_MAIN_API_DEFAULT_PARAMS, initial_assumption=atomized_model
     )
     auto_model_from_atomized.fit(features=train_data)
-    pred_auto_model_from_atomized = auto_model_from_atomized.predict(features=test_data)
+    pred_auto_model_from_atomized = auto_model_from_atomized.predict(
+        features=test_data)
 
-    assert len(test_data.target) == len(pred_auto_model) == len(pred_auto_model_from_atomized)
+    assert len(test_data.target) == len(
+        pred_auto_model) == len(pred_auto_model_from_atomized)
 
 
 def test_api_simple_ts_predict_correct(task_type: str = 'ts_forecasting'):
@@ -140,31 +149,41 @@ def test_api_simple_ts_predict_correct(task_type: str = 'ts_forecasting'):
 def test_api_in_sample_ts_predict_correct(validation_blocks, task_type: str = 'ts_forecasting'):
     # The forecast length must be equal to 5
     forecast_length = 5
-    train_data, test_data, _ = get_dataset(task_type, validation_blocks=validation_blocks)
+    train_data, test_data, _ = get_dataset(
+        task_type, validation_blocks=validation_blocks)
     model = Fedot(problem='ts_forecasting', **TESTS_MAIN_API_DEFAULT_PARAMS,
                   task_params=TsForecastingParams(forecast_length=forecast_length))
 
     model.fit(features=train_data, predefined_model='auto')
-    ts_forecast = model.predict(features=test_data, validation_blocks=validation_blocks)
-    _ = model.get_metrics(target=test_data.target, metric_names='rmse', validation_blocks=validation_blocks)
+    ts_forecast = model.predict(
+        features=test_data, validation_blocks=validation_blocks)
+    _ = model.get_metrics(target=test_data.target,
+                          metric_names='rmse', validation_blocks=validation_blocks)
 
-    assert len(ts_forecast) == forecast_length * validation_blocks if validation_blocks else forecast_length * 2
+    assert len(ts_forecast) == forecast_length * \
+        validation_blocks if validation_blocks else forecast_length * 2
 
 
 @pytest.mark.parametrize('validation_blocks', [None, 2, 3])
 def test_api_in_sample_multi_ts_predict_correct(validation_blocks, task_type: str = 'ts_forecasting'):
     forecast_length = 2
-    train_data, test_data = get_multi_ts_data(forecast_length=forecast_length, validation_blocks=validation_blocks)
+    train_data, test_data = get_multi_ts_data(
+        forecast_length=forecast_length, validation_blocks=validation_blocks)
     model = Fedot(problem='ts_forecasting', **TESTS_MAIN_API_DEFAULT_PARAMS,
-                  task_params=TsForecastingParams(forecast_length=forecast_length),
+                  task_params=TsForecastingParams(
+                      forecast_length=forecast_length),
                   available_operations=['lagged', 'smoothing', 'diff_filter', 'gaussian_filter',
                                         'ridge', 'lasso', 'linear', 'cut'])
 
-    model.fit(features=train_data, predefined_model=ts_complex_ridge_smoothing_pipeline())
-    ts_forecast = model.predict(features=test_data, validation_blocks=validation_blocks)
-    _ = model.get_metrics(target=test_data.target, metric_names='rmse', validation_blocks=validation_blocks)
+    model.fit(features=train_data,
+              predefined_model=ts_complex_ridge_smoothing_pipeline())
+    ts_forecast = model.predict(
+        features=test_data, validation_blocks=validation_blocks)
+    _ = model.get_metrics(target=test_data.target,
+                          metric_names='rmse', validation_blocks=validation_blocks)
 
-    assert len(ts_forecast) == forecast_length * validation_blocks if validation_blocks else forecast_length * 254
+    assert len(ts_forecast) == forecast_length * \
+        validation_blocks if validation_blocks else forecast_length * 254
 
 
 @pytest.mark.parametrize('validation_blocks', [None, 2, 3])
@@ -175,8 +194,10 @@ def test_api_in_sample_multimodal_ts_predict_correct(validation_blocks):
     model = Fedot(problem='ts_forecasting', **TESTS_MAIN_API_DEFAULT_PARAMS,
                   task_params=TsForecastingParams(forecast_length=forecast_length))
     model.fit(features=historical_data, target=target, predefined_model='auto')
-    ts_forecast = model.predict(historical_data, validation_blocks=validation_blocks)
-    assert len(ts_forecast) == forecast_length * validation_blocks if validation_blocks else forecast_length
+    ts_forecast = model.predict(
+        historical_data, validation_blocks=validation_blocks)
+    assert len(ts_forecast) == forecast_length * \
+        validation_blocks if validation_blocks else forecast_length
 
 
 def test_api_forecast_numpy_input_with_static_model_correct(task_type: str = 'ts_forecasting'):
@@ -210,7 +231,8 @@ def test_pandas_input_for_api():
     baseline_model = Fedot(problem='classification')
 
     # fit model without optimisation - single XGBoost node is used
-    baseline_model.fit(features=train_features, target=train_target, predefined_model='xgboost')
+    baseline_model.fit(features=train_features,
+                       target=train_target, predefined_model='xgboost')
 
     # evaluate the prediction with test data
     prediction = baseline_model.predict(features=test_data)
@@ -218,7 +240,8 @@ def test_pandas_input_for_api():
     assert len(prediction) == len(test_target)
 
     # evaluate quality metric for the test sample
-    baseline_metrics = baseline_model.get_metrics(metric_names='f1', target=test_target)
+    baseline_metrics = baseline_model.get_metrics(
+        metric_names='f1', target=test_target)
 
     assert baseline_metrics['f1'] > 0
 
@@ -244,7 +267,8 @@ def test_multiobj_for_api():
 def test_categorical_preprocessing_unidata():
     train_data, test_data = load_categorical_unimodal()
 
-    auto_model = Fedot(problem='classification', **TESTS_MAIN_API_DEFAULT_PARAMS)
+    auto_model = Fedot(problem='classification', **
+                       TESTS_MAIN_API_DEFAULT_PARAMS)
     auto_model.fit(features=train_data)
     prediction = auto_model.predict(features=test_data)
     prediction_proba = auto_model.predict_proba(features=test_data)
@@ -269,13 +293,16 @@ def test_categorical_preprocessing_unidata_predefined_linear():
     )
 
     for i in range(prediction.features.shape[1]):
-        assert all(list(map(lambda x: isinstance(x, types_encountered), prediction.features[:, i])))
+        assert all(list(map(lambda x: isinstance(
+            x, types_encountered), prediction.features[:, i])))
 
 
 def test_fill_nan_without_categorical():
     train_data, test_data = load_categorical_unimodal()
-    train_data.features = np.hstack((train_data.features[:, :2], train_data.features[:, 4:]))
-    test_data.features = np.hstack((test_data.features[:, :2], test_data.features[:, 4:]))
+    train_data.features = np.hstack(
+        (train_data.features[:, :2], train_data.features[:, 4:]))
+    test_data.features = np.hstack(
+        (test_data.features[:, :2], test_data.features[:, 4:]))
 
     pipeline = Pipeline(nodes=PipelineNode('logit'))
     pipeline.fit(train_data)
@@ -289,7 +316,8 @@ def test_fill_nan_without_categorical():
 def test_dict_multimodal_input_for_api():
     data, target = load_categorical_multidata()
 
-    model = Fedot(problem='classification', metric=['f1'], **TESTS_MAIN_API_DEFAULT_PARAMS)
+    model = Fedot(problem='classification', metric=[
+                  'f1'], **TESTS_MAIN_API_DEFAULT_PARAMS)
 
     model.fit(features=data, target=target)
 
@@ -307,7 +335,8 @@ def test_unshuffled_data():
     df_el, y = load_iris(return_X_y=True, as_frame=True)
     df_el[target_column] = LabelEncoder().fit_transform(y)
 
-    features, target = df_el.drop(target_column, axis=1).values, df_el[target_column].values
+    features, target = df_el.drop(
+        target_column, axis=1).values, df_el[target_column].values
 
     problem = 'classification'
     params = {
