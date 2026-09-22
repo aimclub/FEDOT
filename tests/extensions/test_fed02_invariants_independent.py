@@ -108,7 +108,7 @@ def test_registration_batch_is_atomic_for_conflict_at_any_position(
         assert result.is_left()
         assert result.monoid[0].code == expected_code
         assert get_registered_extensions() == before
-        assert get_extension_operation_spec(parent.models[0].name) is parent.models[0]
+        assert get_extension_operation_spec(parent.models[0].name) == parent.models[0]
         for index in range(size):
             assert get_extension_operation_spec(f'fed02_batch_operation_{index}') is None
 
@@ -157,8 +157,8 @@ def test_nested_scope_restores_parent_after_direct_registration_and_exception():
                 raise RuntimeError('leave inner scope')
 
         assert get_registered_extensions() == outer_state
-        assert get_extension_operation_spec(parent.models[0].name) is parent.models[0]
-        assert get_extension_operation_spec(outer_direct.transforms[0].name) is outer_direct.transforms[0]
+        assert get_extension_operation_spec(parent.models[0].name) == parent.models[0]
+        assert get_extension_operation_spec(outer_direct.transforms[0].name) == outer_direct.transforms[0]
         assert get_extension_operation_spec(inner.models[0].name) is None
         assert get_extension_operation_spec(inner_direct.transforms[0].name) is None
 

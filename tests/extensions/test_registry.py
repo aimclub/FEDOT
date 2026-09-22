@@ -7,6 +7,7 @@ from fedot.extensions import (
     ExtensionManifest,
     ExternalModelSpec,
     ModelCapabilities,
+    ModelHyperparamsSchema,
     clear_extension_registry,
     discover_extensions,
     get_registered_extension,
@@ -64,6 +65,33 @@ def test_register_extension_stores_manifest_and_returns_maybe_lookup():
     assert len(get_registered_extensions()) == 1
     assert get_registered_extension('demo_extension').is_just()
     assert get_registered_extension('missing_extension').is_nothing()
+
+
+def test_registration_owns_defaults_snapshot_without_copying_factory():
+    factory = _dummy_factory
+    defaults = {'options': {'layers': [8, 4]}}
+    manifest = _build_manifest()
+    spec = manifest.models[0]
+    manifest = ExtensionManifest(
+        name=manifest.name,
+        version=manifest.version,
+        models=(ExternalModelSpec(
+            name=spec.name,
+            factory=factory,
+            capabilities=spec.capabilities,
+            hyperparams_schema=ModelHyperparamsSchema(defaults=defaults),
+        ),),
+    )
+
+    registered = register_extension(manifest).value.manifest
+    defaults['options']['layers'].append(2)
+    registered.models[0].hyperparams_schema.defaults['options']['layers'].append(1)
+    stored = get_registered_extension(manifest.name).value.manifest
+
+    assert stored.models[0].hyperparams_schema.defaults == {
+        'options': {'layers': [8, 4]},
+    }
+    assert stored.models[0].factory is factory
 
 
 def test_register_extension_rejects_duplicate_extension_name():

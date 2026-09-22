@@ -18,7 +18,7 @@ def test_registration_permutation_preserves_all_factory_bindings(ids):
     with extension_scope(*manifests):
         for item in manifests:
             resolved = get_extension_operation_spec(item.models[0].name)
-            assert resolved is item.models[0]
+            assert resolved == item.models[0]
     for item in manifests:
         assert get_extension_operation_spec(item.models[0].name) is None
 

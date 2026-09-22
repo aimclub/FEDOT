@@ -1,4 +1,5 @@
 """One context-local registry; scopes publish a complete validated batch."""
+from copy import deepcopy
 import importlib
 from collections.abc import Mapping
 from contextlib import contextmanager
@@ -22,6 +23,26 @@ from fedot.extensions.validation import (
 _REGISTERED_EXTENSIONS = ContextVar('fedot_extensions', default=())
 
 
+def _snapshot_manifest(manifest: ExtensionManifest) -> ExtensionManifest:
+    """Copy mutable contract data while retaining live factory identities."""
+    def snapshot_spec(spec):
+        schema = replace(
+            spec.hyperparams_schema,
+            defaults=deepcopy(spec.hyperparams_schema.defaults),
+        )
+        return replace(spec, hyperparams_schema=schema)
+
+    return replace(
+        manifest,
+        models=tuple(snapshot_spec(spec) for spec in manifest.models),
+        transforms=tuple(snapshot_spec(spec) for spec in manifest.transforms),
+    )
+
+
+def _registered_view(manifest: ExtensionManifest) -> RegisteredExtension:
+    return RegisteredExtension(_snapshot_manifest(manifest))
+
+
 def _reserved_operation_names():
     # Read the active catalog without caching scoped extensions in it.
     from fedot.core.repository.operation_types_repository import OperationTypesRepository
@@ -35,8 +56,9 @@ def register_extensions(manifests: Iterable[ExtensionManifest], *, dry_run=False
     plan = plan_registration(manifests, current, _reserved_operation_names())
     if plan.is_left() or dry_run:
         return plan
-    _REGISTERED_EXTENSIONS.set(current + manifests)
-    return Right(tuple(RegisteredExtension(manifest) for manifest in manifests))
+    snapshots = tuple(_snapshot_manifest(manifest) for manifest in manifests)
+    _REGISTERED_EXTENSIONS.set(current + snapshots)
+    return Right(tuple(_registered_view(manifest) for manifest in snapshots))
 
 
 def register_extension(manifest: ExtensionManifest):
@@ -56,13 +78,13 @@ def extension_scope(*manifests: ExtensionManifest):
 
 
 def get_registered_extensions() -> Tuple[RegisteredExtension, ...]:
-    return tuple(RegisteredExtension(manifest) for manifest in _REGISTERED_EXTENSIONS.get())
+    return tuple(_registered_view(manifest) for manifest in _REGISTERED_EXTENSIONS.get())
 
 
 def get_registered_extension(extension_name: str):
     for manifest in _REGISTERED_EXTENSIONS.get():
         if manifest.name == extension_name:
-            return Just(RegisteredExtension(manifest))
+            return Just(_registered_view(manifest))
     return Nothing
 
 
