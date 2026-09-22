@@ -16,6 +16,8 @@ from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
 from fedot.core.data.split.cv_folds import cv_generator
 from fedot.core.data.tensor_data import TensorData
+from fedot.core.caching.evaluation_context import tensor_data_identity
+from fedot.core.caching.normalization import stable_hash
 
 
 class DataSourceSplitter:
@@ -64,7 +66,12 @@ class DataSourceSplitter:
 
         train_data, test_data = train_test_tensor_data_setup(
             tensor_data, split_ratio=self.split_ratio)
-        return partial(DataSourceSplitter._data_producer, train_data, test_data)
+        producer = partial(DataSourceSplitter._data_producer, train_data, test_data)
+        producer.evaluation_data_version = stable_hash(
+            (tensor_data_identity(train_data), tensor_data_identity(test_data)),
+            digest_size=32,
+        )
+        return producer
 
     @staticmethod
     def _data_producer(train_data: InputData, test_data: InputData):

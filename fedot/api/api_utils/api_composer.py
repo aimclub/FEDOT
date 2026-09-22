@@ -1,4 +1,4 @@
-﻿import datetime
+import datetime
 import gc
 import time
 from copy import deepcopy

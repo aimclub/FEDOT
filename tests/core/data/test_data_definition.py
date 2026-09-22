@@ -1,4 +1,4 @@
-﻿from datetime import datetime
+from datetime import datetime
 from typing import Union, Tuple, Optional
 
 import numpy as np

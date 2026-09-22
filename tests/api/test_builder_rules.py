@@ -1,4 +1,4 @@
-﻿from fedot.api.builder import DEFAULT_VALUE
+from fedot.api.builder import DEFAULT_VALUE
 from fedot.api.builder_rules import (
     build_fedot_kwargs,
     merge_builder_params,

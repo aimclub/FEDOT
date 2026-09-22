@@ -1,4 +1,4 @@
-﻿from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, Tuple, Union
 
 from golem.core.log import default_log
 

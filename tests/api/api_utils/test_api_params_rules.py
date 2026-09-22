@@ -1,4 +1,4 @@
-﻿import pytest
+import pytest
 
 from fedot.validation.errors import FedotValidationError
 from fedot.api.api_utils.api_params_rules import (

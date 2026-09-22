@@ -1,4 +1,4 @@
-﻿from types import SimpleNamespace
+from types import SimpleNamespace
 
 from fedot.api.api_utils.api_run_planner import (
     FinalFitAction,

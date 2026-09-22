@@ -1,3 +1,4 @@
+from copy import deepcopy
 from dataclasses import dataclass
 from typing import Optional
 
@@ -7,6 +8,7 @@ from fedot.core.data.common.compatibility_rules import to_input_compatible_data_
 from fedot.core.data.common.enums import StateEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task
+from fedot.core.data.tensor_data.contracts import TensorDataContractError
 
 
 @dataclass(frozen=True)
@@ -44,6 +46,9 @@ def normalize_tensor_bridge_state(state) -> StateEnum:
 def resolve_input_idx(idx, features: np.ndarray) -> np.ndarray:
     normalized_idx = to_numpy_copy(idx)
     if normalized_idx is not None:
+        if normalized_idx.ndim != 1 or len(normalized_idx) != len(features):
+            raise TensorDataContractError(
+                'row_alignment', 'idx', 'one label per sample is required')
         return normalized_idx
     return np.arange(len(features))
 
@@ -62,7 +67,7 @@ def build_tensordata_input_bridge_plan(tensor_data) -> TensorDataInputBridgePlan
             'TensorData features are required for conversion to InputData')
 
     return TensorDataInputBridgePlan(
-        task=tensor_data.task,
+        task=deepcopy(tensor_data.task),
         data_type=to_input_compatible_data_type(tensor_data.data_type),
         state=state,
         idx=resolve_input_idx(tensor_data.idx, features),

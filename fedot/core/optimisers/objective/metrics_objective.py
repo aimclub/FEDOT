@@ -1,6 +1,7 @@
 from typing import Union, Iterable
 
 from golem.core.optimisers.objective import Objective
+from golem.core.optimisers.objective.objective import to_fitness
 from golem.utilities.data_structures import ensure_wrapped_in_sequence
 
 from fedot.core.optimisers.schemas import validate_registered_metric
@@ -29,3 +30,8 @@ class MetricsObjective(Objective):
                     validate_registered_metric(metric)
 
         super().__init__(quality_metrics, complexity_metrics, is_multi_objective)
+
+    def evaluate_strict(self, graph, **metrics_kwargs):
+        """Let the owning evaluator classify failures and decide bounded retries."""
+        return to_fitness(tuple(metric(graph, **metrics_kwargs) for _, metric in self.metrics),
+                          self.is_multi_objective)

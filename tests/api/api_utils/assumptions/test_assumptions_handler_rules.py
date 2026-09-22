@@ -1,4 +1,4 @@
-﻿from types import SimpleNamespace
+from types import SimpleNamespace
 
 from fedot.api.api_utils.assumptions.assumptions_handler_rules import (
     build_assumption_fit_error,

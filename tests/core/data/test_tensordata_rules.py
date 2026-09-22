@@ -33,7 +33,7 @@ from fedot.core.repository.tasks import TaskTypesEnum
         ('cpu', 'cpu'),
         ('CPU', 'cpu'),
         (' gpu ', 'gpu'),
-        ('cuda', 'gpu'),
+        ('cuda', 'cuda'),
         ('CUDA:1', 'cuda:1'),
     ],
 )
@@ -43,7 +43,7 @@ def test_normalize_backend_name_accepts_supported_values(backend_name, expected)
 
 @pytest.mark.unit
 def test_normalize_backend_name_rejects_unknown_value():
-    with pytest.raises(ValueError, match='Unsupported backend_name'):
+    with pytest.raises(FedotValidationError, match='Unsupported backend name'):
         normalize_backend_name('tpu')
 
 

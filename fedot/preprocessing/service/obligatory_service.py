@@ -18,6 +18,7 @@ from fedot.core.caching.hasher import Hasher
 from fedot.core.caching.tracer import TraceBuilder, TraceStage
 
 if TYPE_CHECKING:
+    from fedot.core.data.tensor_data.contracts import PreparationState
     from fedot.core.data.tensor_data.tensor_data import TensorData
 
 
@@ -86,7 +87,8 @@ class ObligatoryService:
         self.plan = build_obligatory_plan(features, target, params)
 
         cacher = Cacher(use_cache=self.use_cache)
-        cached_data = cacher.load_tensor_data(input_data=features, target=target, operation=self.plan)
+        cached_data = cacher.load_tensor_data(
+            input_data=features, target=target, operation=self.plan)
         raw_fingerprint = cached_data.input_hash
         plan_hash = cached_data.operation_hash
         if cached_data.success:
@@ -132,7 +134,8 @@ class ObligatoryService:
                         operation_hash=plan_hash,
                         step_order=i,
                         step_name=step.step.value,
-                        method=step.method.value if hasattr(step.method, "value") else str(step.method),
+                        method=step.method.value if hasattr(
+                            step.method, "value") else str(step.method),
                         features_idx=step.features_idx,
                     )
                     continue
@@ -159,7 +162,8 @@ class ObligatoryService:
                     operation_hash=plan_hash,
                     step_order=i,
                     step_name=step.step.value,
-                    method=step.method.value if hasattr(step.method, "value") else str(step.method),
+                    method=step.method.value if hasattr(
+                        step.method, "value") else str(step.method),
                     features_idx=step.features_idx,
                 )
 
@@ -177,7 +181,8 @@ class ObligatoryService:
         trace_uuid: str,
     ) -> ObligatoryPreprocessResult:
         if trace_uuid is None:
-            raise ValueError("trace_uuid is required for obligatory preprocessing in predict state.")
+            raise ValueError(
+                "trace_uuid is required for obligatory preprocessing in predict state.")
 
         trace_builder = TraceBuilder.from_trace_uuid(trace_uuid)
         train_stage = self._get_train_obligatory_stage(trace_builder)
@@ -194,7 +199,8 @@ class ObligatoryService:
             ts_shape=features.shape,
         )
 
-        model_refs = sorted(train_stage.models, key=lambda model_ref: model_ref.step_order)
+        model_refs = sorted(train_stage.models,
+                            key=lambda model_ref: model_ref.step_order)
         for model_ref in model_refs:
             step = self.plan.steps[model_ref.step_order]
             actual_mapping = prepared_data.idx_mapping
@@ -224,10 +230,12 @@ class ObligatoryService:
         )
 
     @staticmethod
-    def inverse_transform_target(predict: Any, trace_uuid: Optional[str]) -> Any:
-        """Decode label-encoded target predictions via cached target encoder.
+    def inverse_transform_target(predict: Any, trace_uuid: Optional[str],
+                                 preparation_state: Optional["PreparationState"] = None) -> Any:
+        """Decode target predictions using fitted state or a legacy trace.
 
-        Looks up the fitted ``target_encoding`` handler in the obligatory
+        Training-owned preparation takes precedence and needs no disk lookup.
+        For older containers, looks up the fitted ``target_encoding`` handler in the obligatory
         preprocessing stage of ``trace_uuid`` and applies ``inverse_transform``.
         When ``trace_uuid`` is missing, the stage/model is absent, or loading
         fails, ``predict`` is returned unchanged.
@@ -235,17 +243,22 @@ class ObligatoryService:
         Args:
             predict: Model predictions (typically encoded class ids).
             trace_uuid: Trace id produced during train-time obligatory preprocess.
+            preparation_state: Trusted fitted snapshot retained by ``create_data``.
 
         Returns:
             Decoded predictions, or the original ``predict`` when decode is
             not possible.
         """
+        if preparation_state is not None:
+            from fedot.core.data.tensor_data.preparation import PreparationRuntime
+            return PreparationRuntime.inverse_target(predict, preparation_state)
         if predict is None or trace_uuid is None:
             return predict
 
         try:
             trace_builder = TraceBuilder.from_trace_uuid(trace_uuid)
-            train_stage = ObligatoryService._get_train_obligatory_stage(trace_builder)
+            train_stage = ObligatoryService._get_train_obligatory_stage(
+                trace_builder)
         except (OSError, ValueError, KeyError):
             return predict
 
@@ -271,7 +284,8 @@ class ObligatoryService:
 
         squeeze = predict_xp.ndim == 1
         features = predict_xp.reshape(-1, 1) if squeeze else predict_xp
-        decoded = handler.inverse_transform(PreparedData(features=features)).features
+        decoded = handler.inverse_transform(
+            PreparedData(features=features)).features
         if squeeze or decoded.shape[1] == 1:
             return decoded.reshape(-1)
         return decoded

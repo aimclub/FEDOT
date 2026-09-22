@@ -8,6 +8,7 @@ from fedot.preprocessing.tools.index_mapping_tools import (update_index_mapping,
                                                            update_indices, create_index_mapping)
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.preprocessing.planner.optional_planner import build_optional_plan
+from fedot.preprocessing.planner.column_selection import compose_source_mapping
 from fedot.preprocessing.schemas import validate_optional_service_predict_ready
 from fedot.preprocessing.tools.preprocessor_types import PreprocessingStepEnum
 from fedot.preprocessing.tools.tools import (
@@ -66,7 +67,8 @@ class OptionalService:
         optional_steps: Optional[Sequence[PreprocessingStepEnum]] = None,
     ) -> 'OptionalService':
         if optional_steps is None:
-            optional_steps = [PreprocessingStepEnum.imputation, PreprocessingStepEnum.scaling]
+            optional_steps = [PreprocessingStepEnum.imputation,
+                              PreprocessingStepEnum.scaling]
 
         self.plan = build_optional_plan(data, optional_steps)
 
@@ -79,24 +81,29 @@ class OptionalService:
             return self
 
         cacher = Cacher(use_cache=self.use_cache)
-        cached_data = cacher.load_tensor_data(input_data=data, operation=self.plan)
+        cached_data = cacher.load_tensor_data(
+            input_data=data, operation=self.plan)
         self._input_hash = cached_data.input_hash
         self._plan_hash = cached_data.operation_hash
         self.fitted_handlers = []
         self._cached_handler_paths = []
 
-        cacher.cache_preprocessing_plan(plan=self.plan, plan_hash=self._plan_hash)
-        self.handler_mapping = update_handler_mapping(self.plan, self.handler_mapping)
+        cacher.cache_preprocessing_plan(
+            plan=self.plan, plan_hash=self._plan_hash)
+        self.handler_mapping = update_handler_mapping(
+            self.plan, self.handler_mapping)
         prepared_data = self._create_prepared_data(deepcopy(data))
 
         for i, step in enumerate(self.plan.steps):
             actual_mapping = prepared_data.idx_mapping
             prepared_data.new_cols_dict = None
-            step.features_idx = update_indices(actual_mapping, step.features_idx)
+            step.features_idx = update_indices(
+                actual_mapping, step.features_idx)
 
             handler_cls = self.handler_mapping[step.step][step.method]
             handler = handler_cls(**step.step_args)
-            prepared_data = handler.fit_transform(prepared_data, step.features_idx)
+            prepared_data = handler.fit_transform(
+                prepared_data, step.features_idx)
 
             prepared_data.idx_mapping = update_index_mapping(
                 actual_mapping,
@@ -113,7 +120,8 @@ class OptionalService:
                 operation_hash=self._plan_hash,
                 step_order=i,
                 step_name=step.step.value,
-                method=step.method.value if hasattr(step.method, "value") else str(step.method),
+                method=step.method.value if hasattr(
+                    step.method, "value") else str(step.method),
                 features_idx=step.features_idx,
             )
             if record.path is not None:
@@ -138,6 +146,7 @@ class OptionalService:
             return data
 
         init_fingerprint = data.fingerprint
+        source_mapping = dict(data.idx_mapping)
         prepared_data = self._create_prepared_data(data)
         handlers = self._resolve_handlers()
 
@@ -153,6 +162,8 @@ class OptionalService:
                 prepared_data.new_cols_dict,
             )
 
+        prepared_data.idx_mapping = compose_source_mapping(
+            source_mapping, prepared_data.idx_mapping)
         data = update_tensor_data(data, prepared_data)
         cacher = Cacher(use_cache=self.use_cache)
         response = cacher.cache_tensor_data(

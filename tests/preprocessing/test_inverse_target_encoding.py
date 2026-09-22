@@ -45,7 +45,8 @@ def test_postprocess_decoded_restores_string_labels_from_cached_encoder(isolated
     encoded_predict = train_td.target.detach().clone().reshape(-1)
     result = _result_from_train_td(train_td, encoded_predict)
 
-    postprocessed = Pipeline()._postprocess(result, output_mode=OutputModeEnum.DECODED)
+    postprocessed = Pipeline()._postprocess(
+        result, output_mode=OutputModeEnum.DECODED)
 
     assert list(postprocessed.predict) == ['cat', 'dog', 'cat', 'dog']
 
@@ -90,7 +91,8 @@ def test_postprocess_decoded_noop_when_target_was_numeric(isolated_cache_dir):
     encoded_predict = torch.tensor([0.0, 1.0, 0.0])
     result = _result_from_train_td(train_td, encoded_predict)
 
-    postprocessed = Pipeline()._postprocess(result, output_mode=OutputModeEnum.DECODED)
+    postprocessed = Pipeline()._postprocess(
+        result, output_mode=OutputModeEnum.DECODED)
 
     assert torch.allclose(postprocessed.predict, encoded_predict)
 
@@ -112,7 +114,8 @@ def test_postprocess_flattened_ravels_prediction(isolated_cache_dir):
         predict=torch.tensor([[0.0], [1.0]]),
     )
 
-    postprocessed = Pipeline()._postprocess(result, output_mode=OutputModeEnum.FLATTENED)
+    postprocessed = Pipeline()._postprocess(
+        result, output_mode=OutputModeEnum.FLATTENED)
 
     assert postprocessed.predict.shape == (2,)
     assert torch.allclose(postprocessed.predict, torch.tensor([0.0, 1.0]))
@@ -120,11 +123,12 @@ def test_postprocess_flattened_ravels_prediction(isolated_cache_dir):
 
 @pytest.mark.unit
 def test_postprocess_auto_ts_flattens_without_decode(isolated_cache_dir):
-    series = np.arange(12, dtype=np.float32).reshape(-1, 1)
+    series = np.arange(12, dtype=np.float32).reshape(1, -1)
     train_td = TensorDataCreator.create(
         series,
         backend_name='cpu',
-        task=Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=2)),
+        task=Task(TaskTypesEnum.ts_forecasting,
+                  TsForecastingParams(forecast_length=2)),
         data_type=DataTypesEnum.ts,
     )
 
@@ -133,7 +137,7 @@ def test_postprocess_auto_ts_flattens_without_decode(isolated_cache_dir):
         data_type=train_td.data_type,
         features=train_td.features,
         target=train_td.target,
-        predict=torch.tensor([[1.5], [2.5]]),
+        predict=torch.tensor([[1.5, 2.5]]),
         trace_uuid=train_td.trace_uuid,
     )
 
@@ -169,6 +173,7 @@ def test_postprocess_auto_classification_with_predict_state_trace(isolated_cache
     dog_id = float(encoded_train[1])
     test_td.predict = torch.tensor([cat_id, dog_id], dtype=torch.float32)
 
-    postprocessed = Pipeline()._postprocess(test_td, output_mode=OutputModeEnum.AUTO)
+    postprocessed = Pipeline()._postprocess(
+        test_td, output_mode=OutputModeEnum.AUTO)
 
     assert list(postprocessed.predict) == ['cat', 'dog']

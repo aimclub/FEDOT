@@ -143,6 +143,8 @@ def test_categorical_text():
     Checks that two text columns become transformer embeddings, categorical columns
     are label-encoded, and the final feature width equals two embedding blocks plus
     three remaining numeric/encoded columns."""
+    pytest.importorskip('sentence_transformers',
+                        reason='optional transformer runtime is not installed')
     X = np.array([
         ["date wed NUMBER aug NUMBER NUMBER NUMBER NUMBER NUMBER from chris garrigues cwg",
          "in adding cream to spaghetti carbonara which has the same effect on pasta", 1, "A", "DOP", 0],
@@ -369,6 +371,8 @@ def test_update_idx_emb_enc():
     Checks that numeric columns remain in expected positions and appended one-hot
     columns for `class`/`subclass` contain the expected indicator values after a text
     embedding step changes feature layout."""
+    pytest.importorskip('sentence_transformers',
+                        reason='optional transformer runtime is not installed')
     X = np.array([
         ["date wed NUMBER aug NUMBER NUMBER NUMBER NUMBER NUMBER from chris garrigues cwg",
             1, "A", "DOP", 0, 1],
@@ -760,7 +764,8 @@ def test_create_predict_restores_custom_obligatory_model_from_trace():
     )
 
     assert test_td.trace_uuid == train_td.trace_uuid
-    assert np.allclose(test_td.features[:, 1].numpy(), np.array([3.0, 3.0], dtype=np.float32))
+    assert np.allclose(test_td.features[:, 1].numpy(
+    ), np.array([3.0, 3.0], dtype=np.float32))
 
 
 @pytest.mark.unit
@@ -803,4 +808,5 @@ def test_create_fit_predict_without_tensor_cache_keeps_trace_and_models(isolated
     assert obligatory_stage["operation_path"].endswith(".pkl")
     assert obligatory_stage["models"][0]["model_path"].endswith(".pkl")
     assert test_td.trace_uuid == train_td.trace_uuid
-    assert np.allclose(test_td.features.numpy(), np.array([[4.0, 1.0], [5.0, 0.0]], dtype=np.float32))
+    assert np.allclose(test_td.features.numpy(), np.array(
+        [[4.0, 1.0], [5.0, 0.0]], dtype=np.float32))

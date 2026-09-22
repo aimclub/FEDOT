@@ -39,6 +39,7 @@ class PipelineOperationRepository(GraphOperationRepository):
         all_operations = sorted(set(available_operations))
         primary_operations, secondary_operations = self.divide_operations(all_operations, task)
         self.operations_by_keys = {'primary': primary_operations, 'secondary': secondary_operations}
+        return self
 
     def get_operations(self, is_primary: bool) -> List[str]:
         """ Get pipeline operations by specified model key """

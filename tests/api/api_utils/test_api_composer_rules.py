@@ -1,4 +1,4 @@
-﻿from fedot.api.api_utils.api_composer_rules import build_cache_init_plan, build_tuner_plan
+from fedot.api.api_utils.api_composer_rules import build_cache_init_plan, build_tuner_plan
 
 
 def test_build_cache_init_plan_normalizes_flags_and_carries_dir():

@@ -17,6 +17,8 @@ from fedot.core.data.common.enums import StateEnum
 from fedot.core.caching.enums import CacheModeEnum
 from fedot.core.caching.normalization import normilize_cleaning_strategy
 from fedot.core.caching.cache_cleaner import CacheCleaner
+from fedot.core.caching.evaluation_context import TensorDataCacheContext, tensor_data_identity
+from fedot.core.caching.normalization import stable_hash
 
 
 logger = logging.getLogger(__name__)
@@ -59,6 +61,8 @@ class Cacher:
         operation_hash: str = None,
         state: Union[str, StateEnum] = "fit",
         trace_stage: str = None,
+        context: Optional[TensorDataCacheContext] = None,
+        target: Any = None,
     ) -> TensorDataCacheIndexRecord:
         """
         Persist ``TensorData`` and register it in the cache index.
@@ -80,6 +84,18 @@ class Cacher:
             Saved index record, or ``None`` if the tensor file could not be written.
         """
         state = state.value if hasattr(state, "value") else str(state)
+
+        if context is not None:
+            # Scoped entries never share the legacy sampled-key namespace.
+            if input_hash is None:
+                input_hash = _scoped_input_hash(input_data, context, target)
+            if operation_hash is None:
+                operation_hash = Hasher.hash(operation)
+            operation_hash = context.operation_key(operation_hash, state)
+            strict_hash = tensor_data_identity(output_data)
+            if output_hash is not None and output_hash != strict_hash:
+                raise ValueError('output_hash does not match complete TensorData identity')
+            output_hash = strict_hash
 
         if input_hash is None:
             input_hash = Hasher.hash(input_data)
@@ -123,7 +139,10 @@ class Cacher:
 
         return result
 
-    def load_tensor_data(self, input_data: Any, operation: Any, target: Any = None) -> Optional[Any]:
+    def load_tensor_data(self, input_data: Any, operation: Any = None, target: Any = None, *,
+                         operation_hash: Optional[str] = None,
+                         context: Optional[TensorDataCacheContext] = None,
+                         state: Union[str, StateEnum] = 'fit') -> Optional[Any]:
         """
         Load cached ``TensorData`` for an input/operation pair.
 
@@ -136,8 +155,15 @@ class Cacher:
             ``DataCacherLoaderResponse`` with ``success=False`` when cache is
             disabled, the index row is missing, or the artifact file is absent.
         """
-        input_hash = Hasher.hash(input_data, target=target) if target is not None else Hasher.hash(input_data)
-        operation_hash = Hasher.hash(operation)
+        if context is not None:
+            input_hash = _scoped_input_hash(input_data, context, target)
+        else:
+            input_hash = Hasher.hash(input_data, target=target) if target is not None else Hasher.hash(input_data)
+        if operation_hash is None:
+            operation_hash = Hasher.hash(operation)
+        if context is not None:
+            state = state.value if hasattr(state, 'value') else str(state)
+            operation_hash = context.operation_key(operation_hash, state)
         if not self.use_cache:
             return DataCacherLoaderResponse(
                 data=None,
@@ -157,7 +183,9 @@ class Cacher:
                 success=False,
             )
 
-        loaded_data = Loader.load(str(record.path), record.output_hash, "tensor_data")
+        loaded_data = Loader.load(str(record.path), None if context else record.output_hash, "tensor_data")
+        if context is not None and loaded_data is not None and tensor_data_identity(loaded_data) != record.output_hash:
+            raise ValueError('cached TensorData does not match complete content identity')
         success = False if loaded_data is None else True
         return DataCacherLoaderResponse(
             data=loaded_data,
@@ -348,3 +376,12 @@ class Cacher:
             return TraceBuilder.from_trace_uuid(trace_uuid, index_db=self.index_db)
 
         return TraceBuilder(raw_fingerprint=raw_fingerprint, index_db=self.index_db)
+
+
+def _scoped_input_hash(input_data, context, target=None):
+    from fedot.core.data.tensor_data import TensorData
+    if input_data is None:
+        return context.data_id
+    if isinstance(input_data, TensorData):
+        return tensor_data_identity(input_data)
+    return stable_hash((input_data, target), digest_size=32)

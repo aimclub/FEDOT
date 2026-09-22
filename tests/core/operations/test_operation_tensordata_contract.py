@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+
 import pytest
 import torch
 
@@ -38,7 +40,8 @@ def test_replace_features_in_tensor_data_clears_predict(tensor_data):
         tensor_data,
     )
 
-    assert torch.equal(result.features, torch.tensor([[10.0, 20.0], [30.0, 40.0]]))
+    assert torch.equal(result.features, torch.tensor(
+        [[10.0, 20.0], [30.0, 40.0]]))
     assert result.predict is None
     assert torch.equal(result.target, tensor_data.target)
 
@@ -51,17 +54,33 @@ def test_is_tensor_transform_operation_for_model_and_transform():
 
 
 @pytest.mark.unit
-def test_operation_wraps_tensor_result_by_operation_kind(tensor_data):
-    model = Model('torch_linear')
-    transform = DataOperation('pca')
+@pytest.mark.parametrize('is_transform', [False, True])
+def test_operation_predict_preserves_strategy_tensor_output(
+        tensor_data, monkeypatch, is_transform):
+    if is_transform:
+        operation = DataOperation('pca')
+        expected = EvaluationStrategy._replace_features_in_tensor_data(
+            torch.tensor([[10.0, 20.0], [30.0, 40.0]]), tensor_data)
+    else:
+        operation = Model('torch_linear')
+        expected = EvaluationStrategy._replace_predict_in_tensor_data(
+            torch.tensor([0.2, 0.8]), tensor_data)
+    calls = []
+    fitted = object()
 
-    model_output = model._wrap_tensor_operation_result(torch.tensor([0.2, 0.8]), tensor_data)
-    transform_output = transform._wrap_tensor_operation_result(
-        torch.tensor([[10.0, 20.0], [30.0, 40.0]]),
-        tensor_data,
-    )
+    def predict(trained_operation, predict_data):
+        calls.append((trained_operation, predict_data))
+        return expected
 
-    assert torch.equal(model_output.predict, torch.tensor([0.2, 0.8]))
-    assert torch.equal(model_output.features, tensor_data.features)
-    assert transform_output.predict is None
-    assert torch.equal(transform_output.features, torch.tensor([[10.0, 20.0], [30.0, 40.0]]))
+    operation._eval_strategy = SimpleNamespace(predict=predict)
+    monkeypatch.setattr(operation, '_init', lambda *args, **kwargs: None)
+
+    result = operation.predict(fitted, tensor_data)
+
+    assert result is expected
+    assert len(calls) == 1
+    assert calls[0][0] is fitted
+    assert calls[0][1] is tensor_data
+    assert torch.equal(tensor_data.features,
+                       torch.tensor([[1.0, 2.0], [3.0, 4.0]]))
+    assert torch.equal(tensor_data.predict, torch.tensor([0.5, 0.6]))

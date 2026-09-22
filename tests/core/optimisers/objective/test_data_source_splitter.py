@@ -44,6 +44,8 @@ def test_data_source_splitter_build_uses_tensor_holdout_setup(monkeypatch):
     assert captured['split_ratio'] == 0.5
     assert produced_train is train_data
     assert produced_test is test_data
+    assert isinstance(producer.evaluation_data_version, str)
+    assert producer.evaluation_data_version
 
 
 def test_data_source_splitter_build_keeps_tensor_data_shape(monkeypatch):

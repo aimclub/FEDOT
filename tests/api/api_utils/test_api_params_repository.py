@@ -1,4 +1,4 @@
-﻿import pytest
+import pytest
 
 from fedot.api.api_utils.api_params_repository import ApiParamsRepository
 from fedot.core.constants import AUTO_PRESET_NAME

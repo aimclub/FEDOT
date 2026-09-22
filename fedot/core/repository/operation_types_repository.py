@@ -18,6 +18,7 @@ from fedot.core.repository.operation_query import (
     contains_preset,
     contains_tags,
     filter_operation_infos,
+    normalize_operation_query,
     normalize_preset_name,
     parse_repository_kind,
 )
@@ -319,7 +320,7 @@ class OperationTypesRepository:
             preset: return operations from desired preset
         """
 
-        query = OperationQuery(
+        query = normalize_operation_query(OperationQuery(
             repository_kind=parse_repository_kind(self.operation_type),
             task_type=task_type,
             data_type=data_type,
@@ -329,18 +330,13 @@ class OperationTypesRepository:
             is_full_match=is_full_match,
             default_excluded_tags=tuple(self._tags_excluded_by_default),
             extra_ts_installed=EXTRA_TS_INSTALLED,
-        )
+        ))
         operations_info = filter_operation_infos(self._repo, query)
         operation_names = [m.id for m in operations_info]
 
         if should_include_extensions(query.repository_kind):
             operation_names.extend(
-                get_extension_operation_names(
-                    task_type=task_type,
-                    data_type=data_type,
-                    tags=tags,
-                    forbidden_tags=forbidden_tags,
-                )
+                get_extension_operation_names(query)
             )
 
         return sorted(set(operation_names))

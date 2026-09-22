@@ -1,4 +1,4 @@
-﻿from inspect import signature
+from inspect import signature
 from itertools import chain
 
 import pytest

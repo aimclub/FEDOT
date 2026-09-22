@@ -12,6 +12,7 @@ from fedot.core.data.common.enums import StateEnum
 
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.preprocessing.tools.index_mapping_tools import update_index_mapping
+from fedot.core.data.tensor_data.contracts import TensorDataContractError, column_indices, validate_target_rows
 
 
 logger = logging.getLogger(__name__)
@@ -198,13 +199,20 @@ def _drop_rows_with_nan_in_target(features: ArrayType,
     Raises:
         ValueError: If all rows contain missing target values.
     """
-    xp = Backend().xp
-    pd_backend = Backend().pd
-
     if target is None:
         return features, target
+    validate_target_rows(target, len(features))
+    mask = target_row_mask(target)
+    return features[mask], target[mask]
 
+
+def target_row_mask(target):
+    """One validity bit per sample, reducing all non-sample target axes."""
+    xp = Backend().xp
+    pd_backend = Backend().pd
     target = xp.asarray(target)
+    if target.ndim == 0:
+        raise ValueError('target must have a sample axis')
 
     if target.dtype.kind == "f":
         nan_mask = xp.isnan(target)
@@ -227,13 +235,11 @@ def _drop_rows_with_nan_in_target(features: ArrayType,
 
         nan_mask = xp.vectorize(_is_missing, otypes=[bool])(target)
 
-    number_nans_per_rows = nan_mask.sum(axis=1)
-    non_nan_row_ids = xp.ravel(xp.argwhere(number_nans_per_rows == 0))
-
-    if non_nan_row_ids.size == 0:
-        raise ValueError("Data contains too much nans in the target column(s)")
-
-    return features[non_nan_row_ids, :], target[non_nan_row_ids, :]
+    valid = ~nan_mask.reshape(len(target), -1).any(axis=1)
+    if not bool(valid.any()):
+        raise TensorDataContractError('missing_target', 'target',
+                                      'Data contains too much nans in the target column(s)')
+    return valid
 
 
 def atleast_n_dimensions(data: ArrayType, ndim: int) -> ArrayType:
@@ -268,8 +274,10 @@ def convert_idx_to_list(idx: IndexType) -> IndexType:
         List: Normalized index representation.
     """
 
-    if isinstance(idx, list) or idx is None:
-        return idx
+    if idx is None:
+        return None
+    if isinstance(idx, list):
+        return list(idx)
     if isinstance(idx, (int, str)):
         return [idx]
     if isinstance(idx, np.ndarray) or isinstance(idx, Backend().xp.ndarray):
@@ -382,15 +390,15 @@ def get_target_and_features(
             target = xp.array(target)
         else:
             if target_idx is not None:
-                target_idx = get_idx_from_features_names(
-                    target_idx, features_names)
+                target_idx = column_indices(
+                    target_idx, features.shape[1], features_names)
                 target = features[:, target_idx].copy()
             else:
                 if data_type == DataTypesEnum.ts:
                     raise ValueError("Target is not provided and target_idx is not provided."
                                      "Change your task, or provide target or target_idx explicitly.")
                 target = features[:, -1].copy()
-                target_idx = [-1]
+                target_idx = [features.shape[1] - 1]
 
             features = xp.delete(features, target_idx, axis=1)
 
@@ -467,7 +475,8 @@ def flatten_if_needed(x) -> torch.Tensor:
         return x
     if x.dim() == 3:
         return x.reshape(x.shape[0], -1)
-    raise ValueError(f'Expected 1D, 2D or 3D tensor, got shape={tuple(x.shape)}')
+    raise ValueError(
+        f'Expected 1D, 2D or 3D tensor, got shape={tuple(x.shape)}')
 
 
 def drop_rows_with_nan(features: torch.Tensor) -> Tuple[torch.Tensor, int]:
@@ -479,7 +488,8 @@ def drop_rows_with_nan(features: torch.Tensor) -> Tuple[torch.Tensor, int]:
     if features.ndim == 1:
         row_has_nan = torch.isnan(features)
     else:
-        row_has_nan = torch.isnan(features).any(dim=1)
+        row_has_nan = torch.isnan(features).reshape(
+            features.shape[0], -1).any(dim=1)
     n_dropped = int(row_has_nan.sum().item())
     if n_dropped == 0:
         return features, 0

@@ -3,6 +3,7 @@ import pandas as pd
 import pytest
 import torch
 
+import fedot.core.data.reader.ucr_loader as ucr_loader_module
 from fedot.core.backend.backend import Backend
 from fedot.core.data.common.enums import StateEnum
 from fedot.core.data.reader.ucr_loader import TSLoader
@@ -23,6 +24,27 @@ def test_tensor_data_requires_features():
             task=Task(TaskTypesEnum.classification),
             data_type=DataTypesEnum.tabular,
         )
+
+
+@pytest.mark.unit
+def test_tensor_data_equality_uses_shared_nested_value_comparison():
+    features = torch.tensor([[1.0, float('nan')], [3.0, 4.0]])
+    first = TensorData(
+        task=Task(TaskTypesEnum.regression),
+        data_type=DataTypesEnum.table,
+        features=features,
+        dataloader_kwargs={'nested': {'values': [np.array([1.0, np.nan]), (2, 3)]}},
+    )
+    second = TensorData(
+        task=Task(TaskTypesEnum.regression),
+        data_type=DataTypesEnum.table,
+        features=features.clone(),
+        dataloader_kwargs={'nested': {'values': [np.array([1.0, np.nan]), (2, 3)]}},
+    )
+
+    assert first == second
+    second.dataloader_kwargs['nested']['values'][1] = (2, 4)
+    assert first != second
 
 
 @pytest.mark.unit
@@ -143,12 +165,13 @@ def test_from_tensor():
 
 
 @pytest.mark.integration
-def test_loader():
+def test_loader(tmp_path, monkeypatch):
     """
     Test TensorData creation using UCR dataset loaded via TSLoader, ensuring that both training
     and test datasets are correctly converted into TensorData objects with valid feature
     and target tensors.
     """
+    monkeypatch.setattr(ucr_loader_module, 'PROJECT_PATH', str(tmp_path))
     name = "AbnormalHeartbeat"
     X_train, y_train, X_test, y_test = TSLoader.download_by_url(
         dataset_name=name)
