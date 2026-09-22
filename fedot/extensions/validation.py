@@ -11,6 +11,8 @@ from fedot.extensions.contracts import (
     ExternalTransformSpec, ModelCapabilities, ModelHyperparamsSchema, TransformCapabilities,
 )
 
+RESERVED_BEHAVIOR_TAGS = frozenset({'correct_params'})
+
 
 def _failure(code, message, **details):
     return Left(ExtensionError(code, message, details))
@@ -58,6 +60,14 @@ def _validate_spec(spec, spec_type, capabilities_type, kind):
             return _failure('invalid_capabilities', f'Invalid {field} member.')
     if not isinstance(caps.tags, tuple) or not all(_name(tag) for tag in caps.tags):
         return _failure('invalid_capabilities', 'Tags must be non-empty strings.')
+    reserved_tags = tuple(sorted(RESERVED_BEHAVIOR_TAGS.intersection(caps.tags)))
+    if reserved_tags:
+        return _failure(
+            'reserved_behavior_tag',
+            'Extension capability tags must not alter FEDOT runtime behavior.',
+            operation=spec.name,
+            tags=list(reserved_tags),
+        )
     if not isinstance(caps.backend, ArrayBackend):
         return _failure('invalid_capabilities', 'Backend must be an ArrayBackend.')
     flags = (caps.supports_multimodal, caps.requires_target)

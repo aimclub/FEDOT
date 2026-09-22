@@ -43,6 +43,32 @@ def test_capabilities_require_typed_values(field, value):
     assert validate_extension_manifest(replace(item, models=(spec,))).monoid[0].code == 'invalid_capabilities'
 
 
+@pytest.mark.parametrize('item,spec_field', [
+    (manifest(), 'models'),
+    (transform_manifest(), 'transforms'),
+])
+def test_reserved_behavior_tags_are_rejected_for_every_operation_kind(item, spec_field):
+    spec = getattr(item, spec_field)[0]
+    spec = replace(spec, capabilities=replace(spec.capabilities, tags=('correct_params',)))
+
+    result = validate_extension_manifest(replace(item, **{spec_field: (spec,)}))
+
+    assert result.is_left()
+    assert result.monoid[0].code == 'reserved_behavior_tag'
+    assert result.monoid[0].details == {
+        'operation': spec.name,
+        'tags': ['correct_params'],
+    }
+
+
+def test_non_default_remains_a_valid_catalog_tag():
+    item = manifest()
+    spec = item.models[0]
+    spec = replace(spec, capabilities=replace(spec.capabilities, tags=('non-default',)))
+
+    assert validate_extension_manifest(replace(item, models=(spec,))).is_right()
+
+
 def test_model_and_transform_capabilities_are_not_interchangeable():
     model = manifest().models[0]
     transform = transform_manifest().transforms[0]
