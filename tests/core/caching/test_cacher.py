@@ -81,6 +81,30 @@ def test_tensor_data_creator_second_run_returns_cached_tensor_data(isolated_cach
 
 
 @pytest.mark.unit
+def test_tensor_data_creator_cache_separates_normalized_data_types(isolated_cache_dir, monkeypatch):
+    features = _make_features()
+    tabular = TensorDataCreator.create(
+        features, backend_name="cpu", data_type="tabular")
+    time_series = TensorDataCreator.create(
+        features, backend_name="cpu", data_type="time_series")
+
+    def fail_if_regular_tensor_data_build_is_used(self):
+        raise AssertionError("Each data type should reuse its own cached TensorData")
+
+    monkeypatch.setattr(TensorDataCreator, "to_tensor_data", fail_if_regular_tensor_data_build_is_used)
+
+    cached_tabular = TensorDataCreator.create(
+        features.copy(), backend_name="cpu", data_type=DataTypesEnum.table)
+    cached_time_series = TensorDataCreator.create(
+        features.copy(), backend_name="cpu", data_type=DataTypesEnum.ts)
+
+    assert tabular.data_type == cached_tabular.data_type == DataTypesEnum.table
+    assert time_series.data_type == cached_time_series.data_type == DataTypesEnum.ts
+    assert len(_tensor_cache_rows(isolated_cache_dir)) == 2
+    assert len({row[2] for row in _tensor_cache_rows(isolated_cache_dir)}) == 2
+
+
+@pytest.mark.unit
 def test_tensor_data_creator_different_input_creates_separate_cache_record(isolated_cache_dir):
     first_features = _make_features()
     second_features = first_features.copy()

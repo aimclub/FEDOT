@@ -55,7 +55,8 @@ class TensorDataCreator:
             # Cached arrays are reusable, but request metadata is never borrowed
             # from a different call (row IDs, task and loader settings can differ).
             return replace(
-                prepared, task=self.spec.task, state=self.spec.state, idx=self.spec.idx,
+                prepared, task=self.spec.task, data_type=self.spec.data_type,
+                state=self.spec.state, idx=self.spec.idx,
                 target_idx=self.spec.target_idx, dataloader_kwargs=self.spec.dataloader_kwargs,
                 ts_orientation=self.spec.ts_orientation, ts_terms_idx=self.spec.ts_terms_idx,
                 ts_forecast_horizon=self.spec.ts_forecast_horizon, ts_init_shape=self.spec.ts_init_shape,

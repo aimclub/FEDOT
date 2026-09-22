@@ -12,6 +12,7 @@ from fedot.core.backend.backend import Backend, torch_to_xp
 from fedot.core.caching.cacher import Cacher
 from fedot.core.caching.cache_loader import Loader
 from fedot.core.caching.hasher import Hasher
+from fedot.core.caching.normalization import stable_hash
 from fedot.core.caching.tracer import TraceBuilder
 from fedot.core.data.prepared_data.prepared_data import PreparedData
 from fedot.core.data.tensor_data.contracts import (
@@ -93,15 +94,22 @@ class PreparationRuntime:
         # complete source, including rows not visited by that lookup fingerprint.
         training_hash = Hasher.hash(features, target=target,
                                     min_rows=len(features), max_rows=len(features))
-        plan_hash = Hasher.hash(plan)
+        data_type = params['data_type']
+        data_type_name = data_type.value if hasattr(data_type, 'value') else str(data_type)
+        plan_hash = stable_hash(
+            {'plan_hash': Hasher.hash(plan), 'data_type': data_type_name},
+            digest_size=16,
+        )
         cacher = Cacher(use_cache=use_cache)
         # Only new, schema-bound artifacts are safe to reuse. Legacy artifacts
         # lack row/column ownership and an independently reusable fitted state.
-        cached = cacher.load_tensor_data(features, plan, target)
+        cached = cacher.load_tensor_data(
+            features, target=target, operation_hash=plan_hash)
         if cached.success:
             state = getattr(cached.data, 'preparation_state', None)
             if (state is not None and state.schema == schema
-                    and state.backend_name == Backend().name and state.input_hash == training_hash):
+                    and state.backend_name == Backend().name and state.input_hash == training_hash
+                    and cached.data.data_type == data_type):
                 return cached.data, deepcopy(state), raw_hash
 
         cacher.cache_preprocessing_plan(plan=plan, plan_hash=plan_hash)

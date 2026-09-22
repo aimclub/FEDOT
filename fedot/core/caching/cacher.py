@@ -139,7 +139,8 @@ class Cacher:
 
         return result
 
-    def load_tensor_data(self, input_data: Any, operation: Any, target: Any = None, *,
+    def load_tensor_data(self, input_data: Any, operation: Any = None, target: Any = None, *,
+                         operation_hash: Optional[str] = None,
                          context: Optional[TensorDataCacheContext] = None,
                          state: Union[str, StateEnum] = 'fit') -> Optional[Any]:
         """
@@ -158,7 +159,8 @@ class Cacher:
             input_hash = _scoped_input_hash(input_data, context, target)
         else:
             input_hash = Hasher.hash(input_data, target=target) if target is not None else Hasher.hash(input_data)
-        operation_hash = Hasher.hash(operation)
+        if operation_hash is None:
+            operation_hash = Hasher.hash(operation)
         if context is not None:
             state = state.value if hasattr(state, 'value') else str(state)
             operation_hash = context.operation_key(operation_hash, state)
