@@ -19,6 +19,7 @@ from fedot.extensions.runtime_rules import (
     get_extension_model_spec,
     get_extension_tensor_data_types,
     is_extension_operation_name,
+    predict_model,
     try_build_extension_strategy_params,
 )
 
@@ -58,6 +59,20 @@ class _InvalidFitEstimator:
 
     def predict(self, features):
         return np.zeros(features.shape[0])
+
+
+class _ProbabilisticEstimator(_ExternalEstimator):
+    def predict_proba(self, features):
+        return np.column_stack((np.full(features.shape[0], 0.75),
+                                np.full(features.shape[0], 0.25)))
+
+
+class _ProbabilityOnlyEstimator:
+    def fit(self, features, target):
+        return self
+
+    def predict_proba(self, features):
+        return np.ones((features.shape[0], 2))
 
 
 def _make_manifest():
@@ -181,9 +196,55 @@ def test_fit_model_rejects_invalid_functional_fit_result():
 
     assert error.value.code == 'invalid_fit_result'
     assert error.value.error.details == {
-        'expected_methods': ['predict', 'predict_proba'],
+        'expected_methods': ['predict'],
         'result_type': 'int',
     }
+
+
+@pytest.mark.parametrize('output_mode', ['default', 'labels'])
+def test_predict_model_uses_predict_for_non_probability_modes(output_mode):
+    output = predict_model(
+        _model_spec(_ProbabilisticEstimator),
+        _ProbabilisticEstimator(),
+        _model_input(),
+        {},
+        output_mode,
+    )
+
+    np.testing.assert_array_equal(output.prediction, np.zeros(4))
+
+
+def test_predict_model_uses_optional_predict_proba_only_for_probability_modes():
+    estimator = _ProbabilisticEstimator()
+
+    probabilities = predict_model(
+        _model_spec(_ProbabilisticEstimator), estimator, _model_input(), {}, 'probs')
+    full_probabilities = predict_model(
+        _model_spec(_ProbabilisticEstimator), estimator, _model_input(), {}, 'full_probs')
+
+    np.testing.assert_array_equal(probabilities.prediction, np.full(4, 0.25))
+    np.testing.assert_array_equal(
+        full_probabilities.prediction,
+        np.column_stack((np.full(4, 0.75), np.full(4, 0.25))),
+    )
+
+
+def test_fit_model_rejects_probability_only_interface_before_prediction():
+    with pytest.raises(ExtensionContractError) as error:
+        fit_model(_model_spec(_ProbabilityOnlyEstimator), _model_input(), {})
+
+    assert error.value.code == 'missing_runtime_method'
+    assert error.value.error.details == {'method': 'predict'}
+
+
+def test_predict_only_model_rejects_probability_mode_with_typed_error():
+    estimator = _ExternalEstimator()
+
+    with pytest.raises(ExtensionContractError) as error:
+        predict_model(
+            _model_spec(_ExternalEstimator), estimator, _model_input(), {}, 'probs')
+
+    assert error.value.code == 'unsupported_output_mode'
 
 
 def test_missing_operation_preserves_typed_failure():

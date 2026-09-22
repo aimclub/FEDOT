@@ -14,13 +14,13 @@ class ModelImplementation(Protocol):
     def predict(self, features: Array) -> Array: ...
 
 
-class ProbabilisticModelImplementation(Protocol):
-    def fit(self, features: Array, target: Optional[Array]) -> object: ...
+class ProbabilisticModelImplementation(ModelImplementation, Protocol):
+    """Model implementation with optional probability prediction support."""
 
     def predict_proba(self, features: Array) -> Array: ...
 
 
-ExternalModelImplementation = Union[ModelImplementation, ProbabilisticModelImplementation]
+ExternalModelImplementation = ModelImplementation
 
 
 class TransformImplementation(Protocol):

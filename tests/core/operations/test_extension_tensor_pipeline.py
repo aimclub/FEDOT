@@ -201,6 +201,53 @@ def test_invalid_prediction_is_typed(output, code):
         assert error.value.code == code
 
 
+def test_pipeline_predict_routes_extension_probability_modes_explicitly():
+    calls = []
+
+    class Implementation:
+        def fit(self, features, target):
+            return self
+
+        def predict(self, features):
+            calls.append('predict')
+            return np.zeros(features.shape[0])
+
+        def predict_proba(self, features):
+            calls.append('predict_proba')
+            return np.column_stack((np.full(features.shape[0], 0.75),
+                                    np.full(features.shape[0], 0.25)))
+
+    with extension_scope(manifest(Implementation)):
+        pipeline = Pipeline(PipelineNode('ext_linear'))
+        pipeline.fit(data())
+        calls.clear()
+
+        default = pipeline.predict(replace(data(), target=None), output_mode='default')
+        probabilities = pipeline.predict(replace(data(), target=None), output_mode='probs')
+
+    assert calls == ['predict', 'predict_proba']
+    np.testing.assert_array_equal(default.predict.numpy(), np.zeros(6))
+    np.testing.assert_array_equal(probabilities.predict.numpy(), np.full(6, 0.25))
+
+
+def test_pipeline_fit_rejects_probability_only_extension_model_early():
+    class ProbabilityOnlyImplementation:
+        def fit(self, features, target):
+            return self
+
+        def predict_proba(self, features):
+            return np.ones((features.shape[0], 2))
+
+    with extension_scope(manifest(ProbabilityOnlyImplementation)):
+        pipeline = Pipeline(PipelineNode('ext_linear'))
+
+        with pytest.raises(ExtensionContractError) as error:
+            pipeline.fit(data())
+
+    assert error.value.code == 'missing_runtime_method'
+    assert error.value.error.details == {'method': 'predict'}
+
+
 def test_torch_stateless_transform_has_no_fit_call_and_owns_input_buffer():
     class Transform:
         def transform(self, features):

@@ -139,7 +139,7 @@ def fit_model(spec: ExternalModelSpec, data: ModelInput, params) -> ExternalMode
     _check_target(spec, data)
     instance = _instantiate_model(spec, params)
     fitted = _fit_instance(instance, data, params)
-    return _validate_fitted_instance(instance, fitted, ('predict', 'predict_proba'))
+    return _validate_fitted_instance(instance, fitted, ('predict',))
 
 
 def _validate_array(value, n_rows, field):
@@ -156,10 +156,9 @@ def predict_model(spec: ExternalModelSpec, instance, data: ModelInput, params,
                   output_mode='default') -> ModelOutput:
     if output_mode not in ('default', 'labels', 'probs', 'full_probs'):
         raise ExtensionContractError(ExtensionError('unsupported_output_mode', 'Unsupported model output mode.'))
-    proba = callable(getattr(instance, 'predict_proba', None))
-    if output_mode in ('probs', 'full_probs') and not proba:
+    use_proba = output_mode in ('probs', 'full_probs')
+    if use_proba and not callable(getattr(instance, 'predict_proba', None)):
         raise ExtensionContractError(ExtensionError('unsupported_output_mode', 'Model has no predict_proba.'))
-    use_proba = proba and output_mode in ('default', 'probs', 'full_probs')
     method = _method(instance, 'predict_proba' if use_proba else 'predict')
     prediction = _call_with_supported_signature(
         method, (data.features,), (data.idx, data.features, params), (data.idx, data.features))
