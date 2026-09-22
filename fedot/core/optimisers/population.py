@@ -83,7 +83,7 @@ class ContractEvaluationDispatcher(MultiprocessingDispatcher):
 
 
 def _evaluate_with_extensions(evaluate, graph, uid, manifests):
-    """Replay the caller's explicit FED-02 scope in a reused worker process."""
+    """Replay the caller's explicit extension scope in a reused worker process."""
     from fedot.extensions import extension_scope
 
     def run():

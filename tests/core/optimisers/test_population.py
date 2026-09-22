@@ -126,8 +126,8 @@ def test_parallel_workers_receive_and_release_scoped_extensions():
                                   extension_scope, get_registered_extensions)
     from fedot.core.repository.dataset_types import DataTypesEnum
     from fedot.core.repository.tasks import TaskTypesEnum
-    manifest = ExtensionManifest('fed03_parallel', '1', (ExternalModelSpec(
-        'fed03_external', lambda: object(), ModelCapabilities(
+    manifest = ExtensionManifest('parallel_worker_extension', '1', (ExternalModelSpec(
+        'parallel_external_model', lambda: object(), ModelCapabilities(
             (TaskTypesEnum.classification,), (DataTypesEnum.table,))),))
     before = get_registered_extensions()
     delegate = ContractEvaluationDispatcher(PipelineAdapter(), n_jobs=2)
@@ -136,7 +136,7 @@ def test_parallel_workers_receive_and_release_scoped_extensions():
         return to_fitness((float(len(get_registered_extensions())),))
 
     with extension_scope(manifest):
-        result = delegate.dispatch(metric)([individual('fed03_external'), individual('torch_linear')])
+        result = delegate.dispatch(metric)([individual('parallel_external_model'), individual('torch_linear')])
         assert len(result) == 2 and all(ind.fitness.value == len(before) + 1 for ind in result)
     assert get_registered_extensions() == before
     fresh = delegate.dispatch(metric)([individual('torch_linear')])

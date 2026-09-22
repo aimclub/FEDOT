@@ -1,4 +1,4 @@
-"""Independent invariants for the FED-03 evaluation contract."""
+"""Independent invariants for the evaluation contract."""
 from copy import deepcopy
 
 import numpy as np
@@ -32,7 +32,7 @@ def tensor_data(offset=0):
 
 class AttemptPipeline:
     nodes = ('node',)
-    descriptive_id = 'fed03-invariant-candidate'
+    descriptive_id = 'evaluation-invariant-candidate'
 
     def __init__(self, events=(), publish_prediction=False):
         self.events = list(events)

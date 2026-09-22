@@ -117,14 +117,14 @@ def test_dry_run_produces_only_descriptors_without_factory_effects():
 @pytest.mark.parametrize('payload,code', [(42, 'invalid_manifest_type'),
                                           (None, 'manifest_not_found')])
 def test_discovery_rejects_invalid_payload_before_accessing_attributes(monkeypatch, payload, code):
-    module = types.ModuleType('fed02_fake')
+    module = types.ModuleType('invalid_manifest_module')
     module.FEDOT_EXTENSION_MANIFEST = payload
     monkeypatch.setitem(sys.modules, module.__name__, module)
     assert load_extension_manifest(module.__name__).monoid[0].code == code
 
 
 def test_discovery_retains_transform_specs(monkeypatch):
-    module = types.ModuleType('fed02_fake')
+    module = types.ModuleType('transform_manifest_module')
     item = transform_manifest()
     module.FEDOT_EXTENSION_MANIFEST = item
     monkeypatch.setitem(sys.modules, module.__name__, module)

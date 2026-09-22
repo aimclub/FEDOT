@@ -1,4 +1,4 @@
-"""Independent population and reproduction invariants for FED-03."""
+"""Independent population and reproduction invariants."""
 import random
 from copy import deepcopy
 from types import SimpleNamespace

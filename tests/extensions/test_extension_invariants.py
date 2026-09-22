@@ -62,7 +62,7 @@ def _manifest(extension_name, operation_name, kind=OperationKind.model, factory=
     return ExtensionManifest(extension_name, '1', models=models, transforms=transforms)
 
 
-def _package(size, prefix='fed02_batch', factory=_default_factory):
+def _package(size, prefix='extension_batch', factory=_default_factory):
     return tuple(
         _manifest(
             f'{prefix}_extension_{index}',
@@ -91,7 +91,7 @@ _CONFLICT_CASES = tuple(
 @pytest.mark.parametrize('size,conflict_index,conflict_kind', _CONFLICT_CASES)
 def test_registration_batch_is_atomic_for_conflict_at_any_position(
         size, conflict_index, conflict_kind):
-    parent = _manifest('fed02_parent_extension', 'fed02_parent_operation')
+    parent = _manifest('parent_extension', 'parent_operation')
     package = list(_package(size))
     if conflict_kind == 'extension':
         package[conflict_index] = replace(package[conflict_index], name=parent.name)
@@ -110,7 +110,7 @@ def test_registration_batch_is_atomic_for_conflict_at_any_position(
         assert get_registered_extensions() == before
         assert get_extension_operation_spec(parent.models[0].name) == parent.models[0]
         for index in range(size):
-            assert get_extension_operation_spec(f'fed02_batch_operation_{index}') is None
+            assert get_extension_operation_spec(f'extension_batch_operation_{index}') is None
 
 
 @pytest.mark.parametrize('size', range(1, 7))
@@ -121,7 +121,7 @@ def test_dry_run_is_deterministic_order_independent_and_effect_free(size):
         calls.append('factory')
         return object()
 
-    package = _package(size, prefix='fed02_plan', factory=factory)
+    package = _package(size, prefix='registration_plan', factory=factory)
     before = get_registered_extensions()
 
     forward = register_extensions(package, dry_run=True)
@@ -141,10 +141,10 @@ def test_dry_run_is_deterministic_order_independent_and_effect_free(size):
 
 
 def test_nested_scope_restores_parent_after_direct_registration_and_exception():
-    parent = _manifest('fed02_scope_parent', 'fed02_scope_parent_model')
-    outer_direct = _manifest('fed02_scope_outer', 'fed02_scope_outer_transform', OperationKind.transform)
-    inner = _manifest('fed02_scope_inner', 'fed02_scope_inner_model')
-    inner_direct = _manifest('fed02_scope_direct', 'fed02_scope_direct_transform', OperationKind.transform)
+    parent = _manifest('scope_parent', 'scope_parent_model')
+    outer_direct = _manifest('scope_outer', 'scope_outer_transform', OperationKind.transform)
+    inner = _manifest('scope_inner', 'scope_inner_model')
+    inner_direct = _manifest('scope_direct', 'scope_direct_transform', OperationKind.transform)
     initial = get_registered_extensions()
 
     with extension_scope(parent):
@@ -194,12 +194,12 @@ def test_discovery_and_operation_factory_preserve_operation_kinds_in_any_module_
         calls.append('factory')
         return object()
 
-    model_name = 'fed02_discovered_model'
-    transform_name = 'fed02_discovered_transform'
+    model_name = 'discovered_model'
+    transform_name = 'discovered_transform'
     modules = (
-        ('fed02_model_module', _manifest('fed02_model_extension', model_name, factory=factory)),
-        ('fed02_transform_module', _manifest(
-            'fed02_transform_extension', transform_name, OperationKind.transform, factory)),
+        ('discovered_model_module', _manifest('discovered_model_extension', model_name, factory=factory)),
+        ('discovered_transform_module', _manifest(
+            'discovered_transform_extension', transform_name, OperationKind.transform, factory)),
     )
     for module_name, manifest in modules:
         module = types.ModuleType(module_name)

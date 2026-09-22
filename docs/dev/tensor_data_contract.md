@@ -1,14 +1,14 @@
-# FED-01: контракт подготовки данных
+# Контракт подготовки данных
 
 ## Назначение
 
-FED-01 усиливает существующие `create_data` и `TensorData` перед интеграцией
+Этот контракт усиливает существующие `create_data` и `TensorData` перед интеграцией
 Industrial с актуальным FEDOT. Второй контейнер данных не создаётся.
 
 Основа изменений: ветка `refactor/fedot_1.0.0`, коммит
 `5a55f7e13a4a0f325953632ca9a87116ddecd3ec`.
 
-Код Industrial остаётся в `industrial_release_1.0`. Реализация FED-01
+Код Industrial остаётся в `industrial_release_1.0`. Реализация контракта
 подготавливается отдельно в FEDOT: изменения контракта алгоритмического ядра
 должны предшествовать переключению Industrial на этот контракт.
 
@@ -29,7 +29,7 @@ Industrial с актуальным FEDOT. Второй контейнер дан
   только для поддерживаемых представлений. Неподдерживаемые случаи не должны
   маскироваться потерей метаданных.
 
-Публичные точки входа сохраняются. Не входят в FED-01: перепроектирование
+Публичные точки входа сохраняются. Не входят в этот этап: перепроектирование
 расширений, оценщика и эволюционной оптимизации, перенос моделей Industrial
 в FEDOT, переключение зависимости Industrial на новую ветку FEDOT.
 
@@ -69,7 +69,7 @@ python -m pytest tests/api/test_create_data.py tests/core/data tests/core/backen
 
 Исходный импорт на Python 3.11.5 блокируется общим изменяемым значением
 `DataSpec.task`: этот Python требует `default_factory` для такого поля.
-Это исходный дефект, а не регрессия FED-01.
+Это исходный дефект, а не регрессия контракта подготовки данных.
 
 При установке по `pyproject.toml` также обнаружены недостающие обязательные
 зависимости `pymonad` и `python-dotenv`. Первая уже указана в
@@ -118,7 +118,7 @@ python -m pytest tests/api/test_create_data.py tests/core/data tests/core/backen
 Из корня отдельной рабочей копии FEDOT выполните в окружении с PyTorch CPU:
 
 ```powershell
-python -m pytest tests/api/test_create_data.py tests/api/test_create_data_contract.py tests/api/test_create_data_invariants.py tests/api/test_fed01_model_smoke.py tests/core/data tests/core/backend tests/preprocessing tests/core/caching tests/core/operations/test_operation_tensordata_contract.py tests/core/pipelines/test_pipeline.py tests/core/pipelines/test_pipeline_rules.py --deselect=tests/core/data/test_tensor_data_cpu.py::test_loader -q -rs
+python -m pytest tests/api/test_create_data.py tests/api/test_create_data_contract.py tests/api/test_create_data_invariants.py tests/api/test_tensor_model_smoke.py tests/core/data tests/core/backend tests/preprocessing tests/core/caching tests/core/operations/test_operation_tensordata_contract.py tests/core/pipelines/test_pipeline.py tests/core/pipelines/test_pipeline_rules.py --deselect=tests/core/data/test_tensor_data_cpu.py::test_loader -q -rs
 ```
 
 Проверенные версии: PyTorch `2.5.1+cpu`, NumPy `1.26.4`, pandas `2.2.3`,
@@ -130,7 +130,7 @@ scikit-learn `1.3.2`, Dask/distributed `2024.4.2`, dask-ml `2024.4.4`.
 
 ## Ограничения и совместимость
 
-- Это адресная проверка FED-01, не полный набор тестов FEDOT или Industrial.
+- Это адресная проверка контракта подготовки данных, не полный набор тестов FEDOT или Industrial.
 - PyTorch CPU установлен явно. Базовая установка FEDOT без PyTorch
   не считается проверенной; политика необязательных зависимостей не менялась.
 - CUDA, MPS, Linux и Python 3.12–3.14 в этой проверке не исследованы.
@@ -153,7 +153,7 @@ scikit-learn `1.3.2`, Dask/distributed `2024.4.2`, dask-ml `2024.4.4`.
 - `TensorData.validate()` проверяет согласованное внутреннее представление
   объектов. Старый завершающий режим прогнозирования может разворачивать
   прогноз в плоский вектор горизонта; его выходной контракт остаётся отдельной
-  задачей FED-02 и не считается доказанным этой проверкой.
+  задачей и не считается доказанным этой проверкой.
 - Прямой конструктор `TensorData` заимствует хранилище признаков и цели.
   Изменяемые метаданные копируются; полное владение массивами гарантирует
   `create_data`. Отложенный вызов заимствует источник до первого `get()`.

@@ -1,4 +1,4 @@
-"""Public-boundary regressions for FED-01 (independent properties follow later)."""
+"""Public-boundary regressions for TensorData creation."""
 from copy import deepcopy
 
 import numpy as np

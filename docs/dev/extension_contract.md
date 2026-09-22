@@ -1,11 +1,11 @@
-# FED-02: контракт внешних операций
+# Контракт внешних операций
 
 ## Границы изменения
 
 `fedot.extensions` остаётся единственной точкой регистрации расширений. Встроенный
 каталог операций не подменяется и не дополняется глобальными записями расширений.
 `OperationFactory` выбирает адаптер по спецификации из текущей области регистрации.
-Изменения не затрагивают подготовку TensorData из FED-01, эволюционный поиск,
+Изменения не затрагивают отдельный контракт подготовки TensorData, эволюционный поиск,
 Industrial или GOLEM. В `Pipeline` добавлена только передача контекста в поток
 выполнения с ограничением времени.
 
@@ -18,7 +18,7 @@ Industrial или GOLEM. В `Pipeline` добавлена только пере�
 
 | Контракт | Обучение | Выполнение | Результат |
 | --- | --- | --- | --- |
-| `ExternalModelSpec` + `ModelCapabilities` | `fit` | `predict` или `predict_proba` | `ModelOutput.prediction` → `TensorData.predict` |
+| `ExternalModelSpec` + `ModelCapabilities` | `fit` | обязательный `predict`, необязательный `predict_proba` | `ModelOutput.prediction` → `TensorData.predict` |
 | `ExternalTransformSpec` + `TransformCapabilities` | `fit`, если `requires_fit=True` | `transform` | `TransformOutput.features` → `TensorData.features` |
 
 Входы интерпретатора представлены отдельными типами `ModelInput` и

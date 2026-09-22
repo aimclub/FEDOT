@@ -1,4 +1,4 @@
-"""Runtime validation and supported bridge conservation laws for FED-01."""
+"""Runtime validation and supported bridge conservation laws for TensorData."""
 from copy import deepcopy
 
 import numpy as np
