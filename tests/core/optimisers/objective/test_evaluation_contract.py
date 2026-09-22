@@ -142,6 +142,62 @@ def test_changed_dataset_does_not_reuse_previous_candidate():
     assert graph.calls == 1
 
 
+def test_versioned_source_hashes_fold_content_once_per_evaluation_session(monkeypatch):
+    import fedot.core.caching.evaluation_context as context_module
+
+    folds = [(data(), data(10))]
+
+    def producer():
+        return folds
+    producer.evaluation_data_version = 'fixed-split-v1'
+    evaluate = PipelineObjectiveEvaluateWithTensorData(
+        Objective(lambda *a, **kw: 1.), producer, result_cache_size=0)
+    original_identity = context_module.tensor_data_identity
+    calls = []
+
+    def counting_identity(tensor_data):
+        calls.append(tensor_data)
+        return original_identity(tensor_data)
+
+    monkeypatch.setattr(context_module, 'tensor_data_identity', counting_identity)
+
+    first = RecordingPipeline()
+    second = RecordingPipeline()
+    second.descriptive_id = 'second'
+    evaluate.evaluate_result(first)
+    identities_after_first = len(calls)
+    evaluate.evaluate_result(second)
+
+    assert identities_after_first == 2
+    assert len(calls) == identities_after_first
+
+
+def test_unversioned_source_rechecks_fold_content_for_each_candidate(monkeypatch):
+    import fedot.core.caching.evaluation_context as context_module
+
+    folds = [(data(), data(10))]
+    evaluate = PipelineObjectiveEvaluateWithTensorData(
+        Objective(lambda *a, **kw: 1.), lambda: folds, result_cache_size=0)
+    original_identity = context_module.tensor_data_identity
+    calls = []
+
+    def counting_identity(tensor_data):
+        calls.append(tensor_data)
+        return original_identity(tensor_data)
+
+    monkeypatch.setattr(context_module, 'tensor_data_identity', counting_identity)
+
+    first = RecordingPipeline()
+    second = RecordingPipeline()
+    second.descriptive_id = 'second'
+    evaluate.evaluate_result(first)
+    identities_after_first = len(calls)
+    evaluate.evaluate_result(second)
+
+    assert identities_after_first == 2
+    assert len(calls) == 2 * identities_after_first
+
+
 def test_bounded_outcome_cache_evicts_oldest_candidate():
     evaluate = evaluator(1, result_cache_size=1)
     first, second = RecordingPipeline(), RecordingPipeline()

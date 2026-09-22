@@ -1,6 +1,7 @@
 """Effectful evaluator; decisions and outcomes live in evaluation_contracts."""
 import sys
 from collections import OrderedDict
+from dataclasses import replace
 from datetime import timedelta
 from math import isfinite
 from typing import Callable, Iterable, Optional, Tuple
@@ -72,6 +73,8 @@ class PipelineObjectiveEvaluateWithTensorData(ObjectiveEvaluate[Pipeline]):
         self.cache_namespace = cache_namespace
         self.result_cache_size = result_cache_size
         self._completed = OrderedDict()
+        self._fold_context_version = None
+        self._fold_context_templates = ()
         self.last_outcome: Optional[EvaluationOutcome] = None
 
     def evaluate(self, graph: Pipeline) -> Fitness:
@@ -95,9 +98,7 @@ class PipelineObjectiveEvaluateWithTensorData(ObjectiveEvaluate[Pipeline]):
             if not folds or len(folds) != count:
                 return self._reject(graph, FailureKind.DATA,
                                     f'expected {count} folds, received {len(folds)}', count)
-            contexts = tuple(TensorDataCacheContext.from_fold(
-                train, test, i, candidate_id, self.cache_namespace)
-                for i, (train, test) in enumerate(folds))
+            contexts = self._build_fold_contexts(folds, candidate_id)
         except EXPECTED_ERRORS as error:
             return self._reject(graph, FailureKind.DATA, str(error))
 
@@ -205,7 +206,28 @@ class PipelineObjectiveEvaluateWithTensorData(ObjectiveEvaluate[Pipeline]):
     def clear_results(self):
         """Release bounded diagnostic memoization at the end of a session."""
         self._completed.clear()
+        self._fold_context_version = None
+        self._fold_context_templates = ()
         self.last_outcome = None
+
+    def _build_fold_contexts(self, folds, candidate_id):
+        """Reuse data identities only for an explicitly versioned split source."""
+        data_version = getattr(self._data_producer, 'evaluation_data_version', None)
+        if data_version is None:
+            return tuple(TensorDataCacheContext.from_fold(
+                train, test, fold_id, candidate_id, self.cache_namespace)
+                for fold_id, (train, test) in enumerate(folds))
+
+        from fedot.extensions.registry import registered_extensions_identity
+
+        context_version = (data_version, registered_extensions_identity())
+        if context_version != self._fold_context_version:
+            self._fold_context_templates = tuple(TensorDataCacheContext.from_fold(
+                train, test, fold_id, '__evaluation_data__', self.cache_namespace)
+                for fold_id, (train, test) in enumerate(folds))
+            self._fold_context_version = context_version
+        return tuple(replace(context, candidate_id=candidate_id)
+                     for context in self._fold_context_templates)
 
     def prepare_graph(self, graph: Pipeline, train_data: TensorData,
                       fold_id=None, n_jobs: int = -1, *, prediction_cache=None) -> Pipeline:
