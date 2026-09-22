@@ -27,6 +27,27 @@ def test_tensor_data_requires_features():
 
 
 @pytest.mark.unit
+def test_tensor_data_equality_uses_shared_nested_value_comparison():
+    features = torch.tensor([[1.0, float('nan')], [3.0, 4.0]])
+    first = TensorData(
+        task=Task(TaskTypesEnum.regression),
+        data_type=DataTypesEnum.table,
+        features=features,
+        dataloader_kwargs={'nested': {'values': [np.array([1.0, np.nan]), (2, 3)]}},
+    )
+    second = TensorData(
+        task=Task(TaskTypesEnum.regression),
+        data_type=DataTypesEnum.table,
+        features=features.clone(),
+        dataloader_kwargs={'nested': {'values': [np.array([1.0, np.nan]), (2, 3)]}},
+    )
+
+    assert first == second
+    second.dataloader_kwargs['nested']['values'][1] = (2, 4)
+    assert first != second
+
+
+@pytest.mark.unit
 def test_create_from_numpy():
     """
     Test creation of TensorData from a NumPy array, ensuring that features and target
