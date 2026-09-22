@@ -1,7 +1,6 @@
 """Show structural pipeline evolution followed by hyperparameter tuning."""
 
 from copy import deepcopy
-import json
 from pathlib import Path
 
 import numpy as np
@@ -82,57 +81,11 @@ def print_history(history) -> None:
                 print(f"      {node.name}: {node.parameters}")
 
 
-def readable_history(history) -> dict:
-    """Build a portable history view with explicit structure and hyperparameters."""
-    return {
-        'schema_version': 1,
-        'generations': [
-            {
-                'generation': generation.generation_num,
-                'label': getattr(generation.label, 'value', generation.label),
-                'metadata': generation.metadata,
-                'individuals': [
-                    {
-                        'uid': individual.uid,
-                        'fitness': list(individual.fitness.values),
-                        'parent_uids': [parent.uid for parent in individual.parents],
-                        'structure': {
-                            'depth': individual.graph.depth,
-                            'length': individual.graph.length,
-                            'nodes': [
-                                {
-                                    'uid': str(node.uid),
-                                    'operation': node.name,
-                                    'parent_uids': [str(parent.uid) for parent in node.nodes_from],
-                                }
-                                for node in individual.graph.nodes
-                            ],
-                        },
-                        'hyperparameters': [
-                            {
-                                'node_uid': str(node.uid),
-                                'operation': node.name,
-                                'parameters': node.parameters,
-                            }
-                            for node in individual.graph.nodes
-                        ],
-                    }
-                    for individual in generation
-                ],
-            }
-            for generation in history.generations
-        ],
-    }
-
-
 def save_history_artifacts(history, output_dir: Path) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     history_path = output_dir / 'composition_and_tuning_history.json'
-    native_history_path = output_dir / 'composition_and_tuning_history_native.json'
-    history.save(native_history_path)
-    with history_path.open('w', encoding='utf-8') as file:
-        json.dump(readable_history(history), file, indent=2, default=str)
+    history.save_readable(history_path)
 
     convergence_path = output_dir / 'history_convergence.png'
     history.show.fitness_line(
@@ -142,7 +95,6 @@ def save_history_artifacts(history, output_dir: Path) -> None:
     )
 
     print(f"\nSaved readable history JSON: {history_path}")
-    print(f"Saved native reloadable history: {native_history_path}")
     print(f"Saved phase-aware convergence plot: {convergence_path}")
 
 
