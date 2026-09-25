@@ -1,4 +1,5 @@
 from copy import copy
+from unittest.mock import Mock
 
 import numpy as np
 import pandas as pd
@@ -6,6 +7,9 @@ import pytest
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_filters import \
+    LinearRegRANSACImplementation
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -80,6 +84,25 @@ def test_ransac_with_invalid_params_fit_correctly():
 
     assert ransac_pipeline.is_fitted
     assert predicted is not None
+
+
+def test_ransac_handles_linear_algebra_error():
+    """RANSAC should fall back to unfiltered data when its inner estimator cannot fit."""
+    data = InputData(idx=np.arange(5),
+                     features=np.arange(5).reshape(-1, 1),
+                     target=np.arange(5),
+                     task=Task(TaskTypesEnum.regression),
+                     data_type=DataTypesEnum.table)
+    implementation = LinearRegRANSACImplementation(OperationParameters(residual_threshold=0.1))
+    implementation.operation.fit = Mock(side_effect=np.linalg.LinAlgError('SVD did not converge'))
+
+    fitted_operation = implementation.fit(data)
+    transformed_data = implementation.transform_for_fit(data)
+
+    assert fitted_operation is implementation.operation
+    assert implementation.operation.fit.call_count == implementation.max_iter
+    assert implementation.operation.inlier_mask_ is None
+    np.testing.assert_array_equal(transformed_data.predict, data.features)
 
 
 def test_params_filter_with_non_default():

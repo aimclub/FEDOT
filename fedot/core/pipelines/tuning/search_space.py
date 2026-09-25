@@ -372,20 +372,35 @@ class PipelineSearchSpace(SearchSpace):
                     'sampling-scope': [[
                         {
                             'family': 'gaussian',
-                            'link': hp.choice('link_gaussian', ['identity',
-                                                                'inverse_power',
-                                                                'log'])
+                            'link': 'identity'
+                        },
+                        {
+                            'family': 'gaussian',
+                            'link': 'inverse_power'
+                        },
+                        {
+                            'family': 'gaussian',
+                            'link': 'log'
                         },
                         {
                             'family': 'gamma',
-                            'link': hp.choice('link_gamma', ['identity',
-                                                             'inverse_power',
-                                                             'log'])
+                            'link': 'identity'
+                        },
+                        {
+                            'family': 'gamma',
+                            'link': 'inverse_power'
+                        },
+                        {
+                            'family': 'gamma',
+                            'link': 'log'
                         },
                         {
                             'family': 'inverse_gaussian',
-                            'link': hp.choice('link_inv_gaussian', ['identity',
-                                                                    'inverse_power'])
+                            'link': 'identity'
+                        },
+                        {
+                            'family': 'inverse_gaussian',
+                            'link': 'inverse_power'
                         }
 
                     ]],

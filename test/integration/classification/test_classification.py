@@ -1,11 +1,5 @@
 import numpy as np
-
-try:
-    import tensorflow as tf
-except ModuleNotFoundError:
-    from golem.utilities.requirements_notificator import warn_requirement
-
-    warn_requirement('tensorflow', 'fedot[extra]')
+import pytest
 
 from test.unit.common_tests import is_predict_ignores_target
 from test.unit.tasks.test_classification import get_image_classification_data
@@ -17,6 +11,16 @@ from fedot.core.operations.evaluation.operation_implementations.models.keras imp
     fit_cnn,
     predict_cnn
 )
+
+try:
+    import tensorflow as tf
+except ModuleNotFoundError:
+    from golem.utilities.requirements_notificator import warn_requirement
+
+    warn_requirement('tensorflow', 'fedot[extra]')
+    tf = None
+
+pytestmark = pytest.mark.skipif(tf is None, reason='TensorFlow is unavailable for this Python version')
 
 
 def check_predict_cnn_correct(model, dataset_to_validate):

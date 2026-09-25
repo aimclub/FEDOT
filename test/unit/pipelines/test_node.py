@@ -49,7 +49,7 @@ def test_eval_strategy_logreg(data_setup):
     data_set = data_setup
     train, test = train_test_data_setup(data=data_set)
     test_skl_model = LogisticRegression(C=10., random_state=1,
-                                        solver='liblinear',
+                                        solver='lbfgs',
                                         max_iter=10000, verbose=0)
     test_skl_model.fit(train.features, train.target)
     expected_result = test_skl_model.predict(test.features)

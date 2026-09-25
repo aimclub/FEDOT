@@ -97,7 +97,22 @@ autodoc_default_options = {
 autoclass_content = 'class'
 autodoc_typehints = 'description'
 autodoc_typehints_format = 'short'
-autodoc_mock_imports = ['objgraph', 'memory_profiler', 'gprof2dot', 'snakeviz', 'h2o', 'tpot']
+autodoc_mock_imports = [
+    'cv2',
+    'gensim',
+    'gprof2dot',
+    'gph',
+    'h2o',
+    'memory_profiler',
+    'nltk',
+    'objgraph',
+    'ripser',
+    'snakeviz',
+    'tabpfn',
+    'tensorflow',
+    'torch',
+    'tpot',
+]
 python_use_unqualified_type_names = True
 
 intersphinx_mapping = {
