@@ -86,7 +86,7 @@ class ApiComposer:
 
         if with_tuning:
             with fedot_composer_timer.launch_tuning('composing'):
-                best_pipeline = self.tune_final_pipeline(train_data, best_pipeline)
+                best_pipeline = self.tune_final_pipeline(train_data, best_pipeline, gp_composer.history)
 
         if gp_composer.history:
             adapter = self.params.graph_generation_params.adapter
@@ -162,7 +162,7 @@ class ApiComposer:
         best_pipeline = best_pipelines[0] if isinstance(best_pipelines, Sequence) else best_pipelines
         return best_pipeline, best_pipeline_candidates, gp_composer
 
-    def tune_final_pipeline(self, train_data: InputData, pipeline_gp_composed: Pipeline) -> Pipeline:
+    def tune_final_pipeline(self, train_data: InputData, pipeline_gp_composed: Pipeline, history: OptHistory) -> Pipeline:
         """ Launch tuning procedure for obtained pipeline by composer """
         timeout_for_tuning = abs(self.timer.determine_resources_for_tuning()) / 60
         tuner = (TunerBuilder(self.params.task)
@@ -172,6 +172,7 @@ class ApiComposer:
                  .with_timeout(datetime.timedelta(minutes=timeout_for_tuning))
                  .with_eval_time_constraint(self.params.composer_requirements.max_graph_fit_time)
                  .with_requirements(self.params.composer_requirements)
+                 .with_history(history)
                  .build(train_data))
 
         if self.timer.have_time_for_tuning():
