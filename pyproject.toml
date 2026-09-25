@@ -1,0 +1,111 @@
+[build-system]
+requires = ["setuptools>=77,<81"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fedot"
+version = "0.7.5"
+description = "Automated machine learning framework for composite pipelines"
+readme = "README_en.rst"
+requires-python = ">=3.10,<3.15"
+license = "BSD-3-Clause"
+authors = [
+    { name = "NSS Lab", email = "itmo.nss.team@gmail.com" },
+]
+classifiers = [
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+dependencies = [
+    "thegolem>=0.5.0,<0.6.0",
+    "numpy>=1.16.0,<2.0.0,!=1.24.0; python_version < '3.13'",
+    "numpy>=2.1,<3.0.0; python_version >= '3.13'",
+    "pandas>=1.3.0,<3.0.0",
+    "scipy>0.13.0,<1.13.0; python_version < '3.13'",
+    "scipy>=1.14.1,<2.0.0; python_version >= '3.13'",
+    "dask-ml<2026.0.0",
+    "dask<2026.0.0",
+    "anytree>=2.8.0,<3.0.0",
+    "catboost>=0.25.0,<2.0.0",
+    "lightgbm>=4.6.0,<5.0.0",
+    "xgboost>=1.4.0,<4.0.0",
+    "statsmodels>=0.12.0,<0.16.0",
+    "ete3>=3.1.0,<4.0.0",
+    "networkx>=2.4,<4.0.0,!=2.7.*,!=2.8.1,!=2.8.2,!=2.8.3",
+    "scikit-learn>=1.0.0,<1.7.0; python_version < '3.13'",
+    "scikit-learn>=1.7.0,<2.0.0; python_version >= '3.13'",
+    "sktime>=0.16.1,<2.0.0",
+    "hyperopt==0.2.7",
+    "optuna>=3.2.0,<5.0.0",
+    "SALib>=1.3.0,<2.0.0",
+    "scikit-optimize>=0.7.4,<0.11.0",
+    "matplotlib>=3.3.1,<4.0.0",
+    "pyvis==0.2.1",
+    "seaborn>=0.9.0,<1.0.0",
+    "setuptools<81",
+    "func_timeout==4.3.5",
+    "joblib>=0.17.0,<2.0.0",
+    "requests>=2.0,<3.0.0",
+    "psutil>=5.9.2,<8.0.0",
+    "fsspec>=2024,<2027",
+    "pytest>=6.2.0,<10.0.0",
+    "testfixtures>=6.18.0,<9.0.0",
+]
+
+[project.optional-dependencies]
+docs = [
+    "setuptools<81",
+    "sphinx==5.3.0",
+    "sphinx_rtd_theme==1.0.0",
+    "readthedocs-sphinx-search==0.3.2",
+    "sphinxcontrib-details-directive==0.1.0",
+    "autodocsumm<0.3.0",
+]
+examples = [
+    "openpyxl==3.0.7",
+]
+extra = [
+    "tensorflow>=2.8.0,<2.20.0; python_version < '3.13'",
+    "tensorflow>=2.20.0,<2.22.0; python_version >= '3.13' and python_version < '3.14'",
+    "torch>=1.9.0,<3.0.0; python_version < '3.13' or python_version >= '3.14'",
+    "torch>=1.9.0,<2.12.0; python_version >= '3.13' and python_version < '3.14'",
+    "tabpfn>=2.0.0,<=2.2.1; python_version < '3.13'",
+    "opencv-python>=4.5.5.64,<5.0.0",
+    "Pillow>=8.2.0,<13.0.0",
+    "gensim==4.3.2; python_version < '3.13'",
+    "gensim>=4.4.0,<5.0.0; python_version >= '3.13' and python_version < '3.14'",
+    "nltk==3.8.1",
+    "protobuf>=3.19.0,<3.20.0; python_version < '3.11'",
+    "protobuf>=3.20.3,<8.0.0; python_version >= '3.11'",
+    "giotto-ph==0.2.4; python_version < '3.13'",
+    "ripser>=0.6.0,<1.0.0; python_version >= '3.13'",
+]
+profilers = [
+    "snakeviz==2.1.0",
+    "gprof2dot==2021.2.21",
+    "objgraph==3.5.0",
+    "memory_profiler==0.61.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/aimclub/FEDOT"
+
+[tool.setuptools.packages.find]
+exclude = ["test*"]
+
+[tool.coverage.report]
+exclude_also = [
+    "def __repr__",
+    "if __debug__:",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "@abstractmethod",
+    "except Exception",
+    "if verbose:",
+    "if self.verbose:",
+    "if self.print_training_progress:",
+    "class ApiTemplate",
+]

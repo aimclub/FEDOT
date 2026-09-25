@@ -1,7 +1,9 @@
 import os.path
 from datetime import timedelta
+from importlib.util import find_spec
 
 import numpy as np
+import pytest
 
 from examples.advanced.multi_modal_pipeline import run_multi_modal_pipeline
 from examples.advanced.multimodal_text_num_example import run_multi_modal_example
@@ -106,6 +108,8 @@ def test_multi_modal_example():
     assert result > 0.5
 
 
+@pytest.mark.skipif(find_spec('tensorflow') is None,
+                    reason='TensorFlow is unavailable for this Python version')
 def test_full_multi_modal_example():
     result = run_multi_modal_pipeline(files_path=os.path.join('examples', 'data', 'multimodal'),
                                       timeout=0.1, visualization=False)

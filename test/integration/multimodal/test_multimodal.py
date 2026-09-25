@@ -1,3 +1,5 @@
+from importlib.util import find_spec
+
 import pytest
 
 from examples.advanced.multi_modal_pipeline import prepare_multi_modal_data
@@ -45,6 +47,8 @@ def get_simple_multimodal_data(task_type, data_type):
     return data
 
 
+@pytest.mark.skipif(find_spec('tensorflow') is None,
+                    reason='TensorFlow is unavailable for this Python version')
 def test_multi_modal_pipeline():
     path = fedot_project_root().joinpath('examples', 'data', 'multimodal')
     task = Task(TaskTypesEnum.classification)

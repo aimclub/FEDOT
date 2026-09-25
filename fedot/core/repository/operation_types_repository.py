@@ -11,16 +11,13 @@ from golem.core.log import default_log
 from golem.utilities.data_structures import ensure_wrapped_in_sequence
 
 from fedot.core.constants import AUTO_PRESET_NAME, BEST_QUALITY_PRESET_NAME
+from fedot.core.operations.evaluation.operation_implementations.data_operations.topological.topological_backend import \
+    TOPOLOGICAL_BACKEND_AVAILABLE
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.json_evaluation import import_enums_from_str, import_strategy_from_str, read_field
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
-EXTRA_TS_INSTALLED = True
-try:
-    from gph import ripser_parallel as ripser
-    dummy_var = ripser  # for pep8
-except ModuleNotFoundError:
-    EXTRA_TS_INSTALLED = False
+EXTRA_TS_INSTALLED = TOPOLOGICAL_BACKEND_AVAILABLE
 
 if TYPE_CHECKING:
     from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy

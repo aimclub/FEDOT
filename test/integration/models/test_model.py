@@ -1,5 +1,6 @@
 import pickle
 from copy import deepcopy
+from importlib.util import find_spec
 from time import perf_counter
 from typing import Tuple, Optional
 
@@ -502,6 +503,8 @@ def test_operations_are_serializable(operation):
     to_skip = ['custom', 'decompose', 'class_decompose']
     if operation.id in to_skip:
         return
+    if operation.id in {'tabpfn', 'tabpfnreg'} and find_spec('tabpfn') is None:
+        pytest.skip('TabPFN is unavailable for this Python version')
 
     for task_type in operation.task_type:
         for data_type in operation.input_types:

@@ -86,13 +86,16 @@ class RegRANSACImplementation(FilterImplementation):
                 self.operation.fit(input_data.features, input_data.target.squeeze())
                 if self.operation.inlier_mask_.mean() >= self.min_inliers_ratio:
                     return self.operation
-            except ValueError:
+            # LinAlgError does not inherit from ValueError in every supported NumPy version.
+            except (ValueError, np.linalg.LinAlgError):
                 pass
 
             self.log.info(f"RANSAC: increased residual_threshold by {residual_threshold_step}")
             residual_threshold = residual_threshold + residual_threshold_step
             iter_ += 1
 
+        # Do not filter the data if no fit retained a sufficient number of inliers.
+        self.operation.inlier_mask_ = None
         return self.operation
 
 
@@ -181,7 +184,14 @@ class IsolationForestRegImplementation(DataOperationImplementation):
         """
         # For fit stage - filter data
         mask = self._get_inlier_mask(input_data)
-        input_data = update_data(input_data, mask)
+        # IsolationForest may classify every sample as an outlier (in particular
+        # for small intermediate datasets).  Passing an empty dataset to the next
+        # pipeline node makes even a single branch impossible to merge.  In that
+        # case filtering is not useful, so preserve the original data.
+        if np.any(mask):
+            input_data = update_data(input_data, mask)
+        else:
+            self.log.info("Isolation Forest found no inliers. Return all objects")
 
         output_data = self._convert_to_output(input_data,
                                               input_data.features)
