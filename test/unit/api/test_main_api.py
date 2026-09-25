@@ -1,8 +1,16 @@
+import datetime
+from types import SimpleNamespace
+from unittest.mock import Mock
+
 import numpy as np
 import pandas as pd
 import pytest
 
 from fedot import Fedot
+from fedot.api.main import (
+    _contains_data_recommendation,
+    _without_data_recommendation,
+)
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
@@ -17,6 +25,72 @@ TESTS_MAIN_API_DEFAULT_PARAMS = {
     'max_depth': 1,
     'max_arity': 2,
 }
+
+
+def test_nested_data_recommendations_can_remove_cut_without_mutating_input():
+    recommendations = {
+        'table/source': {
+            'cut': {'border': 100},
+            'label_encoded': {},
+        },
+        'text/source': {},
+    }
+
+    assert _contains_data_recommendation(recommendations, 'cut')
+    assert _without_data_recommendation(recommendations, 'cut') == {
+        'table/source': {'label_encoded': {}},
+        'text/source': {},
+    }
+    assert 'cut' in recommendations['table/source']
+
+
+def test_final_pipeline_fit_receives_composer_graph_time_limit():
+    model = Fedot.__new__(Fedot)
+    time_constraint = datetime.timedelta(seconds=37)
+    model.params = SimpleNamespace(
+        n_jobs=8,
+        composer_requirements=SimpleNamespace(
+            max_graph_fit_time=time_constraint
+        ),
+    )
+    model.current_pipeline = Mock()
+    model.data_processor = Mock()
+    train_data = object()
+
+    model._train_pipeline_on_full_dataset({}, train_data)
+
+    model.current_pipeline.fit.assert_called_once_with(
+        train_data,
+        time_constraint=time_constraint,
+        n_jobs=8,
+    )
+    model.data_processor.accept_and_apply_recommendations.assert_not_called()
+
+
+def test_fitted_initial_assumption_is_restored_after_final_fit_timeout():
+    model = Fedot.__new__(Fedot)
+    fallback = SimpleNamespace(is_fitted=True)
+    model.api_composer = SimpleNamespace(
+        fitted_initial_assumption=fallback
+    )
+    model.current_pipeline = object()
+    model.best_models = ()
+    model.log = Mock()
+    error = TimeoutError('expired')
+
+    assert model._restore_fitted_initial_assumption(error) is True
+    assert model.current_pipeline is fallback
+    assert model.best_models == (fallback,)
+    model.log.warning.assert_called_once()
+
+
+def test_missing_fitted_initial_assumption_does_not_mask_timeout():
+    model = Fedot.__new__(Fedot)
+    model.api_composer = SimpleNamespace(fitted_initial_assumption=None)
+
+    assert model._restore_fitted_initial_assumption(
+        TimeoutError('expired')
+    ) is False
 
 
 def test_pipeline_preprocessing_through_api_correctly():

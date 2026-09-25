@@ -41,6 +41,27 @@ from fedot.utilities.project_import_export import export_project_to_zip, import_
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 
 
+def _contains_data_recommendation(recommendations: Optional[dict], name: str) -> bool:
+    """Find a recommendation in uni- or multi-modal recommendation trees."""
+    if not isinstance(recommendations, dict):
+        return False
+    return name in recommendations or any(
+        _contains_data_recommendation(value, name)
+        for value in recommendations.values()
+        if isinstance(value, dict)
+    )
+
+
+def _without_data_recommendation(recommendations: dict, name: str) -> dict:
+    """Copy a recommendation tree while removing one transformation."""
+    return {
+        key: _without_data_recommendation(value, name)
+        if isinstance(value, dict) else value
+        for key, value in recommendations.items()
+        if key != name
+    }
+
+
 class Fedot:
     """ The main class for FEDOT AutoML API.
 
@@ -148,11 +169,17 @@ class Fedot:
 
         self.params.update_available_operations_by_preset(self.train_data)
 
+        full_train_not_preprocessed = None
         if self.params.get('use_input_preprocessing'):
             # Launch data analyser - it gives recommendations for data preprocessing
             recommendations_for_data, recommendations_for_params = \
                 self.data_analyser.give_recommendations(input_data=self.train_data,
                                                         input_params=self.params)
+            # Retain the full table only when safe mode is actually going to
+            # cut the search table. The former unconditional deepcopy doubled
+            # peak memory for every ordinary AutoML run.
+            if _contains_data_recommendation(recommendations_for_data, 'cut'):
+                full_train_not_preprocessed = deepcopy(self.train_data)
             self.data_processor.accept_and_apply_recommendations(input_data=self.train_data,
                                                                  recommendations=recommendations_for_data)
             self.params.accept_and_apply_recommendations(input_data=self.train_data,
@@ -165,6 +192,9 @@ class Fedot:
         if isinstance(self.train_data, InputData) and self.params.get('use_auto_preprocessing'):
             with fedot_composer_timer.launch_preprocessing():
                 self.train_data = self.data_processor.fit_transform(self.train_data)
+
+        if full_train_not_preprocessed is None:
+            full_train_not_preprocessed = self.train_data
 
         # TODO: Workaround for AtomizedModel
         init_asm = self.params.data.get('initial_assumption')
@@ -188,13 +218,19 @@ class Fedot:
                 if self.current_pipeline is None:
                     raise ValueError('No models were found')
 
-                full_train_not_preprocessed = deepcopy(self.train_data)
                 # Final fit for obtained pipeline on full dataset
 
                 with fedot_composer_timer.launch_train_inference():
                     if self.history and not self.history.is_empty() or not self.current_pipeline.is_fitted:
-                        self._train_pipeline_on_full_dataset(recommendations_for_data, full_train_not_preprocessed)
-                        self.log.message('Final pipeline was fitted')
+                        try:
+                            self._train_pipeline_on_full_dataset(
+                                recommendations_for_data,
+                                full_train_not_preprocessed,
+                            )
+                            self.log.message('Final pipeline was fitted')
+                        except TimeoutError as error:
+                            if not self._restore_fitted_initial_assumption(error):
+                                raise
                     else:
                         self.log.message('Already fitted initial pipeline is used')
 
@@ -569,12 +605,30 @@ class Fedot:
         """Applies training procedure for obtained pipeline if dataset was clipped
         """
 
-        if recommendations is not None:
+        if _contains_data_recommendation(recommendations, 'cut'):
             # if data was cut we need to refit pipeline on full data
-            self.data_processor.accept_and_apply_recommendations(full_train_not_preprocessed,
-                                                                 {k: v for k, v in recommendations.items()
-                                                                  if k != 'cut'})
+            self.data_processor.accept_and_apply_recommendations(
+                full_train_not_preprocessed,
+                _without_data_recommendation(recommendations, 'cut'),
+            )
+        requirements = getattr(self.params, 'composer_requirements', None)
+        time_constraint = getattr(requirements, 'max_graph_fit_time', None)
         self.current_pipeline.fit(
             full_train_not_preprocessed,
-            n_jobs=self.params.n_jobs
+            time_constraint=time_constraint,
+            n_jobs=self.params.n_jobs,
         )
+
+    def _restore_fitted_initial_assumption(self, error: TimeoutError) -> bool:
+        """Use the validated initial model when bounded final refit expires."""
+        fallback = self.api_composer.fitted_initial_assumption
+        if fallback is None or not fallback.is_fitted:
+            return False
+        self.current_pipeline = fallback
+        self.best_models = (fallback,)
+        self.log.warning(
+            'Final pipeline fit exceeded its time limit; '
+            'using the fitted initial assumption instead. '
+            f'Original error: {error}'
+        )
+        return True
