@@ -33,6 +33,9 @@ class ApiComposer:
         self.preprocessing_cache: Optional[PreprocessingCache] = None
         self.predictions_cache: Optional[PredictionsCache] = None
         self.timer = None
+        # Kept as a reliable, already fitted fallback if the evolved pipeline
+        # cannot finish its final full-data fit within the configured limit.
+        self.fitted_initial_assumption: Optional[Pipeline] = None
         # status flag indicating that composer step was applied
         self.was_optimised = False
         # status flag indicating that tuner step was applied`
@@ -69,6 +72,7 @@ class ApiComposer:
             self.timer = ApiTime(time_for_automl=timeout, with_tuning=with_tuning)
 
             initial_assumption, fitted_assumption = self.propose_and_fit_initial_assumption(train_data)
+            self.fitted_initial_assumption = fitted_assumption
 
             multi_objective = len(self.metrics) > 1
             self.params.init_params_for_composing(self.timer.timedelta_composing, multi_objective)

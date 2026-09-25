@@ -149,6 +149,31 @@ class _LightGBMFitTimeLimitCallback:
             )
 
 
+class _CatBoostFitTimeLimitCallback:
+    """Stop CatBoost after a positive wall-clock fit allowance."""
+
+    def __init__(self, seconds: Real):
+        if isinstance(seconds, bool) or not isinstance(seconds, Real):
+            raise ValueError('fit_time_limit must be a positive finite number')
+        seconds = float(seconds)
+        if not np.isfinite(seconds) or seconds <= 0:
+            raise ValueError('fit_time_limit must be a positive finite number')
+        self.seconds = seconds
+        self.deadline = None
+        self.stopped = False
+
+    def after_iteration(self, info) -> bool:
+        now = time.monotonic()
+        # CatBoost callbacks have no before-training hook. Iteration numbering
+        # restarts at one for a repeated fit, which also resets this callback.
+        if self.deadline is None or info.iteration <= 1:
+            self.deadline = now + self.seconds
+            self.stopped = False
+            return True
+        self.stopped = now >= self.deadline
+        return not self.stopped
+
+
 class FedotXGBoostImplementation(ModelImplementation):
     __operation_params = [
         'use_eval_set',
@@ -441,7 +466,10 @@ class FedotLightGBMRegressionImplementation(FedotLightGBMImplementation):
 
 
 class FedotCatBoostImplementation(ModelImplementation):
-    __operation_params = ['n_jobs', 'use_eval_set', 'enable_categorical']
+    __operation_params = [
+        'n_jobs', 'use_eval_set', 'enable_categorical',
+        'callbacks', 'fit_time_limit',
+    ]
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
@@ -449,6 +477,10 @@ class FedotCatBoostImplementation(ModelImplementation):
         self.check_and_update_params()
 
         self.model_params = {k: v for k, v in self.params.to_dict().items() if k not in self.__operation_params}
+        self.fit_callbacks = list(self.params.get('callbacks') or [])
+        fit_time_limit = self.params.get('fit_time_limit')
+        if fit_time_limit is not None:
+            self.fit_callbacks.append(_CatBoostFitTimeLimitCallback(fit_time_limit))
         self.model = None
         self.features_names = None
 
@@ -465,7 +497,10 @@ class FedotCatBoostImplementation(ModelImplementation):
             train_input = self.convert_to_pool(train_input, identify_cats=self.params.get('enable_categorical'))
             eval_input = self.convert_to_pool(eval_input, identify_cats=self.params.get('enable_categorical'))
 
-            self.model.fit(X=train_input, eval_set=eval_input)
+            self.model.fit(
+                X=train_input, eval_set=eval_input,
+                **self._fit_callback_params(),
+            )
         else:
             # Disable parameter used for eval_set
             if bool(self.params.get('use_best_model')):
@@ -476,9 +511,12 @@ class FedotCatBoostImplementation(ModelImplementation):
             train_input = self.convert_to_pool(
                 input_data, identify_cats=self.params.get('enable_categorical')
             )
-            self.model.fit(X=train_input)
+            self.model.fit(X=train_input, **self._fit_callback_params())
 
         return self.model
+
+    def _fit_callback_params(self) -> dict:
+        return {'callbacks': self.fit_callbacks} if self.fit_callbacks else {}
 
     def predict(self, input_data: InputData):
         if self.params.get('enable_categorical'):
