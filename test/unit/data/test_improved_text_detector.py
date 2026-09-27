@@ -4,12 +4,12 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from experiment.improved_text_detector import NewTextDataDetector
+from fedot.core.data.data_detection import TextDataDetector
 
 
 @pytest.fixture
 def detector():
-    return NewTextDataDetector()
+    return TextDataDetector()
 
 
 def test_review_is_text(detector):
@@ -256,3 +256,77 @@ def test_define_text_columns(detector):
     )
 
     assert result == ["review"]
+
+def test_find_link_columns(detector):
+    dataframe = pd.DataFrame({
+        "review": [
+            "this product works very well for everyday use",
+            "delivery was fast and the product arrived safely",
+            "I really like this device and use it every day",
+            "the overall quality of this product is very good",
+            "this product is simple and comfortable to use",
+        ],
+
+        "url": [
+            "https://example.com/1",
+            "https://example.com/2",
+            "https://example.com/3",
+            "https://example.com/4",
+            "https://example.com/5",
+        ],
+
+        "name": [
+            "Alex Smith",
+            "John Brown",
+            "Anna White",
+            "Mike Green",
+            "Kate Black",
+        ],
+    })
+
+    result = detector.find_link_columns(
+        dataframe
+    )
+
+    assert result == ["url"]
+def test_find_sparse_columns(detector):
+    """
+    Checks detection of string columns with too many missing values.
+
+    :param detector: text data detector for testing
+    :return: None
+    """
+    dataframe = pd.DataFrame({
+        "sparse": [
+            "sample text",
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+        ],
+        "normal": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "i",
+            "j",
+            "k",
+        ],
+    })
+
+    result = detector.find_sparse_columns(
+        dataframe
+    )
+
+    assert result == ["sparse"]

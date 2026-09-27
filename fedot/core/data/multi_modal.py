@@ -126,6 +126,7 @@ class MultiModalData(Dict[str, InputData]):
             An instance of :class:`MultiModalData` containing text and table data sources as :class:`InputData`
                 instances.
         """
+
         possible_idx_keywords = possible_idx_keywords or POSSIBLE_TABULAR_IDX_KEYWORDS
         data_frame = get_df_from_csv(file_path, delimiter, index_col, possible_idx_keywords,
                                      columns_to_drop=columns_to_drop)
@@ -133,13 +134,102 @@ class MultiModalData(Dict[str, InputData]):
         if isinstance(task, str):
             task = Task(TaskTypesEnum(task))
 
-        text_columns = [text_columns] if isinstance(text_columns, str) else text_columns
-        text_data_detector = TextDataDetector()
-        if not text_columns:
-            text_columns = text_data_detector.define_text_columns(data_frame)
+        text_columns = (
+            [text_columns]
+            if isinstance(text_columns, str)
+            else text_columns
+        )
 
-        data_text = text_data_detector.prepare_multimodal_data(data_frame, text_columns)
-        data_frame_table = data_frame.drop(columns=text_columns)
+        text_data_detector = TextDataDetector()
+
+        if target_columns is None:
+            target_column_names = set()
+
+        elif target_columns:
+            target_column_names = (
+                {target_columns}
+                if isinstance(target_columns, str)
+                else set(target_columns)
+            )
+
+        else:
+            target_column_names = {
+                data_frame.columns[-1]
+            }
+
+        columns_for_detection = [
+            column
+            for column in data_frame.columns
+            if column not in target_column_names
+        ]
+
+        detection_frame = data_frame[
+            columns_for_detection
+        ]
+
+        if not text_columns:
+            text_columns = (
+                text_data_detector
+                .define_text_columns(
+                    detection_frame
+                )
+            )
+        else:
+            text_columns = [
+                column
+                for column in text_columns
+                if column not in target_column_names
+            ]
+
+        link_columns = (
+            text_data_detector
+            .find_link_columns(
+                detection_frame
+            )
+        )
+
+        sparse_columns = (
+            text_data_detector
+            .find_sparse_columns(
+                detection_frame
+            )
+        )
+
+        text_columns = [
+            column
+            for column in text_columns
+            if column not in link_columns
+        ]
+
+        data_text = (
+            text_data_detector
+            .prepare_multimodal_data(
+                data_frame,
+                text_columns,
+            )
+        )
+
+        # remove both text and link columns from tabular features
+        columns_to_remove = list(
+            dict.fromkeys(
+                text_columns
+                + link_columns
+                + sparse_columns
+            )
+        )
+
+        data_frame_table = (
+            data_frame.drop(
+                columns=columns_to_remove
+            )
+        )
+
+        table_features, target = (
+            process_target_and_features(
+                data_frame_table,
+                target_columns,
+            )
+        )
         table_features, target = process_target_and_features(data_frame_table, target_columns)
 
         data_part_transformation_func = partial(array_to_input_data,
