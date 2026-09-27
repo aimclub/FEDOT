@@ -137,3 +137,55 @@ def test_multimodal_data_with_complicated_types():
     assert len(file_mm_data) == 2
     assert 'data_source_text/5' in file_mm_data
     assert file_mm_data['data_source_table'].features.shape == (18, 11)
+
+def test_multimodal_data_removes_link_columns(
+    tmp_path,
+):
+    dataframe = pd.DataFrame({
+        "review": [
+            "this product works very well for everyday use",
+            "delivery was fast and everything arrived safely",
+            "I really like this device and use it every day",
+            "the overall quality of this product is excellent",
+            "I recommend this product to other people",
+        ],
+
+        "url": [
+            "https://example.com/1",
+            "https://example.com/2",
+            "https://example.com/3",
+            "https://example.com/4",
+            "https://example.com/5",
+        ],
+
+        "price": [
+            100,
+            200,
+            300,
+            400,
+            500,
+        ],
+
+        "target": [
+            0,
+            1,
+            0,
+            1,
+            0,
+        ],
+    })
+
+    path = tmp_path / "data.csv"
+
+    dataframe.to_csv(
+        path,
+        index=False,
+    )
+
+    data = MultiModalData.from_csv(
+        file_path=path,
+        target_columns="target",
+    )
+
+    assert "data_source_text/review" in data
+    assert "data_source_text/url" not in data
