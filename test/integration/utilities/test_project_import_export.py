@@ -48,17 +48,20 @@ def test_export_project_correctly():
 
     with zipfile.ZipFile(path_to_zip) as zip_object:
         actual = {file.filename for file in zip_object.infolist()}
-        expected = {LOG_NAME, 'train_data.csv', 'pipeline/', 'pipeline/pipeline.json', 'test_data.csv'}
+        expected = {LOG_NAME, 'train_data.csv', 'pipeline/',
+                    'pipeline/pipeline.json', 'test_data.csv'}
         assert actual == expected
 
 
 def test_import_project_correctly():
-    folder_path = Path(fedot_project_root(), 'test', 'data', 'project', 'iris_classification')
+    folder_path = Path(fedot_project_root(), 'test', 'data',
+                       'project', 'iris_classification')
     zip_path = Path(folder_path).with_suffix('.zip')
 
     assert zip_path.exists()
 
-    pipeline, train_data, test_data, opt_history = import_project_from_zip(zip_path)
+    pipeline, train_data, test_data, opt_history = import_project_from_zip(
+        zip_path)
 
     assert pipeline is not None
     assert train_data is not None

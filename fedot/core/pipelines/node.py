@@ -10,11 +10,21 @@ from golem.core.optimisers.timer import Timer
 from golem.serializers.serializer import register_serializable
 
 from fedot.core.caching.predictions_cache import PredictionsCache
-from fedot.core.data.data import InputData, OutputData
-from fedot.core.data.merge.data_merger import DataMerger
+from fedot.core.data.input_data.data import InputData, OutputData
+from fedot.core.data.tensor_data.tensor_data import TensorData
+from fedot.core.data.merge.data_merger import DataMerger, TensorDataMerger
 from fedot.core.operations.factory import OperationFactory
 from fedot.core.operations.operation import Operation
 from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.pipelines.pipeline_node_rules import (
+    merge_node_parameters,
+    normalize_node_parameters,
+    should_update_node_parameters,
+)
+from fedot.core.pipelines.schemas import (
+    validate_pipeline_node_has_parent_nodes,
+    validate_pipeline_node_parent_operation,
+)
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.utils import DEFAULT_PARAMS_STUB, NESTED_PARAMS_LABEL
 
@@ -87,7 +97,8 @@ class PipelineNode(LinkedGraphNode):
         """ Updating content in the node """
         if isinstance(passed_content['name'], str):
             # Need to convert name of operation into operation class object
-            operation_factory = OperationFactory(operation_name=passed_content['name'])
+            operation_factory = OperationFactory(
+                operation_name=passed_content['name'])
             operation = operation_factory.get_operation()
 
             passed_content.update({'name': operation})
@@ -124,7 +135,8 @@ class PipelineNode(LinkedGraphNode):
         """Updates :attr:`custom_params` with changed parameters"""
         new_params = self.fitted_operation.get_params()
         changed_parameters = new_params.changed_parameters
-        updated_parameters = {**self.parameters, **changed_parameters}
+        updated_parameters = merge_node_parameters(
+            self.parameters, changed_parameters)
         self.parameters = updated_parameters
 
     @property
@@ -184,71 +196,65 @@ class PipelineNode(LinkedGraphNode):
             self.node_data = None
 
     def fit(self,
-            input_data: InputData,
+            tensor_data: TensorData,
             predictions_cache: Optional[PredictionsCache] = None,
-            fold_id: Optional[int] = None) -> OutputData:
-        """Runs training process in the node
+            fold_id: Optional[int] = None) -> TensorData:
+        """Runs training process in the node on TensorData.
 
-        Args:
-            input_data: data used for operation training
-
-        Returns:
-            OutputData: values predicted on the provided ``input_data``
+        Slice 1 supports only primary nodes without parents (e.g. single predefined model).
         """
-        self.log.debug(f'Trying to fit pipeline node with operation: {self.operation}')
-
-        input_data = self._get_input_data(input_data=input_data, parent_operation='fit')
+        self.log.debug(
+            f'Trying to fit pipeline node with operation: {self.operation} on TensorData')
+        tensor_data = self._get_tensor_data(
+            tensor_data=tensor_data, parent_operation='fit')
 
         if self.fitted_operation is None:
             with Timer() as t:
-                self.fitted_operation, operation_predict = self.operation.fit(params=self._parameters,
-                                                                              data=input_data,
-                                                                              predictions_cache=predictions_cache,
-                                                                              fold_id=fold_id,
-                                                                              descriptive_id=self.descriptive_id)
+                self.fitted_operation, operation_predict = self.operation.fit(
+                    params=self._parameters,
+                    data=tensor_data,
+                    predictions_cache=predictions_cache,
+                    fold_id=fold_id,
+                    descriptive_id=self.descriptive_id,
+                )
                 self.fit_time_in_seconds = round(t.seconds_from_start, 3)
         else:
-            operation_predict = self.operation.predict_for_fit(fitted_operation=self.fitted_operation,
-                                                               data=input_data,
-                                                               params=self._parameters,
-                                                               predictions_cache=predictions_cache,
-                                                               fold_id=fold_id,
-                                                               descriptive_id=self.descriptive_id)
-
+            operation_predict = self.operation.predict_for_fit(
+                fitted_operation=self.fitted_operation,
+                data=tensor_data,
+                params=self._parameters,
+                predictions_cache=predictions_cache,
+                fold_id=fold_id,
+                descriptive_id=self.descriptive_id,
+            )
         # Update parameters after operation fitting (they can be corrected)
-        not_atomized_operation = 'atomized' not in self.operation.operation_type
-
-        if not_atomized_operation and 'correct_params' in self.operation.metadata.tags:
+        if should_update_node_parameters(self.operation.operation_type, self.operation.metadata.tags):
             self.update_params()
         return operation_predict
 
     def predict(self,
-                input_data: InputData,
+                tensor_data: TensorData,
                 output_mode: str = 'default',
                 predictions_cache: Optional[PredictionsCache] = None,
-                fold_id: Optional[int] = None) -> OutputData:
-        """Runs prediction process in the node
+                fold_id: Optional[int] = None) -> TensorData:
+        """Runs prediction process in the node on TensorData."""
+        self.log.debug(
+            f'Trying to predict pipeline node with operation: {self.operation} on TensorData')
 
-        Args:
-            input_data: data used for prediction
-            output_mode: desired output for operations (e.g. ``'labels'``, ``'probs'``, ``'full_probs'``)
-
-        Returns:
-            OutputData: values predicted on the provided ``input_data``
-        """
-        self.log.debug(f'Obtain prediction in pipeline node by operation: {self.operation}')
-
-        input_data = self._get_input_data(input_data=input_data, parent_operation='predict',
-                                          predictions_cache=predictions_cache, fold_id=fold_id)
-
+        output_mode = output_mode if output_mode is not None else 'default'
+        # TODO romankuklo: check these predictions_cache=predictions_cache, fold_id=fold_id
+        tensor_data = self._get_tensor_data(
+            tensor_data=tensor_data, parent_operation='predict',)
         with Timer() as t:
-            operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
-                                                       params=self._parameters,
-                                                       data=input_data,
-                                                       output_mode=output_mode,
-                                                       predictions_cache=predictions_cache,
-                                                       fold_id=fold_id,
-                                                       descriptive_id=self.descriptive_id)
+            operation_predict = self.operation.predict(
+                fitted_operation=self.fitted_operation,
+                data=tensor_data,
+                params=self._parameters,
+                output_mode=output_mode,
+                predictions_cache=predictions_cache,
+                fold_id=fold_id,
+                descriptive_id=self.descriptive_id,
+            )
             self.inference_time_in_seconds = round(t.seconds_from_start, 3)
         return operation_predict
 
@@ -285,50 +291,39 @@ class PipelineNode(LinkedGraphNode):
         else:
             self._node_data = value
 
-    def _get_input_data(self,
-                        input_data: InputData,
-                        parent_operation: str,
-                        predictions_cache: Optional[PredictionsCache] = None,
-                        fold_id: Optional[int] = None):
+    def _get_tensor_data(self, tensor_data: TensorData, parent_operation: str) -> TensorData:
         if self.nodes_from:
-            input_data = self._input_from_parents(
-                input_data=input_data, parent_operation=parent_operation, predictions_cache=predictions_cache,
-                fold_id=fold_id)
-        else:
-            if self.direct_set:
-                input_data = self.node_data
-            else:
-                self.node_data = input_data
-        return input_data
+            return self._tensordata_from_parents(
+                tensor_data=tensor_data, parent_operation=parent_operation)
+        if self.direct_set:
+            return self._node_data
 
-    def _input_from_parents(self,
-                            input_data: InputData,
-                            parent_operation: str,
-                            predictions_cache: Optional[PredictionsCache] = None,
-                            fold_id: Optional[int] = None) -> InputData:
-        """Processes all the parent nodes via the current operation using ``input_data``
+        self.node_data = tensor_data
+        return tensor_data
 
-        Args:
-            input_data: input data from pipeline abstraction (source input data)
-            parent_operation: name of parent operation (``'fit'`` or ``'predict'``)
-
-        Returns:
-            InputData: predictions from the secondary nodes
+    def _tensordata_from_parents(
+        self,
+        tensor_data: TensorData,
+        parent_operation: str,
+        predictions_cache: Optional[PredictionsCache] = None,
+        fold_id: Optional[int] = None
+    ) -> TensorData:
+        """Processes all the parent nodes via the current operation using ``tensor_data``
         """
+        validate_pipeline_node_has_parent_nodes(len(self.nodes_from))
 
-        if len(self.nodes_from) == 0:
-            raise ValueError('No parent nodes found')
-
-        self.log.debug(f'Fit all parent nodes in secondary node with operation: {self.operation}')
+        self.log.debug(
+            f'Fit all parent nodes in secondary node with operation: {self.operation}')
 
         parent_nodes = self._nodes_from_with_fixed_order()
-
-        parent_results, _ = _combine_parents(parent_nodes, input_data,
-                                             parent_operation, predictions_cache=predictions_cache, fold_id=fold_id)
-        secondary_input = DataMerger.get(parent_results).merge()
-        # Update info about visited nodes
-        parent_operations = [node.operation.operation_type for node in parent_nodes]
-        secondary_input.supplementary_data.previous_operations = parent_operations
+        parent_results = _combine_parents_tensordata(
+            parent_nodes,
+            tensor_data,
+            parent_operation,
+            predictions_cache=predictions_cache,
+            fold_id=fold_id,
+        )
+        secondary_input = TensorDataMerger(parent_results).merge()
         return secondary_input
 
     def _nodes_from_with_fixed_order(self):
@@ -355,15 +350,11 @@ class PipelineNode(LinkedGraphNode):
         Args:
             params: new parameters to be placed instead of existing
         """
-        if params is not None:
-            # The check for "default_params" is needed for backward compatibility.
-            if params == DEFAULT_PARAMS_STUB:
-                params = {}
-            # take nested params if they appeared (mostly used for tuning)
-            if NESTED_PARAMS_LABEL in params:
-                params = params[NESTED_PARAMS_LABEL]
-            self._parameters = OperationParameters.from_operation_type(self.operation.operation_type, **params)
-            self.content['params'] = self._parameters.to_dict()
+        normalized_params = normalize_node_parameters(
+            params, DEFAULT_PARAMS_STUB, NESTED_PARAMS_LABEL)
+        self._parameters = OperationParameters.from_operation_type(
+            self.operation.operation_type, **normalized_params)
+        self.content['params'] = self._parameters.to_dict()
 
     def __str__(self) -> str:
         """Returns ``str`` representation of the node
@@ -386,46 +377,32 @@ class PipelineNode(LinkedGraphNode):
             # There are no tags for atomized operation
             return []
 
-        info = OperationTypesRepository(operation_type='all').operation_info_by_id(self.operation.operation_type)
+        info = OperationTypesRepository(operation_type='all').operation_info_by_id(
+            self.operation.operation_type)
         if info is not None:
             return info.tags
 
 
-def _combine_parents(parent_nodes: List[PipelineNode],
-                     input_data: Optional[InputData],
-                     parent_operation: str,
-                     predictions_cache: Optional[PredictionsCache] = None,
-                     fold_id: Optional[int] = None) -> Tuple[List[OutputData], np.array]:
-    """ Combines predictions from the ``parent_nodes``
-
-    Args:
-        parent_nodes: list of parent nodes, from which predictions will be combined
-        input_data: input data from pipeline abstraction (source input data)
-        parent_operation: name of parent operation (``'fit'`` or ``'predict'``)
-
-    Returns:
-        Tuple[List[OutputData], np.array]: :obj:`output data list from parent nodes`,
-        :obj:`target for final pipeline prediction`
+def _combine_parents_tensordata(parent_nodes: List[PipelineNode],
+                                tensor_data: TensorData,
+                                parent_operation: str,
+                                predictions_cache: Optional[PredictionsCache] = None,
+                                fold_id: Optional[int] = None) -> List[TensorData]:
+    """ Combines predictions from the ``parent_nodes`` on TensorData.
     """
+    parent_operation = validate_pipeline_node_parent_operation(parent_operation)
+    parents_result = []
 
-    if input_data is not None:
-        # InputData was set to pipeline
-        target = input_data.target
-    parent_results = []
     for parent in parent_nodes:
         if parent_operation == 'predict':
-            prediction = parent.predict(input_data=input_data, predictions_cache=predictions_cache, fold_id=fold_id)
-            parent_results.append(prediction)
+            prediction = parent.predict(
+                tensor_data=tensor_data, predictions_cache=predictions_cache, fold_id=fold_id)
+            parents_result.append(prediction)
         elif parent_operation == 'fit':
-            prediction = parent.fit(input_data=input_data, predictions_cache=predictions_cache, fold_id=fold_id)
-            parent_results.append(prediction)
-        else:
-            raise ValueError("Value parent_operation should be 'fit' or 'predict'")
-        if input_data is None:
-            # InputData was set to primary nodes
-            target = prediction.target
-
-    return parent_results, target
+            prediction = parent.fit(
+                tensor_data=tensor_data, predictions_cache=predictions_cache, fold_id=fold_id)
+            parents_result.append(prediction)
+    return parents_result
 
 
 # TODO: these two lines are used for backwards compatibility.

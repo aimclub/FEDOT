@@ -2,8 +2,8 @@ from typing import Optional
 
 import numpy as np
 
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
@@ -17,7 +17,8 @@ def get_multi_ts_data(forecast_length: int = 5, validation_blocks: Optional[int]
     data = InputData.from_csv_multi_time_series(
         file_path=file_path,
         task=task)
-    train_data, test_data = train_test_data_setup(data, validation_blocks=validation_blocks)
+    train_data, test_data = train_test_data_setup(
+        data, validation_blocks=validation_blocks)
     return train_data, test_data
 
 
@@ -45,7 +46,8 @@ def get_linear_pipeline():
     node_lagged2 = PipelineNode("lagged")
     node_lagged2.parameters = {'window_size': 5}
     node_linear2 = PipelineNode("linear", nodes_from=[node_lagged2])
-    node_linear3 = PipelineNode("linear", nodes_from=[node_linear, node_linear2])
+    node_linear3 = PipelineNode(
+        "linear", nodes_from=[node_linear, node_linear2])
     pipeline = Pipeline(node_linear3)
     return pipeline
 

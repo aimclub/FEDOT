@@ -6,7 +6,7 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import train_test_split
 
 from examples.simple.regression.regression_pipelines import regression_ransac_pipeline
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.metrics_repository import RegressionMetricsEnum

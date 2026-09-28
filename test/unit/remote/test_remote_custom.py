@@ -50,7 +50,8 @@ class TestLocalClient(Client):
     def download_result(self, execution_id: str, result_cls=MockSerializableGraph) -> MockSerializableGraph:
         index = int(execution_id)
         graph_json, additional_data = self.graphs[index]
-        graph = MockSerializableGraph.from_serialized(graph_json, additional_data)
+        graph = MockSerializableGraph.from_serialized(
+            graph_json, additional_data)
         return graph
 
 
@@ -63,7 +64,8 @@ def init_remote_evaluator():
     # runs around tests thanks to 'yield'
 
     evaluator = RemoteEvaluator()
-    evaluator.init(TestLocalClient(), RemoteTaskParams(mode='remote'), mock_config)
+    evaluator.init(TestLocalClient(), RemoteTaskParams(
+        mode='remote'), mock_config)
 
     # marks the ned of test startup and beginning of test shutdown
     yield

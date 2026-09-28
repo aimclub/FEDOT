@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from uuid import uuid4
 
 if TYPE_CHECKING:
-    from fedot.core.data.data import InputData
+    from fedot.core.data.input_data.data import InputData
     from fedot.core.pipelines.pipeline import Pipeline
 
 from fedot.core.utils import default_fedot_data_dir
@@ -41,14 +41,15 @@ def save_debug_info_for_pipeline(pipeline: 'Pipeline', train_data: 'InputData', 
         print(ex)
 
 
-def reproduce_fitting_error(pipeline_id: str, base_path=None, use_input_preprocessing: bool = True):
+def reproduce_fitting_error(pipeline_id: str, base_path=None):
     from fedot.core.pipelines.pipeline import Pipeline
 
     if not base_path:
         base_path = Path(default_fedot_data_dir(), 'debug_info')
 
-    pipeline = Pipeline(use_input_preprocessing=use_input_preprocessing)
-    pipeline.load(str(Path(base_path, f'{pipeline_id}_pipeline', f'{pipeline_id}_pipeline.json')))
+    pipeline = Pipeline()
+    pipeline.load(
+        str(Path(base_path, f'{pipeline_id}_pipeline', f'{pipeline_id}_pipeline.json')))
     with open(Path(base_path, f'{pipeline_id}_train_data.pkl'), 'rb') as file:
         train_data = pickle.load(file)
     with open(Path(base_path, f'{pipeline_id}_test_data.pkl'), 'rb') as file:

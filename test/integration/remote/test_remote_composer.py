@@ -57,8 +57,10 @@ def test_pseudo_remote_composer_classification():
 
     automl.fit(clf_dataset_pth)
     predict = automl.predict(clf_dataset_pth)
-    fitted_pipeline_pth = exec_params['container_output_path'].joinpath('fitted_pipeline')
-    shutil.rmtree(fitted_pipeline_pth, ignore_errors=True)  # recursive deleting
+    fitted_pipeline_pth = exec_params['container_output_path'].joinpath(
+        'fitted_pipeline')
+    # recursive deleting
+    shutil.rmtree(fitted_pipeline_pth, ignore_errors=True)
 
     assert predict is not None
 
@@ -99,9 +101,11 @@ def test_pseudo_remote_composer_ts_forecasting():
     automl = Fedot(problem='ts_forecasting', timeout=0.2, task_params=TsForecastingParams(forecast_length=1),
                    preset=preset, **composer_params)
 
-    path = os.path.join(fedot_project_root(), 'test', 'data', 'short_time_series.csv')
+    path = os.path.join(fedot_project_root(), 'test',
+                        'data', 'short_time_series.csv')
 
     automl.fit(path, target='sea_height')
     predict = automl.predict(path)
-    shutil.rmtree(os.path.join(fedot_project_root(), 'test', 'data', 'remote', 'fitted_pipeline'))  # recursive deleting
+    shutil.rmtree(os.path.join(fedot_project_root(), 'test', 'data',
+                  'remote', 'fitted_pipeline'))  # recursive deleting
     assert predict is not None

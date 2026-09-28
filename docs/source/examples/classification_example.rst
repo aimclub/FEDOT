@@ -18,7 +18,7 @@ You also can find another ways of data passing in  `this example <data>`.
 
 .. code-block:: python
 
-    from fedot.core.data.data import InputData
+    from fedot.core.data.input_data.data import InputData
 
     data = InputData.from_dataframe(features_df,
                                     target_df,
@@ -43,6 +43,12 @@ You also can define metric parameter (ROC-AUC in this example), timeout in minut
 
     Class ``Fedot.__init__()`` has more, e.g.
     ``n_jobs`` for parallelization. For more details, see the :doc:`FEDOT API </api/api>` section in our documentation.
+
+.. note::
+
+    You can also enable optional pre-fit sampling via ``sampling_config``.
+    See :doc:`sampling stage guide </advanced/sampling_stage>` and
+    ``examples/simple/classification/sampling_stage_example.py``.
 
 To train our model we should call method ``fit()``.  This method returns the best pipeline was obtained during optimization.
 

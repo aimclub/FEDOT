@@ -9,6 +9,7 @@ from golem.core.log import default_log
 from fedot.preprocessing.data_types import ID_TO_TYPE
 
 
+# TODO: take into account GPU memory
 class MemoryAnalytics:
     is_active = False
     active_session_label = 'main'

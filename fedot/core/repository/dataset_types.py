@@ -2,28 +2,23 @@ from golem.utilities.data_structures import ComparableEnum as Enum
 
 
 class DataTypesEnum(Enum):
-    """An enumeration
+    """Dataset type taxonomy used across FEDOT.
 
-    Args:
-        table: table with columns as features for predictions, by default == ``feature_table``
-        ts: one dimensional array - time series, by default == ``time_series``
-        multi_ts: table with different variant of time-series for the same variable as columns
-           (used for extending train sample), by default == ``multiple_time_series``
-        text: table, where cells contains text, by default == ``text``
-        image: images represented as 3d arrays, by default == ``image``
+    Canonical transition targets:
+        - ``tabular`` for table-like datasets and text after embedding/encoding
+        - ``ts`` for time-series-like tensor paths and image-like tensor layouts
+
+    Legacy aliases are intentionally preserved because a large part of FEDOT still
+    references ``table``, ``multi_ts``, ``text``, and ``image`` directly.
+    ``TensorData`` and new tensor-aware paths normalize those values through a
+    compatibility mapper instead of forcing an immediate repo-wide rewrite.
     """
 
-    # Table with columns as features for predictions
-    table = 'feature_table'
+    tabular = 'table'
+    table = 'table'
 
-    # One dimensional array - time series
     ts = 'time_series'
+    multi_ts = 'multi_time_series'
 
-    # Table with different variant of time-series for the same variable as columns (used for extending train sample)
-    multi_ts = 'multiple_time_series'
-
-    # Table, where cells contain text
     text = 'text'
-
-    # Images represented as 3d arrays
     image = 'image'

@@ -150,7 +150,8 @@ def pipeline_with_incorrect_parents_position_for_decompose():
 
     node_first = PipelineNode('logit')
     node_second = PipelineNode('scaling', nodes_from=[node_first])
-    node_decompose = PipelineNode('class_decompose', nodes_from=[node_second, node_first])
+    node_decompose = PipelineNode('class_decompose', nodes_from=[
+                                  node_second, node_first])
     node_rfr = PipelineNode('rfr', nodes_from=[node_decompose])
     node_rf = PipelineNode('rf', nodes_from=[node_rfr, node_second])
     pipeline = Pipeline(node_rf)
@@ -165,7 +166,8 @@ def correct_decompose_pipeline():
     """
     node_first = PipelineNode('scaling')
     node_second = PipelineNode('logit', nodes_from=[node_first])
-    node_decompose = PipelineNode('class_decompose', nodes_from=[node_second, node_first])
+    node_decompose = PipelineNode('class_decompose', nodes_from=[
+                                  node_second, node_first])
     node_rfr = PipelineNode('rfr', nodes_from=[node_decompose])
     node_rf = PipelineNode('rf', nodes_from=[node_rfr, node_second])
     pipeline = Pipeline(node_rf)
@@ -194,7 +196,8 @@ def pipeline_with_incorrect_resample_node():
     """
     resample_node = PipelineNode(operation_type='resample')
     scaling_node = PipelineNode(operation_type='scaling')
-    pipeline = Pipeline(PipelineNode(operation_type='logit', nodes_from=[resample_node, scaling_node]))
+    pipeline = Pipeline(PipelineNode(operation_type='logit',
+                        nodes_from=[resample_node, scaling_node]))
 
     return pipeline
 
@@ -206,10 +209,13 @@ def pipeline_with_incorrect_parallel_filtering_branches():
         ets - ransac_lin_reg     /
     """
     locf_node = PipelineNode(operation_type='locf')
-    ransac_non_lin_reg_node = PipelineNode(operation_type='ransac_non_lin_reg', nodes_from=[locf_node])
+    ransac_non_lin_reg_node = PipelineNode(
+        operation_type='ransac_non_lin_reg', nodes_from=[locf_node])
     ets_node = PipelineNode(operation_type='ets')
-    ransac_lin_reg_node = PipelineNode(operation_type='ransac_lin_reg', nodes_from=[ets_node])
-    pipeline = Pipeline(PipelineNode(operation_type='ridge', nodes_from=[ransac_non_lin_reg_node, ransac_lin_reg_node]))
+    ransac_lin_reg_node = PipelineNode(
+        operation_type='ransac_lin_reg', nodes_from=[ets_node])
+    pipeline = Pipeline(PipelineNode(operation_type='ridge', nodes_from=[
+                        ransac_non_lin_reg_node, ransac_lin_reg_node]))
 
     return pipeline
 
@@ -222,9 +228,12 @@ def correct_pipeline_with_filtering_branch():
     """
     locf_node = PipelineNode(operation_type='locf')
     ets_node = PipelineNode(operation_type='ets')
-    ransac_lin_reg_node = PipelineNode(operation_type='ransac_lin_reg', nodes_from=[ets_node])
-    ransac_non_lin_reg_node = PipelineNode(operation_type='ransac_non_lin_reg', nodes_from=[ransac_lin_reg_node])
-    pipeline = Pipeline(PipelineNode(operation_type='ridge', nodes_from=[locf_node, ransac_non_lin_reg_node]))
+    ransac_lin_reg_node = PipelineNode(
+        operation_type='ransac_lin_reg', nodes_from=[ets_node])
+    ransac_non_lin_reg_node = PipelineNode(
+        operation_type='ransac_non_lin_reg', nodes_from=[ransac_lin_reg_node])
+    pipeline = Pipeline(PipelineNode(operation_type='ridge', nodes_from=[
+                        locf_node, ransac_non_lin_reg_node]))
 
     return pipeline
 
@@ -234,7 +243,8 @@ def test_multi_root_pipeline_raise_exception():
 
     with pytest.raises(Exception) as exc:
         assert pipeline.root_node
-    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} More than 1 root_nodes in pipeline'
+    assert str(
+        exc.value) == f'{PIPELINE_ERROR_PREFIX} More than 1 root_nodes in pipeline'
 
 
 def test_pipeline_with_primary_nodes_correct():
@@ -251,7 +261,8 @@ def test_pipeline_with_incorrect_task_type_raise_exception():
     pipeline, task = pipeline_with_incorrect_task_type()
     with pytest.raises(Exception) as exc:
         assert has_correct_operations_for_task(pipeline, task.task_type)
-    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} Pipeline has incorrect operations positions'
+    assert str(
+        exc.value) == f'{PIPELINE_ERROR_PREFIX} Pipeline has incorrect operations positions'
 
 
 def test_pipeline_without_model_in_root_node():
@@ -260,7 +271,8 @@ def test_pipeline_without_model_in_root_node():
     with pytest.raises(Exception) as exc:
         assert has_final_operation_as_model(incorrect_pipeline)
 
-    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} Root operation is not a model'
+    assert str(
+        exc.value) == f'{PIPELINE_ERROR_PREFIX} Root operation is not a model'
 
 
 def test_pipeline_with_incorrect_data_flow():
@@ -269,7 +281,8 @@ def test_pipeline_with_incorrect_data_flow():
     with pytest.raises(Exception) as exc:
         assert has_no_conflicts_with_data_flow(incorrect_pipeline)
 
-    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} Pipeline has incorrect subgraph with identical data operations'
+    assert str(
+        exc.value) == f'{PIPELINE_ERROR_PREFIX} Pipeline has incorrect subgraph with identical data operations'
 
 
 def test_ts_pipeline_with_incorrect_data_flow():
@@ -308,7 +321,8 @@ def test_has_two_parents_for_decompose_operations():
     with pytest.raises(Exception) as exc:
         assert has_no_conflicts_in_decompose(incorrect_pipeline)
 
-    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} Two parents for decompose node were expected, but 1 were given'
+    assert str(
+        exc.value) == f'{PIPELINE_ERROR_PREFIX} Two parents for decompose node were expected, but 1 were given'
 
 
 def test_decompose_parents_has_wright_positions():
@@ -317,7 +331,8 @@ def test_decompose_parents_has_wright_positions():
     with pytest.raises(Exception) as exc:
         assert has_no_conflicts_in_decompose(incorrect_pipeline)
 
-    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} For decompose operation Model as first parent is required'
+    assert str(
+        exc.value) == f'{PIPELINE_ERROR_PREFIX} For decompose operation Model as first parent is required'
 
 
 def test_decompose_operation_remove_in_pipeline():
@@ -335,7 +350,8 @@ def test_decompose_operation_remove_in_pipeline():
     with pytest.raises(ValueError) as exc:
         has_no_conflicts_during_multitask(current_pipeline)
 
-    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} Current pipeline can not solve multitask problem'
+    assert str(
+        exc.value) == f'{PIPELINE_ERROR_PREFIX} Current pipeline can not solve multitask problem'
 
 
 def test_incorrect_node_after_decompose_operation():
@@ -362,7 +378,8 @@ def test_data_sources_validation():
     with pytest.raises(ValueError) as exc:
         has_correct_data_sources(incorrect_pipeline)
 
-    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} Data sources are mixed with other primary nodes'
+    assert str(
+        exc.value) == f'{PIPELINE_ERROR_PREFIX} Data sources are mixed with other primary nodes'
 
     correct_pipeline = pipeline_with_correct_data_sources()
     assert has_correct_data_sources(correct_pipeline)
@@ -380,7 +397,8 @@ def test_pipeline_with_resample_node():
     with pytest.raises(ValueError) as exc:
         has_parent_contain_single_resample(incorrect_pipeline)
 
-    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} Resample node is not single parent node for child operation'
+    assert str(
+        exc.value) == f'{PIPELINE_ERROR_PREFIX} Resample node is not single parent node for child operation'
 
 
 def test_incorrect_pipeline_with_parallel_filtering_branches():
@@ -389,7 +407,8 @@ def test_incorrect_pipeline_with_parallel_filtering_branches():
     with pytest.raises(ValueError) as exc:
         has_no_parallel_branches_with_filtering(incorrect_pipeline)
 
-    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} Pipeline has parallel branches containing filtering operations'
+    assert str(
+        exc.value) == f'{PIPELINE_ERROR_PREFIX} Pipeline has parallel branches containing filtering operations'
 
 
 def test_pipeline_with_filtering_branch_correct():

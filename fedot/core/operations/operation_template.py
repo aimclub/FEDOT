@@ -117,10 +117,12 @@ class OperationTemplate(OperationTemplateAbstract):
 
     def _extract_fields_of_fitted_operation(self, node: PipelineNode):
         if 'h2o' in self.operation_type:
-            self.fitted_operation_path = os.path.join('fitted_operations', f"h2o_{self.operation_id}")
+            self.fitted_operation_path = os.path.join(
+                'fitted_operations', f"h2o_{self.operation_id}")
         else:
             operation_name = f'operation_{str(self.operation_id)}.pkl'
-            self.fitted_operation_path = os.path.join('fitted_operations', operation_name)
+            self.fitted_operation_path = os.path.join(
+                'fitted_operations', operation_name)
         self.fitted_operation = node.fitted_operation
 
     def convert_to_dict(self) -> dict:
@@ -164,9 +166,11 @@ class OperationTemplate(OperationTemplateAbstract):
                 )
                 return self.fitted_operation_path
             else:
-                path_fitted_operations = os.path.join(return_path, 'fitted_operations')
+                path_fitted_operations = os.path.join(
+                    return_path, 'fitted_operations')
                 check_existing_path(path_fitted_operations)
-                joblib.dump(self.fitted_operation, os.path.join(return_path, self.fitted_operation_path))
+                joblib.dump(self.fitted_operation, os.path.join(
+                    return_path, self.fitted_operation_path))
                 return os.path.join(path_fitted_operations, f'operation_{self.operation_id}.pkl')
         else:
             # dictionary with bytes of fitted operations
@@ -175,8 +179,10 @@ class OperationTemplate(OperationTemplateAbstract):
             return bytes_container
 
     def import_json(self, operation_object: dict):
-        required_fields = ['operation_id', 'operation_type', 'params', 'nodes_from']
-        self._validate_json_operation_template(operation_object, required_fields)
+        required_fields = ['operation_id',
+                           'operation_type', 'params', 'nodes_from']
+        self._validate_json_operation_template(
+            operation_object, required_fields)
 
         self.operation_id = operation_object['operation_id']
         self.operation_type = operation_object['operation_type']
@@ -190,7 +196,8 @@ class OperationTemplate(OperationTemplateAbstract):
                 self.fitted_operation_path = fitted_operation_path
             elif isinstance(fitted_operation_path, list):
                 # Path were set as folders and files in tuple or list
-                self.fitted_operation_path = os.path.join(*fitted_operation_path[:2])
+                self.fitted_operation_path = os.path.join(
+                    *fitted_operation_path[:2])
 
         if 'custom_params' in operation_object:
             self.custom_params = operation_object['custom_params']

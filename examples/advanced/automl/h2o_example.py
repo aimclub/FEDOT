@@ -4,7 +4,7 @@ from sklearn.metrics import roc_auc_score as roc_auc, mean_absolute_error
 from examples.advanced.time_series_forecasting.composing_pipelines import visualise
 from examples.simple.pipeline_import_export import create_correct_path
 from fedot.core.composer.metrics import root_mean_squared_error
-from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
@@ -43,7 +43,8 @@ def export_h2o(pipeline, pipeline_path, test_data):
     json_path_load = create_correct_path(pipeline_path)
     new_pipeline = Pipeline.from_serialized(json_path_load)
 
-    results = new_pipeline.predict(input_data=test_data, output_mode="full_probs")
+    results = new_pipeline.predict(
+        input_data=test_data, output_mode="full_probs")
     prediction_after_export = results.predict[:, 0]
     print(f'After export {prediction_after_export[:4]}')
 

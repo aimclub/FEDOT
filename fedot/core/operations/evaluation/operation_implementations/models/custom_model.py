@@ -17,7 +17,8 @@ class CustomModelImplementation(ModelImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         if not self.params:
-            raise ValueError('There is no specified parameters for custom model!')
+            raise ValueError(
+                'There is no specified parameters for custom model!')
         self.fitted_model = None
 
     @property
@@ -28,7 +29,8 @@ class CustomModelImplementation(ModelImplementation):
                 self.log.warning('Input model_predict is not Callable')
             return model_predict
         else:
-            raise ValueError('There is no key word "model_predict" for model definition in input dictionary.')
+            raise ValueError(
+                'There is no key word "model_predict" for model definition in input dictionary.')
 
     @property
     def model_fit(self) -> Optional[Callable]:
@@ -43,7 +45,8 @@ class CustomModelImplementation(ModelImplementation):
     def fit(self, input_data):
         """ Fit method for custom model implementation """
         if self.model_fit:
-            self.fitted_model = self.model_fit(input_data.idx, input_data.features, input_data.target, self.params)
+            self.fitted_model = self.model_fit(
+                input_data.idx, input_data.features, input_data.target, self.params)
         return self.fitted_model
 
     def predict(self, input_data):

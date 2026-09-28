@@ -12,21 +12,24 @@ def call_cli_with_parameters(call_string: List[str]):
     main_params, fit_params = separate_argparse_to_fedot(parameters)
     preprocess_keys(main_params)
     preprocess_keys(fit_params)
-    predictions = run_fedot(parameters, main_params, fit_params, path_to_save=None)
+    predictions = run_fedot(parameters, main_params,
+                            fit_params, path_to_save=None)
     return predictions
 
 
 def test_cli_with_parameters():
     """ Test all parameters used in cli are available from api"""
     project_root_path = fedot_project_root()
-    ts_train_path = project_root_path.joinpath('test/data/simple_time_series.csv')
+    ts_train_path = project_root_path.joinpath(
+        'test/data/simple_time_series.csv')
     ts_call = (
         f'--problem ts_forecasting --preset fast_train --timeout 0.1 --depth 3 --arity 3 '
         '--popsize 3 --gen_num 5 --opers lagged linear ridge --tuning 0 '
         f'--cv_folds 2 --target sea_height --train {ts_train_path} '
         f'--test {ts_train_path} --for_len 10'
     ).split()
-    class_train_path = project_root_path.joinpath('test/data/simple_classification.csv')
+    class_train_path = project_root_path.joinpath(
+        'test/data/simple_classification.csv')
     class_call = (
         f'--problem classification --train {class_train_path} --test {class_train_path} --target Y '
         '--preset fast_train --timeout 0.1 --depth 3 --arity 3 '

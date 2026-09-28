@@ -18,6 +18,7 @@ class TsForecastingParams(TaskParams):
             raise ValueError('Forecast length should be more then 0')
 
 
+# TODO: delete clustering and all examples or develop it. Check tasks and add more if necessary from industrial.
 class TaskTypesEnum(Enum):
     classification = 'classification'
     regression = 'regression'
@@ -36,7 +37,8 @@ def compatible_task_types(main_task_type: TaskTypesEnum) -> List[TaskTypesEnum]:
     _compatible_task_types = {
         TaskTypesEnum.ts_forecasting: [TaskTypesEnum.regression],
         TaskTypesEnum.classification: [TaskTypesEnum.clustering],
-        TaskTypesEnum.regression: [TaskTypesEnum.clustering, TaskTypesEnum.classification]
+        TaskTypesEnum.regression: [
+            TaskTypesEnum.clustering, TaskTypesEnum.classification]
     }
     if main_task_type not in _compatible_task_types:
         return []

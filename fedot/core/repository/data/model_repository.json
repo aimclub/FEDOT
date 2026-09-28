@@ -54,6 +54,25 @@
       ],
       "tasks": "[TaskTypesEnum.classification]"
     },
+    "simple_class": {
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "Lightweight classification models for TensorData runtime",
+      "forbidden_node_types": "[]",
+      "input_type": "[DataTypesEnum.tabular]",
+      "output_type": "[DataTypesEnum.tabular]",
+      "strategies": [
+        "fedot.core.operations.evaluation.simple_classification",
+        "SimpleClassificationStrategy"
+      ],
+      "tags": [
+        "ml",
+        "torch",
+        "neural"
+      ],
+      "tasks": "[TaskTypesEnum.classification]"
+    },
     "sklearn_clust": {
       "accepted_node_types": [
         "any"
@@ -138,7 +157,7 @@
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
-        "fedot.core.operations.evaluation.tabpfn",
+        "fedot.core.operations.evaluation.foundational",
         "TabPFNClassificationStrategy"
       ],
       "tags": [
@@ -159,13 +178,55 @@
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
-        "fedot.core.operations.evaluation.tabpfn",
+        "fedot.core.operations.evaluation.foundational",
         "TabPFNRegressionStrategy"
       ],
       "tags": [
         "neural",
         "non_linear",
         "tabpfn",
+        "non-default",
+        "cpu"
+      ],
+      "tasks": "[TaskTypesEnum.regression]"
+    },
+    "tabicl_class": {
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "TabICL implementations for classification problems",
+      "forbidden_node_types": "[]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.foundational",
+        "TabICLClassificationStrategy"
+      ],
+      "tags": [
+        "neural",
+        "non_linear",
+        "tabicl",
+        "non-default",
+        "cpu"
+      ],
+      "tasks": "[TaskTypesEnum.classification]"
+    },
+    "tabicl_regr": {
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "TabICL implementations for regression problems",
+      "forbidden_node_types": "[]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.foundational",
+        "TabICLRegressionStrategy"
+      ],
+      "tags": [
+        "neural",
+        "non_linear",
+        "tabicl",
         "non-default",
         "cpu"
       ],
@@ -375,6 +436,17 @@
         "non_multi"
       ]
     },
+    "torch_linear": {
+      "meta": "simple_class",
+      "presets": ["fast_train"],
+      "tags": [
+        "simple",
+        "linear",
+        "neural",
+        "torch",
+        "non_multi"
+      ]
+    },
     "mlp": {
       "meta": "sklearn_class",
       "tags": [
@@ -562,6 +634,14 @@
     },
     "tabpfnreg": {
       "meta": "tabpfn_regr",
+      "tags": ["non_auto"]
+    },
+    "tabicl": {
+      "meta": "tabicl_class",
+      "tags": ["non_auto"]
+    },
+    "tabiclreg": {
+      "meta": "tabicl_regr",
       "tags": ["non_auto"]
     }
   }

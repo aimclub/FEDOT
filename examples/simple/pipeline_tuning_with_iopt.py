@@ -1,8 +1,8 @@
 from golem.core.tuning.iopt_tuner import IOptTuner
 
 from fedot.core.composer.metrics import MSE
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
@@ -59,4 +59,5 @@ if __name__ == '__main__':
     data = InputData.from_csv(data_path,
                               task=Task(TaskTypesEnum.regression))
     train_data, test_data = train_test_data_setup(data)
-    tuned_pipeline = tune_pipeline(pipeline, train_data, test_data, tuner_iter_num=200)
+    tuned_pipeline = tune_pipeline(
+        pipeline, train_data, test_data, tuner_iter_num=200)

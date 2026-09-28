@@ -20,7 +20,8 @@ class TimeoutParams:
 TIMEOUT_CASES = [
     TimeoutParams(
         test_input={'timeout': -1, 'num_of_generations': 1},
-        test_answer=lambda hist: len(hist.individuals) == 1 + 2  # num of gens + initial and final gens
+        # num of gens + initial and final gens
+        test_answer=lambda hist: len(hist.individuals) == 1 + 2
     ),
     TimeoutParams(
         test_input={'timeout': None, 'num_of_generations': 1},
@@ -70,7 +71,7 @@ def test_timeout(case: TimeoutParams):
         assert case.test_answer(history)
 
 
-@pytest.mark.parametrize('input_params', [{'use_input_preprocessing': False}])
+@pytest.mark.parametrize('input_params', [{'with_tuning': False}])
 def test_main_api_params_of_type(input_params: dict):
     model = Fedot(problem='ts_forecasting', **input_params)
     parsed_params = model.params

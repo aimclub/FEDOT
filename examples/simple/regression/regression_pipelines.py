@@ -17,7 +17,8 @@ def regression_three_depth_manual_pipeline():
     dtreg_secondary = PipelineNode('dtreg', nodes_from=[rfr_primary])
     rfr_secondary = PipelineNode('rfr', nodes_from=[knn_primary])
 
-    knnreg_root = PipelineNode('knnreg', nodes_from=[dtreg_secondary, rfr_secondary])
+    knnreg_root = PipelineNode('knnreg', nodes_from=[
+                               dtreg_secondary, rfr_secondary])
 
     pipeline = Pipeline(knnreg_root)
 

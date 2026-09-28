@@ -11,11 +11,11 @@ from golem.core.optimisers.optimizer import AlgorithmParameters, GraphGeneration
 from golem.utilities.data_structures import ensure_wrapped_in_sequence
 
 from fedot.core.caching.operations_cache import OperationsCache
-from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
+from fedot.core.optimisers.evaluation_hooks import EvolutionHooks
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
@@ -39,12 +39,15 @@ class ComposerBuilder:
         self.log: LoggerAdapter = default_log(self)
 
         self.task: Task = task
-        self.metrics: Sequence[MetricsEnum] = MetricByTask.get_default_quality_metrics(task.task_type)
+        self.metrics: Sequence[MetricsEnum] = MetricByTask.get_default_quality_metrics(
+            task.task_type)
 
-        self.optimizer_cls: Type[GraphOptimizer] = EvoGraphOptimizer  # default optimizer class
+        # default optimizer class
+        self.optimizer_cls: Type[GraphOptimizer] = EvoGraphOptimizer
         self.optimizer_parameters: Optional[AlgorithmParameters] = None
 
-        self.composer_cls: Type[Composer] = GPComposer  # default composer class
+        # default composer class
+        self.composer_cls: Type[Composer] = GPComposer
         self.composer_requirements: Optional[PipelineComposerRequirements] = None
         self.graph_generation_params: Optional[GraphGenerationParams] = None
 
@@ -55,8 +58,14 @@ class ComposerBuilder:
         self._full_history_dir: Optional[Path] = None
 
         self.operations_cache: Optional[OperationsCache] = None
-        self.preprocessing_cache: Optional[PreprocessingCache] = None
         self.predictions_cache: Optional[PredictionsCache] = None
+        self.evolution_hooks: Optional[EvolutionHooks] = None
+
+    def with_evolution_hooks(self, hooks: EvolutionHooks):
+        if not isinstance(hooks, EvolutionHooks):
+            raise TypeError('hooks must be EvolutionHooks')
+        self.evolution_hooks = hooks
+        return self
 
     def with_composer(self, composer_cls: Optional[Type[Composer]]):
         if composer_cls is not None:
@@ -100,11 +109,9 @@ class ComposerBuilder:
 
     def with_cache(self,
                    operations_cache: Optional[OperationsCache] = None,
-                   preprocessing_cache: Optional[PreprocessingCache] = None,
                    predictions_cache: Optional[PredictionsCache] = None
                    ):
         self.operations_cache = operations_cache
-        self.preprocessing_cache = preprocessing_cache
         self.predictions_cache = predictions_cache
         return self
 
@@ -128,11 +135,13 @@ class ComposerBuilder:
     def build(self) -> Composer:
         multi_objective = len(self.metrics) > 1
         if not self.composer_requirements:
-            self.composer_requirements = self._get_default_composer_params(self.task)
+            self.composer_requirements = self._get_default_composer_params(
+                self.task)
         if not self.graph_generation_params:
             self.graph_generation_params = self._get_default_graph_generation_params()
         if not self.optimizer_parameters:
-            self.optimizer_parameters = GPAlgorithmParameters(multi_objective=multi_objective)
+            self.optimizer_parameters = GPAlgorithmParameters(
+                multi_objective=multi_objective)
         if not multi_objective:
             # Add default complexity metric for supplementary comparison of individuals with equal fitness
             self.metrics = self.metrics + self._get_default_complexity_metrics()
@@ -157,10 +166,10 @@ class ComposerBuilder:
                                        graph_generation_params=self.graph_generation_params,
                                        graph_optimizer_params=self.optimizer_parameters)
 
+        hook_options = {'evolution_hooks': self.evolution_hooks} if self.evolution_hooks is not None else {}
         composer = self.composer_cls(optimiser,
                                      self.composer_requirements,
                                      self.operations_cache,
-                                     self.preprocessing_cache,
-                                     self.predictions_cache)
+                                     self.predictions_cache, **hook_options)
 
         return composer

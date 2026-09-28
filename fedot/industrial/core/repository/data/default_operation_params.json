@@ -1,0 +1,495 @@
+{
+  "eigen_basis": {
+    "window_size": 20,
+    "rank_regularization": "explained_dispersion",
+    "decomposition_type": "svd"
+  },
+  "recurrence_extractor": {
+    "window_size": 10,
+    "stride": 1,
+    "rec_metric": "cosine",
+    "use_sliding_window": false,
+    "image_mode": false
+  },
+  "minirocket_extractor": {
+    "num_features": 10000
+  },
+  "patch_tst_model": {
+    "epochs": 100,
+    "batch_size": 32,
+    "activation": "ReLU",
+    "learning_rate": 0.001,
+    "use_amp": false,
+    "forecast_length": null,
+    "patch_len": null,
+    "ouput_attention": false,
+    "forecast_mode": "out_of_sample"
+  },
+  "deepar_model": {
+    "epochs": 100,
+    "batch_size": 16
+  },
+  "eigen_forecaster": {
+    "channel_model": "ar"
+  },
+  "topo_forecaster": {
+    "channel_model": "ridge",
+    "patch_len": 10,
+    "window_size": 10
+  },
+  "lagged_forecaster": {
+    "channel_model": "ridge",
+    "window_size": 10
+  },
+  "inception_model": {
+    "epochs": 100,
+    "batch_size": 32,
+    "activation": "Softmax",
+    "num_classes": 1
+  },
+  "resnet_model": {
+    "epochs": 100,
+    "batch_size": 32,
+    "activation": "Softmax",
+    "model_name": "ResNet18"
+  },
+  "tcn_model": {
+    "epochs": 100,
+    "batch_size": 32,
+    "activation": "ReLU"
+  },
+  "ssa_forecaster": {
+    "window_size_method": "hac",
+    "history_lookback": 30
+  },
+  "kmeans": {
+    "n_clusters": 4
+  },
+  "adareg": {
+    "learning_rate": 0.1,
+    "loss": "square"
+  },
+  "gbr": {
+    "loss": "quantile",
+    "learning_rate": 0.1,
+    "max_depth": 5,
+    "min_samples_split": 10,
+    "min_samples_leaf": 10,
+    "subsample": 0.5,
+    "max_features": 0.9,
+    "alpha": 0.85
+  },
+  "industrial_stat_clf": {
+    "channel_model": "logit",
+    "transformation_model": "quantile_extractor"
+  },
+  "industrial_manifold_clf": {
+    "channel_model": "rf",
+    "transformation_model": "recurrence_extractor"
+  },
+  "industrial_freq_clf": {
+    "channel_model": "rf",
+    "transformation_model": "fourier_basis"
+  },
+  "industrial_stat_reg": {
+    "channel_model": "treg",
+    "transformation_model": "quantile_extractor"
+  },
+  "industrial_manifold_reg": {
+    "channel_model": "treg",
+    "transformation_model": "recurrence_extractor"
+  },
+  "industrial_freq_reg": {
+    "channel_model": "treg",
+    "transformation_model": "fourier_basis"
+  },
+  "logit": {
+    "C": 1,
+    "penalty": "l2",
+    "solver": "lbfgs"
+  },
+  "rf": {
+    "criterion": "gini",
+    "max_features": 0.9,
+    "min_samples_split": 5,
+    "min_samples_leaf": 5,
+    "bootstrap": false
+  },
+  "pdl_clf": {
+    "model": "rf"
+  },
+  "ridge": {
+    "alpha": 1.0
+  },
+  "lasso": {
+    "alpha": 1.0
+  },
+  "rfr": {
+    "max_features": 0.9,
+    "min_samples_split": 5,
+    "min_samples_leaf": 5,
+    "bootstrap": false
+  },
+  "xgbreg": {
+    "max_depth": 5,
+    "learning_rate": 0.1,
+    "subsample": 0.5,
+    "min_child_weight": 10
+  },
+  "xgboost": {
+    "n_estimators": 500,
+    "max_depth": 5,
+    "learning_rate": 0.1,
+    "subsample": 0.5,
+    "min_weight_fraction_leaf": 0.25,
+    "min_samples_leaf": 0.5,
+    "min_samples_split": 0.5,
+    "random_state": 42
+  },
+  "svr": {
+    "C": 1.0,
+    "epsilon": 0.1,
+    "tol": 1e-3,
+    "loss": "squared_epsilon_insensitive"
+  },
+  "dtreg": {
+    "max_depth": 5,
+    "min_samples_split": 10,
+    "min_samples_leaf": 10
+  },
+  "treg": {
+    "max_features": 0.5,
+    "min_samples_split": 10,
+    "min_samples_leaf": 10,
+    "bootstrap": false
+  },
+  "pdl_reg": {
+    "model": "treg"
+  },
+  "dt": {
+    "max_depth": 5,
+    "min_samples_split": 10,
+    "min_samples_leaf": 10
+  },
+  "knnreg": {
+    "n_neighbors": 5,
+    "weights": "uniform",
+    "p": 1
+  },
+  "knn": {
+    "n_neighbors": 5,
+    "weights": "uniform",
+    "p": 1
+  },
+  "arima": {
+    "p": 2,
+    "d": 0,
+    "q": 2
+  },
+  "stl_arima": {
+    "p": 2,
+    "d": 0,
+    "q": 2,
+    "period": 30
+  },
+  "mlp": {
+    "activation": "relu",
+    "max_iter": 300,
+    "learning_rate": "constant",
+    "solver": "adam"
+  },
+  "ar": {
+    "lag_1": 7,
+    "lag_2": 12,
+    "trend": "c"
+  },
+  "ets": {
+    "error": "add",
+    "trend": null,
+    "seasonal": null,
+    "damped_trend": false,
+    "seasonal_periods": 7
+  },
+  "bagging": {
+    "method": "weighted"
+  },
+  "polyfit": {
+    "degree": 2
+  },
+  "glm": {
+    "family": "gaussian",
+    "link": "identity"
+  },
+  "ransac_lin_reg": {
+    "min_samples": 0.4,
+    "residual_threshold": 10,
+    "max_trials": 100,
+    "max_skips": 1000
+  },
+  "ransac_non_lin_reg": {
+    "min_samples": 0.4,
+    "residual_threshold": 10,
+    "max_trials": 100,
+    "max_skips": 1000
+  },
+  "cgru": {
+    "hidden_size": 200,
+    "learning_rate": 0.001,
+    "cnn1_kernel_size": 10,
+    "cnn1_output_size": 32,
+    "cnn2_kernel_size": 6,
+    "cnn2_output_size": 64,
+    "batch_size": 64,
+    "num_epochs": 50,
+    "optimizer": "adamw",
+    "loss": "mse"
+  },
+  "pca": {
+    "svd_solver": "full",
+    "n_components": 0.7
+  },
+  "kernel_pca": {
+    "n_components": null,
+    "kernel": "rbf"
+  },
+  "lagged": {
+    "window_size": 10
+  },
+  "sparse_lagged": {
+    "window_size": 10,
+    "n_components": 0.5,
+    "use_svd": false,
+    "sparse_transform": true
+  },
+  "smoothing": {
+    "window_size": 10
+  },
+  "gaussian_filter": {
+    "sigma": 2
+  },
+  "diff_filter": {
+    "poly_degree": 2,
+    "order": 1,
+    "window_size": 3
+  },
+  "cut": {
+    "cut_part": 0.5
+  },
+  "lgbm": {
+    "n_estimators": 100,
+    "class_weight": null,
+    "num_leaves": 32,
+    "learning_rate": 0.03,
+    "colsample_bytree": 0.8,
+    "subsample": 0.8,
+    "reg_alpha": 0.1,
+    "reg_lambda": 0.1,
+    "subsample_freq": 10
+  },
+  "lgbmreg": {
+    "n_estimators": 100,
+    "num_leaves": 32,
+    "learning_rate": 0.03,
+    "colsample_bytree": 0.8,
+    "subsample": 0.8,
+    "reg_alpha": 0.1,
+    "reg_lambda": 0.1,
+    "subsample_freq": 10
+  },
+  "catboost": {
+    "allow_writing_files": false,
+    "verbose": false,
+    "max_depth": 5,
+    "learning_rate": 0.1,
+    "min_data_in_leaf": 3,
+    "max_bin": 32,
+    "l2_leaf_reg": 1
+  },
+  "catboostreg": {
+    "allow_writing_files": false,
+    "verbose": false,
+    "max_depth": 5,
+    "learning_rate": 0.1,
+    "min_data_in_leaf": 3,
+    "max_bin": 32,
+    "l2_leaf_reg": 1
+  },
+  "resample": {
+    "balance": "expand_minority",
+    "replace": false,
+    "balance_ratio": 1
+  },
+  "lda": {
+    "solver": "svd",
+    "shrinkage": 0.5
+  },
+  "ts_naive_average": {
+    "part_for_averaging": 1.0
+  },
+  "locf": {
+    "part_for_repeat": -1
+  },
+  "word2vec_pretrained": {
+    "model_name": "glove-twitter-25"
+  },
+  "tfidf": {
+    "min_df": 0.1,
+    "max_df": 0.9
+  },
+  "h2o_regr": {
+    "timeout": 20,
+    "seed": 42,
+    "max_models": 3
+  },
+  "h2o_class": {
+    "timeout": 20,
+    "seed": 42,
+    "max_models": 3
+  },
+  "tpot_class": {
+    "timeout": 2,
+    "generations": 3,
+    "population_size": 3
+  },
+  "tpot_regr": {
+    "timeout": 2,
+    "generations": 3,
+    "population_size": 3
+  },
+  "fast_ica": {
+    "whiten": "unit-variance"
+  },
+  "channel_filtration": {
+    "distance": "euclidean",
+    "shrink": 1e-5,
+    "centroid_metric": "euclidean",
+    "selection_strategy": "pairwise"
+  },
+  "wavelet_basis": {
+    "wavelet": "mexh",
+    "n_components": 2
+  },
+  "fourier_basis": {
+    "spectrum_type": "smoothed",
+    "threshold": 0.9
+  },
+  "quantile_extractor": {
+    "window_size": 10,
+    "use_sliding_window": true,
+    "stride": 1,
+    "add_global_features": true,
+    "use_cache": true
+  },
+  "quantile_extractor_torch": {
+    "window_size": 10,
+    "use_sliding_window": true,
+    "stride": 1,
+    "add_global_features": true,
+    "use_cache": true
+  },
+  "riemann_extractor": {
+    "n_filter": 4,
+    "estimator": "scm",
+    "tangent_metric": "riemann",
+    "SPD_metric": "riemann"
+  },
+  "fedot_cls": {
+    "timeout": 10,
+    "with_tuning": true
+  },
+  "fedot_regr": {
+    "timeout": 10,
+    "with_tuning": true
+  },
+  "fedot_forecast": {
+    "timeout": 10,
+    "with_tuning": true
+  },
+  "tst_model": {
+    "epochs": 100,
+    "batch_size": 32
+  },
+  "xcm_model": {
+    "epochs": 100,
+    "batch_size": 32
+  },
+  "nbeats_model": {
+    "epochs": 100,
+    "batch_size": 32,
+    "n_stacks": 10,
+    "n_trend_blocks": 3,
+    "n_seasonality_blocks": 2,
+    "n_of_harmonics": 1,
+    "degree_of_polynomial": 3,
+    "n_trend_layers": 3,
+    "n_seasonality_layers ": 2,
+    "layers": 4
+  },
+  "lora_model": {
+    "epochs": 100,
+    "batch_size": 32,
+    "neural_architecture":"dummy",
+    "from_pretrain": false,
+    "lora_init": "random",
+    "lora_rank": 1,
+    "power_iter": 3,
+    "use_rsvd": true,
+    "sampling_share": 0.3
+  },
+  "topological_extractor": {
+    "n_jobs": 2,
+    "window_size_as_share": 0.33,
+    "max_homology_dimension": 1,
+    "metric": "euclidean"
+  },
+  "sst": {
+    "n_jobs": 2,
+    "window_size_as_share": 0.33,
+    "max_homology_dimension": 1,
+    "metric": "euclidean"
+  },
+  "unscented_kalman_filter": {
+    "n_jobs": 2,
+    "window_size_as_share": 0.33,
+    "max_homology_dimension": 1,
+    "metric": "euclidean"
+  },
+  "stat_detector": {
+    "window_length": 10,
+    "anomaly_thr": 0.9
+  },
+  "topo_detector": {
+    "n_jobs": 2,
+    "window_size_as_share": 0.33,
+    "max_homology_dimension": 1,
+    "metric": "euclidean"
+  },
+  "arima_detector": {
+    "window_length": 10,
+    "anomaly_thr": 0.9,
+    "ar_order": 3
+  },
+  "iforest_detector": {
+    "window_length": 10,
+    "anomaly_thr": 0.1,
+    "n_jobs": 2,
+    "contamination": "auto",
+    "random_state": 42
+  },
+  "conv_ae_detector": {
+    "window_length": 10,
+    "anomaly_thr": 0.9,
+    "ucl_quantile": 0.99,
+    "n_steps_share": 0.15
+  },
+  "lstm_ae_detector": {
+    "window_length": 10,
+    "anomaly_thr": 0.9,
+    "ucl_quantile": 0.99,
+    "n_steps_share": 0.15
+  },
+  "one_class_svm": {
+    "kernel": "rbf",
+    "gamma": "auto"
+  }
+}

@@ -2,7 +2,7 @@ from typing import Optional
 
 import numpy as np
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.models.boostings_implementations import \
     FedotCatBoostClassificationImplementation, FedotCatBoostRegressionImplementation, \
@@ -33,11 +33,13 @@ class BoostingStrategy(EvaluationStrategy):
             return self.__operations_by_types[operation_type]
 
         else:
-            raise ValueError(f'Impossible to obtain Boosting Strategy for {operation_type}')
+            raise ValueError(
+                f'Impossible to obtain Boosting Strategy for {operation_type}')
 
     def fit(self, train_data: InputData):
         if train_data.task.task_type == TaskTypesEnum.ts_forecasting:
-            raise ValueError('Time series forecasting not supported for boosting models')
+            raise ValueError(
+                'Time series forecasting not supported for boosting models')
 
         if is_multi_output_target(train_data):
             self.operation_impl.is_multi_target = True
@@ -69,17 +71,21 @@ class BoostingClassificationStrategy(BoostingStrategy):
             n_classes = len(trained_operation.classes_)
 
             prediction = trained_operation.predict_proba(predict_data)
-            is_prediction_correct = self._check_prediction_correctness(prediction)
+            is_prediction_correct = self._check_prediction_correctness(
+                prediction)
 
             if n_classes < 2:
-                raise ValueError('Data set contain only 1 target class. Please reformat your data.')
+                raise ValueError(
+                    'Data set contain only 1 target class. Please reformat your data.')
             elif n_classes == 2 and self.output_mode != 'full_probs' and is_prediction_correct:
                 if is_multi_output_model(self.operation_impl) and isinstance(prediction, list):
-                    prediction = np.stack([pred[:, 1] for pred in prediction]).T
+                    prediction = np.stack([pred[:, 1]
+                                          for pred in prediction]).T
                 else:
                     prediction = prediction[:, 1]
         else:
-            raise ValueError(f'Output mode {self.output_mode} is not supported')
+            raise ValueError(
+                f'Output mode {self.output_mode} is not supported')
 
         return self._convert_to_output(prediction, predict_data)
 

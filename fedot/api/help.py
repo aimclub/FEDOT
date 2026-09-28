@@ -100,10 +100,12 @@ def operations_for_task(task_name: str):
 
     # Get models and data operations
     models_repo = OperationTypesRepository()
-    data_operations_repo = OperationTypesRepository(operation_type='data_operation')
+    data_operations_repo = OperationTypesRepository(
+        operation_type='data_operation')
 
     appropriate_models = models_repo.suitable_operation(task_type=task)
-    appropriate_data_operations = data_operations_repo.suitable_operation(task_type=task)
+    appropriate_data_operations = data_operations_repo.suitable_operation(
+        task_type=task)
 
     dict_with_operations = {'model': appropriate_models,
                             'data operation': appropriate_data_operations}

@@ -10,9 +10,9 @@ import pandas as pd
 from examples.advanced.time_series_forecasting.custom_model_tuning import get_fitting_custom_pipeline
 from examples.simple.pipeline_import_export import create_correct_path
 from fedot import Fedot
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.split.data_split import train_test_data_setup
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -70,7 +70,8 @@ def get_starting_pipeline(with_params=True):
 
 def get_input_data():
     test_file_path = str(os.path.dirname(__file__))
-    df = pd.read_csv(os.path.join(test_file_path, '../../data/simple_sea_level.csv'))
+    df = pd.read_csv(os.path.join(
+        test_file_path, '../../data/simple_sea_level.csv'))
     time_series = np.array(df['Level'])
     len_forecast = 50
     train_input, predict_input = \
@@ -86,7 +87,8 @@ def get_input_data():
 
 def prepare_data():
     test_file_path = str(os.path.dirname(__file__))
-    df = np.asarray(pd.read_csv(os.path.join(test_file_path, '../../data/simple_sea_level.csv')))
+    df = np.asarray(pd.read_csv(os.path.join(
+        test_file_path, '../../data/simple_sea_level.csv')))
     df = np.delete(df, 0, 1)
     df = df[0:100, :]
     t_arr = range(len(df))
@@ -117,7 +119,8 @@ def prepare_data():
                                                    data_type=DataTypesEnum.ts,
                                                    task=task)
 
-    input_data_train, input_data_test = train_test_data_setup(MultiModalData(ds))
+    input_data_train, input_data_test = train_test_data_setup(
+        MultiModalData(ds))
 
     return input_data_train, input_data_test
 
@@ -146,7 +149,8 @@ def get_simple_pipeline(multi_data):
         if 'exog_' in data_id:
             exog_list.append(PipelineNode(data_id))
         if 'hist_' in data_id:
-            lagged_node = PipelineNode('lagged', nodes_from=[PipelineNode(data_id)])
+            lagged_node = PipelineNode('lagged', nodes_from=[
+                                       PipelineNode(data_id)])
             lagged_node.parameters = {'window_size': 2}
 
             hist_list.append(lagged_node)

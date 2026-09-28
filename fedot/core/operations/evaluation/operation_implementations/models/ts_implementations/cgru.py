@@ -1,7 +1,7 @@
 import numpy as np
 from golem.utilities.requirements_notificator import warn_requirement
 
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -42,7 +42,8 @@ class ConvolutionalNetworkImplementation(ModelImplementation):
         self.std = None
         self.optimizer = self.optim_dict[self.params.get("optimizer")]
         self.criterion = self.loss_dict[self.params.get("loss")]()
-        self.scheduler = MultiStepLR(self.optimizer, milestones=[30, 80], gamma=0.5)
+        self.scheduler = MultiStepLR(
+            self.optimizer, milestones=[30, 80], gamma=0.5)
         self.seed = None
 
     @property
@@ -135,7 +136,8 @@ class ConvolutionalNetworkImplementation(ModelImplementation):
         :return torch.utils.data.DataLoader: DataLoader with train data
         """
         x, y = self._fit_transform_scaler(input_data)
-        x, y = (torch.from_numpy(np_data.astype(np.float32)) for np_data in (x, y))
+        x, y = (torch.from_numpy(np_data.astype(np.float32))
+                for np_data in (x, y))
         return DataLoader(TensorDataset(x, y), batch_size=self.params.get("batch_size"))
 
     def _fit_transform_scaler(self, data: InputData):
@@ -166,11 +168,13 @@ class CGRUNetwork(nn.Module):
 
         self.hidden_size = hidden_size
         self.conv_block1 = nn.Sequential(
-            nn.Conv1d(in_channels=1, out_channels=cnn1_output_size, kernel_size=cnn1_kernel_size),
+            nn.Conv1d(in_channels=1, out_channels=cnn1_output_size,
+                      kernel_size=cnn1_kernel_size),
             nn.ReLU()
         )
         self.conv_block2 = nn.Sequential(
-            nn.Conv1d(in_channels=cnn1_output_size, out_channels=cnn2_output_size, kernel_size=cnn2_kernel_size),
+            nn.Conv1d(in_channels=cnn1_output_size,
+                      out_channels=cnn2_output_size, kernel_size=cnn2_kernel_size),
             nn.ReLU()
         )
         self.gru = nn.GRU(cnn2_output_size, self.hidden_size, dropout=0.1)
@@ -187,7 +191,8 @@ class CGRUNetwork(nn.Module):
             g = torch.Generator()
             g.manual_seed(self.seed)
             kwargs['generator'] = g
-        self.hidden_cell = torch.randn(1, batch_size, self.hidden_size, **kwargs).to(device)
+        self.hidden_cell = torch.randn(
+            1, batch_size, self.hidden_size, **kwargs).to(device)
 
     def forward(self, x):
         if self.hidden_cell is None:
@@ -213,11 +218,13 @@ class CLSTMNetwork(nn.Module):
 
         self.hidden_size = hidden_size
         self.conv_block1 = nn.Sequential(
-            nn.Conv1d(in_channels=1, out_channels=cnn1_output_size, kernel_size=cnn1_kernel_size),
+            nn.Conv1d(in_channels=1, out_channels=cnn1_output_size,
+                      kernel_size=cnn1_kernel_size),
             nn.ReLU()
         )
         self.conv_block2 = nn.Sequential(
-            nn.Conv1d(in_channels=cnn1_output_size, out_channels=cnn2_output_size, kernel_size=cnn2_kernel_size),
+            nn.Conv1d(in_channels=cnn1_output_size,
+                      out_channels=cnn2_output_size, kernel_size=cnn2_kernel_size),
             nn.ReLU()
         )
         self.lstm = nn.LSTM(cnn2_output_size, self.hidden_size, dropout=0.1)
@@ -244,7 +251,8 @@ class CLSTMNetwork(nn.Module):
         x = self.conv_block2(x)
         x = x.permute(2, 0, 1)
         out, self.hidden_cell = self.lstm(x, self.hidden_cell)
-        hidden_cat = torch.cat([self.hidden_cell[0], self.hidden_cell[1]], dim=2)
+        hidden_cat = torch.cat(
+            [self.hidden_cell[0], self.hidden_cell[1]], dim=2)
         predictions = self.linear(hidden_cat)
 
         return predictions

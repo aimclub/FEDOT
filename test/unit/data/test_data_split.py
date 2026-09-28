@@ -7,36 +7,42 @@ import pandas as pd
 import pytest
 
 from fedot.api.api_utils.api_data import ApiDataProcessor
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.split.data_split import train_test_data_setup
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root, split_data
-from fedot.core.data.cv_folds import cv_generator
+from fedot.core.data.split.cv_folds import cv_generator
 from test.unit.pipelines.test_decompose_pipelines import get_classification_data
 from test.unit.tasks.test_forecasting import get_ts_data
 
-TABULAR_SIMPLE = {'train_features_size': (8, 5), 'test_features_size': (2, 5), 'test_idx': (8, 9)}
+TABULAR_SIMPLE = {'train_features_size': (
+    8, 5), 'test_features_size': (2, 5), 'test_idx': (8, 9)}
 TABULAR_CATEGORICAL = {'train_features_size': (11, 26), 'test_features_size': (3, 26), 'test_idx': (11, 12, 13),
                        'train_category_size': (11, 4), 'test_category_size': (3, 4)}
-TS_SIMPLE = {'train_features_size': (18,), 'test_features_size': (18,), 'test_idx': (18, 19)}
-TEXT_SIMPLE = {'train_features_size': (8,), 'test_features_size': (2,), 'test_idx': (8, 9)}
-IMAGE_SIMPLE = {'train_features_size': (8, 5, 5, 2), 'test_features_size': (2, 5, 5, 2), 'test_idx': (8, 9)}
+TS_SIMPLE = {'train_features_size': (
+    18,), 'test_features_size': (18,), 'test_idx': (18, 19)}
+TEXT_SIMPLE = {'train_features_size': (
+    8,), 'test_features_size': (2,), 'test_idx': (8, 9)}
+IMAGE_SIMPLE = {'train_features_size': (
+    8, 5, 5, 2), 'test_features_size': (2, 5, 5, 2), 'test_idx': (8, 9)}
 
 
 def get_tabular_classification_data(length=10, class_count=2):
     task = Task(TaskTypesEnum.classification)
     features = np.full((length, 5), 1, dtype=float)
-    target = np.repeat(np.array(list(range(1, class_count + 1))), length // class_count).reshape((-1, 1))
+    target = np.repeat(np.array(list(range(1, class_count + 1))),
+                       length // class_count).reshape((-1, 1))
     input_data = InputData(idx=np.arange(0, len(features)), features=features,
                            target=target, task=task, data_type=DataTypesEnum.table)
     return input_data
 
 
 def get_ts_data_to_forecast(forecast_length, data_shape=100):
-    task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=forecast_length))
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=forecast_length))
     ts = np.arange(0, data_shape)
     input_data = InputData(idx=range(0, len(ts)), features=ts,
                            target=ts, task=task, data_type=DataTypesEnum.ts)
@@ -49,7 +55,8 @@ def get_ts_data_to_forecast_two_elements():
 
 def get_text_classification_data():
     task = Task(TaskTypesEnum.classification)
-    features = np.array(['blue', 'da', 'bu', 'di', 'da', 'bu', 'dai', 'I am blue', 'da', 'bu'])
+    features = np.array(['blue', 'da', 'bu', 'di', 'da',
+                        'bu', 'dai', 'I am blue', 'da', 'bu'])
     target = np.full((10, 1), 1, dtype=float)
     input_data = InputData(idx=np.arange(0, len(features)), features=features,
                            target=target, task=task, data_type=DataTypesEnum.text)
@@ -162,7 +169,8 @@ def test_split_data():
 
 @pytest.mark.parametrize('data_generator, expected_output',
                          [(get_tabular_classification_data, TABULAR_SIMPLE),
-                          (get_tabular_classification_data_with_cats, TABULAR_CATEGORICAL),
+                          (get_tabular_classification_data_with_cats,
+                           TABULAR_CATEGORICAL),
                           (get_ts_data_to_forecast_two_elements, TS_SIMPLE),
                           (get_text_classification_data, TEXT_SIMPLE),
                           (get_image_classification_data, IMAGE_SIMPLE)])
@@ -181,8 +189,10 @@ def test_default_train_test_simple(data_generator: Callable, expected_output: di
 
 def test_multitarget_train_test_split():
     """ Checks multitarget stratification for dataset with unbalanced distribution of classes """
-    target_columns = ["Pastry", "Z_Scratch", "K_Scatch", "Stains", "Dirtiness", "Bumps", "Other_Faults"]
-    full_test_data_path = os.path.join(str(fedot_project_root()), 'test', 'data', 'multitarget_classification.csv')
+    target_columns = ["Pastry", "Z_Scratch", "K_Scatch",
+                      "Stains", "Dirtiness", "Bumps", "Other_Faults"]
+    full_test_data_path = os.path.join(
+        str(fedot_project_root()), 'test', 'data', 'multitarget_classification.csv')
     data = InputData.from_csv(
         file_path=full_test_data_path, task="classification", target_columns=target_columns, columns_to_drop=["id"]
     )
@@ -193,7 +203,8 @@ def test_advanced_time_series_splitting():
     """ Check how data prepared for time series in-sample validation """
     validation_blocks = 2
     time_series = get_ts_data_to_forecast_two_elements()
-    train_data, test_data = train_test_data_setup(time_series, validation_blocks=validation_blocks)
+    train_data, test_data = train_test_data_setup(
+        time_series, validation_blocks=validation_blocks)
 
     assert len(train_data.features) == len(train_data.target) == 16
     # For in sample validation it is required to have all length of time series
@@ -203,8 +214,10 @@ def test_advanced_time_series_splitting():
 
 @pytest.mark.parametrize('data_splitter, data',
                          [(DataSourceSplitter(cv_folds=3, shuffle=True), get_imbalanced_data_to_test_mismatch()),
-                          (DataSourceSplitter(cv_folds=3, shuffle=True), get_balanced_data_to_test_mismatch()),
-                          (DataSourceSplitter(shuffle=True), get_imbalanced_data_to_test_mismatch()),
+                          (DataSourceSplitter(cv_folds=3, shuffle=True),
+                           get_balanced_data_to_test_mismatch()),
+                          (DataSourceSplitter(shuffle=True),
+                           get_imbalanced_data_to_test_mismatch()),
                           ])
 def test_data_splitting_without_shape_mismatch(data_splitter: DataSourceSplitter, data: InputData):
     """ Checks if data split correctly into train test subsets: there are no new classes in test subset """
@@ -222,7 +235,8 @@ def test_data_splitting_perform_correctly_after_build():
                       1: {'train_features_size': (16,), 'test_features_size': (20,), 'test_target_size': (20,)}}
 
     time_series = get_ts_data_to_forecast_two_elements()
-    data_source = DataSourceSplitter(cv_folds=2, validation_blocks=2).build(time_series)
+    data_source = DataSourceSplitter(
+        cv_folds=2, validation_blocks=2).build(time_series)
 
     # Imitate evaluation process
     for fold_id, (train_data, test_data) in enumerate(data_source()):
@@ -237,9 +251,11 @@ def test_multivariate_time_series_splitting_correct():
     multivar_ts = MultiModalData({'series_1': get_ts_data_to_forecast_two_elements(),
                                   'series_2': get_ts_data_to_forecast_two_elements()})
 
-    train_data, test_data = train_test_data_setup(multivar_ts, validation_blocks=2)
+    train_data, test_data = train_test_data_setup(
+        multivar_ts, validation_blocks=2)
     for series_id, train_series_data in train_data.items():
-        assert len(train_series_data.features) == len(train_series_data.target) == 16
+        assert len(train_series_data.features) == len(
+            train_series_data.target) == 16
 
     for series_id, test_series_data in test_data.items():
         assert len(test_series_data.features) == 20
@@ -268,11 +284,14 @@ def test_multivariate_time_series_splitting_correct():
     ],
 )
 def test_multimodal_data_splitting_is_correct(datas_funs, cv_folds, shuffle, stratify):
-    mdata = MultiModalData({f'data_{i}': data_fun() for i, data_fun in enumerate(datas_funs)})
-    data_splitter = DataSourceSplitter(cv_folds=cv_folds, shuffle=shuffle, stratify=stratify)
+    mdata = MultiModalData({f'data_{i}': data_fun()
+                           for i, data_fun in enumerate(datas_funs)})
+    data_splitter = DataSourceSplitter(
+        cv_folds=cv_folds, shuffle=shuffle, stratify=stratify)
     data_producer = data_splitter.build(mdata)
     keys = tuple(mdata.keys())
-    features_dimensity = [subdata.features.shape[1:] for subdata in mdata.values()]
+    features_dimensity = [subdata.features.shape[1:]
+                          for subdata in mdata.values()]
 
     for samples in data_producer():
         for sample in samples:
@@ -286,7 +305,8 @@ def test_multimodal_data_splitting_is_correct(datas_funs, cv_folds, shuffle, str
             assert np.all(np.diff(np.concatenate(idx, 1), 1) == 0)
 
             # dimensity of features should be the same
-            splitted_data_features_dimensity = [subdata.features.shape[1:] for subdata in sample.values()]
+            splitted_data_features_dimensity = [
+                subdata.features.shape[1:] for subdata in sample.values()]
             assert features_dimensity == splitted_data_features_dimensity
 
             # shuffle should be done
@@ -333,7 +353,8 @@ def test_data_splitting_defines_validation_blocks_correctly(forecast_length, cv_
                                                             check_validation_blocks):
     """ Checks if validation blocks count defines correctly for different data """
     data = get_ts_data_to_forecast(forecast_length, 120)
-    data_source_splitter = DataSourceSplitter(cv_folds=cv_folds, split_ratio=split_ratio)
+    data_source_splitter = DataSourceSplitter(
+        cv_folds=cv_folds, split_ratio=split_ratio)
     data_source_splitter.build(data)
     assert data_source_splitter.cv_folds == check_cv_folds
     assert data_source_splitter.split_ratio == check_split_ratio
@@ -346,8 +367,10 @@ def test_data_splitting_defines_validation_blocks_correctly(forecast_length, cv_
                           (5, True, True, 4),  # more folds and more classes
                           ])
 def test_stratify(cv_folds, shuffle, stratify, data_classes):
-    data = get_tabular_classification_data(length=100, class_count=data_classes)
-    data_splitter = DataSourceSplitter(cv_folds=cv_folds, shuffle=shuffle, stratify=stratify)
+    data = get_tabular_classification_data(
+        length=100, class_count=data_classes)
+    data_splitter = DataSourceSplitter(
+        cv_folds=cv_folds, shuffle=shuffle, stratify=stratify)
     data_producer = data_splitter.build(data)
 
     for train, test in data_producer():
@@ -359,11 +382,14 @@ def test_stratify(cv_folds, shuffle, stratify, data_classes):
                            get_tabular_classification_data(length=100, class_count=4)),  # cv_folds classification
                           (True, True, None,
                            get_tabular_classification_data(length=100, class_count=4)),  # holdout classification
-                          (False, True, 2, get_ts_data_to_forecast(10, 100)),  # cv_folds timeseries
-                          (False, True, None, get_ts_data_to_forecast(10, 100)),  # holdout timeseries
+                          (False, True, 2, get_ts_data_to_forecast(
+                              10, 100)),  # cv_folds timeseries
+                          (False, True, None, get_ts_data_to_forecast(
+                              10, 100)),  # holdout timeseries
                           ])
 def test_shuffle(is_shuffle, cv_folds, shuffle, data):
-    data_splitter = DataSourceSplitter(cv_folds=cv_folds, shuffle=shuffle, stratify=False)
+    data_splitter = DataSourceSplitter(
+        cv_folds=cv_folds, shuffle=shuffle, stratify=False)
     data_producer = data_splitter.build(data)
 
     for samples in data_producer():

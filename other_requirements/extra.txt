@@ -6,6 +6,7 @@ tensorflow >= 2.20.0, <2.22.0; python_version >= '3.13' and python_version < '3.
 torch >= 1.9.0, <3.0.0; python_version < '3.13' or python_version >= '3.14'
 torch >= 1.9.0, <2.12.0; python_version >= '3.13' and python_version < '3.14'
 tabpfn >= 2.0.0, <= 2.2.1; python_version < '3.13'
+tabicl == 2.0.3
 
 # Images
 opencv-python >= 4.5.5.64, <5.0.0

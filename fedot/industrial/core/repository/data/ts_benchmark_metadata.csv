@@ -1,0 +1,129 @@
+ID,Type,Name,Train ,Test ,Class,Length,ED (w=0),DTW (learned_w) ,DTW (w=100),Default rate,Data donor/editor
+1,Image,Adiac,390,391,37,176,0.3887,0.3913 (3),0.3964,0.9591,A. Jalba
+2,Image,ArrowHead,36,175,3,251,0.2000,0.2000 (0),0.2971,0.6057,L. Ye & E. Keogh
+3,Spectro,Beef,30,30,5,470,0.3333,0.3333 (0),0.3667,0.8000,K. Kemsley &  A. Bagnall
+4,Image,BeetleFly,20,20,2,512,0.2500,0.3000 (7),0.3000,0.5000,J. Hills & A. Bagnall
+5,Image,BirdChicken,20,20,2,512,0.4500,0.3000 (6),0.2500,0.5000,J. Hills & A. Bagnall
+6,Sensor,Car,60,60,4,577,0.2667,0.2333 (1),0.2667,0.6833,J. Gao
+7,Simulated,CBF,30,900,3,128,0.1478,0.0044 (11),0.0033,0.6644,N. Saito
+8,Sensor,ChlorineConcentration,467,3840,3,166,0.3500,0.3500 (0),0.3516,0.4674,L. Li & C. Faloutsos
+9,Sensor,CinCECGTorso,40,1380,4,1639,0.1029,0.0696 (1),0.3493,0.7464,physionet.org 
+10,Spectro,Coffee,28,28,2,286,0.0000,0.0000 (0),0.0000,0.4643,"K, Kemsley & A. Bagnall"
+11,Device,Computers,250,250,2,720,0.4240,0.3800 (12),0.3000,0.5000,J. Lines & A. Bagnall
+12,Motion,CricketX,390,390,12,300,0.4231,0.2282 (10),0.2462,0.8974,A. Mueen & E. Keogh
+13,Motion,CricketY,390,390,12,300,0.4333,0.2410 (17),0.2564,0.9051,A. Mueen & E. Keogh
+14,Motion,CricketZ,390,390,12,300,0.4128,0.2538 (5),0.2462,0.8974,A. Mueen & E. Keogh
+15,Image,DiatomSizeReduction,16,306,4,345,0.0654,0.0654 (0),0.0327,0.6928,ADIAC project
+16,Image,DistalPhalanxOutlineAgeGroup,400,139,3,80,0.3741,0.3741 (0),0.2302,0.5324,L. Davis & A. Bagnall
+17,Image,DistalPhalanxOutlineCorrect,600,276,2,80,0.2826,0.2754 (1),0.2826,0.4167,L. Davis & A. Bagnall
+18,Image,DistalPhalanxTW,400,139,6,80,0.3669,0.3669 (0),0.4101,0.6978,L. Davis & A. Bagnall
+19,Sensor,Earthquakes,322,139,2,512,0.2878,0.2734 (6),0.2806,0.2518,A. Bagnall
+20,ECG,ECG200,100,100,2,96,0.1200,0.1200 (0),0.2300,0.3600,R. Olszewski
+21,ECG,ECG5000,500,4500,5,140,0.0751,0.0749 (1),0.0756,0.4162,Y. Chen & E. Keogh
+22,ECG,ECGFiveDays,23,861,2,136,0.2033,0.2033 (0),0.2323,0.4971,"physionet.org, Y. Chen & E. Keogh"
+23,Device,ElectricDevices,8926,7711,7,96,0.4492,0.3806 (14),0.3988,0.7463,A. Bagnall & J. Lines
+24,Image,FaceAll,560,1690,14,131,0.2864,0.1917 (3),0.1923,0.8302,X. Xi & E. Keogh
+25,Image,FaceFour,24,88,4,350,0.2159, 0.1136 (2),0.1705,0.7045,A. Ratanamahatana & E. Keogh
+26,Image,FacesUCR,200,2050,14,131,0.2307,0.0878 (12),0.0951,0.8566,X. Xi & E. Keogh
+27,Image,FiftyWords,450,455,50,270,0.3692, 0.2418 (6),0.3099,0.8747,T. Rath & R. Manmatha
+28,Image,Fish,175,175,7,463,0.2171,0.1543 (4),0.1771,0.8343,D. Lee
+29,Sensor,FordA,3601,1320,2,500,0.3348,0.3091 (1),0.4455,0.4841,A. Bagnall
+30,Sensor,FordB,3636,810,2,500,0.3938,0.3926 (1),0.3802,0.4951,A. Bagnall
+31,Motion,GunPoint,50,150,2,150,0.0867, 0.0867 (0) ,0.0933,0.4933,A. Ratanamahatana & E. Keogh
+32,Spectro,Ham,109,105,2,431,0.4000,0.4000 (0),0.5333,0.4857,K. Kemsley & A. Bagnall
+33,Image,HandOutlines,1000,370,2,2709,0.1378,0.1378 (0),0.1189,0.3595,L. Davis & A. Bagnall
+34,Motion,Haptics,155,308,5,1092,0.6299,0.5877 (2),0.6234,0.7825,J. Brady
+35,Image,Herring,64,64,2,512,0.4844,0.4688 (5),0.4688,0.4063,J. Maap & A. Bagnall
+36,Motion,InlineSkate,100,550,7,1882,0.6582,0.6127 (14),0.6164,0.8164,F. Morchen & O. Hoos
+37,Sensor,InsectWingbeatSound,220,1980,11,256,0.4384,0.4152 (1),0.6449,0.9091,Y. Chen & E. Keogh
+38,Sensor,ItalyPowerDemand,67,1029,2,24,0.0447,0.0447 (0),0.0496,0.4985,"JJ van Wijk, E. Keogh & L. Wi"
+39,Device,LargeKitchenAppliances,375,375,3,720,0.5067,0.2053 (94),0.2053,0.6667,J. Lines & A. Bagnall
+40,Sensor,Lightning2,60,61,2,637,0.2459,0.1311 (6),0.1311,0.4590,D. Eads
+41,Sensor,Lightning7,70,73,7,319,0.4247,0.2877 (5),0.2740,0.7397,D. Eads
+42,Simulated,Mallat,55,2345,8,1024,0.0857,0.0857 (0),0.0661,0.8729,M. Jeong & S. Mallat
+43,Spectro,Meat,60,60,3,448,0.0667,0.0667 (0),0.0667,0.6667,K. Kemlsey & A. Bagnall
+44,Image,MedicalImages,381,760,10,99,0.3158,0.2526 (20),0.2632,0.4855,J. Felipe & C. Traina
+45,Image,MiddlePhalanxOutlineAgeGroup,400,154,3,80,0.4805,0.4805 (0),0.5000,0.4286,L. Davis & A. Bagnall
+46,Image,MiddlePhalanxOutlineCorrect,600,291,2,80,0.2337,0.2337 (0),0.3024,0.4296,L. Davis & A. Bagnall
+47,Image,MiddlePhalanxTW,399,154,6,80,0.4870,0.4935 (3),0.4935,0.7143,L. Davis & A. Bagnall
+48,Sensor,MoteStrain,20,1252,2,84,0.1214,0.1342 (1),0.1653,0.4609,C. Guestrin & J. Sun
+49,ECG,NonInvasiveFetalECGThorax1,1800,1965,42,750,0.1710,0.1893 (1),0.2097,0.9705,"physionet.org, B. Hu & E. Keogh"
+50,ECG,NonInvasiveFetalECGThorax2,1800,1965,42,750,0.1201,0.1290 (1),0.1354,0.9705,"physionet.org, B. Hu & E. Keogh"
+51,Spectro,OliveOil,30,30,4,570,0.1333,0.1333 (0),0.1667,0.6000,K. Kemsley & A. Bagnall
+52,Image,OSULeaf,200,242,6,427,0.4793,0.3884 (7),0.4091,0.7727,A. Gandhi
+53,Image,PhalangesOutlinesCorrect,1800,858,2,80,0.2389,0.2389 (0),0.2716,0.3869,A. Bagnall
+54,Sensor,Phoneme,214,1896,39,1024,0.8908,0.7727 (14),0.7716,0.8871,H. Hamooni & A. Mueen
+55,Sensor,Plane,105,105,7,144,0.0381,0.0000 (5),0.0000,0.8000,J. Gao
+56,Image,ProximalPhalanxOutlineAgeGroup,400,205,3,80,0.2146,0.2146 (0),0.1951,0.5122,L. Davis & A. Bagnall
+57,Image,ProximalPhalanxOutlineCorrect,600,291,2,80,0.1924,0.2096 (1),0.2165,0.3162,L. Davis & A. Bagnall
+58,Image,ProximalPhalanxTW,400,205,6,80,0.2927,0.2439 (2),0.2439,0.6488,L. Davis & A. Bagnall
+59,Device,RefrigerationDevices,375,375,3,720,0.6053,0.5600 (8),0.5360,0.6667,J. Lines & A. Bagnall
+60,Device,ScreenType,375,375,3,720,0.6400,0.5893 (17),0.6027,0.6667,J. Lines & A. Bagnall
+61,Simulated,ShapeletSim,20,180,2,500,0.4611,0.3000 (3),0.3500,0.5000,J. Hills & A. Bagnall
+62,Image,ShapesAll,600,600,60,512,0.2483,0.1980 (4),0.2317,0.9833,J. Hills & A. Bagnall
+63,Device,SmallKitchenAppliances,375,375,3,720,0.6587,0.3280 (15),0.3573,0.6667,J. Lines & A. Bagnall
+64,Sensor,SonyAIBORobotSurface1,20,601,2,70,0.3045,0.3045 (0),0.2745,0.4293,"D. Vail, M. Velso & E. Keogh"
+65,Sensor,SonyAIBORobotSurface2,27,953,2,65,0.1406,0.1406 (0),0.1689,0.3830,"D. Vail, M. Velso & E. Keogh"
+66,Sensor,StarLightCurves,1000,8236,3,1024,0.1512,0.0947 (16),0.0934,0.4228,"P. Protopapas, E. Keogh & L. Wei"
+67,Spectro,Strawberry,613,370,2,235,0.0541,0.0541 (0),0.0595,0.3568,K. Kemsley & A. Bagnall
+68,Image,SwedishLeaf,500,625,15,128,0.2112,0.1536 (2),0.2080,0.9216,O. Soderkvist
+69,Image,Symbols,25,995,6,398,0.1005,0.0623 (8),0.0503,0.8211,E. Keogh & J. Brady
+70,Simulated,SyntheticControl,300,300,6,60,0.1200,0.0167 (6),0.0067,0.8333,R. Alcock & Y. Manolopoulos
+71,Motion,ToeSegmentation1,40,228,2,277,0.3202,0.2500 (8),0.2281,0.4737,"A. Bagnall, L. Ye & E. Keogh"
+72,Motion,ToeSegmentation2,36,130,2,343,0.1923,0.0923 (5),0.1615,0.1846,"A. Bagnall, L. Ye & E. Keogh"
+73,Sensor,Trace,100,100,4,275,0.2400,0.0100 (3),0.0000,0.7100,D. Roverso
+74,ECG,TwoLeadECG,23,1139,2,82,0.2529,0.1317 (4),0.0957,0.4996,physionet.org & E. Keogh
+75,Simulated,TwoPatterns,1000,4000,4,128,0.0932,0.0015 (4),0.0000,0.7412,P. Geurts
+76,Motion,UWaveGestureLibraryAll,896,3582,8,945,0.0519,0.0343 (4),0.1083,0.8716,A. Bagnall & J. Liu
+77,Motion,UWaveGestureLibraryX,896,3582,8,315,0.2607,0.2267 (4),0.2725,0.8716,J. Liu
+78,Motion,UWaveGestureLibraryY,896,3582,8,315,0.3384,0.3009 (4),0.3660,0.8716,J. Liu
+79,Motion,UWaveGestureLibraryZ,896,3582,8,315,0.3504,0.3222 (6),0.3417,0.8716,J. Liu
+80,Sensor,Wafer,1000,6164,2,152,0.0045,0.0045 (1),0.0201,0.1079,R. Olszewski
+81,Spectro,Wine,57,54,2,234,0.3889,0.3889 (0),0.4259,0.5000,K. Kemsley & A. Bagnall
+82,Image,WordSynonyms,267,638,25,270,0.3824,0.2618 (9),0.3511,0.7806,T. Rath & R. Manmatha
+83,Motion,Worms,181,77,5,900,0.5455,0.4675 (9),0.4156,0.5714,A. Bagnall
+84,Motion,WormsTwoClass,181,77,2,900,0.3896,0.4156 (7),0.3766,0.4286,A. Bagnall
+85,Image,Yoga,300,3000,2,426,0.1697,0.1560 (7),0.1637,0.4643,L. Wei & E. Keogh
+86,Device,ACSF1,100,100,10,1460,0.4600,0.3800 (4),0.3600,0.9000,P. Schafer
+87,Sensor,AllGestureWiimoteX,300,700,10,Vary,0.4843, 0.2829 (14),0.2843,0.9000,J. Guna
+88,Sensor,AllGestureWiimoteY,300,700,10,Vary,0.4314, 0.2700 (9),0.2714,0.9000,J. Guna
+89,Sensor,AllGestureWiimoteZ,300,700,10,Vary,0.5457,0.3486 (11),0.3571,0.9000,J. Guna
+90,Simulated,BME,30,150,3,128,0.1667,0.0200 (4),0.1000,0.6667,Joseph Fourier University
+91,Traffic,Chinatown,20,343,2,24,0.0466,0.0466 (0),0.0437,0.2741,H.A. Dau
+92,Image,Crop,7200,16800,24,46,0.2883,0.2883 (0),0.3348,0.9583,F. Petitjean
+93,Sensor,DodgerLoopDay,78,80,7,288,0.4500, 0.4125 (1),0.5000,0.8375,C.-C. M. Yeh
+94,Sensor,DodgerLoopGame,20,138,2,288,0.1159, 0.0725 (1),0.1232,0.4783,C.-C. M. Yeh
+95,Sensor,DodgerLoopWeekend,20,138,2,288,0.0145, 0.0217 (1),0.0507,0.2609,C.-C. M. Yeh
+96,EOG,EOGHorizontalSignal,362,362,12,1250,0.5829, 0.5249 (1),0.4972,0.9144,E. Keogh & H. A. Dau
+97,EOG,EOGVerticalSignal,362,362,12,1250,0.5580, 0.5249 (2),0.5525,0.9144,E. Keogh & H. A. Dau
+98,Spectro,EthanolLevel,504,500,4,1751,0.7260,0.7180 (1),0.7240,0.7480,A. Bagnall
+99,Sensor,FreezerRegularTrain,150,2850,2,301,0.1951,0.0930 (1),0.1011,0.5000,REFIT project
+100,Sensor,FreezerSmallTrain,28,2850,2,301,0.3242,0.3242 (0),0.2411,0.5000,REFIT project
+101,HRM,Fungi,18,186,18,201,0.1774,0.1774 (0),0.1613,0.8978,W. Fonzi
+102,Trajectory,GestureMidAirD1,208,130,26,Vary,0.4231, 0.3615 (5),0.4308,0.9615,H. A. Dau
+103,Trajectory,GestureMidAirD2,208,130,26,Vary,0.5077, 0.4000 (6),0.3923,0.9615,H. A. Dau
+104,Trajectory,GestureMidAirD3,208,130,26,Vary,0.6538, 0.6231 (1),0.6769,0.9615,H. A. Dau
+105,Sensor,GesturePebbleZ1,132,172,6,Vary,0.2674,0.1744 (2),0.2093,0.8140,I. Maglogiannis
+106,Sensor,GesturePebbleZ2,146,158,6,Vary,0.3291,0.2215 (6),0.3291,0.8101,I. Maglogiannis
+107,Motion,GunPointAgeSpan,135,316,2,150,0.1013,0.0348 (3),0.0823,0.4937,A. Ratanamahatana & E. Keogh
+108,Motion,GunPointMaleVersusFemale,135,316,2,150,0.0253,0.0253 (0),0.0032,0.4747,A. Ratanamahatana & E. Keogh
+109,Motion,GunPointOldVersusYoung,136,315,2,150,0.0476,0.0349 (4),0.1619,0.4762,A. Ratanamahatana & E. Keogh
+110,Device,HouseTwenty,40,119,2,2000,0.3361, 0.0588 (33),0.0756,0.4202,E. Keogh & S. Gharghabi
+111,EPG,InsectEPGRegularTrain,62,249,3,601,0.3213,0.1727 (11),0.1285,0.5261,E. Keogh & S. Gharghabi
+112,EPG,InsectEPGSmallTrain,17,249,3,601,0.3373,0.3052 (1),0.2651,0.5261,E. Keogh & S. Gharghabi
+113,Traffic,MelbournePedestrian,1194,2439,10,24,0.1525,0.1845 (1),0.2091,0.8995,H.A. Dau
+114,Image,MixedShapesRegularTrain,500,2425,5,1024,0.1027, 0.0911 (4),0.1584,0.7303,E. Keogh
+115,Image,MixedShapesSmallTrain,100,2425,5,1024,0.1645, 0.1674 (7),0.2202,0.7303,E. Keogh
+116,Sensor,PickupGestureWiimoteZ,50,50,10,Vary,0.4400,0.3400 (17),0.3400,0.9000,J. Guna
+117,Hemodynamics,PigAirwayPressure,104,208,52,2000,0.9423,0.9038 (1),0.8942,0.9808,M. Guillame-Bert
+118,Hemodynamics,PigArtPressure,104,208,52,2000,0.8750,0.8029 (1),0.7548,0.9808,M. Guillame-Bert
+119,Hemodynamics,PigCVP,104,208,52,2000,0.9183,0.8413 (11),0.8462,0.9808,M. Guillame-Bert
+120,Device,PLAID,537,537,11,Vary,0.4767,0.1657 (12),0.1639,0.8380,P. Schafer
+121,Power,PowerCons,180,180,2,144,0.0667,0.0778 (3),0.1222,0.5000,"EDF R&D, France"
+122,Spectrum,Rock,20,50,4,2844,0.1600, 0.1600 (0),0.4000,0.5800,Y. Zhu
+123,Spectrum,SemgHandGenderCh2,300,600,2,1500,0.2383,0.1550 (1),0.1983,0.3500,C.-C. M. Yeh
+124,Spectrum,SemgHandMovementCh2,450,450,6,1500,0.6311,0.3622 (1),0.4156,0.8333,C.-C. M. Yeh
+125,Spectrum,SemgHandSubjectCh2,450,450,5,1500,0.5956,0.2000 (3),0.2733,0.8000,C.-C. M. Yeh
+126,Sensor,ShakeGestureWiimoteZ,50,50,10,Vary,0.4000,0.1600 (6),0.1400,0.9000,J. Guna
+127,Simulated,SmoothSubspace,150,150,3,15,0.0933,0.0533 (1),0.1733,0.6667,X. Huang
+128,Simulated,UMD,36,144,3,150,0.2361,0.0278 (6),0.0069,0.6667,Joseph Fourier University

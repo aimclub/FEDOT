@@ -49,7 +49,8 @@ def ts_glm_pipeline():
 
     Where glm - Generalized linear model
     """
-    pipeline = PipelineBuilder().add_node('glm', params={'family': 'gaussian'}).build()
+    pipeline = PipelineBuilder().add_node(
+        'glm', params={'family': 'gaussian'}).build()
     return pipeline
 
 
@@ -79,7 +80,8 @@ def ts_polyfit_pipeline(degree):
 
     Where polyfit - Polynomial interpolation
     """
-    pipeline = PipelineBuilder().add_node('polyfit', params={'degree': degree}).build()
+    pipeline = PipelineBuilder().add_node(
+        'polyfit', params={'degree': degree}).build()
     return pipeline
 
 

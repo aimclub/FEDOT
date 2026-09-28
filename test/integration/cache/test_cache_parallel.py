@@ -22,11 +22,14 @@ def test_prev_cache_parallel_deletion():
     # all files cache files in test dir must be removed
     # if `cache_dir` api param wasn't specified explicitly
     unused_test_pid = get_unused_pid()
-    test_file_1 = Path(default_fedot_data_dir(), f'cache_{unused_test_pid}.operations_db')
+    test_file_1 = Path(default_fedot_data_dir(),
+                       f'cache_{unused_test_pid}.operations_db')
     test_file_1.touch()
-    test_file_2 = Path(default_fedot_data_dir(), f'cache_{unused_test_pid}.preprocessors_db')
+    test_file_2 = Path(default_fedot_data_dir(),
+                       f'cache_{unused_test_pid}.preprocessors_db')
     test_file_2.touch()
-    test_file_3 = Path(default_fedot_data_dir(), f'cache_{unused_test_pid}.predictions_db')
+    test_file_3 = Path(default_fedot_data_dir(),
+                       f'cache_{unused_test_pid}.predictions_db')
     test_file_3.touch()
 
     common_params = dict(timeout=0.1, with_tuning=False)
@@ -34,7 +37,8 @@ def test_prev_cache_parallel_deletion():
     tasks = [
         delayed(run_regression_example)(**common_params, preset='fast_train'),
         delayed(run_classification_example)(**common_params),
-        delayed(run_ts_forecasting_example)(**common_params, dataset='beer', horizon=10),
+        delayed(run_ts_forecasting_example)(
+            **common_params, dataset='beer', horizon=10),
     ]
 
     cpus = cpu_count()
@@ -68,4 +72,5 @@ def test_parallel_cache_files():
         # (operations_cache, preprocessing_cache, predictions_cache) x 3
         assert len(list(data_dir.glob('cache_*.*_db'))) >= 9
         # (regression, classification, ts_sforecasting) .csv files x 3
-        assert len(list(Path(data_dir, "saved_cache_effectiveness").glob('*.csv'))) >= 3
+        assert len(
+            list(Path(data_dir, "saved_cache_effectiveness").glob('*.csv'))) >= 3

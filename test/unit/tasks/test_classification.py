@@ -5,9 +5,9 @@ from sklearn.datasets import load_iris, make_classification
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from examples.simple.classification.image_classification_problem import run_image_classification_problem
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.data.supplementary_data import SupplementaryData
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.split.data_split import train_test_data_setup
+from fedot.core.data.multimodal.supplementary_data import SupplementaryData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -38,7 +38,8 @@ def pipeline_with_pca() -> Pipeline:
 
 
 def get_synthetic_classification_data(n_samples=1000, n_features=10, random_state=None) -> InputData:
-    synthetic_data = make_classification(n_samples=n_samples, n_features=n_features, random_state=random_state)
+    synthetic_data = make_classification(
+        n_samples=n_samples, n_features=n_features, random_state=random_state)
     input_data = InputData(idx=np.arange(0, len(synthetic_data[1])),
                            features=synthetic_data[0],
                            target=synthetic_data[1].reshape((-1, 1)),
@@ -135,7 +136,8 @@ def test_classification_with_pca_pipeline_fit_correct():
                                   multi_class='ovo',
                                   average='macro')
 
-    assert roc_auc_on_test_pca > roc_auc_on_test * 0.95 > 0.5  # add a small deviation
+    assert roc_auc_on_test_pca > roc_auc_on_test * \
+        0.95 > 0.5  # add a small deviation
 
 
 def test_output_mode_labels():

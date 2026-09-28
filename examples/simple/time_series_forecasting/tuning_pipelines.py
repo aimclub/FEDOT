@@ -43,7 +43,8 @@ def run_experiment(dataset: str, pipeline: Pipeline, len_forecast=250, tuning=Tr
     plot_info.append({'idx': prediction.idx,
                       'series': predict,
                       'label': 'Forecast without tuning'})
-    plot_info.append(get_border_line_info(prediction.idx[0], predict, train_data.features, 'Border line'))
+    plot_info.append(get_border_line_info(
+        prediction.idx[0], predict, train_data.features, 'Border line'))
 
     if tuning:
         tuner = TunerBuilder(train_data.task) \
@@ -73,4 +74,5 @@ def run_experiment(dataset: str, pipeline: Pipeline, len_forecast=250, tuning=Tr
 
 
 if __name__ == '__main__':
-    run_experiment('m4_monthly', ts_locf_ridge_pipeline(), len_forecast=10, tuning=True, visualisalion=True)
+    run_experiment('m4_monthly', ts_locf_ridge_pipeline(),
+                   len_forecast=10, tuning=True, visualisalion=True)

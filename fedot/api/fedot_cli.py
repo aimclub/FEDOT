@@ -41,9 +41,11 @@ def separate_argparse_to_fedot(parameters):
             fit_params[keys_names[arg]] = getattr(parameters, arg)
 
     if main_params['problem'] == 'ts_forecasting' and getattr(parameters, 'for_len') is not None:
-        main_params['task_params'] = TsForecastingParams(forecast_length=int(getattr(parameters, 'for_len')))
+        main_params['task_params'] = TsForecastingParams(
+            forecast_length=int(getattr(parameters, 'for_len')))
     elif main_params['problem'] == 'ts_forecasting' and getattr(parameters, 'for_len') is None:
-        raise ValueError("Forecast length (for_len) is necessary parameter for ts_forecasting problem")
+        raise ValueError(
+            "Forecast length (for_len) is necessary parameter for ts_forecasting problem")
 
     if main_params['with_tuning'] == '1':
         main_params['with_tuning'] = True

@@ -10,7 +10,8 @@ from fedot.core.visualisation.pipeline_specific_visuals import PipelineHistoryVi
 def run_pipeline_and_history_visualization():
     """ The function runs visualization of the composing history and the best pipeline. """
     # Gather pipeline and history.
-    history = OptHistory.load(Path(fedot_project_root(), 'examples', 'data', 'histories', 'scoring_case_history.json'))
+    history = OptHistory.load(Path(fedot_project_root(
+    ), 'examples', 'data', 'histories', 'scoring_case_history.json'))
     pipeline = PipelineAdapter().restore(history.individuals[-1][-1].graph)
     # Show visualizations.
     pipeline.show()
@@ -18,7 +19,8 @@ def run_pipeline_and_history_visualization():
     history_visualizer.fitness_line()
     history_visualizer.fitness_box(best_fraction=0.5)
     history_visualizer.operations_kde()
-    history_visualizer.operations_animated_bar(save_path='example_animation.gif', show_fitness=True)
+    history_visualizer.operations_animated_bar(
+        save_path='example_animation.gif', show_fitness=True)
     history_visualizer.fitness_line_interactive()
 
 

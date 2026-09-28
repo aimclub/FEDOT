@@ -2,11 +2,11 @@ import pytest
 from typing import Tuple, Iterable
 import numpy as np
 
-from fedot.core.data.data import OutputData
+from fedot.core.data.input_data.data import OutputData
 from fedot.core.data.merge.data_merger import DataMerger
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.data.array_utilities import atleast_4d
+from fedot.core.data.common.array_utils import atleast_4d
 
 
 def generate_output_images(image_sizes: Iterable[Tuple[int, int]], num_samples=10):
@@ -48,7 +48,8 @@ def test_data_merge_images(output_images):
         return atleast_4d(output_image.predict).shape[3]
 
     img_wh = [img.predict.shape[1:3] for img in output_images]
-    invalid_sizes = len(set(img_wh)) > 1  # Can merge only images of the same size
+    # Can merge only images of the same size
+    invalid_sizes = len(set(img_wh)) > 1
     expected_channels = sum(map(get_num_channels, output_images))
     expected_shape = (*img_wh[0], expected_channels)
 

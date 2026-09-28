@@ -1,13 +1,17 @@
+from dataclasses import replace
 from typing import List, Iterable, Union, Optional
 
 import numpy as np
+import torch
 
 from golem.core.log import default_log
 from golem.utilities.data_structures import are_same_length
 
-from fedot.core.data.array_utilities import find_common_elements, atleast_2d, atleast_4d, flatten_extra_dim
-from fedot.core.data.data import OutputData, InputData
+from fedot.core.data.common.array_utils import find_common_elements, atleast_2d, atleast_4d, flatten_extra_dim
+from fedot.core.data.input_data.data import OutputData, InputData
 from fedot.core.data.merge.supplementary_data_merger import SupplementaryDataMerger
+from fedot.core.data.schemas import validate_tensor_data_merge_data_type
+from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 
@@ -30,7 +34,8 @@ class DataMerger:
     def __init__(self, outputs: List['OutputData'], data_type: DataTypesEnum = None):
         self.log = default_log(self)
         self.outputs = outputs
-        self.data_type = data_type or DataMerger.get_datatype_for_merge(output.data_type for output in outputs)
+        self.data_type = data_type or DataMerger.get_datatype_for_merge(
+            output.data_type for output in outputs)
 
         # Ensure outputs are of equal length, find common index if it is not
         idx_list = [np.asarray(output.idx) for output in outputs]
@@ -46,7 +51,8 @@ class DataMerger:
         """ Construct appropriate data merger for the outputs. """
 
         # Ensure outputs can be merged
-        data_type = DataMerger.get_datatype_for_merge(output.data_type for output in outputs)
+        data_type = DataMerger.get_datatype_for_merge(
+            output.data_type for output in outputs)
         if data_type is None:
             raise ValueError("Can't merge different data types")
 
@@ -78,7 +84,8 @@ class DataMerger:
         merged_features = self.merge_predicts(mergeable_predicts)
         merged_features = self.postprocess_predicts(merged_features)
 
-        updated_metadata = SupplementaryDataMerger(self.outputs, self.main_output).merge()
+        updated_metadata = SupplementaryDataMerger(
+            self.outputs, self.main_output).merge()
 
         return InputData(idx=common_idx, features=merged_features, target=filtered_main_target,
                          task=self.main_output.task, data_type=self.data_type,
@@ -94,7 +101,8 @@ class DataMerger:
         # if target has the same form as index
         #  then it makes sense to extract target with common indices
         if filtered_main_target is not None and len(self.main_output.idx) == len(filtered_main_target):
-            filtered_main_target = self.select_common(self.main_output.idx, filtered_main_target)
+            filtered_main_target = self.select_common(
+                self.main_output.idx, filtered_main_target)
         return filtered_main_target
 
     def find_common_predicts(self) -> List[np.array]:
@@ -109,11 +117,14 @@ class DataMerger:
         if any(is_forecast_indices):
             # Cut prediction length to minimum length
             predict_len = min(len(output.predict) for output in self.outputs)
-            common_predicts = [output.predict[:predict_len] for output in self.outputs]
+            common_predicts = [output.predict[:predict_len]
+                               for output in self.outputs]
         else:
-            common_predicts = [self.select_common(output.idx, output.predict) for output in self.outputs]
+            common_predicts = [self.select_common(
+                output.idx, output.predict) for output in self.outputs]
             if not are_same_length(common_predicts):
-                raise ValueError('Indices of merged data are not equal and not unique. Check validity of the pipeline.')
+                raise ValueError(
+                    'Indices of merged data are not equal and not unique. Check validity of the pipeline.')
         return common_predicts
 
     def preprocess_predicts(self, predicts: List[np.array]) -> List[np.array]:
@@ -147,10 +158,126 @@ class DataMerger:
         priority_output = next((output for output in outputs
                                 if output.supplementary_data.is_main_target), None)
         if not priority_output:
-            flow_lengths = [output.supplementary_data.data_flow_length for output in outputs]
+            flow_lengths = [
+                output.supplementary_data.data_flow_length for output in outputs]
             i_priority_secondary = np.argmin(flow_lengths)
             priority_output = outputs[i_priority_secondary]
         return priority_output
+
+
+class TensorDataMerger:
+    """
+    Merges TensorData objects from parent nodes into a TensorData for the next node.
+
+    TensorData runtime has no TensorOutputData, so parent outputs are merged by
+    their ``features`` field. The resulting container keeps the metadata from the
+    first parent and clears ``predict`` so only final model predictions are stored
+    in ``predict``.
+    """
+
+    def __init__(self, outputs: List[TensorData]):
+        if not outputs:
+            raise ValueError('No TensorData outputs to merge')
+        self.outputs = outputs
+        self.main_output = self._find_main_output(outputs)
+        self.data_type = DataMerger.get_datatype_for_merge(
+            output.data_type for output in outputs)
+        validate_tensor_data_merge_data_type(self.data_type)
+        self.common_indices = self._find_common_indices()
+
+    def merge(self) -> TensorData:
+        merged_features = self.merge_features(self.find_common_features())
+
+        return replace(
+            self.main_output,
+            idx=self.common_indices,
+            features=merged_features,
+            target=self.merge_target(),
+            predict=None,
+        )
+
+    def _find_common_indices(self):
+        idx_list = [output.idx for output in self.outputs]
+        if any(idx is None for idx in idx_list):
+            self._check_equal_rows([output.features for output in self.outputs])
+            return self.main_output.idx
+
+        common_indices = find_common_elements(*[np.asarray(idx) for idx in idx_list])
+        if len(common_indices) == 0:
+            raise ValueError('There are no common indices for TensorData outputs')
+        return common_indices
+
+    def find_common_features(self) -> List[torch.Tensor]:
+        features = [
+            self._select_common(output, output.features)
+            for output in self.outputs
+        ]
+        self._check_equal_rows(features)
+        return self._normalize_feature_shapes(features)
+
+    def merge_target(self) -> Optional[torch.Tensor]:
+        target = self.main_output.target
+        if target is None:
+            return None
+        if self.main_output.idx is None or len(self.main_output.idx) != len(target):
+            return target
+        return self._select_common(self.main_output, target)
+
+    @staticmethod
+    def merge_features(features: List[torch.Tensor]) -> torch.Tensor:
+        return torch.cat(features, dim=-1)
+
+    def _select_common(self, output: TensorData, tensor: torch.Tensor) -> torch.Tensor:
+        if self.common_indices is None or output.idx is None:
+            return tensor
+        index_mask = np.isin(np.asarray(output.idx), self.common_indices)
+        tensor_mask = torch.as_tensor(index_mask, dtype=torch.bool, device=tensor.device)
+        return tensor[tensor_mask]
+
+    @staticmethod
+    def _check_equal_rows(tensors: List[torch.Tensor]):
+        row_counts = [tensor.shape[0] for tensor in tensors]
+        if len(set(row_counts)) != 1:
+            raise ValueError(
+                f"Can't merge TensorData objects with different row counts: {row_counts}")
+
+    @staticmethod
+    def _normalize_feature_shapes(features: List[torch.Tensor]) -> List[torch.Tensor]:
+        """Normalize TensorData branch outputs before concatenation.
+
+        Contract:
+        - all tensors must have equal sample count in dim 0 (validated earlier);
+        - 1D tensors are promoted to 2D as ``[n_samples, 1]``;
+        - if branch shapes are incompatible for ``torch.cat(..., dim=-1)``,
+          tensors are flattened to ``[n_samples, -1]``.
+        """
+        normalized = [TensorDataMerger._atleast_2d_tensor(tensor) for tensor in features]
+        if TensorDataMerger._can_cat_by_last_axis(normalized):
+            return normalized
+        return [tensor.reshape(tensor.shape[0], -1) for tensor in normalized]
+
+    @staticmethod
+    def _atleast_2d_tensor(tensor: torch.Tensor) -> torch.Tensor:
+        while tensor.ndim < 2:
+            tensor = tensor.unsqueeze(-1)
+        return tensor
+
+    @staticmethod
+    def _can_cat_by_last_axis(features: List[torch.Tensor]) -> bool:
+        if not features:
+            return True
+        base_shape = features[0].shape[:-1]
+        return all(tensor.shape[:-1] == base_shape for tensor in features[1:])
+
+    @staticmethod
+    def _find_main_output(outputs: List[TensorData]) -> TensorData:
+        """Choose branch metadata holder for merged TensorData.
+
+        TensorData runtime has no SupplementaryData, so main output selection
+        falls back to the first branch with available target. If all targets are
+        absent, the first branch is used.
+        """
+        return next((output for output in outputs if output.target is not None), outputs[0])
 
 
 class ImageDataMerger(DataMerger):
@@ -161,9 +288,11 @@ class ImageDataMerger(DataMerger):
 
         # And check image sizes
         img_wh = [predict.shape[1:3] for predict in reshaped_predicts]
-        invalid_sizes = len(set(img_wh)) > 1  # Can merge only images of the same size
+        # Can merge only images of the same size
+        invalid_sizes = len(set(img_wh)) > 1
         if invalid_sizes:
-            raise ValueError("Can't merge images of different sizes: " + str(img_wh))
+            raise ValueError(
+                "Can't merge images of different sizes: " + str(img_wh))
 
         return reshaped_predicts
 
@@ -179,7 +308,8 @@ class TextDataMerger(DataMerger):
 
     def merge_predicts(self, predicts: List[np.array]) -> np.array:
         if any(len(pred.shape) > 2 for pred in predicts):
-            raise ValueError('Merge of arrays with more than 2 dimensions is not supported')
+            raise ValueError(
+                'Merge of arrays with more than 2 dimensions is not supported')
         if len(predicts) > 1:
             predicts = [predict.astype(str) for predict in predicts]
             result = predicts[0]

@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional, Sequence, Type, Union
 
 from golem.core.optimisers.optimizer import GraphOptimizer
 
+from fedot.api.builder_rules import build_fedot_kwargs, merge_builder_params
 from fedot.api.main import Fedot
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.metrics_repository import MetricIDType
@@ -15,7 +16,8 @@ class DefaultParamValue:
         return '<default value>'  # Visible in the documentation.
 
 
-DEFAULT_VALUE = DefaultParamValue()  # Mock value used to filter out unset parameters.
+# Mock value used to filter out unset parameters.
+DEFAULT_VALUE = DefaultParamValue()
 
 
 class FedotBuilder:
@@ -66,8 +68,8 @@ class FedotBuilder:
     def __update_params(self, **new_params):
         """ Saves all parameters set by user to the dictionary ``self.api_params``. """
 
-        new_params = {k: v for k, v in new_params.items() if v != DEFAULT_VALUE}
-        self.api_params.update(new_params)
+        self.api_params = merge_builder_params(
+            self.api_params, new_params, DEFAULT_VALUE)
 
     def setup_composition(
             self,
@@ -195,7 +197,8 @@ class FedotBuilder:
 
     def setup_evolution(
             self,
-            initial_assumption: Union[Pipeline, List[Pipeline]] = DEFAULT_VALUE,
+            initial_assumption: Union[Pipeline,
+                                      List[Pipeline]] = DEFAULT_VALUE,
             num_of_generations: Optional[int] = DEFAULT_VALUE,
             early_stopping_iterations: int = DEFAULT_VALUE,
             early_stopping_timeout: int = DEFAULT_VALUE,
@@ -375,7 +378,8 @@ class FedotBuilder:
 
     def setup_pipeline_evaluation(
             self,
-            metric: Union[MetricIDType, Sequence[MetricIDType]] = DEFAULT_VALUE,
+            metric: Union[MetricIDType,
+                          Sequence[MetricIDType]] = DEFAULT_VALUE,
             cv_folds: int = DEFAULT_VALUE,
             max_pipeline_fit_time: Optional[int] = DEFAULT_VALUE,
             collect_intermediate_metric: bool = DEFAULT_VALUE,
@@ -429,9 +433,10 @@ class FedotBuilder:
     def setup_data_preprocessing(
             self,
             safe_mode: bool = DEFAULT_VALUE,
-            use_input_preprocessing: bool = DEFAULT_VALUE,
             use_preprocessing_cache: bool = DEFAULT_VALUE,
-            use_auto_preprocessing: bool = DEFAULT_VALUE,
+            use_optional_preprocessing: bool = DEFAULT_VALUE,
+            sampling_config: Dict[str, Any] = DEFAULT_VALUE,
+            chunked_ensemble_config: Dict[str, Any] = DEFAULT_VALUE,
     ) -> FedotBuilder:
         """ Sets parameters of input data preprocessing.
 
@@ -440,20 +445,27 @@ class FedotBuilder:
                 instead of one-hot encoder if summary cardinality of categorical features is high.
                 Default value is ``False``.
 
-            use_input_preprocessing: indicates whether to do preprocessing of further given data.
-                Defaults to ``True``.
+            use_preprocessing_cache: bool indicating whether to use TensorData Cacher for
+                obligatory preprocessing. Defaults to ``True``.
 
-            use_preprocessing_cache: bool indicating whether to use optional preprocessors caching.
-                Defaults to ``True``.
+            use_optional_preprocessing: if ``True`` (default), initial assumptions include the
+                ``optional_preprocessing`` pipeline node. Set ``False`` to skip it.
+
+            sampling_config: optional configuration of pre-fit sampling stage.
+                If ``None`` or unset, sampling stage is disabled.
+
+            chunked_ensemble_config: optional configuration of chunked ensemble validation and aggregation.
+                Used only when sampling stage runs in ``chunking`` mode.
 
         Returns:
             :class:`FedotBuilder` instance.
         """
         self.__update_params(
             safe_mode=safe_mode,
-            use_input_preprocessing=use_input_preprocessing,
             use_preprocessing_cache=use_preprocessing_cache,
-            use_auto_preprocessing=use_auto_preprocessing,
+            use_optional_preprocessing=use_optional_preprocessing,
+            sampling_config=sampling_config,
+            chunked_ensemble_config=chunked_ensemble_config,
         )
         return self
 
@@ -463,4 +475,4 @@ class FedotBuilder:
         Returns:
             :class:`~fedot.api.main.Fedot` instance.
         """
-        return Fedot(**self.api_params)
+        return Fedot(**build_fedot_kwargs(self.api_params))

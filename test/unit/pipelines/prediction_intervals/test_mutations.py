@@ -49,4 +49,5 @@ def test_get_different_mutations(params):
                                         operations=params['operations'],
                                         logger=params['logger'])
 
-    assert check_uniqueness_mutations_structures(mutations), "Some mutations have identical structure."
+    assert check_uniqueness_mutations_structures(
+        mutations), "Some mutations have identical structure."

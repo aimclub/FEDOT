@@ -8,7 +8,8 @@ import numpy as np
 
 
 def sobol_method(problem: dict, samples: List[Pipeline], operation_response) -> dict:
-    indices = sobol_analyze(problem, operation_response, print_to_console=False)
+    indices = sobol_analyze(problem, operation_response,
+                            print_to_console=False)
 
     return indices
 

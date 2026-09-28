@@ -24,7 +24,8 @@ class WhitelistOperationsFilter(OperationsFilter):
     def __init__(self, available_operations: Iterable[str], available_task_operations: Optional[Iterable[str]] = None):
         super().__init__()
         self._whitelist = tuple(available_operations)
-        self._choice_operations = tuple(available_task_operations) if available_task_operations else self._whitelist
+        self._choice_operations = tuple(
+            available_task_operations) if available_task_operations else self._whitelist
 
     def satisfies(self, pipeline: Optional[Pipeline]) -> bool:
         def node_ok(node):

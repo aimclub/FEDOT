@@ -45,7 +45,8 @@ def random_pipeline(verifier: GraphVerifier,
         else:
             graph_root = node_factory.get_node(is_primary=False)
             graph.add_node(graph_root)
-            graph_growth(graph, graph_root, node_factory, requirements, max_depth)
+            graph_growth(graph, graph_root, node_factory,
+                         requirements, max_depth)
 
         is_correct_graph = verifier(graph)
         n_iter += 1
@@ -79,7 +80,8 @@ def graph_growth(graph: OptGraph,
         height = distance_to_root_level(graph, node_parent)
         is_max_depth_exceeded = height >= max_depth - 2
         is_primary_node_selected = height < max_depth - 1
-        is_growth_should_stopped = random.random() > RandomPipelineFactory.PROBABILITY_OF_GROWTH
+        is_growth_should_stopped = random.random(
+        ) > RandomPipelineFactory.PROBABILITY_OF_GROWTH
         if is_max_depth_exceeded or is_primary_node_selected or is_growth_should_stopped:
             primary_node = node_factory.get_node(is_primary=True)
             node_parent.nodes_from.append(primary_node)
@@ -88,4 +90,5 @@ def graph_growth(graph: OptGraph,
             secondary_node = node_factory.get_node(is_primary=False)
             graph.add_node(secondary_node)
             node_parent.nodes_from.append(secondary_node)
-            graph_growth(graph, secondary_node, node_factory, requirements, max_depth)
+            graph_growth(graph, secondary_node, node_factory,
+                         requirements, max_depth)

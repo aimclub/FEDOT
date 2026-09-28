@@ -26,7 +26,8 @@ def plot_prediction_intervals(model_forecast: np.array,
     """
     if ts_test is not None:
         if len(ts_test) != len(model_forecast):
-            raise ValueError('Lengths of test series and forecasting horizon are different. Correct test series.')
+            raise ValueError(
+                'Lengths of test series and forecasting horizon are different. Correct test series.')
 
     train_len = len(ts)
     train_range = range(train_len)
@@ -45,7 +46,8 @@ def plot_prediction_intervals(model_forecast: np.array,
         ax.plot(test_range, ts_test, color='black', label='Actual TS')
     if show_forecast:
         ax.plot(test_range, model_forecast, color='red', label='Forecast')
-    ax.fill_between(test_range, low_int, up_int, alpha=0.2, color='red', label=label)
+    ax.fill_between(test_range, low_int, up_int,
+                    alpha=0.2, color='red', label=label)
 
     plt.legend()
     plt.grid()
@@ -61,7 +63,8 @@ def plot_prediction_intervals(model_forecast: np.array,
             ax1.plot(test_range, ts_test, color='black', label='Actual TS')
         if show_forecast:
             ax1.plot(test_range, model_forecast, color='red', label='Forecast')
-        ax1.fill_between(test_range, low_int, up_int, alpha=0.2, color='red', label=label)
+        ax1.fill_between(test_range, low_int, up_int,
+                         alpha=0.2, color='red', label=label)
 
     plt.legend()
     plt.grid()
@@ -98,11 +101,14 @@ def _plot_prediction_intervals(horizon,
     for i in range(length):
         if i == 0:
             if show_up_train and up_predictions is not None:
-                ax.plot(r, up_predictions[i], color='yellow', label='predictions to build up interval')
+                ax.plot(r, up_predictions[i], color='yellow',
+                        label='predictions to build up interval')
             if show_low_train and low_predictions is not None:
-                ax.plot(r, low_predictions[i], color='pink', label='predictions to build low interval')
+                ax.plot(r, low_predictions[i], color='pink',
+                        label='predictions to build low interval')
             if show_train and predictions is not None:
-                ax.plot(r, predictions[i], color='pink', label='predictions to build intervals')
+                ax.plot(r, predictions[i], color='pink',
+                        label='predictions to build intervals')
         else:
             if show_up_train and up_predictions is not None:
                 ax.plot(r, up_predictions[i], color='yellow')

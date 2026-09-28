@@ -7,8 +7,8 @@ from examples.advanced.time_series_forecasting.composing_pipelines import get_bo
 from examples.simple.time_series_forecasting.api_forecasting import TS_DATASETS
 from examples.simple.time_series_forecasting.ts_pipelines import ts_ar_pipeline
 from examples.simple.time_series_forecasting.tuning_pipelines import visualise
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import out_of_sample_ts_forecast
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -59,7 +59,8 @@ def run_multistep(dataset: str, pipeline: Pipeline, step_forecast: int = 10, fut
                  {'idx': np.arange(test_data.idx[0], test_data.idx[0] + predict.shape[0]),
                   'series': predict,
                   'label': 'Forecast'},
-                 get_border_line_info(np.arange(test_data.idx[0] + 1)[-1], predict, time_series, 'train|test'),
+                 get_border_line_info(
+                     np.arange(test_data.idx[0] + 1)[-1], predict, time_series, 'train|test'),
                  get_border_line_info(np.arange(test_data.idx[-1] + 1)[-1], predict, time_series, 'End of test',
                                       'gray')]
 
@@ -71,4 +72,5 @@ def run_multistep(dataset: str, pipeline: Pipeline, step_forecast: int = 10, fut
 if __name__ == '__main__':
     set_random_seed(2020)
 
-    run_multistep("australia", ts_ar_pipeline(), step_forecast=10, visualisation=True)
+    run_multistep("australia", ts_ar_pipeline(),
+                  step_forecast=10, visualisation=True)

@@ -10,8 +10,10 @@ def run_classification_example(
     test_data_path = f'{fedot_project_root()}/examples/real_cases/data/scoring/scoring_test.csv'
 
     if run_baseline:
-        baseline_model = Fedot(problem=problem, timeout=timeout, use_stats=use_stats)
-        baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
+        baseline_model = Fedot(
+            problem=problem, timeout=timeout, use_stats=use_stats)
+        baseline_model.fit(features=train_data_path,
+                           target='target', predefined_model='rf')
 
         baseline_model.predict(features=test_data_path)
         print(baseline_model.get_metrics())
@@ -23,7 +25,8 @@ def run_classification_example(
     auto_model.fit(features=train_data_path, target='target')
     prediction = auto_model.predict_proba(features=test_data_path)
 
-    print(auto_model.get_metrics(rounding_order=4))  # we can control the rounding of metrics
+    # we can control the rounding of metrics
+    print(auto_model.get_metrics(rounding_order=4))
     if visualization:
         auto_model.plot_prediction()
     return prediction

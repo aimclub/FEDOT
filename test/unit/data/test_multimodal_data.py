@@ -4,8 +4,8 @@ import pytest
 from pathlib import Path
 
 from fedot import Fedot
-from fedot.core.data.data import InputData
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
@@ -115,8 +115,10 @@ def test_text_data_only(data_type):
 
     assert len(file_mm_data) == 1
     assert file_mm_data[data_source_name].data_type is data_type
-    assert file_mm_data[data_source_name].features.all() == file_data.features.all()
-    assert file_mm_data[data_source_name].target.all() == file_data.target.all()
+    assert file_mm_data[data_source_name].features.all(
+    ) == file_data.features.all()
+    assert file_mm_data[data_source_name].target.all(
+    ) == file_data.target.all()
 
 
 def test_multimodal_data_with_complicated_types():

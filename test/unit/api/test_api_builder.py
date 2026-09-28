@@ -46,7 +46,8 @@ def test_names_and_return_annotations_of_param_setters(fedot_builder_methods):
     methods = fedot_builder_methods
     setters_by_annotation = {func_name for func_name, func in methods.items()
                              if signature(func).return_annotation == FedotBuilder.__name__}
-    setters_by_name = {func_name for func_name in methods.keys() if func_name.startswith('setup_')}
+    setters_by_name = {
+        func_name for func_name in methods.keys() if func_name.startswith('setup_')}
     assert setters_by_annotation == setters_by_name
 
 
@@ -62,11 +63,14 @@ def test_param_setters_has_all_api_parameters(fedot_builder_methods):
     methods = fedot_builder_methods
     setter_signs = [sign for func in methods.values()
                     if (sign := signature(func)).return_annotation == FedotBuilder.__name__]
-    builder_params = set(chain(*[sign.parameters.keys() for sign in setter_signs]))
+    builder_params = set(chain(*[sign.parameters.keys()
+                         for sign in setter_signs]))
     builder_params.update(signature(FedotBuilder.__init__).parameters.keys())
 
-    fedot_api_all_params = set(ApiParamsRepository.default_params_for_task(TaskTypesEnum.classification).keys())
+    fedot_api_all_params = set(ApiParamsRepository.default_params_for_task(
+        TaskTypesEnum.classification).keys())
     fedot_api_all_params.update(signature(Fedot.__init__).parameters.keys())
-    fedot_api_all_params.discard('composer_tuner_params')  # this param is used for kwargs in Fedot.__init__
+    # this param is used for kwargs in Fedot.__init__
+    fedot_api_all_params.discard('composer_tuner_params')
 
     assert builder_params == fedot_api_all_params

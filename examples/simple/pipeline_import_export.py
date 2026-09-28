@@ -5,7 +5,7 @@ import numpy as np
 
 from examples.simple.regression.regression_with_tuning import get_regression_dataset
 from examples.simple.regression.regression_pipelines import regression_ransac_pipeline
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -61,7 +61,8 @@ def run_import_export_example(pipeline_path, pipeline):
 
     # Export it
     path_to_save_and_load = f'{fedot_project_root()}/examples/simple/{pipeline_path}'
-    pipeline.save(path=path_to_save_and_load, create_subdir=False, is_datetime_in_path=False)
+    pipeline.save(path=path_to_save_and_load,
+                  create_subdir=False, is_datetime_in_path=False)
 
     # Import pipeline
     new_pipeline = Pipeline().load(path_to_save_and_load)
@@ -73,7 +74,8 @@ def run_import_export_example(pipeline_path, pipeline):
 
     dict_pipeline, dict_fitted_operations = pipeline.save()
     dict_pipeline = json.loads(dict_pipeline)
-    pipeline_from_dict = Pipeline.from_serialized(dict_pipeline, dict_fitted_operations)
+    pipeline_from_dict = Pipeline.from_serialized(
+        dict_pipeline, dict_fitted_operations)
 
     predicted_output = pipeline_from_dict.predict(predict_input)
     prediction = np.array(predicted_output.predict)
@@ -81,4 +83,5 @@ def run_import_export_example(pipeline_path, pipeline):
 
 
 if __name__ == '__main__':
-    run_import_export_example(pipeline_path='import_export', pipeline=regression_ransac_pipeline())
+    run_import_export_example(
+        pipeline_path='import_export', pipeline=regression_ransac_pipeline())

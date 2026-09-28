@@ -77,6 +77,24 @@ Installation with optional dependencies for image and text processing, and for D
 
   $ pip install fedot[extra]
 
+Other optional extras (see ``setup.py`` and ``other_requirements/``): ``docs``, ``examples``, ``profilers``, ``sampling_zoo``. The last one installs the `sampling-zoo <https://pypi.org/project/sampling-zoo/>`_ package from PyPI for the sampling stage. Combine extras in brackets, for example: ``pip install "fedot[sampling_zoo,examples]"``.
+
+To work from a clone of the repository, create a virtual environment, then install in editable mode (uses ``requirements.txt`` as core dependencies):
+
+.. code-block::
+
+  $ python3 -m venv .venv && source .venv/bin/activate
+  $ pip install -U pip setuptools wheel
+  $ pip install -e .
+
+Optional extras from the same clone, for example:
+
+.. code-block::
+
+  $ pip install -e ".[sampling_zoo]"
+
+The ``pyproject.toml`` file declares a ``[dependency-groups]`` entry for tooling that reads PEP 735 groups; ``pip install -e .`` does not install those automatically—use the extras above.
+
 - **Docker** container
 
 Available docker images can be found here `here <https://github.com/aimclub/FEDOT/tree/master/docker/README_en.rst>`_.
