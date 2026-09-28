@@ -162,7 +162,11 @@ class ApiComposer:
         best_pipeline = best_pipelines[0] if isinstance(best_pipelines, Sequence) else best_pipelines
         return best_pipeline, best_pipeline_candidates, gp_composer
 
-    def tune_final_pipeline(self, train_data: InputData, pipeline_gp_composed: Pipeline, history: OptHistory) -> Pipeline:
+    def tune_final_pipeline(
+            self,
+            train_data: InputData,
+            pipeline_gp_composed: Pipeline,
+            history: OptHistory) -> Pipeline:
         """ Launch tuning procedure for obtained pipeline by composer """
         timeout_for_tuning = abs(self.timer.determine_resources_for_tuning()) / 60
         tuner = (TunerBuilder(self.params.task)
