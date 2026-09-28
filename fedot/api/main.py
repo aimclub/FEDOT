@@ -254,6 +254,7 @@ class Fedot:
                               .with_metric(metric)
                               .with_iterations(iterations)
                               .with_timeout(timeout)
+                              .with_history(self.history)
                               .build(input_data))
 
             self.current_pipeline = pipeline_tuner.tune(self.current_pipeline, show_progress=show_progress)
