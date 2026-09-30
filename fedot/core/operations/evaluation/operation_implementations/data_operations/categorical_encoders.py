@@ -20,7 +20,8 @@ class OneHotEncodingImplementation(DataOperationImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         default_params = {
-            'handle_unknown': 'ignore'
+            'handle_unknown': 'ignore',
+            'dtype': np.float32,
         }
         self.encoder = OneHotEncoder(**{**default_params, **self.params.to_dict()})
         self.categorical_ids: np.ndarray = np.array([])
@@ -105,8 +106,9 @@ class OneHotEncodingImplementation(DataOperationImplementation):
             transformed_categorical = self.encoder.transform(features.iloc[:, self.categorical_ids]).toarray()
             non_categorical_features = np.array(features.iloc[:, self.non_categorical_ids.astype(int)])
 
-        transformed_categorical = transformed_categorical.astype(np.float32)
-        non_categorical_features = non_categorical_features.astype(np.float32)
+        # OneHotEncoder already produces float32. Converting a dense float64
+        # array after toarray() would temporarily double the largest allocation.
+        non_categorical_features = non_categorical_features.astype(np.float32, copy=False)
 
         frames = (non_categorical_features, transformed_categorical)
         transformed_features = np.hstack(frames)

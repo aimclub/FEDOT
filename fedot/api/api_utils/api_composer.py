@@ -8,7 +8,9 @@ from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from golem.core.tuning.simultaneous import SimultaneousTuner
 
 from fedot.api.api_utils.assumptions.assumptions_handler import AssumptionsHandler
+from fedot.api.api_utils.assumptions.memory_safety import bounded_population_size, memory_safe_operations
 from fedot.api.api_utils.params import ApiParams
+from fedot.api.api_utils.presets import OperationsPreset
 from fedot.api.time import ApiTime
 from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
@@ -106,6 +108,21 @@ class ApiComposer:
         available_operations = self.params.get('available_operations')
 
         preset = self.params.get('preset')
+        memory_limited_search = False
+
+        if self.params.get('initial_assumption') is None:
+            if available_operations is None:
+                available_operations = OperationsPreset(self.params.task, preset).filter_operations_by_preset(
+                    train_data.data_type)
+            safe_operations = memory_safe_operations(train_data, available_operations)
+            if safe_operations is not available_operations:
+                memory_limited_search = True
+                self.params['available_operations'] = safe_operations
+                current_arity = self.params.get('max_arity')
+                self.params['max_arity'] = 1 if current_arity is None else min(current_arity, 1)
+                available_operations = safe_operations
+                self.log.info('Large multiclass workload: limiting model candidates and pipeline branching '
+                              'to keep tree fits within memory; search and tuning remain enabled.')
 
         assumption_handler = AssumptionsHandler(train_data)
 
@@ -128,6 +145,16 @@ class ApiComposer:
         self.log.message(
             f'Taking into account n_folds={self.params.data["cv_folds"]}, estimated fit time for initial assumption '
             f'is {round(self.timer.assumption_fit_spend_time.total_seconds(), 1)} sec.')
+
+        if memory_limited_search and self.timer.timedelta_composing is not None:
+            previous_size = self.params['pop_size']
+            if previous_size is not None:
+                self.params['pop_size'] = bounded_population_size(
+                    previous_size, self.params.n_jobs, self.timer.timedelta_composing.total_seconds(),
+                    self.timer.assumption_fit_spend_time.total_seconds())
+                if self.params['pop_size'] < previous_size:
+                    self.log.info(f'Large multiclass workload: reducing population from {previous_size} '
+                                  f'to {self.params["pop_size"]} to fit evolutionary generations in the time budget.')
 
         self.params.update(preset=assumption_handler.propose_preset(preset, self.timer, n_jobs=self.params.n_jobs))
 
