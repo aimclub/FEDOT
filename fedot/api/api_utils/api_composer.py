@@ -9,6 +9,7 @@ from golem.core.tuning.simultaneous import SimultaneousTuner
 
 from fedot.api.api_utils.assumptions.assumptions_handler import AssumptionsHandler
 from fedot.api.api_utils.assumptions.memory_safety import bounded_population_size, memory_safe_operations
+from fedot.api.api_utils.assumptions.tuning_budget import bounded_tuning_resources
 from fedot.api.api_utils.params import ApiParams
 from fedot.api.api_utils.presets import OperationsPreset
 from fedot.api.time import ApiTime
@@ -197,14 +198,27 @@ class ApiComposer:
         """ Launch tuning procedure for obtained pipeline by composer """
         timeout_for_tuning_sec = max(0, self.timer.determine_resources_for_tuning())
         timeout_for_tuning = timeout_for_tuning_sec / 60
-        tuner = (TunerBuilder(self.params.task)
-                 .with_tuner(SimultaneousTuner)
-                 .with_metric(self.metrics[0])
-                 .with_iterations(DEFAULT_TUNING_ITERATIONS_NUMBER)
-                 .with_timeout(datetime.timedelta(minutes=timeout_for_tuning))
-                 .with_eval_time_constraint(self.params.composer_requirements.max_graph_fit_time)
-                 .with_requirements(self.params.composer_requirements)
-                 .build(train_data))
+        builder = (TunerBuilder(self.params.task)
+                   .with_tuner(SimultaneousTuner)
+                   .with_metric(self.metrics[0])
+                   .with_iterations(DEFAULT_TUNING_ITERATIONS_NUMBER)
+                   .with_timeout(datetime.timedelta(minutes=timeout_for_tuning))
+                   .with_eval_time_constraint(self.params.composer_requirements.max_graph_fit_time)
+                   .with_requirements(self.params.composer_requirements))
+        bounds = bounded_tuning_resources(
+            timeout_for_tuning_sec,
+            self.timer.assumption_fit_spend_time_single_fold.total_seconds(),
+            self.params.composer_requirements.cv_folds)
+        if bounds is not None:
+            search_seconds, evaluation_seconds, folds = bounds
+            builder = (builder.with_cv_folds(folds)
+                       .with_timeout(datetime.timedelta(seconds=search_seconds))
+                       .with_evaluation_time_constraint(datetime.timedelta(seconds=evaluation_seconds)))
+            self.log.info(f'Expensive tuning CV: {folds} folds, '
+                          f'{round(evaluation_seconds)} sec. per trial, '
+                          f'{round(search_seconds)} sec. search; time for final CV is reserved.')
+            timeout_for_tuning = search_seconds / 60
+        tuner = builder.build(train_data)
 
         if self.timer.have_time_for_tuning():
             # Tune all nodes in the pipeline

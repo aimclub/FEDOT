@@ -1,5 +1,6 @@
 import traceback
 from datetime import timedelta
+from time import monotonic
 from typing import Callable, Iterable, Optional, Tuple
 
 import numpy as np
@@ -45,7 +46,8 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
                  preprocessing_cache: Optional[PreprocessingCache] = None,
                  predictions_cache: Optional[PredictionsCache] = None,
                  eval_n_jobs: int = 1,
-                 do_unfit: bool = True):
+                 do_unfit: bool = True,
+                 evaluation_time_constraint: Optional[timedelta] = None):
         super().__init__(objective, eval_n_jobs=eval_n_jobs)
         self._data_producer = data_producer
         self._time_constraint = time_constraint
@@ -55,6 +57,9 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         self._predictions_cache = predictions_cache
         self._log = default_log(self)
         self._do_unfit = do_unfit
+        # A per-fold fit limit does not bound an entire cross-validation trial.
+        # Tuning can additionally limit the total evaluation, including folds.
+        self._evaluation_time_constraint = evaluation_time_constraint
 
     def evaluate(self, graph: Pipeline) -> Fitness:
         # Seems like a workaround for situation when logger is lost
@@ -66,9 +71,23 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
 
         folds_metrics = []
         evaluation_failed = False
+        evaluation_started = monotonic()
         for fold_id, (train_data, test_data) in enumerate(self._data_producer()):
+            fit_time_constraint = self._time_constraint
+            if self._evaluation_time_constraint is not None:
+                remaining = self._evaluation_time_constraint.total_seconds() - (monotonic() - evaluation_started)
+                if remaining <= 1:
+                    evaluation_failed = True
+                    break
+                remaining_constraint = timedelta(seconds=remaining)
+                fit_time_constraint = (min(fit_time_constraint, remaining_constraint)
+                                       if fit_time_constraint is not None else remaining_constraint)
             try:
-                prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, self._eval_n_jobs)
+                if self._evaluation_time_constraint is None:
+                    prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, self._eval_n_jobs)
+                else:
+                    prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, self._eval_n_jobs,
+                                                           fit_time_constraint=fit_time_constraint)
             except Exception as ex:
                 self._log.warning(f'Unsuccessful pipeline fit during fitness evaluation. '
                                   f'Skipping the pipeline. Exception <{ex}> on {graph_id}')
@@ -109,7 +128,8 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         return to_fitness(folds_metrics, self._objective.is_multi_objective)
 
     def prepare_graph(self, graph: Pipeline, train_data: InputData,
-                      fold_id: Optional[int] = None, n_jobs: int = -1) -> Pipeline:
+                      fold_id: Optional[int] = None, n_jobs: int = -1,
+                      fit_time_constraint: Optional[timedelta] = None) -> Pipeline:
         """
         Fit pipeline before metric evaluation can be performed.
         :param graph: pipeline for train & validation
@@ -128,7 +148,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         graph.fit(
             train_data,
             n_jobs=n_jobs,
-            time_constraint=self._time_constraint,
+            time_constraint=fit_time_constraint if fit_time_constraint is not None else self._time_constraint,
             predictions_cache=self._predictions_cache,
             fold_id=fold_id
         )

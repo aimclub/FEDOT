@@ -37,6 +37,7 @@ class TunerBuilder:
         self.timeout = timedelta(minutes=5)
         self.search_space = PipelineSearchSpace()
         self.eval_time_constraint = None
+        self.evaluation_time_constraint = None
         self.additional_params = {}
         self.adapter = PipelineAdapter()
 
@@ -87,6 +88,11 @@ class TunerBuilder:
         self.eval_time_constraint = eval_time_constraint
         return self
 
+    def with_evaluation_time_constraint(self, evaluation_time_constraint: timedelta):
+        """Limit the duration of an entire tuning CV trial, not each fold."""
+        self.evaluation_time_constraint = evaluation_time_constraint
+        return self
+
     def with_search_space(self, search_space: PipelineSearchSpace):
         self.search_space = search_space
         return self
@@ -113,6 +119,7 @@ class TunerBuilder:
         data_producer = data_splitter.build(data)
         objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer,
                                                        time_constraint=self.eval_time_constraint,
+                                                       evaluation_time_constraint=self.evaluation_time_constraint,
                                                        eval_n_jobs=self.n_jobs,  # because tuners are not parallelized
                                                        validation_blocks=data_splitter.validation_blocks)
         tuner = self.tuner_class(objective_evaluate=objective_evaluate,
