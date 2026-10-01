@@ -80,7 +80,9 @@ def test_composer_keeps_best_quality_search_and_tuning_for_large_multiclass(monk
 
     assert assumptions[0].root_node.operation.operation_type == 'lgbm'
     assert params['max_arity'] == 1
-    assert params['pop_size'] == 10
+    assert params['pop_size'] == 6
+    assert composer.timer.timeout_for_composing == pytest.approx(21.6)
+    assert composer.composition_evaluation_timeout.total_seconds() == pytest.approx(777.6)
     assert composer.timer.have_time_for_composing(params['pop_size'], params.n_jobs)
     assert params['with_tuning'] is True
     assert params['preset'] == 'best_quality'

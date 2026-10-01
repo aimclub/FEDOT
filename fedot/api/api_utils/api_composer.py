@@ -9,7 +9,7 @@ from golem.core.tuning.simultaneous import SimultaneousTuner
 
 from fedot.api.api_utils.assumptions.assumptions_handler import AssumptionsHandler
 from fedot.api.api_utils.assumptions.memory_safety import bounded_population_size, memory_safe_operations
-from fedot.api.api_utils.assumptions.tuning_budget import bounded_tuning_resources
+from fedot.api.api_utils.assumptions.tuning_budget import bounded_composition_resources, bounded_tuning_resources
 from fedot.api.api_utils.params import ApiParams
 from fedot.api.api_utils.presets import OperationsPreset
 from fedot.api.time import ApiTime
@@ -39,6 +39,7 @@ class ApiComposer:
         # Kept as a reliable, already fitted fallback if the evolved pipeline
         # cannot finish its final full-data fit within the configured limit.
         self.fitted_initial_assumption: Optional[Pipeline] = None
+        self.composition_evaluation_timeout: Optional[datetime.timedelta] = None
         # status flag indicating that composer step was applied
         self.was_optimised = False
         # status flag indicating that tuner step was applied`
@@ -106,6 +107,7 @@ class ApiComposer:
 
     def propose_and_fit_initial_assumption(self, train_data: InputData) -> Tuple[Sequence[Pipeline], Pipeline]:
         """ Method for obtaining and fitting initial assumption"""
+        self.composition_evaluation_timeout = None
         available_operations = self.params.get('available_operations')
 
         preset = self.params.get('preset')
@@ -147,14 +149,28 @@ class ApiComposer:
             f'Taking into account n_folds={self.params.data["cv_folds"]}, estimated fit time for initial assumption '
             f'is {round(self.timer.assumption_fit_spend_time.total_seconds(), 1)} sec.')
 
-        if memory_limited_search and self.timer.timedelta_composing is not None:
+        if self.params.get('with_tuning') and self.timer.timedelta_composing is not None:
+            composition_bounds = bounded_composition_resources(
+                self.timer.timedelta_automl.total_seconds(),
+                self.timer.timedelta_composing.total_seconds(),
+                self.timer.assumption_fit_spend_time.total_seconds())
+            if composition_bounds is not None:
+                composing_seconds, evaluation_seconds = composition_bounds
+                self.timer.timeout_for_composing = composing_seconds / 60
+                self.composition_evaluation_timeout = datetime.timedelta(seconds=evaluation_seconds)
+                self.log.info(f'Expensive evolutionary CV: {round(composing_seconds)} sec. for composition '
+                              f'and at most {round(evaluation_seconds)} sec. per candidate; '
+                              'time is reserved for tuning.')
+
+        if (memory_limited_search or self.composition_evaluation_timeout is not None) and \
+                self.timer.timedelta_composing is not None:
             previous_size = self.params['pop_size']
             if previous_size is not None:
                 self.params['pop_size'] = bounded_population_size(
                     previous_size, self.params.n_jobs, self.timer.timedelta_composing.total_seconds(),
                     self.timer.assumption_fit_spend_time.total_seconds())
                 if self.params['pop_size'] < previous_size:
-                    self.log.info(f'Large multiclass workload: reducing population from {previous_size} '
+                    self.log.info(f'Expensive workload: reducing population from {previous_size} '
                                   f'to {self.params["pop_size"]} to fit evolutionary generations in the time budget.')
 
         self.params.update(preset=assumption_handler.propose_preset(preset, self.timer, n_jobs=self.params.n_jobs))
@@ -164,6 +180,7 @@ class ApiComposer:
     def compose_pipeline(self, train_data: InputData, initial_assumption: Sequence[Pipeline],
                          fitted_assumption: Pipeline) -> Tuple[Pipeline, List[Pipeline], GPComposer]:
 
+        self.params.composer_requirements.evaluation_time_constraint = self.composition_evaluation_timeout
         gp_composer: GPComposer = (ComposerBuilder(task=self.params.task)
                                    .with_requirements(self.params.composer_requirements)
                                    .with_initial_pipelines(initial_assumption)

@@ -5,6 +5,26 @@ from typing import Optional, Tuple
 from fedot.core.constants import MINIMAL_SECONDS_FOR_TUNING
 
 
+def bounded_composition_resources(total_seconds: float, composing_seconds: float,
+                                  estimated_cv_seconds: float) -> Optional[Tuple[float, float]]:
+    """Reserve useful tuning time and bound an in-flight evolutionary CV trial.
+
+    GOLEM checks its composition deadline between evaluations. On an expensive
+    task, the last five-fold evaluation can overrun that deadline by minutes.
+    Small tasks keep the existing 60/40 composing/tuning split.
+    """
+    if (total_seconds <= 0 or composing_seconds <= 0 or estimated_cv_seconds < 120 or
+            estimated_cv_seconds >= 0.3 * composing_seconds):
+        return None
+
+    composing_seconds = min(composing_seconds, 0.4 * total_seconds)
+    # Allow headroom for slower candidates, but never let one evaluation
+    # consume the remaining tuning allocation.
+    evaluation_seconds = min(0.6 * composing_seconds,
+                             max(2 * estimated_cv_seconds, 0.5 * composing_seconds))
+    return composing_seconds, evaluation_seconds
+
+
 def bounded_tuning_resources(available_seconds: float, initial_fold_seconds: float,
                              cv_folds: Optional[int]) -> Optional[Tuple[float, float, int]]:
     """Return search timeout, per-CV-evaluation limit and number of folds.

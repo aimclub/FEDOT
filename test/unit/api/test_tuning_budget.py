@@ -1,8 +1,46 @@
 from datetime import timedelta
 from unittest.mock import Mock
 
-from fedot.api.api_utils.assumptions.tuning_budget import bounded_tuning_resources
+from fedot.api.api_utils.assumptions.tuning_budget import bounded_composition_resources, bounded_tuning_resources
 from fedot.core.optimisers.objective.data_objective_eval import PipelineObjectiveEvaluate
+
+
+def test_expensive_composition_reserves_tuning_and_bounds_cv_overrun():
+    from fedot.api.time import ApiTime
+
+    composing, evaluation = bounded_composition_resources(3240, 1944, 388.4)
+    assert composing == 1296
+    assert round(evaluation, 1) == 776.8
+    assert bounded_composition_resources(3240, 1944, 10) is None
+    assert bounded_composition_resources(3240, 1944, 600) is None
+
+    timer = ApiTime(time_for_automl=54, with_tuning=True)
+    timer.assumption_fit_spend_time_single_fold = timedelta(seconds=77.7)
+    timer.assumption_fit_spend_time = timedelta(seconds=388.4)
+    timer.composing_spend_time = timedelta(seconds=composing + evaluation)
+    assert timer.have_time_for_tuning()
+    timer.composing_spend_time = timedelta(minutes=40)
+    assert not timer.have_time_for_tuning()
+
+
+def test_gp_composer_passes_cv_evaluation_deadline(monkeypatch):
+    from fedot.core.composer.gp_composer import gp_composer
+
+    requirements = Mock(cv_folds=5, parallelization_mode='sequential', n_jobs=8,
+                        max_graph_fit_time=timedelta(seconds=324),
+                        evaluation_time_constraint=timedelta(seconds=778),
+                        collect_intermediate_metric=False)
+    optimizer = Mock()
+    composer = gp_composer.GPComposer(optimizer, requirements)
+    splitter = Mock()
+    monkeypatch.setattr(gp_composer, 'DataSourceSplitter', Mock(return_value=splitter))
+    evaluator_class = Mock()
+    monkeypatch.setattr(gp_composer, 'PipelineObjectiveEvaluate', evaluator_class)
+    monkeypatch.setattr(composer, '_convert_opt_results_to_pipeline', Mock(return_value=(Mock(), [])))
+
+    composer.compose_pipeline(Mock())
+
+    assert evaluator_class.call_args.kwargs['evaluation_time_constraint'] == timedelta(seconds=778)
 
 
 def test_large_workload_reserves_two_bounded_cv_evaluations():
