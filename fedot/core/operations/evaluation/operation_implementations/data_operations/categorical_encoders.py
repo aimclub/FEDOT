@@ -183,9 +183,11 @@ class LabelEncodingImplementation(DataOperationImplementation):
 
             for column_id, column in zip(self.categorical_ids, categorical_columns.T):
                 column_encoder = self.encoders[column_id]
-                column_encoder.classes_ = np.unique(np.concatenate((column_encoder.classes_, column)))
-
-                transformed_column = column_encoder.transform(column)
+                # Keep the fit-time mapping stable. Re-fitting classes on
+                # prediction data both copies high-cardinality columns and
+                # changes the codes of known values when an unseen category
+                # sorts before them.
+                transformed_column = self._stable_codes(column, column_encoder.classes_)
                 nan_indices = np.flatnonzero(column == 'nan')
                 if len(nan_indices):
                     # Store np.nan values
@@ -199,9 +201,7 @@ class LabelEncodingImplementation(DataOperationImplementation):
             for column_id in self.categorical_ids:
                 column_encoder = self.encoders[column_id]
                 column = categorical_columns[column_id]
-                column_encoder.classes_ = np.unique(np.concatenate((column_encoder.classes_, column)))
-
-                transformed_column = column_encoder.transform(column)
+                transformed_column = self._stable_codes(column, column_encoder.classes_)
                 nan_indices = np.flatnonzero(column == 'nan')
                 if len(nan_indices):
                     # Store np.nan values
@@ -209,6 +209,13 @@ class LabelEncodingImplementation(DataOperationImplementation):
                     transformed_column[nan_indices] = np.nan
 
                 data.iloc[:, column_id] = transformed_column
+
+    @staticmethod
+    def _stable_codes(column, classes: np.ndarray) -> np.ndarray:
+        """Keep known codes fixed and map all unseen levels after the fitted ones."""
+        codes = pd.Categorical(column, categories=classes).codes.astype(np.int32, copy=False)
+        codes[codes < 0] = len(classes)
+        return codes
 
     def get_params(self) -> OperationParameters:
         """ Due to LabelEncoder has no parameters - return empty set """

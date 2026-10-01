@@ -1,4 +1,3 @@
-from functools import partial
 from typing import Optional
 
 from golem.core.tuning.search_space import SearchSpace, OperationParametersMapping
@@ -798,13 +797,15 @@ class PipelineSearchSpace(SearchSpace):
                     'type': 'discrete'
                 },
                 'min_data_in_leaf': {
-                    'hyperopt-dist': partial(hp.qloguniform, q=1),
-                    'sampling-scope': [0, 25],
+                    # exp(25) sampled billions of rows; keep trials meaningful.
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [1, 128],
                     'type': 'discrete'
                 },
                 'max_bin': {
+                    # Thousands of borders inflate quantization memory on CPU.
                     'hyperopt-dist': hp.uniformint,
-                    'sampling-scope': [1, 65535],
+                    'sampling-scope': [16, 255],
                     'type': 'discrete'
                 },
                 'l2_leaf_reg': {
@@ -835,13 +836,13 @@ class PipelineSearchSpace(SearchSpace):
                     'type': 'discrete'
                 },
                 'min_data_in_leaf': {
-                    'hyperopt-dist': partial(hp.qloguniform, q=1),
-                    'sampling-scope': [0, 25],
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [1, 128],
                     'type': 'discrete'
                 },
                 'max_bin': {
                     'hyperopt-dist': hp.uniformint,
-                    'sampling-scope': [1, 65535],
+                    'sampling-scope': [16, 255],
                     'type': 'discrete'
                 },
                 'l2_leaf_reg': {

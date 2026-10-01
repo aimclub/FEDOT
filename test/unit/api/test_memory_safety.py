@@ -3,6 +3,7 @@ from datetime import timedelta
 from unittest.mock import Mock
 
 import numpy as np
+import pandas as pd
 import pytest
 
 from fedot.api.api_utils.assumptions.memory_safety import bounded_population_size, memory_safe_operations
@@ -124,6 +125,29 @@ def test_auto_encoder_keeps_float32_one_hot_for_small_tables(monkeypatch):
     assert data.features.dtype == np.float32
 
 
+@pytest.mark.parametrize('as_dataframe', [False, True])
+def test_label_encoding_keeps_train_codes_for_unseen_prediction_categories(as_dataframe):
+    train = _categorical_data()
+    train.features[:, 0] = ['b', 'c'] * 10
+    predict = _categorical_data()
+    predict.features[:4, 0] = ['a', 'b', 'd', np.nan]
+    if as_dataframe:
+        train.features = pd.DataFrame(train.features)
+        predict.features = pd.DataFrame(predict.features)
+
+    encoder = LabelEncodingImplementation()
+    encoder.fit(train)
+    fitted_classes = encoder.encoders[0].classes_.copy()
+    encoded_train = np.asarray(encoder.transform_for_fit(train).predict)
+    encoded_predict = np.asarray(encoder.transform(predict).predict)
+
+    assert [int(value) for value in encoded_train[:2, 0]] == [0, 1]
+    assert [int(value) for value in encoded_predict[:3, 0]] == [2, 0, 2]
+    assert np.isnan(float(encoded_predict[3, 0]))
+    np.testing.assert_array_equal(encoder.encoders[0].classes_, fitted_classes)
+    assert int(np.asarray(encoder.transform(predict).predict)[1, 0]) == 0
+
+
 def test_integer_columns_with_unseen_missing_values_stay_imputable():
     from fedot.utilities.memory import reduce_mem_usage
 
@@ -134,3 +158,12 @@ def test_integer_columns_with_unseen_missing_values_stay_imputable():
     assert result.iloc[:, 1].dtype == np.int8
     assert np.isnan(result.iloc[1, 0])
     assert np.isnan(result.iloc[2, 0])
+
+
+@pytest.mark.parametrize('operation', ['catboost', 'catboostreg'])
+def test_catboost_tuning_bounds_histograms_and_leaf_counts(operation):
+    from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
+
+    parameters = PipelineSearchSpace().get_parameters_dict()[operation]
+    assert parameters['max_bin']['sampling-scope'] == [16, 255]
+    assert parameters['min_data_in_leaf']['sampling-scope'] == [1, 128]
