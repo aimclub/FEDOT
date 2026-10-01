@@ -149,15 +149,24 @@ class ApiComposer:
             f'Taking into account n_folds={self.params.data["cv_folds"]}, estimated fit time for initial assumption '
             f'is {round(self.timer.assumption_fit_spend_time.total_seconds(), 1)} sec.')
 
+        estimated_cv_seconds = self.timer.assumption_fit_spend_time.total_seconds()
         if self.params.get('with_tuning') and self.timer.timedelta_composing is not None:
             composition_bounds = bounded_composition_resources(
                 self.timer.timedelta_automl.total_seconds(),
                 self.timer.timedelta_composing.total_seconds(),
-                self.timer.assumption_fit_spend_time.total_seconds())
+                estimated_cv_seconds)
             if composition_bounds is not None:
                 composing_seconds, evaluation_seconds = composition_bounds
                 self.timer.timeout_for_composing = composing_seconds / 60
                 self.composition_evaluation_timeout = datetime.timedelta(seconds=evaluation_seconds)
+                # Five expensive folds can make all initial candidates invalid
+                # before evolution has a chance to compare their fitness. Keep
+                # CV, but evaluate more candidates within the same time limit.
+                cv_folds = self.params.data['cv_folds']
+                if cv_folds is not None and cv_folds > 3:
+                    self.params['cv_folds'] = 3
+                    self.timer.assumption_fit_spend_time = self.timer.assumption_fit_spend_time_single_fold * 3
+                    self.log.info(f'Expensive evolutionary CV: reducing folds from {cv_folds} to 3.')
                 self.log.info(f'Expensive evolutionary CV: {round(composing_seconds)} sec. for composition '
                               f'and at most {round(evaluation_seconds)} sec. per candidate; '
                               'time is reserved for tuning.')
@@ -168,7 +177,7 @@ class ApiComposer:
             if previous_size is not None:
                 self.params['pop_size'] = bounded_population_size(
                     previous_size, self.params.n_jobs, self.timer.timedelta_composing.total_seconds(),
-                    self.timer.assumption_fit_spend_time.total_seconds())
+                    estimated_cv_seconds)
                 if self.params['pop_size'] < previous_size:
                     self.log.info(f'Expensive workload: reducing population from {previous_size} '
                                   f'to {self.params["pop_size"]} to fit evolutionary generations in the time budget.')
@@ -209,6 +218,13 @@ class ApiComposer:
         for pipeline in best_pipeline_candidates:
             pipeline.log = self.log
         best_pipeline = best_pipelines[0] if isinstance(best_pipelines, Sequence) else best_pipelines
+        if best_pipeline is None:
+            # An interrupted/invalid generation may leave GOLEM with no valid
+            # graphs. The initial assumption was already fitted successfully;
+            # never pass None to the tuner (or to the final full-data fit).
+            self.log.warning('Evolution returned no valid pipeline; using the fitted initial assumption.')
+            best_pipeline = fitted_assumption
+            best_pipeline_candidates = [fitted_assumption]
         return best_pipeline, best_pipeline_candidates, gp_composer
 
     def tune_final_pipeline(self, train_data: InputData, pipeline_gp_composed: Pipeline) -> Pipeline:

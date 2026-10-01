@@ -35,7 +35,7 @@ def bounded_tuning_resources(available_seconds: float, initial_fold_seconds: flo
     Small problems retain their original tuning configuration.
     """
     if (available_seconds <= 0 or initial_fold_seconds <= 0 or
-            cv_folds is None or cv_folds < 2 or initial_fold_seconds * cv_folds < 120):
+            cv_folds is None or cv_folds < 2 or initial_fold_seconds * cv_folds < 45):
         return None
 
     folds = min(cv_folds, 3)
