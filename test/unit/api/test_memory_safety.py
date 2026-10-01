@@ -120,3 +120,15 @@ def test_auto_encoder_keeps_float32_one_hot_for_small_tables(monkeypatch):
     assert isinstance(preprocessor.features_encoders['table'], OneHotEncodingImplementation)
     assert data.features.shape == (20, 21)
     assert data.features.dtype == np.float32
+
+
+def test_integer_columns_with_unseen_missing_values_stay_imputable():
+    from fedot.utilities.memory import reduce_mem_usage
+
+    data = np.array([[1.0, 5.0], [np.nan, 6.0], [np.inf, 7.0]])
+    result = reduce_mem_usage(data, np.array([TYPE_TO_ID[int], TYPE_TO_ID[int]]))
+
+    assert result.iloc[:, 0].dtype == np.float32
+    assert result.iloc[:, 1].dtype == np.int8
+    assert np.isnan(result.iloc[1, 0])
+    assert np.isnan(result.iloc[2, 0])
