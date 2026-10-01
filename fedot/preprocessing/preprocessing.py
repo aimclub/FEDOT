@@ -42,6 +42,22 @@ ALLOWED_NAN_PERCENT = 0.9
 MAX_AUTO_ONE_HOT_BYTES = 256 * 1024 * 1024
 
 
+def _auto_one_hot_exceeds_budget(data: InputData) -> bool:
+    """Estimate dense output incrementally, before fitting a large encoder."""
+    categorical_ids = data.categorical_idx
+    if not categorical_ids.size or not len(data.features):
+        return False
+    max_columns = MAX_AUTO_ONE_HOT_BYTES // (len(data.features) * np.dtype(np.float32).itemsize)
+    columns = len(data.numerical_idx)
+    for column_id in categorical_ids:
+        values = (data.features[:, column_id] if isinstance(data.features, np.ndarray)
+                  else data.features.iloc[:, column_id])
+        columns += len(pd.unique(np.asarray(values).astype(str)))
+        if columns > max_columns:
+            return True
+    return False
+
+
 class DataPreprocessor(BasePreprocessor):
     """
     Class which contains methods for data preprocessing.
@@ -402,7 +418,11 @@ class DataPreprocessor(BasePreprocessor):
         encoder = self.features_encoders.get(source_name)
 
         if encoder is None:
-            encoder = LabelEncodingImplementation() if self.use_label_encoder else OneHotEncodingImplementation()
+            use_label_encoder = self.use_label_encoder or _auto_one_hot_exceeds_budget(data)
+            if use_label_encoder and not self.use_label_encoder:
+                self.log.info('Automatic one-hot encoding would create a large dense matrix; '
+                              'using label encoding instead')
+            encoder = LabelEncodingImplementation() if use_label_encoder else OneHotEncodingImplementation()
             encoder.fit(data)
             if isinstance(encoder, OneHotEncodingImplementation) and encoder.categorical_ids.size:
                 n_columns = len(encoder.non_categorical_ids) + sum(map(len, encoder.encoder.categories_))

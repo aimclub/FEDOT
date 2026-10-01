@@ -100,6 +100,8 @@ def test_auto_encoder_bounds_dense_allocation_and_reuses_fitted_encoder(monkeypa
     from fedot.preprocessing import preprocessing
 
     monkeypatch.setattr(preprocessing, 'MAX_AUTO_ONE_HOT_BYTES', 200)
+    monkeypatch.setattr(OneHotEncodingImplementation, 'fit',
+                        lambda self, data: pytest.fail('oversized one-hot encoder was fitted'))
     preprocessor = DataPreprocessor()
     data = _categorical_data()
     train = preprocessor._apply_categorical_encoding(data, 'table')
