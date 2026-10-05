@@ -1,6 +1,6 @@
 # Base framework
-thegolem>=0.5.0, <0.6.0
-
+# thegolem>=0.5.0, <0.6.0
+thegolem @ git+https://github.com/aimclub/GOLEM.git@602536101f93ed02ad9cbe0e4f9059c5cc1ba9db
 
 # Data
 numpy>=1.16.0, <2.0.0, !=1.24.0; python_version < '3.13'
