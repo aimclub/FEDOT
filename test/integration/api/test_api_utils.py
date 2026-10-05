@@ -1,8 +1,12 @@
 import logging
 from copy import deepcopy
+from types import SimpleNamespace
 
 import pytest
 
+from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
+from test.unit.optimizer.test_pipeline_objective_eval import pipeline_first_test
+from test.unit.validation.test_table_cv import get_classification_data
 from examples.simple.classification.classification_pipelines import (classification_pipeline_with_balancing,
                                                                      classification_pipeline_without_balancing)
 from fedot import Fedot
@@ -144,3 +148,54 @@ def test_api_composer_available_operations():
                   )
     model.fit(train_data)
     assert model.params.get('available_operations') == available_operations
+
+def test_api_composer_passes_history_to_final_tuning(monkeypatch):
+    data = get_classification_data()
+
+    model = Fedot(
+        problem='classification',
+        timeout=0.1,
+        preset='fast_train',
+        with_tuning=True,
+    )
+
+    history = SimpleNamespace(tuning_result=None)
+    pipeline = pipeline_first_test()
+
+    class DummyComposer:
+        def __init__(self):
+            self.history = history
+
+    dummy_composer = DummyComposer()
+
+    monkeypatch.setattr(
+        model.api_composer,
+        'propose_and_fit_initial_assumption',
+        lambda data: ([pipeline], pipeline),
+    )
+
+    monkeypatch.setattr(
+        model.api_composer,
+        'compose_pipeline',
+        lambda *args, **kwargs: (
+            pipeline,
+            [pipeline],
+            dummy_composer,
+        ),
+    )
+
+    captured = {}
+
+    def fake_tune_final_pipeline(train_data, pipeline_to_tune, passed_history):
+        captured['history'] = passed_history
+        return pipeline_to_tune
+
+    monkeypatch.setattr(
+        model.api_composer,
+        'tune_final_pipeline',
+        fake_tune_final_pipeline,
+    )
+
+    model.api_composer.obtain_model(data)
+
+    assert captured['history'] is history
