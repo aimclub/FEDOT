@@ -347,7 +347,9 @@ def test_tuner_correctly_work_with_window_size_selector():
 
     tuner_tuned_pipeline = PipelineBuilder().add_sequence('lagged', 'ridge').build()
     tuner = TunerBuilder(task=ts.task).with_iterations(10).build(data=ts)
+    records = prepare_logging()
     tuned_pipeline = tuner.tune(graph=tuner_tuned_pipeline, show_progress=False)
+    assert any(check_window_size_selector_logging(records))
     tuned_pipeline.fit(ts)
     tuner_tuned_window = tuned_pipeline.nodes[-1].parameters['window_size']
 
