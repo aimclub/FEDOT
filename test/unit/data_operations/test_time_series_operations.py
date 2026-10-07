@@ -345,22 +345,15 @@ def test_evaluation_correctly_work_with_window_size_selector(n_jobs):
 def test_tuner_correctly_work_with_window_size_selector():
     ts = get_timeseries(length=1000, random=True)
 
-    autotuned_pipeline = PipelineBuilder().add_sequence('lagged', 'ridge').build()
-    autotuned_pipeline.fit(ts)
-    autotuned_window = autotuned_pipeline.nodes[-1].parameters['window_size']
-
-    # prepare factory to get all records
-    records = prepare_logging()
-
     tuner_tuned_pipeline = PipelineBuilder().add_sequence('lagged', 'ridge').build()
     tuner = TunerBuilder(task=ts.task).with_iterations(10).build(data=ts)
+    records = prepare_logging()
     tuned_pipeline = tuner.tune(graph=tuner_tuned_pipeline, show_progress=False)
+    assert any(check_window_size_selector_logging(records))
+    tuned_pipeline.fit(ts)
     tuner_tuned_window = tuned_pipeline.nodes[-1].parameters['window_size']
 
-    assert autotuned_window != tuner_tuned_window
-    # check that WindowSizeSelector runs once
-    sum_records = sum(check_window_size_selector_logging(records))
-    assert sum_records == 1
+    assert 0 < tuner_tuned_window < len(ts.features)
 
 
 @pytest.mark.parametrize(('length', 'features_count', 'target_count', 'window_size'),

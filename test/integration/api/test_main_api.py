@@ -5,6 +5,8 @@ from copy import deepcopy
 import numpy as np
 import pandas as pd
 import pytest
+from test.unit.optimizer.test_pipeline_objective_eval import pipeline_first_test
+from test.unit.validation.test_table_cv import get_classification_data
 from golem.core.dag.graph_utils import graph_structure
 from sklearn.datasets import load_iris
 from sklearn.preprocessing import LabelEncoder
@@ -366,3 +368,56 @@ def test_forecast_with_not_ts_problem():
     model.fit(train_data, predefined_model='auto')
     with pytest.raises(ValueError):
         model.forecast(pre_history=test_data)
+
+def test_fedot_tune_passes_history_to_tuner_builder(monkeypatch):
+    model = Fedot(problem='classification')
+
+    model.current_pipeline = pipeline_first_test()
+    model.train_data = get_classification_data()
+    model.history = object()
+
+    captured = {}
+
+    class DummyTuner:
+        was_tuned = True
+
+        def tune(self, pipeline, show_progress=False):
+            return pipeline
+
+    class DummyTunerBuilder:
+        def __init__(self, task):
+            pass
+
+        def with_tuner(self, tuner):
+            return self
+
+        def with_cv_folds(self, cv_folds):
+            return self
+
+        def with_n_jobs(self, n_jobs):
+            return self
+
+        def with_metric(self, metric):
+            return self
+
+        def with_iterations(self, iterations):
+            return self
+
+        def with_timeout(self, timeout):
+            return self
+
+        def with_history(self, history):
+            captured['history'] = history
+            return self
+
+        def build(self, data):
+            return DummyTuner()
+
+    monkeypatch.setattr(
+        'fedot.api.main.TunerBuilder',
+        DummyTunerBuilder,
+    )
+
+    model.tune(show_progress=False)
+
+    assert captured['history'] is model.history

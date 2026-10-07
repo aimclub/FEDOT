@@ -20,7 +20,7 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
-    "thegolem>=0.5.0,<0.6.0",
+    "thegolem @ git+https://github.com/aimclub/GOLEM.git@602536101f93ed02ad9cbe0e4f9059c5cc1ba9db",
     "numpy>=1.16.0,<2.0.0,!=1.24.0; python_version < '3.13'",
     "numpy>=2.1,<3.0.0; python_version >= '3.13'",
     "pandas>=1.3.0,<3.0.0",

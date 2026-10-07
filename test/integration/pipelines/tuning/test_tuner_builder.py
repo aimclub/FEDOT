@@ -3,6 +3,7 @@ from typing import Optional
 
 import numpy as np
 import pytest
+from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from golem.core.tuning.hyperopt_tuner import HyperoptTuner
 from golem.core.tuning.iopt_tuner import IOptTuner
 from golem.core.tuning.sequential import SequentialTuner
@@ -73,3 +74,22 @@ def test_tuner_builder_with_custom_params(tuner_class):
     assert tuner.search_space == search_space
     assert tuner.iterations == iterations
     assert tuner.timeout.seconds == int(timeout.seconds)
+
+
+class DummyTuner:
+    def __init__(self, *args, history=None, **kwargs):
+        self.history = history
+
+
+def test_tuner_builder_passes_history_to_tuner():
+    data = get_classification_data()
+    history = object()
+
+    tuner = (
+        TunerBuilder(data.task)
+        .with_tuner(DummyTuner)
+        .with_history(history)
+        .build(data)
+    )
+
+    assert tuner.history is history
