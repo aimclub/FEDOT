@@ -26,16 +26,23 @@ def bounded_composition_resources(total_seconds: float, composing_seconds: float
 
 
 def bounded_tuning_resources(available_seconds: float, initial_fold_seconds: float,
-                             cv_folds: Optional[int]) -> Optional[Tuple[float, float, int]]:
+                             cv_folds: Optional[int],
+                             complex_pipeline: bool = False) -> Optional[Tuple[float, float, int]]:
     """Return search timeout, per-CV-evaluation limit and number of folds.
 
     GOLEM's Hyperopt timeout is checked *between* trials; an in-flight CV
     evaluation and the final CV check can each overrun it. For expensive fits,
     reserve both evaluations and shorten the search deadline accordingly.
-    Small problems retain their original tuning configuration.
+    Small problems retain their original tuning configuration unless evolution
+    produced a complex graph whose tuning cost cannot be inferred from the
+    initial fit.
     """
+    # A fast initial assumption does not predict the cost of tuning an evolved
+    # multi-node graph. Its search can contain several expensive learners even
+    # when the baseline fit took only a few seconds.
     if (available_seconds <= 0 or initial_fold_seconds <= 0 or
-            cv_folds is None or cv_folds < 2 or initial_fold_seconds * cv_folds < 45):
+            cv_folds is None or cv_folds < 2 or
+            (initial_fold_seconds * cv_folds < 45 and not complex_pipeline)):
         return None
 
     folds = min(cv_folds, 3)

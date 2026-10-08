@@ -66,6 +66,43 @@ def test_fast_initial_fit_does_not_allow_heavy_tuning_candidates_to_overrun():
     assert bounded_tuning_resources(2040, 12.2, 5) == (1020, 510, 3)
 
 
+def test_complex_evolved_pipeline_gets_a_cv_deadline_even_with_fast_baseline():
+    assert bounded_tuning_resources(1560, 8.6, 5) is None
+    assert bounded_tuning_resources(1560, 8.6, 5, complex_pipeline=True) == (780, 390, 3)
+    assert bounded_tuning_resources(960, 2, 5, complex_pipeline=True) == (480, 240, 3)
+
+
+def test_composer_bounds_tuning_of_complex_pipeline_after_fast_initial_fit(monkeypatch):
+    from fedot.api.api_utils import api_composer
+    from fedot.api.time import ApiTime
+    from fedot.core.pipelines.pipeline import Pipeline
+
+    params = Mock()
+    params.get.return_value = False
+    params.composer_requirements.cv_folds = 5
+    params.composer_requirements.max_graph_fit_time = timedelta(seconds=324)
+    composer = api_composer.ApiComposer(params, ['roc_auc'])
+    composer.timer = ApiTime(time_for_automl=54, with_tuning=True)
+    composer.timer.composing_spend_time = timedelta(minutes=27)
+    composer.timer.assumption_fit_spend_time_single_fold = timedelta(seconds=8.6)
+    composer.timer.assumption_fit_spend_time = timedelta(seconds=43)
+
+    builder = Mock()
+    for method in ('with_tuner', 'with_metric', 'with_iterations', 'with_timeout',
+                   'with_eval_time_constraint', 'with_requirements', 'with_cv_folds',
+                   'with_evaluation_time_constraint'):
+        getattr(builder, method).return_value = builder
+    monkeypatch.setattr(api_composer, 'TunerBuilder', Mock(return_value=builder))
+
+    pipeline = Mock(spec=Pipeline)
+    pipeline.nodes = [Mock() for _ in range(6)]
+    composer.tune_final_pipeline(Mock(), pipeline)
+
+    builder.with_cv_folds.assert_called_once_with(3)
+    builder.with_evaluation_time_constraint.assert_called_once()
+    builder.build.return_value.tune.assert_called_once_with(pipeline)
+
+
 def test_evolution_without_valid_graph_falls_back_to_fitted_assumption(monkeypatch):
     from fedot.api.api_utils import api_composer
     from fedot.api.time import ApiTime

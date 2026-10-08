@@ -241,7 +241,8 @@ class ApiComposer:
         bounds = bounded_tuning_resources(
             timeout_for_tuning_sec,
             self.timer.assumption_fit_spend_time_single_fold.total_seconds(),
-            self.params.composer_requirements.cv_folds)
+            self.params.composer_requirements.cv_folds,
+            complex_pipeline=isinstance(pipeline_gp_composed, Pipeline) and len(pipeline_gp_composed.nodes) >= 4)
         if bounds is not None:
             search_seconds, evaluation_seconds, folds = bounds
             builder = (builder.with_cv_folds(folds)
