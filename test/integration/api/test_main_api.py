@@ -369,6 +369,7 @@ def test_forecast_with_not_ts_problem():
     with pytest.raises(ValueError):
         model.forecast(pre_history=test_data)
 
+
 def test_fedot_tune_passes_history_to_tuner_builder(monkeypatch):
     model = Fedot(problem='classification')
 

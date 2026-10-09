@@ -127,7 +127,7 @@ class AtomizedModel(Operation):
                               self.pipeline.nodes)
         operation_types_dict = dict(Counter(operation_types))
         return f'{operation_type}_length:{operation_length}_depth:{operation_depth}' \
-               f'_types:{operation_types_dict}_id:{operation_id}'
+            f'_types:{operation_types_dict}_id:{operation_id}'
 
     @staticmethod
     def assign_tabular_column_types(output_data: OutputData,

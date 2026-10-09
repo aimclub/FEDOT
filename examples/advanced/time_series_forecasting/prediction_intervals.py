@@ -62,8 +62,8 @@ def build_pred_ints(start=5000, end=7000, horizon=200):
 
     print(f'''Evaluate results using metrcis picp (predicition interval coverage probability) and interval_score,
 see https://arxiv.org/pdf/2007.05709.pdf
-interval_score: {interval_score(ts_test,up=x['up_int'],low=x['low_int'])}
-picp: {picp(ts_test,low = x['low_int'],up=x['up_int'])}
+interval_score: {interval_score(ts_test, up=x['up_int'], low=x['low_int'])}
+picp: {picp(ts_test, low=x['low_int'], up=x['up_int'])}
 ''')
 
 
