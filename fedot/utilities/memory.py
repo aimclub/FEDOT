@@ -53,8 +53,8 @@ class MemoryAnalytics:
         if cls.is_active:
             memory_consumption = cls.get_measures()
             message = f'Memory consumption for {additional_info} in {cls.active_session_label} session: ' \
-                      f'current {round(memory_consumption[0], 1)} MiB, ' \
-                      f'max: {round(memory_consumption[1], 1)} MiB'
+                f'current {round(memory_consumption[0], 1)} MiB, ' \
+                f'max: {round(memory_consumption[1], 1)} MiB'
             if logger is None:
                 logger = default_log(prefix=cls.__name__)
             logger.log(logging_level, message)
