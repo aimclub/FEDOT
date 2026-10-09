@@ -10,6 +10,7 @@ scipy>0.13.0, <1.13.0; python_version < '3.13'
 scipy>=1.14.1, <2.0.0; python_version >= '3.13'
 dask-ml<2026.0.0
 dask<2026.0.0
+pyarrow<26.0.0; python_version < '3.13'
 
 # Models and frameworks
 anytree>=2.8.0, <3.0.0
