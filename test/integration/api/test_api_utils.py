@@ -149,6 +149,7 @@ def test_api_composer_available_operations():
     model.fit(train_data)
     assert model.params.get('available_operations') == available_operations
 
+
 def test_api_composer_passes_history_to_final_tuning(monkeypatch):
     data = get_classification_data()
 

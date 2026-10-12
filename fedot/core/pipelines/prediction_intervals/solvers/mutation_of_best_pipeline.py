@@ -81,7 +81,7 @@ def solver_mutation_of_best_pipeline(train_input: InputData,
         metric_value = RMSE.get_value(pipeline=pipeline, reference_data=train_input, validation_blocks=2)
         if show_progress:
             end_time = time.time()
-            logger.info(f'fitting time {end_time-start_time} sec')
+            logger.info(f'fitting time {end_time - start_time} sec')
             logger.info(f'RMSE-metric: {metric_value}')
             fig, ax = plt.subplots()
             ax.plot(range(len(pred)), pred)
