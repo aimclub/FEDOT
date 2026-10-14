@@ -7,6 +7,7 @@ try:
     from golem.core.tuning.iopt_tuner import IOptTuner
 except ModuleNotFoundError:
     print('IOpt tuner not installed')
+from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from golem.core.tuning.optuna_tuner import OptunaTuner
 from golem.core.tuning.simultaneous import SimultaneousTuner
 from golem.core.tuning.tuner_interface import BaseTuner
@@ -40,6 +41,7 @@ class TunerBuilder:
         self.evaluation_time_constraint = None
         self.additional_params = {}
         self.adapter = PipelineAdapter()
+        self.history = None
 
     def with_tuner(self, tuner: Type[BaseTuner]):
         self.tuner_class = tuner
@@ -105,6 +107,10 @@ class TunerBuilder:
         self.additional_params.update(parameters)
         return self
 
+    def with_history(self, history: OptHistory):
+        self.history = history
+        return self
+
     def build(self, data: InputData) -> BaseTuner:
         if self.tuner_class is IOptTuner and not hasattr(np, 'infty'):
             # iOpt 0.2.22 still uses the alias removed in NumPy 2.0.
@@ -129,5 +135,6 @@ class TunerBuilder:
                                  timeout=self.timeout,
                                  search_space=self.search_space,
                                  n_jobs=self.n_jobs,
+                                 history=self.history,
                                  **self.additional_params)
         return tuner
