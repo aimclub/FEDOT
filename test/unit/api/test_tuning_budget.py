@@ -89,14 +89,16 @@ def test_composer_bounds_tuning_of_complex_pipeline_after_fast_initial_fit(monke
 
     builder = Mock()
     for method in ('with_tuner', 'with_metric', 'with_iterations', 'with_timeout',
-                   'with_eval_time_constraint', 'with_requirements', 'with_cv_folds',
+                   'with_eval_time_constraint', 'with_requirements', 'with_history','with_cv_folds',
                    'with_evaluation_time_constraint'):
         getattr(builder, method).return_value = builder
     monkeypatch.setattr(api_composer, 'TunerBuilder', Mock(return_value=builder))
 
     pipeline = Mock(spec=Pipeline)
     pipeline.nodes = [Mock() for _ in range(6)]
-    composer.tune_final_pipeline(Mock(), pipeline)
+
+    history = Mock()
+    composer.tune_final_pipeline(Mock(), pipeline, history)
 
     builder.with_cv_folds.assert_called_once_with(3)
     builder.with_evaluation_time_constraint.assert_called_once()
@@ -219,11 +221,13 @@ def test_api_composer_keeps_tuning_enabled_and_applies_cv_limits(monkeypatch):
     builder.with_requirements.return_value = builder
     builder.with_cv_folds.return_value = builder
     builder.with_evaluation_time_constraint.return_value = builder
+    builder.with_history.return_value = builder
     tuner = builder.build.return_value
     monkeypatch.setattr(api_composer, 'TunerBuilder', Mock(return_value=builder))
 
     pipeline = Mock()
-    assert composer.tune_final_pipeline(Mock(), pipeline) is tuner.tune.return_value
+    history = Mock()
+    assert composer.tune_final_pipeline(Mock(), pipeline, history) is tuner.tune.return_value
     tuner.tune.assert_called_once_with(pipeline)
     builder.with_cv_folds.assert_called_once_with(3)
     builder.with_evaluation_time_constraint.assert_called_once()
