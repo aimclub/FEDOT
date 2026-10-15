@@ -398,6 +398,57 @@ def test_pipeline_fit_time_constraint():
     assert predicted_second is not None
 
 
+def test_native_fit_time_limit_is_split_and_explicit_value_is_preserved():
+    explicit_node = PipelineNode('xgboost')
+    explicit_node.parameters = {
+        **explicit_node.parameters,
+        'fit_time_limit': 7.0,
+    }
+    automatic_node = PipelineNode('lgbm', nodes_from=[explicit_node])
+    pipeline = Pipeline(automatic_node)
+    original_explicit_parameters = explicit_node.parameters
+    original_automatic_parameters = automatic_node.parameters
+
+    changed_nodes = pipeline._set_default_native_fit_time_limits(
+        datetime.timedelta(seconds=100)
+    )
+
+    assert explicit_node.parameters['fit_time_limit'] == 7.0
+    assert automatic_node.parameters['fit_time_limit'] == pytest.approx(45.0)
+    assert changed_nodes == [(automatic_node, original_automatic_parameters)]
+
+    for node, original_parameters in changed_nodes:
+        node.parameters = original_parameters
+    assert explicit_node.parameters == original_explicit_parameters
+    assert automatic_node.parameters == original_automatic_parameters
+
+
+def test_pipeline_fit_restores_automatically_injected_native_limit(
+        monkeypatch, data_setup):
+    pipeline = Pipeline(PipelineNode('lgbm'))
+    original_parameters = pipeline.root_node.parameters
+    observed = {}
+
+    def fake_fit_with_time_limit(input_data, time, predictions_cache=None,
+                                 fold_id=None):
+        del input_data, time, predictions_cache, fold_id
+        observed.update(pipeline.root_node.parameters)
+        return 'prediction'
+
+    monkeypatch.setattr(
+        pipeline, '_fit_with_time_limit', fake_fit_with_time_limit
+    )
+
+    result = pipeline.fit(
+        data_setup,
+        time_constraint=datetime.timedelta(seconds=10),
+    )
+
+    assert result == 'prediction'
+    assert observed['fit_time_limit'] == pytest.approx(9.0)
+    assert pipeline.root_node.parameters == original_parameters
+
+
 @pytest.mark.parametrize('data_fixture', ['data_setup', 'file_data_setup'])
 def test_pipeline_unfit(data_fixture, request):
     data = request.getfixturevalue(data_fixture)

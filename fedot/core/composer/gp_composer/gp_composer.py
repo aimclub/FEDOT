@@ -67,6 +67,7 @@ class GPComposer(Composer):
         objective_evaluator = PipelineObjectiveEvaluate(objective=self.optimizer.objective,
                                                         data_producer=data_producer,
                                                         time_constraint=self.composer_requirements.max_graph_fit_time,
+                                                        evaluation_time_constraint=self.composer_requirements.evaluation_time_constraint,
                                                         operations_cache=self.operations_cache,
                                                         preprocessing_cache=self.preprocessing_cache,
                                                         predictions_cache=self.predictions_cache,

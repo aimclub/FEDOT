@@ -8,7 +8,10 @@ from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from golem.core.tuning.simultaneous import SimultaneousTuner
 
 from fedot.api.api_utils.assumptions.assumptions_handler import AssumptionsHandler
+from fedot.api.api_utils.assumptions.memory_safety import bounded_population_size, memory_safe_operations
+from fedot.api.api_utils.assumptions.tuning_budget import bounded_composition_resources, bounded_tuning_resources
 from fedot.api.api_utils.params import ApiParams
+from fedot.api.api_utils.presets import OperationsPreset
 from fedot.api.time import ApiTime
 from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
@@ -33,6 +36,10 @@ class ApiComposer:
         self.preprocessing_cache: Optional[PreprocessingCache] = None
         self.predictions_cache: Optional[PredictionsCache] = None
         self.timer = None
+        # Kept as a reliable, already fitted fallback if the evolved pipeline
+        # cannot finish its final full-data fit within the configured limit.
+        self.fitted_initial_assumption: Optional[Pipeline] = None
+        self.composition_evaluation_timeout: Optional[datetime.timedelta] = None
         # status flag indicating that composer step was applied
         self.was_optimised = False
         # status flag indicating that tuner step was applied`
@@ -69,6 +76,7 @@ class ApiComposer:
             self.timer = ApiTime(time_for_automl=timeout, with_tuning=with_tuning)
 
             initial_assumption, fitted_assumption = self.propose_and_fit_initial_assumption(train_data)
+            self.fitted_initial_assumption = fitted_assumption
 
             multi_objective = len(self.metrics) > 1
             self.params.init_params_for_composing(self.timer.timedelta_composing, multi_objective)
@@ -99,9 +107,25 @@ class ApiComposer:
 
     def propose_and_fit_initial_assumption(self, train_data: InputData) -> Tuple[Sequence[Pipeline], Pipeline]:
         """ Method for obtaining and fitting initial assumption"""
+        self.composition_evaluation_timeout = None
         available_operations = self.params.get('available_operations')
 
         preset = self.params.get('preset')
+        memory_limited_search = False
+
+        if self.params.get('initial_assumption') is None:
+            if available_operations is None:
+                available_operations = OperationsPreset(self.params.task, preset).filter_operations_by_preset(
+                    train_data.data_type)
+            safe_operations = memory_safe_operations(train_data, available_operations)
+            if safe_operations is not available_operations:
+                memory_limited_search = True
+                self.params['available_operations'] = safe_operations
+                current_arity = self.params.get('max_arity')
+                self.params['max_arity'] = 1 if current_arity is None else min(current_arity, 1)
+                available_operations = safe_operations
+                self.log.info('Large multiclass workload: limiting model candidates and pipeline branching '
+                              'to keep tree fits within memory; search and tuning remain enabled.')
 
         assumption_handler = AssumptionsHandler(train_data)
 
@@ -125,6 +149,39 @@ class ApiComposer:
             f'Taking into account n_folds={self.params.data["cv_folds"]}, estimated fit time for initial assumption '
             f'is {round(self.timer.assumption_fit_spend_time.total_seconds(), 1)} sec.')
 
+        estimated_cv_seconds = self.timer.assumption_fit_spend_time.total_seconds()
+        if self.params.get('with_tuning') and self.timer.timedelta_composing is not None:
+            composition_bounds = bounded_composition_resources(
+                self.timer.timedelta_automl.total_seconds(),
+                self.timer.timedelta_composing.total_seconds(),
+                estimated_cv_seconds)
+            if composition_bounds is not None:
+                composing_seconds, evaluation_seconds = composition_bounds
+                self.timer.timeout_for_composing = composing_seconds / 60
+                self.composition_evaluation_timeout = datetime.timedelta(seconds=evaluation_seconds)
+                # Five expensive folds can make all initial candidates invalid
+                # before evolution has a chance to compare their fitness. Keep
+                # CV, but evaluate more candidates within the same time limit.
+                cv_folds = self.params.data['cv_folds']
+                if cv_folds is not None and cv_folds > 3:
+                    self.params['cv_folds'] = 3
+                    self.timer.assumption_fit_spend_time = self.timer.assumption_fit_spend_time_single_fold * 3
+                    self.log.info(f'Expensive evolutionary CV: reducing folds from {cv_folds} to 3.')
+                self.log.info(f'Expensive evolutionary CV: {round(composing_seconds)} sec. for composition '
+                              f'and at most {round(evaluation_seconds)} sec. per candidate; '
+                              'time is reserved for tuning.')
+
+        if (memory_limited_search or self.composition_evaluation_timeout is not None) and \
+                self.timer.timedelta_composing is not None:
+            previous_size = self.params['pop_size']
+            if previous_size is not None:
+                self.params['pop_size'] = bounded_population_size(
+                    previous_size, self.params.n_jobs, self.timer.timedelta_composing.total_seconds(),
+                    estimated_cv_seconds)
+                if self.params['pop_size'] < previous_size:
+                    self.log.info(f'Expensive workload: reducing population from {previous_size} '
+                                  f'to {self.params["pop_size"]} to fit evolutionary generations in the time budget.')
+
         self.params.update(preset=assumption_handler.propose_preset(preset, self.timer, n_jobs=self.params.n_jobs))
 
         return initial_assumption, fitted_assumption
@@ -132,6 +189,7 @@ class ApiComposer:
     def compose_pipeline(self, train_data: InputData, initial_assumption: Sequence[Pipeline],
                          fitted_assumption: Pipeline) -> Tuple[Pipeline, List[Pipeline], GPComposer]:
 
+        self.params.composer_requirements.evaluation_time_constraint = self.composition_evaluation_timeout
         gp_composer: GPComposer = (ComposerBuilder(task=self.params.task)
                                    .with_requirements(self.params.composer_requirements)
                                    .with_initial_pipelines(initial_assumption)
@@ -160,6 +218,13 @@ class ApiComposer:
         for pipeline in best_pipeline_candidates:
             pipeline.log = self.log
         best_pipeline = best_pipelines[0] if isinstance(best_pipelines, Sequence) else best_pipelines
+        if best_pipeline is None:
+            # An interrupted/invalid generation may leave GOLEM with no valid
+            # graphs. The initial assumption was already fitted successfully;
+            # never pass None to the tuner (or to the final full-data fit).
+            self.log.warning('Evolution returned no valid pipeline; using the fitted initial assumption.')
+            best_pipeline = fitted_assumption
+            best_pipeline_candidates = [fitted_assumption]
         return best_pipeline, best_pipeline_candidates, gp_composer
 
     def tune_final_pipeline(
@@ -168,16 +233,35 @@ class ApiComposer:
             pipeline_gp_composed: Pipeline,
             history: OptHistory) -> Pipeline:
         """ Launch tuning procedure for obtained pipeline by composer """
-        timeout_for_tuning = abs(self.timer.determine_resources_for_tuning()) / 60
-        tuner = (TunerBuilder(self.params.task)
+        timeout_for_tuning_sec = max(0, self.timer.determine_resources_for_tuning())
+        timeout_for_tuning = timeout_for_tuning_sec / 60
+
+        builder = (TunerBuilder(self.params.task)
                  .with_tuner(SimultaneousTuner)
                  .with_metric(self.metrics[0])
                  .with_iterations(DEFAULT_TUNING_ITERATIONS_NUMBER)
                  .with_timeout(datetime.timedelta(minutes=timeout_for_tuning))
                  .with_eval_time_constraint(self.params.composer_requirements.max_graph_fit_time)
                  .with_requirements(self.params.composer_requirements)
-                 .with_history(history)
-                 .build(train_data))
+                 .with_history(history))
+
+        bounds = bounded_tuning_resources(
+            timeout_for_tuning_sec,
+            self.timer.assumption_fit_spend_time_single_fold.total_seconds(),
+            self.params.composer_requirements.cv_folds,
+            complex_pipeline=isinstance(pipeline_gp_composed, Pipeline) and len(pipeline_gp_composed.nodes) >= 4)
+        
+        if bounds is not None:
+            search_seconds, evaluation_seconds, folds = bounds
+            builder = (builder.with_cv_folds(folds)
+                        .with_timeout(datetime.timedelta(seconds=search_seconds))
+                        .with_evaluation_time_constraint(datetime.timedelta(seconds=evaluation_seconds)))
+            self.log.info(f'Expensive tuning CV: {folds} folds, '
+                            f'{round(evaluation_seconds)} sec. per trial, '
+                            f'{round(search_seconds)} sec. search; time for final CV is reserved.')
+            timeout_for_tuning = search_seconds / 60
+
+        tuner = builder.build(train_data)
 
         if self.timer.have_time_for_tuning():
             # Tune all nodes in the pipeline
@@ -188,9 +272,10 @@ class ApiComposer:
                 self.log.message('Hyperparameters tuning finished')
         else:
             self.log.message(f'Time for pipeline composing was {str(self.timer.composing_spend_time)}.\n'
-                             f'The remaining {max(0, round(timeout_for_tuning, 1))} seconds are not enough '
+                             f'The remaining {round(timeout_for_tuning_sec, 1)} seconds are not enough '
                              f'to tune the hyperparameters.')
             self.log.message('Composed pipeline returned without tuning.')
             tuned_pipeline = pipeline_gp_composed
+            
         self.was_tuned = tuner.was_tuned
         return tuned_pipeline
