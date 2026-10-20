@@ -12,10 +12,9 @@ from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.data.data import InputData
-from fedot.core.data.merge.data_merger import DataMergeError
 from fedot.core.operations.model import Model
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.utilities.debug import is_recording_mode, save_debug_info_for_pipeline
+from fedot.utilities.debug import is_recording_mode, report_pipeline_fit_error, save_debug_info_for_pipeline
 
 DataSource = Callable[[], Iterable[Tuple[InputData, InputData]]]
 
@@ -71,11 +70,12 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             except Exception as ex:
                 self._log.warning(f'Unsuccessful pipeline fit during fitness evaluation. '
                                   f'Skipping the pipeline. Exception <{ex}> on {graph_id}')
-                expected_fit_errors = (TimeoutError, DataMergeError)
-                if is_test_session() and not isinstance(ex, expected_fit_errors):
+                folds_metrics.clear()
+                error_was_reported = report_pipeline_fit_error(graph_id, ex)
+                if is_test_session() and not error_was_reported:
                     stack_trace = traceback.format_exc()
                     save_debug_info_for_pipeline(graph, train_data, test_data, ex, stack_trace)
-                    if not is_recording_mode() and 'catboost' not in graph.descriptive_id:
+                    if not is_recording_mode():
                         raise ex
                 break  # if even one fold fails, the evaluation stops
 

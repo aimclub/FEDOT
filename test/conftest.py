@@ -8,11 +8,19 @@ from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.utils import set_random_seed
+from fedot.utilities.debug import FIT_ERROR_REPORT_DIR_ENV
 
 
 @pytest.fixture(scope='session', autouse=True)
 def establish_seed():
     set_random_seed(42)
+
+
+@pytest.fixture
+def pipeline_fit_error_reports(monkeypatch, tmp_path):
+    report_dir = tmp_path.joinpath('pipeline-fit-errors')
+    monkeypatch.setenv(FIT_ERROR_REPORT_DIR_ENV, str(report_dir))
+    return report_dir
 
 
 @pytest.fixture(scope='function', autouse=True)

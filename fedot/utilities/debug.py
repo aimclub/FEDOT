@@ -1,5 +1,7 @@
+import json
 import os
 import pickle
+import traceback
 from pathlib import Path
 from typing import TYPE_CHECKING
 from uuid import uuid4
@@ -10,6 +12,8 @@ if TYPE_CHECKING:
 
 from fedot.core.utils import default_fedot_data_dir
 
+FIT_ERROR_REPORT_DIR_ENV = 'FEDOT_FIT_ERROR_REPORT_DIR'
+
 
 def is_recording_mode():
     return 'FEDOT_RECORDING_MODE' in os.environ
@@ -17,6 +21,30 @@ def is_recording_mode():
 
 def is_analytic_mode():
     return 'FEDOT_ANALYTIC_MODE' in os.environ
+
+
+def report_pipeline_fit_error(graph_id: str, exception: Exception) -> bool:
+    """Write a lightweight fit-error report when a collector is configured."""
+    report_dir = os.environ.get(FIT_ERROR_REPORT_DIR_ENV)
+    if not report_dir:
+        return False
+
+    try:
+        report_path = Path(report_dir)
+        report_path.mkdir(parents=True, exist_ok=True)
+        error_type = type(exception)
+        report = {
+            'exception_type': f'{error_type.__module__}.{error_type.__qualname__}',
+            'message': str(exception),
+            'graph_id': graph_id,
+            'stack_trace': traceback.format_exc(),
+        }
+        report_file = report_path.joinpath(f'{os.getpid()}-{uuid4()}.json')
+        report_file.write_text(json.dumps(report), encoding='utf-8')
+        return True
+    except Exception as ex:
+        print(f'Failed to write pipeline fit-error report: {ex}')
+        return False
 
 
 def save_debug_info_for_pipeline(pipeline: 'Pipeline', train_data: 'InputData', test_data: 'InputData',
