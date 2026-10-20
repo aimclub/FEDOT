@@ -1,5 +1,4 @@
 import json
-import os
 import shutil
 import tempfile
 from collections import Counter
@@ -25,8 +24,12 @@ def _is_expected_fit_error(report: dict) -> bool:
 def pytest_configure(config):
     report_dir = Path(tempfile.mkdtemp(prefix='fedot-fit-errors-'))
     config._fedot_fit_error_report_dir = report_dir
-    config._fedot_previous_fit_error_report_dir = os.environ.get(FIT_ERROR_REPORT_DIR_ENV)
-    os.environ[FIT_ERROR_REPORT_DIR_ENV] = str(report_dir)
+
+
+@pytest.fixture(autouse=True)
+def enable_fit_error_reports(request, monkeypatch):
+    report_dir = request.config._fedot_fit_error_report_dir
+    monkeypatch.setenv(FIT_ERROR_REPORT_DIR_ENV, str(report_dir))
 
 
 def pytest_sessionfinish(session, exitstatus):
@@ -62,9 +65,4 @@ def pytest_sessionfinish(session, exitstatus):
 
 
 def pytest_unconfigure(config):
-    previous_report_dir = config._fedot_previous_fit_error_report_dir
-    if previous_report_dir is None:
-        os.environ.pop(FIT_ERROR_REPORT_DIR_ENV, None)
-    else:
-        os.environ[FIT_ERROR_REPORT_DIR_ENV] = previous_report_dir
     shutil.rmtree(config._fedot_fit_error_report_dir, ignore_errors=True)
