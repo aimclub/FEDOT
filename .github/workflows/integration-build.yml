@@ -39,6 +39,8 @@ jobs:
           pip install .[profilers]
           pip install pytest-cov
       - name: Test with pytest
+        env:
+          FEDOT_RECORDING_MODE: '1'
         run: |
           pytest --cov=fedot -s test/integration
       - name: Notify telegram bot
