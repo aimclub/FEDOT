@@ -1,0 +1,972 @@
+{
+    "rating": 7.6, 
+    "sound crew": [
+        {
+            "canonical name": "Hsu, Cheng Yi", 
+            "name": "Cheng Yi Hsu", 
+            "long imdb name": "Cheng Yi Hsu", 
+            "long imdb canonical name": "Hsu, Cheng Yi"
+        }, 
+        {
+            "canonical name": "Shih, Chun-Yao", 
+            "name": "Chun-Yao Shih", 
+            "long imdb name": "Chun-Yao Shih", 
+            "long imdb canonical name": "Shih, Chun-Yao"
+        }, 
+        {
+            "canonical name": "Tang, Shiang-Chu", 
+            "name": "Shiang-Chu Tang", 
+            "long imdb name": "Shiang-Chu Tang", 
+            "long imdb canonical name": "Tang, Shiang-Chu"
+        }, 
+        {
+            "canonical name": "Tu, Duu-Chih", 
+            "name": "Duu-Chih Tu", 
+            "long imdb name": "Duu-Chih Tu", 
+            "long imdb canonical name": "Tu, Duu-Chih"
+        }
+    ], 
+    "camera and electrical department": [
+        {
+            "canonical name": "Chan, Hong Sung", 
+            "name": "Hong Sung Chan", 
+            "long imdb name": "Hong Sung Chan", 
+            "long imdb canonical name": "Chan, Hong Sung"
+        }, 
+        {
+            "canonical name": "Chan, Yiu Ming", 
+            "name": "Yiu Ming Chan", 
+            "long imdb name": "Yiu Ming Chan", 
+            "long imdb canonical name": "Chan, Yiu Ming"
+        }, 
+        {
+            "canonical name": "Cheung, Tat-Chuen", 
+            "name": "Tat-Chuen Cheung", 
+            "long imdb name": "Tat-Chuen Cheung", 
+            "long imdb canonical name": "Cheung, Tat-Chuen"
+        }, 
+        {
+            "canonical name": "Chuen, Ma Pui", 
+            "name": "Ma Pui Chuen", 
+            "long imdb name": "Ma Pui Chuen", 
+            "long imdb canonical name": "Chuen, Ma Pui"
+        }, 
+        {
+            "canonical name": "Ge, Ying Han", 
+            "name": "Ying Han Ge", 
+            "long imdb name": "Ying Han Ge", 
+            "long imdb canonical name": "Ge, Ying Han"
+        }, 
+        {
+            "canonical name": "Ho, Po Wing", 
+            "name": "Po Wing Ho", 
+            "long imdb name": "Po Wing Ho", 
+            "long imdb canonical name": "Ho, Po Wing"
+        }, 
+        {
+            "canonical name": "Kiu, Wu Wing", 
+            "name": "Wu Wing Kiu", 
+            "long imdb name": "Wu Wing Kiu", 
+            "long imdb canonical name": "Kiu, Wu Wing"
+        }, 
+        {
+            "canonical name": "Ko, Billy", 
+            "name": "Billy Ko", 
+            "long imdb name": "Billy Ko", 
+            "long imdb canonical name": "Ko, Billy"
+        }, 
+        {
+            "canonical name": "Kubbie, Tsoi", 
+            "name": "Tsoi Kubbie", 
+            "long imdb name": "Tsoi Kubbie", 
+            "long imdb canonical name": "Kubbie, Tsoi"
+        }, 
+        {
+            "canonical name": "Lam, Lai Shing", 
+            "name": "Lai Shing Lam", 
+            "long imdb name": "Lai Shing Lam", 
+            "long imdb canonical name": "Lam, Lai Shing"
+        }, 
+        {
+            "canonical name": "Lee, Sharon", 
+            "name": "Sharon Lee", 
+            "long imdb name": "Sharon Lee", 
+            "long imdb canonical name": "Lee, Sharon"
+        }, 
+        {
+            "canonical name": "Si, Wen Liu", 
+            "name": "Wen Liu Si", 
+            "long imdb name": "Wen Liu Si", 
+            "long imdb canonical name": "Si, Wen Liu"
+        }, 
+        {
+            "canonical name": "Siu, Tze Fan", 
+            "name": "Tze Fan Siu", 
+            "long imdb name": "Tze Fan Siu", 
+            "long imdb canonical name": "Siu, Tze Fan"
+        }, 
+        {
+            "canonical name": "Tian, Li", 
+            "name": "Li Tian", 
+            "long imdb name": "Li Tian", 
+            "long imdb canonical name": "Tian, Li"
+        }, 
+        {
+            "canonical name": "Wong, Chi Ming", 
+            "name": "Chi Ming Wong", 
+            "long imdb name": "Chi Ming Wong", 
+            "long imdb canonical name": "Wong, Chi Ming"
+        }, 
+        {
+            "canonical name": "Wong, Chun Mo", 
+            "name": "Chun Mo Wong", 
+            "long imdb name": "Chun Mo Wong", 
+            "long imdb canonical name": "Wong, Chun Mo"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "Tucker Film", 
+            "long imdb name": "Tucker Film"
+        }, 
+        {
+            "name": "Lark Films Distribution", 
+            "long imdb name": "Lark Films Distribution"
+        }, 
+        {
+            "name": "Cathay-Keris Films", 
+            "long imdb name": "Cathay-Keris Films"
+        }, 
+        {
+            "name": "Golden Screen", 
+            "long imdb name": "Golden Screen"
+        }, 
+        {
+            "name": "ABC Distribution", 
+            "long imdb name": "ABC Distribution"
+        }, 
+        {
+            "name": "China Lion Film Distribution", 
+            "long imdb name": "China Lion Film Distribution"
+        }, 
+        {
+            "name": "Cinemien", 
+            "long imdb name": "Cinemien"
+        }, 
+        {
+            "name": "Fugu-Filmverleih", 
+            "long imdb name": "Fugu-Filmverleih"
+        }, 
+        {
+            "name": "Les Acacias", 
+            "long imdb name": "Les Acacias"
+        }, 
+        {
+            "name": "Twin Co. Ltd.", 
+            "long imdb name": "Twin Co. Ltd."
+        }, 
+        {
+            "name": "Asian Crush", 
+            "long imdb name": "Asian Crush"
+        }, 
+        {
+            "name": "China Lion Film Distribution", 
+            "long imdb name": "China Lion Film Distribution"
+        }, 
+        {
+            "name": "Digital Media Rights", 
+            "long imdb name": "Digital Media Rights"
+        }, 
+        {
+            "name": "Film1", 
+            "long imdb name": "Film1"
+        }, 
+        {
+            "name": "Homescreen", 
+            "long imdb name": "Homescreen"
+        }, 
+        {
+            "name": "Homescreen", 
+            "long imdb name": "Homescreen"
+        }, 
+        {
+            "name": "Koch Media", 
+            "long imdb name": "Koch Media"
+        }, 
+        {
+            "name": "Koch Media", 
+            "long imdb name": "Koch Media"
+        }, 
+        {
+            "name": "Scorpio East", 
+            "long imdb name": "Scorpio East"
+        }, 
+        {
+            "name": "Waylen Group", 
+            "long imdb name": "Waylen Group"
+        }
+    ], 
+    "runtimes": [
+        "118"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "Wong, Boey", 
+            "name": "Boey Wong", 
+            "long imdb name": "Boey Wong", 
+            "long imdb canonical name": "Wong, Boey"
+        }
+    ], 
+    "make up": [
+        {
+            "canonical name": "Cheng, Yu Lai", 
+            "name": "Yu Lai Cheng", 
+            "long imdb name": "Yu Lai Cheng", 
+            "long imdb canonical name": "Cheng, Yu Lai"
+        }, 
+        {
+            "canonical name": "Kong, Rachel", 
+            "name": "Rachel Kong", 
+            "long imdb name": "Rachel Kong", 
+            "long imdb canonical name": "Kong, Rachel"
+        }, 
+        {
+            "canonical name": "Kuromiya, Yumiko", 
+            "name": "Yumiko Kuromiya", 
+            "long imdb name": "Yumiko Kuromiya", 
+            "long imdb canonical name": "Kuromiya, Yumiko"
+        }, 
+        {
+            "canonical name": "Lau, Brian", 
+            "name": "Brian Lau", 
+            "long imdb name": "Brian Lau", 
+            "long imdb canonical name": "Lau, Brian"
+        }
+    ], 
+    "year": 2011, 
+    "production design": [
+        {
+            "canonical name": "Poon, Albert", 
+            "name": "Albert Poon", 
+            "long imdb name": "Albert Poon", 
+            "long imdb canonical name": "Poon, Albert"
+        }
+    ], 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Hui, Steven", 
+            "name": "Steven Hui", 
+            "long imdb name": "Steven Hui", 
+            "long imdb canonical name": "Hui, Steven"
+        }, 
+        {
+            "canonical name": "Kwon, Simon", 
+            "name": "Simon Kwon", 
+            "long imdb name": "Simon Kwon", 
+            "long imdb canonical name": "Kwon, Simon"
+        }, 
+        {
+            "canonical name": "Lo, Danny", 
+            "name": "Danny Lo", 
+            "long imdb name": "Danny Lo", 
+            "long imdb canonical name": "Lo, Danny"
+        }, 
+        {
+            "canonical name": "Man, Lim Chung", 
+            "name": "Lim Chung Man", 
+            "long imdb name": "Lim Chung Man", 
+            "long imdb canonical name": "Man, Lim Chung"
+        }, 
+        {
+            "canonical name": "Wai, Jannie", 
+            "name": "Jannie Wai", 
+            "long imdb name": "Jannie Wai", 
+            "long imdb canonical name": "Wai, Jannie"
+        }
+    ], 
+    "color info": [], 
+    "plot": [
+        "After suffering a stroke, an altruistic maid announces that she wants to quit her job and move into an old people's home."
+    ], 
+    "votes": 3958, 
+    "producer": [
+        {
+            "canonical name": "Chan, Jeffrey", 
+            "name": "Jeffrey Chan", 
+            "long imdb name": "Jeffrey Chan", 
+            "long imdb canonical name": "Chan, Jeffrey"
+        }, 
+        {
+            "canonical name": "Chan, Pui-Wah", 
+            "name": "Pui-Wah Chan", 
+            "long imdb name": "Pui-Wah Chan", 
+            "long imdb canonical name": "Chan, Pui-Wah"
+        }, 
+        {
+            "canonical name": "Cheung, Hong Tat", 
+            "name": "Hong Tat Cheung", 
+            "long imdb name": "Hong Tat Cheung", 
+            "long imdb canonical name": "Cheung, Hong Tat"
+        }, 
+        {
+            "canonical name": "Hui, Ann", 
+            "name": "Ann Hui", 
+            "long imdb name": "Ann Hui", 
+            "long imdb canonical name": "Hui, Ann"
+        }, 
+        {
+            "canonical name": "Lam, Stephen", 
+            "name": "Stephen Lam", 
+            "long imdb name": "Stephen Lam", 
+            "long imdb canonical name": "Lam, Stephen"
+        }, 
+        {
+            "canonical name": "Lau, Andy", 
+            "name": "Andy Lau", 
+            "long imdb name": "Andy Lau", 
+            "long imdb canonical name": "Lau, Andy"
+        }, 
+        {
+            "canonical name": "Lee, Yan-Lam", 
+            "name": "Yan-Lam Lee", 
+            "long imdb name": "Yan-Lam Lee", 
+            "long imdb canonical name": "Lee, Yan-Lam"
+        }, 
+        {
+            "canonical name": "Li, Simon", 
+            "name": "Simon Li", 
+            "long imdb name": "Simon Li", 
+            "long imdb canonical name": "Li, Simon"
+        }, 
+        {
+            "canonical name": "Ren, Yue", 
+            "name": "Yue Ren", 
+            "long imdb name": "Yue Ren", 
+            "long imdb canonical name": "Ren, Yue"
+        }, 
+        {
+            "canonical name": "Shi, Nansun", 
+            "name": "Nansun Shi", 
+            "long imdb name": "Nansun Shi", 
+            "long imdb canonical name": "Shi, Nansun"
+        }, 
+        {
+            "canonical name": "Song, Dai", 
+            "name": "Dai Song", 
+            "long imdb name": "Dai Song", 
+            "long imdb canonical name": "Song, Dai"
+        }, 
+        {
+            "canonical name": "Sze, Yeung-Ping", 
+            "name": "Yeung-Ping Sze", 
+            "long imdb name": "Yeung-Ping Sze", 
+            "long imdb canonical name": "Sze, Yeung-Ping"
+        }, 
+        {
+            "canonical name": "Yu, Dong", 
+            "name": "Dong Yu", 
+            "long imdb name": "Dong Yu", 
+            "long imdb canonical name": "Yu, Dong"
+        }, 
+        {
+            "canonical name": "Zhang, Hao", 
+            "name": "Hao Zhang", 
+            "long imdb name": "Hao Zhang", 
+            "long imdb canonical name": "Zhang, Hao"
+        }
+    ], 
+    "title": "Tou ze", 
+    "assistant director": [
+        {
+            "canonical name": "Ho, Cherie", 
+            "name": "Cherie Ho", 
+            "long imdb name": "Cherie Ho", 
+            "long imdb canonical name": "Ho, Cherie"
+        }, 
+        {
+            "canonical name": "Lai, Karen", 
+            "name": "Karen Lai", 
+            "long imdb name": "Karen Lai", 
+            "long imdb canonical name": "Lai, Karen"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "Chan, Susan", 
+            "name": "Susan Chan", 
+            "long imdb name": "Susan Chan", 
+            "long imdb canonical name": "Chan, Susan"
+        }, 
+        {
+            "canonical name": "Lee, Yan-Lam", 
+            "name": "Yan-Lam Lee", 
+            "long imdb name": "Yan-Lam Lee", 
+            "long imdb canonical name": "Lee, Yan-Lam"
+        }, 
+        {
+            "canonical name": "Lee, Yan-Lam", 
+            "name": "Yan-Lam Lee", 
+            "long imdb name": "Yan-Lam Lee", 
+            "long imdb canonical name": "Lee, Yan-Lam"
+        }
+    ], 
+    "long imdb canonical title": "Tou ze (2011)", 
+    "languages": [
+        "Cantonese", 
+        "English", 
+        "Mandarin"
+    ], 
+    "production manager": [
+        {
+            "canonical name": "Chan, Jomin", 
+            "name": "Jomin Chan", 
+            "long imdb name": "Jomin Chan", 
+            "long imdb canonical name": "Chan, Jomin"
+        }, 
+        {
+            "canonical name": "Chan, Shing Hung", 
+            "name": "Shing Hung Chan", 
+            "long imdb name": "Shing Hung Chan", 
+            "long imdb canonical name": "Chan, Shing Hung"
+        }, 
+        {
+            "canonical name": "Lee, Yan-Lam", 
+            "name": "Yan-Lam Lee", 
+            "long imdb name": "Yan-Lam Lee", 
+            "long imdb canonical name": "Lee, Yan-Lam"
+        }, 
+        {
+            "canonical name": "Qin, Liu Ya", 
+            "name": "Liu Ya Qin", 
+            "long imdb name": "Liu Ya Qin", 
+            "long imdb canonical name": "Qin, Liu Ya"
+        }, 
+        {
+            "canonical name": "Wong, Tom", 
+            "name": "Tom Wong", 
+            "long imdb name": "Tom Wong", 
+            "long imdb canonical name": "Wong, Tom"
+        }, 
+        {
+            "canonical name": "Wu, Jie", 
+            "name": "Jie Wu", 
+            "long imdb name": "Jie Wu", 
+            "long imdb canonical name": "Wu, Jie"
+        }, 
+        {
+            "canonical name": "Yip, Sandy", 
+            "name": "Sandy Yip", 
+            "long imdb name": "Sandy Yip", 
+            "long imdb canonical name": "Yip, Sandy"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Kwong, Chi-Leung", 
+            "name": "Chi-Leung Kwong", 
+            "long imdb name": "Chi-Leung Kwong", 
+            "long imdb canonical name": "Kwong, Chi-Leung"
+        }, 
+        {
+            "canonical name": "Wai, Manda", 
+            "name": "Manda Wai", 
+            "long imdb name": "Manda Wai", 
+            "long imdb canonical name": "Wai, Manda"
+        }
+    ], 
+    "certificates": [
+        "da:PG::(Ontario)", 
+        "Germany:0", 
+        "Hong Kong:I", 
+        "Japan:G", 
+        "Philippines:PG-13", 
+        "Singapore:PG", 
+        "South Korea:All", 
+        "UK:PG", 
+        "USA:Not Rated"
+    ], 
+    "costume department": [
+        {
+            "canonical name": "Chaw, Yoyo", 
+            "name": "Yoyo Chaw", 
+            "long imdb name": "Yoyo Chaw", 
+            "long imdb canonical name": "Chaw, Yoyo"
+        }, 
+        {
+            "canonical name": "Tong, Ping", 
+            "name": "Ping Tong", 
+            "long imdb name": "Ping Tong", 
+            "long imdb canonical name": "Tong, Ping"
+        }
+    ], 
+    "long imdb title": "Tou ze (2011)", 
+    "country codes": [
+        "hk"
+    ], 
+    "language codes": [
+        "yue", 
+        "en", 
+        "cmn"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BMTQ1NDI2OTU5N15BMl5BanBnXkFtZTcwOTAyNzcwOQ@@._V1._SX97_SY140_.jpg", 
+    "sound mix": [
+        "Dolby Digital"
+    ], 
+    "genres": [
+        "Drama"
+    ], 
+    "director": [
+        {
+            "canonical name": "Hui, Ann", 
+            "name": "Ann Hui", 
+            "long imdb name": "Ann Hui", 
+            "long imdb canonical name": "Hui, Ann"
+        }
+    ], 
+    "miscellaneous companies": [
+        {
+            "name": "3H Sound Studio Ltd.", 
+            "long imdb name": "3H Sound Studio Ltd."
+        }, 
+        {
+            "name": "3H Sound Studio Ltd.", 
+            "long imdb name": "3H Sound Studio Ltd."
+        }, 
+        {
+            "name": "Cine Art Laboratory", 
+            "long imdb name": "Cine Art Laboratory"
+        }, 
+        {
+            "name": "Cinedigit Sound", 
+            "long imdb name": "Cinedigit Sound"
+        }, 
+        {
+            "name": "Mandarin Laboratory (International) Ltd.", 
+            "long imdb name": "Mandarin Laboratory (International) Ltd."
+        }, 
+        {
+            "name": "Post Production Office (PPO)", 
+            "long imdb name": "Post Production Office (PPO)"
+        }, 
+        {
+            "name": "Salon Films", 
+            "long imdb name": "Salon Films"
+        }, 
+        {
+            "name": "TUI Insurance Consultants", 
+            "long imdb name": "TUI Insurance Consultants"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Yu, Nelson Lik-wai", 
+            "name": "Nelson Lik-wai Yu", 
+            "long imdb name": "Nelson Lik-wai Yu", 
+            "long imdb canonical name": "Yu, Nelson Lik-wai"
+        }
+    ], 
+    "akas": [
+        "A Simple Life::International (English title) (imdb display title)", 
+        "Sister Tao::Hong Kong (English title) (literal English title)", 
+        "Tou Ze::Hong Kong (Cantonese title) (imdb display title)", 
+        "\u041f\u0440\u043e\u0441\u0442\u0430\u044f \u0436\u0438\u0437\u043d\u044c::Russia", 
+        "A Simple Life::Sweden (imdb display title)", 
+        "A Simple Life::Italy (imdb display title)", 
+        "Proste zycie::Poland (imdb display title)", 
+        "Tao Jie - Ein einfaches Leben::Germany (imdb display title)", 
+        "The Happiness of Sister To::Japan (English title) (imdb display title)", 
+        "To-san no shiawase::Japan (imdb display title)", 
+        "Una vida sencilla::Spain (imdb display title)", 
+        "Une vie simple::France (imdb display title)"
+    ], 
+    "aspect ratio": "1.85 : 1", 
+    "production companies": [
+        {
+            "name": "Bona International Film Group", 
+            "long imdb name": "Bona International Film Group"
+        }, 
+        {
+            "name": "Focus Films", 
+            "long imdb name": "Focus Films"
+        }, 
+        {
+            "name": "Sil-Metropole Organisation", 
+            "long imdb name": "Sil-Metropole Organisation"
+        }
+    ], 
+    "kind": "movie", 
+    "art department": [
+        {
+            "canonical name": "Fong, Chi-Nang", 
+            "name": "Chi-Nang Fong", 
+            "long imdb name": "Chi-Nang Fong", 
+            "long imdb canonical name": "Fong, Chi-Nang"
+        }, 
+        {
+            "canonical name": "Gang, Sun Lin", 
+            "name": "Sun Lin Gang", 
+            "long imdb name": "Sun Lin Gang", 
+            "long imdb canonical name": "Gang, Sun Lin"
+        }, 
+        {
+            "canonical name": "Suen, Wong Kam", 
+            "name": "Wong Kam Suen", 
+            "long imdb name": "Wong Kam Suen", 
+            "long imdb canonical name": "Suen, Wong Kam"
+        }, 
+        {
+            "canonical name": "Wong, Andrew", 
+            "name": "Andrew Wong", 
+            "long imdb name": "Andrew Wong", 
+            "long imdb canonical name": "Wong, Andrew"
+        }, 
+        {
+            "canonical name": "Wong, Kim Kwong", 
+            "name": "Kim Kwong Wong", 
+            "long imdb name": "Kim Kwong Wong", 
+            "long imdb canonical name": "Wong, Kim Kwong"
+        }
+    ], 
+    "countries": [
+        "Hong Kong"
+    ], 
+    "plot outline": "After suffering a stroke, an altruistic maid announces that she wants to quit her job and move into an old people's home.", 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BMTQ1NDI2OTU5N15BMl5BanBnXkFtZTcwOTAyNzcwOQ@@.jpg", 
+    "canonical title": "Tou ze", 
+    "cast": [
+        {
+            "canonical name": "Lau, Andy", 
+            "name": "Andy Lau", 
+            "long imdb name": "Andy Lau", 
+            "long imdb canonical name": "Lau, Andy"
+        }, 
+        {
+            "canonical name": "Yip, Deannie", 
+            "name": "Deannie Yip", 
+            "long imdb name": "Deannie Yip", 
+            "long imdb canonical name": "Yip, Deannie"
+        }, 
+        {
+            "canonical name": "Qin, Hailu", 
+            "name": "Hailu Qin", 
+            "long imdb name": "Hailu Qin", 
+            "long imdb canonical name": "Qin, Hailu"
+        }, 
+        {
+            "canonical name": "Wang, Fuli", 
+            "name": "Fuli Wang", 
+            "long imdb name": "Fuli Wang", 
+            "long imdb canonical name": "Wang, Fuli"
+        }, 
+        {
+            "canonical name": "Chun, Paul", 
+            "name": "Paul Chun", 
+            "long imdb name": "Paul Chun", 
+            "long imdb canonical name": "Chun, Paul"
+        }, 
+        {
+            "canonical name": "Leung, Tin", 
+            "name": "Tin Leung", 
+            "long imdb name": "Tin Leung", 
+            "long imdb canonical name": "Leung, Tin"
+        }, 
+        {
+            "canonical name": "Yu, Man-sze", 
+            "name": "Man-sze Yu", 
+            "long imdb name": "Man-sze Yu", 
+            "long imdb canonical name": "Yu, Man-sze"
+        }, 
+        {
+            "canonical name": "Lam, Eman", 
+            "name": "Eman Lam", 
+            "long imdb name": "Eman Lam", 
+            "long imdb canonical name": "Lam, Eman"
+        }, 
+        {
+            "canonical name": "Kong, Elena", 
+            "name": "Elena Kong", 
+            "long imdb name": "Elena Kong", 
+            "long imdb canonical name": "Kong, Elena"
+        }, 
+        {
+            "canonical name": "Chan, Chi-san", 
+            "name": "Chi-san Chan", 
+            "long imdb name": "Chi-san Chan", 
+            "long imdb canonical name": "Chan, Chi-san"
+        }, 
+        {
+            "canonical name": "Hui, So-ying", 
+            "name": "So-ying Hui", 
+            "long imdb name": "So-ying Hui", 
+            "long imdb canonical name": "Hui, So-ying"
+        }, 
+        {
+            "canonical name": "Wong, Anthony Chau-Sang", 
+            "name": "Anthony Chau-Sang Wong", 
+            "long imdb name": "Anthony Chau-Sang Wong", 
+            "long imdb canonical name": "Wong, Anthony Chau-Sang"
+        }, 
+        {
+            "canonical name": "To, Chapman", 
+            "name": "Chapman To", 
+            "long imdb name": "Chapman To", 
+            "long imdb canonical name": "To, Chapman"
+        }, 
+        {
+            "canonical name": "Chow, Raymond", 
+            "name": "Raymond Chow", 
+            "long imdb name": "Raymond Chow", 
+            "long imdb canonical name": "Chow, Raymond"
+        }, 
+        {
+            "canonical name": "Chow, Felicia", 
+            "name": "Felicia Chow", 
+            "long imdb name": "Felicia Chow", 
+            "long imdb canonical name": "Chow, Felicia"
+        }, 
+        {
+            "canonical name": "Yu, Dong", 
+            "name": "Dong Yu", 
+            "long imdb name": "Dong Yu", 
+            "long imdb canonical name": "Yu, Dong"
+        }, 
+        {
+            "canonical name": "Tsui, Hark", 
+            "name": "Hark Tsui", 
+            "long imdb name": "Hark Tsui", 
+            "long imdb canonical name": "Tsui, Hark"
+        }, 
+        {
+            "canonical name": "Hung, Sammo Kam-Bo", 
+            "name": "Sammo Kam-Bo Hung", 
+            "long imdb name": "Sammo Kam-Bo Hung", 
+            "long imdb canonical name": "Hung, Sammo Kam-Bo"
+        }, 
+        {
+            "canonical name": "Sham, John", 
+            "name": "John Sham", 
+            "long imdb name": "John Sham", 
+            "long imdb canonical name": "Sham, John"
+        }, 
+        {
+            "canonical name": "Mak, Yun-sau", 
+            "name": "Yun-sau Mak", 
+            "long imdb name": "Yun-sau Mak", 
+            "long imdb canonical name": "Mak, Yun-sau"
+        }, 
+        {
+            "canonical name": "Chan, Dennis", 
+            "name": "Dennis Chan", 
+            "long imdb name": "Dennis Chan", 
+            "long imdb canonical name": "Chan, Dennis"
+        }, 
+        {
+            "canonical name": "Ning, Hao", 
+            "name": "Hao Ning", 
+            "long imdb name": "Hao Ning", 
+            "long imdb canonical name": "Ning, Hao"
+        }, 
+        {
+            "canonical name": "Lam, Enoch", 
+            "name": "Enoch Lam", 
+            "long imdb name": "Enoch Lam", 
+            "long imdb canonical name": "Lam, Enoch"
+        }, 
+        {
+            "canonical name": "Lam, Ka Tung", 
+            "name": "Ka Tung Lam", 
+            "long imdb name": "Ka Tung Lam", 
+            "long imdb canonical name": "Lam, Ka Tung"
+        }, 
+        {
+            "canonical name": "Law, Lan", 
+            "name": "Lan Law", 
+            "long imdb name": "Lan Law", 
+            "long imdb canonical name": "Law, Lan"
+        }, 
+        {
+            "canonical name": "Chim, Sui-man", 
+            "name": "Sui-man Chim", 
+            "long imdb name": "Sui-man Chim", 
+            "long imdb canonical name": "Chim, Sui-man"
+        }, 
+        {
+            "canonical name": "Lai, Yin San", 
+            "name": "Yin San Lai", 
+            "long imdb name": "Yin San Lai", 
+            "long imdb canonical name": "Lai, Yin San"
+        }, 
+        {
+            "canonical name": "Tam, Bing-Man", 
+            "name": "Bing-Man Tam", 
+            "long imdb name": "Bing-Man Tam", 
+            "long imdb canonical name": "Tam, Bing-Man"
+        }, 
+        {
+            "canonical name": "Jiang, Aicardi", 
+            "name": "Aicardi Jiang", 
+            "long imdb name": "Aicardi Jiang", 
+            "long imdb canonical name": "Jiang, Aicardi"
+        }, 
+        {
+            "canonical name": "Chu, Queenie", 
+            "name": "Queenie Chu", 
+            "long imdb name": "Queenie Chu", 
+            "long imdb canonical name": "Chu, Queenie"
+        }, 
+        {
+            "canonical name": "Tyson, G.S.", 
+            "name": "G.S. Tyson", 
+            "long imdb name": "G.S. Tyson", 
+            "long imdb canonical name": "Tyson, G.S."
+        }, 
+        {
+            "canonical name": "Wada, Hiromi", 
+            "name": "Hiromi Wada", 
+            "long imdb name": "Hiromi Wada", 
+            "long imdb canonical name": "Wada, Hiromi"
+        }, 
+        {
+            "canonical name": "Mon, Lawrence Ah", 
+            "name": "Lawrence Ah Mon", 
+            "long imdb name": "Lawrence Ah Mon", 
+            "long imdb canonical name": "Mon, Lawrence Ah"
+        }, 
+        {
+            "canonical name": "Angelababy", 
+            "name": "Angelababy", 
+            "long imdb name": "Angelababy", 
+            "long imdb canonical name": "Angelababy"
+        }, 
+        {
+            "canonical name": "Chak, Tyson", 
+            "name": "Tyson Chak", 
+            "long imdb name": "Tyson Chak", 
+            "long imdb canonical name": "Chak, Tyson"
+        }, 
+        {
+            "canonical name": "Chan, Brenda", 
+            "name": "Brenda Chan", 
+            "long imdb name": "Brenda Chan", 
+            "long imdb canonical name": "Chan, Brenda"
+        }, 
+        {
+            "canonical name": "Chan, Wing-Chiu", 
+            "name": "Wing-Chiu Chan", 
+            "long imdb name": "Wing-Chiu Chan", 
+            "long imdb canonical name": "Chan, Wing-Chiu"
+        }, 
+        {
+            "canonical name": "Cheung, Kenneth", 
+            "name": "Kenneth Cheung", 
+            "long imdb name": "Kenneth Cheung", 
+            "long imdb canonical name": "Cheung, Kenneth"
+        }, 
+        {
+            "canonical name": "Cheung, Wai Lin", 
+            "name": "Wai Lin Cheung", 
+            "long imdb name": "Wai Lin Cheung", 
+            "long imdb canonical name": "Cheung, Wai Lin"
+        }, 
+        {
+            "canonical name": "Hui, Pik Kee", 
+            "name": "Pik Kee Hui", 
+            "long imdb name": "Pik Kee Hui", 
+            "long imdb canonical name": "Hui, Pik Kee"
+        }, 
+        {
+            "canonical name": "Kalumuna, Dorothy Leopord", 
+            "name": "Dorothy Leopord Kalumuna", 
+            "long imdb name": "Dorothy Leopord Kalumuna", 
+            "long imdb canonical name": "Kalumuna, Dorothy Leopord"
+        }, 
+        {
+            "canonical name": "Kong, Suet-Fa", 
+            "name": "Suet-Fa Kong", 
+            "long imdb name": "Suet-Fa Kong", 
+            "long imdb canonical name": "Kong, Suet-Fa"
+        }, 
+        {
+            "canonical name": "Kwan, Ah Fung", 
+            "name": "Ah Fung Kwan", 
+            "long imdb name": "Ah Fung Kwan", 
+            "long imdb canonical name": "Kwan, Ah Fung"
+        }, 
+        {
+            "canonical name": "Kwan, Stanley", 
+            "name": "Stanley Kwan", 
+            "long imdb name": "Stanley Kwan", 
+            "long imdb canonical name": "Kwan, Stanley"
+        }, 
+        {
+            "canonical name": "Lau, Billy", 
+            "name": "Billy Lau", 
+            "long imdb name": "Billy Lau", 
+            "long imdb canonical name": "Lau, Billy"
+        }, 
+        {
+            "canonical name": "Lau, Wai-Hang", 
+            "name": "Wai-Hang Lau", 
+            "long imdb name": "Wai-Hang Lau", 
+            "long imdb canonical name": "Lau, Wai-Hang"
+        }, 
+        {
+            "canonical name": "Lau, Wai-Keung", 
+            "name": "Wai-Keung Lau", 
+            "long imdb name": "Wai-Keung Lau", 
+            "long imdb canonical name": "Lau, Wai-Keung"
+        }, 
+        {
+            "canonical name": "Lee, Chun Ling", 
+            "name": "Chun Ling Lee", 
+            "long imdb name": "Chun Ling Lee", 
+            "long imdb canonical name": "Lee, Chun Ling"
+        }, 
+        {
+            "canonical name": "Leong, Cheok Mei", 
+            "name": "Cheok Mei Leong", 
+            "long imdb name": "Cheok Mei Leong", 
+            "long imdb canonical name": "Leong, Cheok Mei"
+        }, 
+        {
+            "canonical name": "Leung, Sammuel", 
+            "name": "Sammuel Leung", 
+            "long imdb name": "Sammuel Leung", 
+            "long imdb canonical name": "Leung, Sammuel"
+        }, 
+        {
+            "canonical name": "Lo, Katherine", 
+            "name": "Katherine Lo", 
+            "long imdb name": "Katherine Lo", 
+            "long imdb canonical name": "Lo, Katherine"
+        }, 
+        {
+            "canonical name": "Sze, Sharon Wai Lee", 
+            "name": "Sharon Wai Lee Sze", 
+            "long imdb name": "Sharon Wai Lee Sze", 
+            "long imdb canonical name": "Sze, Sharon Wai Lee"
+        }, 
+        {
+            "canonical name": "Wu, Wing Chong", 
+            "name": "Wing Chong Wu", 
+            "long imdb name": "Wing Chong Wu", 
+            "long imdb canonical name": "Wu, Wing Chong"
+        }, 
+        {
+            "canonical name": "Yeung, Hiu Yung", 
+            "name": "Hiu Yung Yeung", 
+            "long imdb name": "Hiu Yung Yeung", 
+            "long imdb canonical name": "Yeung, Hiu Yung"
+        }
+    ], 
+    "smart long imdb canonical title": "Tou ze (2011)", 
+    "original music": [
+        {
+            "canonical name": "Law, Wing-Fai", 
+            "name": "Wing-Fai Law", 
+            "long imdb name": "Wing-Fai Law", 
+            "long imdb canonical name": "Law, Wing-Fai"
+        }
+    ], 
+    "smart canonical title": "Tou ze"
+}

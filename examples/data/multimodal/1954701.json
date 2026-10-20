@@ -1,0 +1,936 @@
+{
+    "music department": [
+        {
+            "canonical name": "Berkmann, Tom", 
+            "name": "Tom Berkmann", 
+            "long imdb name": "Tom Berkmann", 
+            "long imdb canonical name": "Berkmann, Tom"
+        }, 
+        {
+            "canonical name": "Cola\u00e7o, Christopher", 
+            "name": "Christopher Cola\u00e7o", 
+            "long imdb name": "Christopher Cola\u00e7o", 
+            "long imdb canonical name": "Cola\u00e7o, Christopher"
+        }, 
+        {
+            "canonical name": "Menzel, Florian", 
+            "name": "Florian Menzel", 
+            "long imdb name": "Florian Menzel", 
+            "long imdb canonical name": "Menzel, Florian"
+        }, 
+        {
+            "canonical name": "Obara, Lena", 
+            "name": "Lena Obara", 
+            "long imdb name": "Lena Obara", 
+            "long imdb canonical name": "Obara, Lena"
+        }, 
+        {
+            "canonical name": "Schaeper, Philipp", 
+            "name": "Philipp Schaeper", 
+            "long imdb name": "Philipp Schaeper", 
+            "long imdb canonical name": "Schaeper, Philipp"
+        }
+    ], 
+    "camera and electrical department": [
+        {
+            "canonical name": "Franz, Matthias", 
+            "name": "Matthias Franz", 
+            "long imdb name": "Matthias Franz", 
+            "long imdb canonical name": "Franz, Matthias"
+        }, 
+        {
+            "canonical name": "Graf, Christian", 
+            "name": "Christian Graf", 
+            "long imdb name": "Christian Graf", 
+            "long imdb canonical name": "Graf, Christian"
+        }, 
+        {
+            "canonical name": "Hilbert, Dirk", 
+            "name": "Dirk Hilbert", 
+            "long imdb name": "Dirk Hilbert", 
+            "long imdb canonical name": "Hilbert, Dirk"
+        }, 
+        {
+            "canonical name": "Knispel, Martin", 
+            "name": "Martin Knispel", 
+            "long imdb name": "Martin Knispel", 
+            "long imdb canonical name": "Knispel, Martin"
+        }, 
+        {
+            "canonical name": "K\u00fchn, Bernhard", 
+            "name": "Bernhard K\u00fchn", 
+            "long imdb name": "Bernhard K\u00fchn", 
+            "long imdb canonical name": "K\u00fchn, Bernhard"
+        }, 
+        {
+            "canonical name": "Miera, Chris", 
+            "name": "Chris Miera", 
+            "long imdb name": "Chris Miera", 
+            "long imdb canonical name": "Miera, Chris"
+        }, 
+        {
+            "canonical name": "Miera, Chris", 
+            "name": "Chris Miera", 
+            "long imdb name": "Chris Miera", 
+            "long imdb canonical name": "Miera, Chris"
+        }, 
+        {
+            "canonical name": "P\u00e4ch, Johannes", 
+            "name": "Johannes P\u00e4ch", 
+            "long imdb name": "Johannes P\u00e4ch", 
+            "long imdb canonical name": "P\u00e4ch, Johannes"
+        }, 
+        {
+            "canonical name": "Schwarz, Florian", 
+            "name": "Florian Schwarz", 
+            "long imdb name": "Florian Schwarz", 
+            "long imdb canonical name": "Schwarz, Florian"
+        }, 
+        {
+            "canonical name": "Ulbrich, Hagen", 
+            "name": "Hagen Ulbrich", 
+            "long imdb name": "Hagen Ulbrich", 
+            "long imdb canonical name": "Ulbrich, Hagen"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "Maison Motion", 
+            "long imdb name": "Maison Motion"
+        }, 
+        {
+            "name": "ABC Distribution", 
+            "long imdb name": "ABC Distribution"
+        }, 
+        {
+            "name": "Academy Two", 
+            "long imdb name": "Academy Two"
+        }, 
+        {
+            "name": "Cetera International", 
+            "long imdb name": "Cetera International"
+        }, 
+        {
+            "name": "Cinemien", 
+            "long imdb name": "Cinemien"
+        }, 
+        {
+            "name": "Cirko Film", 
+            "long imdb name": "Cirko Film"
+        }, 
+        {
+            "name": "Diaphana Films", 
+            "long imdb name": "Diaphana Films"
+        }, 
+        {
+            "name": "Filmcoopi Z\u00fcrich", 
+            "long imdb name": "Filmcoopi Z\u00fcrich"
+        }, 
+        {
+            "name": "Music Box Films", 
+            "long imdb name": "Music Box Films"
+        }, 
+        {
+            "name": "StraDa Films", 
+            "long imdb name": "StraDa Films"
+        }, 
+        {
+            "name": "Surtsey Films", 
+            "long imdb name": "Surtsey Films"
+        }, 
+        {
+            "name": "X Verleih AG", 
+            "long imdb name": "X Verleih AG"
+        }, 
+        {
+            "name": "Angel Films", 
+            "long imdb name": "Angel Films"
+        }, 
+        {
+            "name": "Homescreen", 
+            "long imdb name": "Homescreen"
+        }, 
+        {
+            "name": "Karma Films", 
+            "long imdb name": "Karma Films"
+        }, 
+        {
+            "name": "Madman Entertainment", 
+            "long imdb name": "Madman Entertainment"
+        }, 
+        {
+            "name": "Warner Home Video", 
+            "long imdb name": "Warner Home Video"
+        }, 
+        {
+            "name": "Warner Home Video", 
+            "long imdb name": "Warner Home Video"
+        }
+    ], 
+    "rating": 7.4, 
+    "runtimes": [
+        "86"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "Lange, Benedikt", 
+            "name": "Benedikt Lange", 
+            "long imdb name": "Benedikt Lange", 
+            "long imdb canonical name": "Lange, Benedikt"
+        }, 
+        {
+            "canonical name": "Maier, Juliane", 
+            "name": "Juliane Maier", 
+            "long imdb name": "Juliane Maier", 
+            "long imdb canonical name": "Maier, Juliane"
+        }, 
+        {
+            "canonical name": "Okolicsanyi, Ildiko", 
+            "name": "Ildiko Okolicsanyi", 
+            "long imdb name": "Ildiko Okolicsanyi", 
+            "long imdb canonical name": "Okolicsanyi, Ildiko"
+        }
+    ], 
+    "thanks": [
+        {
+            "canonical name": "Becker, Wolfgang", 
+            "name": "Wolfgang Becker", 
+            "long imdb name": "Wolfgang Becker", 
+            "long imdb canonical name": "Becker, Wolfgang"
+        }, 
+        {
+            "canonical name": "K\u00fchnert, Steffi", 
+            "name": "Steffi K\u00fchnert", 
+            "long imdb name": "Steffi K\u00fchnert", 
+            "long imdb canonical name": "K\u00fchnert, Steffi"
+        }, 
+        {
+            "canonical name": "Mosebach, Annie", 
+            "name": "Annie Mosebach", 
+            "long imdb name": "Annie Mosebach", 
+            "long imdb canonical name": "Mosebach, Annie"
+        }, 
+        {
+            "canonical name": "Wei\u00dfbrich, Hansj\u00f6rg", 
+            "name": "Hansj\u00f6rg Wei\u00dfbrich", 
+            "long imdb name": "Hansj\u00f6rg Wei\u00dfbrich", 
+            "long imdb canonical name": "Wei\u00dfbrich, Hansj\u00f6rg"
+        }
+    ], 
+    "make up": [
+        {
+            "canonical name": "Bieler, Dana", 
+            "name": "Dana Bieler", 
+            "long imdb name": "Dana Bieler", 
+            "long imdb canonical name": "Bieler, Dana"
+        }, 
+        {
+            "canonical name": "Kramer, Lina", 
+            "name": "Lina Kramer", 
+            "long imdb name": "Lina Kramer", 
+            "long imdb canonical name": "Kramer, Lina"
+        }
+    ], 
+    "year": 2012, 
+    "production design": [
+        {
+            "canonical name": "Friedrich, Juliane", 
+            "name": "Juliane Friedrich", 
+            "long imdb name": "Juliane Friedrich", 
+            "long imdb canonical name": "Friedrich, Juliane"
+        }
+    ], 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Kiousi, Litsa", 
+            "name": "Litsa Kiousi", 
+            "long imdb name": "Litsa Kiousi", 
+            "long imdb canonical name": "Kiousi, Litsa"
+        }, 
+        {
+            "canonical name": "K\u00fchne, Eileen", 
+            "name": "Eileen K\u00fchne", 
+            "long imdb name": "Eileen K\u00fchne", 
+            "long imdb canonical name": "K\u00fchne, Eileen"
+        }, 
+        {
+            "canonical name": "Roser, Stephanie", 
+            "name": "Stephanie Roser", 
+            "long imdb name": "Stephanie Roser", 
+            "long imdb canonical name": "Roser, Stephanie"
+        }, 
+        {
+            "canonical name": "Schenke, Daniel", 
+            "name": "Daniel Schenke", 
+            "long imdb name": "Daniel Schenke", 
+            "long imdb canonical name": "Schenke, Daniel"
+        }, 
+        {
+            "canonical name": "Schenke, Daniel", 
+            "name": "Daniel Schenke", 
+            "long imdb name": "Daniel Schenke", 
+            "long imdb canonical name": "Schenke, Daniel"
+        }, 
+        {
+            "canonical name": "Wallraff, Mayra", 
+            "name": "Mayra Wallraff", 
+            "long imdb name": "Mayra Wallraff", 
+            "long imdb canonical name": "Wallraff, Mayra"
+        }, 
+        {
+            "canonical name": "Wustrack, Tim", 
+            "name": "Tim Wustrack", 
+            "long imdb name": "Tim Wustrack", 
+            "long imdb canonical name": "Wustrack, Tim"
+        }
+    ], 
+    "color info": [
+        "Black and White"
+    ], 
+    "visual effects": [
+        {
+            "canonical name": "Boublil, Jean-Michel", 
+            "name": "Jean-Michel Boublil", 
+            "long imdb name": "Jean-Michel Boublil", 
+            "long imdb canonical name": "Boublil, Jean-Michel"
+        }
+    ], 
+    "votes": 10466, 
+    "producer": [
+        {
+            "canonical name": "Gerster, Jan Ole", 
+            "name": "Jan Ole Gerster", 
+            "long imdb name": "Jan Ole Gerster", 
+            "long imdb canonical name": "Gerster, Jan Ole"
+        }, 
+        {
+            "canonical name": "Himstedt, J\u00f6rg", 
+            "name": "J\u00f6rg Himstedt", 
+            "long imdb name": "J\u00f6rg Himstedt", 
+            "long imdb canonical name": "Himstedt, J\u00f6rg"
+        }, 
+        {
+            "canonical name": "Kantis, Marcos", 
+            "name": "Marcos Kantis", 
+            "long imdb name": "Marcos Kantis", 
+            "long imdb canonical name": "Kantis, Marcos"
+        }, 
+        {
+            "canonical name": "K\u00e4mper, Birgit", 
+            "name": "Birgit K\u00e4mper", 
+            "long imdb name": "Birgit K\u00e4mper", 
+            "long imdb canonical name": "K\u00e4mper, Birgit"
+        }, 
+        {
+            "canonical name": "Lehwald, Martin", 
+            "name": "Martin Lehwald", 
+            "long imdb name": "Martin Lehwald", 
+            "long imdb canonical name": "Lehwald, Martin"
+        }, 
+        {
+            "canonical name": "Modersohn, Timon", 
+            "name": "Timon Modersohn", 
+            "long imdb name": "Timon Modersohn", 
+            "long imdb canonical name": "Modersohn, Timon"
+        }, 
+        {
+            "canonical name": "Pokorny, Michal", 
+            "name": "Michal Pokorny", 
+            "long imdb name": "Michal Pokorny", 
+            "long imdb canonical name": "Pokorny, Michal"
+        }, 
+        {
+            "canonical name": "Schilling, Tom", 
+            "name": "Tom Schilling", 
+            "long imdb name": "Tom Schilling", 
+            "long imdb canonical name": "Schilling, Tom"
+        }, 
+        {
+            "canonical name": "Wadouh, Alexander", 
+            "name": "Alexander Wadouh", 
+            "long imdb name": "Alexander Wadouh", 
+            "long imdb canonical name": "Wadouh, Alexander"
+        }
+    ], 
+    "title": "Oh Boy", 
+    "assistant director": [
+        {
+            "canonical name": "Gr\u00fcttner, Oliver", 
+            "name": "Oliver Gr\u00fcttner", 
+            "long imdb name": "Oliver Gr\u00fcttner", 
+            "long imdb canonical name": "Gr\u00fcttner, Oliver"
+        }, 
+        {
+            "canonical name": "Modersohn, Timon", 
+            "name": "Timon Modersohn", 
+            "long imdb name": "Timon Modersohn", 
+            "long imdb canonical name": "Modersohn, Timon"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "Gerster, Jan Ole", 
+            "name": "Jan Ole Gerster", 
+            "long imdb name": "Jan Ole Gerster", 
+            "long imdb canonical name": "Gerster, Jan Ole"
+        }
+    ], 
+    "long imdb canonical title": "Oh Boy (2012)", 
+    "languages": [
+        "German", 
+        "English"
+    ], 
+    "production manager": [
+        {
+            "canonical name": "Mann, Susanne", 
+            "name": "Susanne Mann", 
+            "long imdb name": "Susanne Mann", 
+            "long imdb canonical name": "Mann, Susanne"
+        }, 
+        {
+            "canonical name": "Wustrack, Tim", 
+            "name": "Tim Wustrack", 
+            "long imdb name": "Tim Wustrack", 
+            "long imdb canonical name": "Wustrack, Tim"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Siemens, Anja", 
+            "name": "Anja Siemens", 
+            "long imdb name": "Anja Siemens", 
+            "long imdb canonical name": "Siemens, Anja"
+        }
+    ], 
+    "certificates": [
+        "Germany:12", 
+        "Hungary:16", 
+        "Mexico:B", 
+        "Netherlands:12", 
+        "Singapore:NC-16", 
+        "Switzerland:12", 
+        "USA:Unrated"
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "Andriessens, Felix", 
+            "name": "Felix Andriessens", 
+            "long imdb name": "Felix Andriessens", 
+            "long imdb canonical name": "Andriessens, Felix"
+        }, 
+        {
+            "canonical name": "Andriessens, Felix", 
+            "name": "Felix Andriessens", 
+            "long imdb name": "Felix Andriessens", 
+            "long imdb canonical name": "Andriessens, Felix"
+        }, 
+        {
+            "canonical name": "Andriessens, Felix", 
+            "name": "Felix Andriessens", 
+            "long imdb name": "Felix Andriessens", 
+            "long imdb canonical name": "Andriessens, Felix"
+        }, 
+        {
+            "canonical name": "Andriessens, Felix", 
+            "name": "Felix Andriessens", 
+            "long imdb name": "Felix Andriessens", 
+            "long imdb canonical name": "Andriessens, Felix"
+        }, 
+        {
+            "canonical name": "Baumeister, Adrian", 
+            "name": "Adrian Baumeister", 
+            "long imdb name": "Adrian Baumeister", 
+            "long imdb canonical name": "Baumeister, Adrian"
+        }, 
+        {
+            "canonical name": "Damrau, Robert", 
+            "name": "Robert Damrau", 
+            "long imdb name": "Robert Damrau", 
+            "long imdb canonical name": "Damrau, Robert"
+        }, 
+        {
+            "canonical name": "Damrau, Robert", 
+            "name": "Robert Damrau", 
+            "long imdb name": "Robert Damrau", 
+            "long imdb canonical name": "Damrau, Robert"
+        }, 
+        {
+            "canonical name": "Kaschek, Johannes", 
+            "name": "Johannes Kaschek", 
+            "long imdb name": "Johannes Kaschek", 
+            "long imdb canonical name": "Kaschek, Johannes"
+        }, 
+        {
+            "canonical name": "Mongardini, Alessandro", 
+            "name": "Alessandro Mongardini", 
+            "long imdb name": "Alessandro Mongardini", 
+            "long imdb canonical name": "Mongardini, Alessandro"
+        }, 
+        {
+            "canonical name": "Pfl\u00fcger, Magnus", 
+            "name": "Magnus Pfl\u00fcger", 
+            "long imdb name": "Magnus Pfl\u00fcger", 
+            "long imdb canonical name": "Pfl\u00fcger, Magnus"
+        }, 
+        {
+            "canonical name": "Richter, Carsten", 
+            "name": "Carsten Richter", 
+            "long imdb name": "Carsten Richter", 
+            "long imdb canonical name": "Richter, Carsten"
+        }, 
+        {
+            "canonical name": "Schmidt, Fabian", 
+            "name": "Fabian Schmidt", 
+            "long imdb name": "Fabian Schmidt", 
+            "long imdb canonical name": "Schmidt, Fabian"
+        }, 
+        {
+            "canonical name": "Stiebe, Andr\u00e9", 
+            "name": "Andr\u00e9 Stiebe", 
+            "long imdb name": "Andr\u00e9 Stiebe", 
+            "long imdb canonical name": "Stiebe, Andr\u00e9"
+        }, 
+        {
+            "canonical name": "Sujata, Marcus", 
+            "name": "Marcus Sujata", 
+            "long imdb name": "Marcus Sujata", 
+            "long imdb canonical name": "Sujata, Marcus"
+        }, 
+        {
+            "canonical name": "Wieczorek, Christoph", 
+            "name": "Christoph Wieczorek", 
+            "long imdb name": "Christoph Wieczorek", 
+            "long imdb canonical name": "Wieczorek, Christoph"
+        }
+    ], 
+    "long imdb title": "Oh Boy (2012)", 
+    "country codes": [
+        "de"
+    ], 
+    "language codes": [
+        "de", 
+        "en"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BNDgzOTQxNzU1MV5BMl5BanBnXkFtZTgwNzE3MzM4MTE@._V1._SX95_SY140_.jpg", 
+    "editorial department": [
+        {
+            "canonical name": "Grau, Dirk", 
+            "name": "Dirk Grau", 
+            "long imdb name": "Dirk Grau", 
+            "long imdb canonical name": "Grau, Dirk"
+        }, 
+        {
+            "canonical name": "Lemburg, Leonid", 
+            "name": "Leonid Lemburg", 
+            "long imdb name": "Leonid Lemburg", 
+            "long imdb canonical name": "Lemburg, Leonid"
+        }, 
+        {
+            "canonical name": "Pf\u00fcller, Gregor", 
+            "name": "Gregor Pf\u00fcller", 
+            "long imdb name": "Gregor Pf\u00fcller", 
+            "long imdb canonical name": "Pf\u00fcller, Gregor"
+        }, 
+        {
+            "canonical name": "Pf\u00fcller, Gregor", 
+            "name": "Gregor Pf\u00fcller", 
+            "long imdb name": "Gregor Pf\u00fcller", 
+            "long imdb canonical name": "Pf\u00fcller, Gregor"
+        }, 
+        {
+            "canonical name": "Wright, Chris", 
+            "name": "Chris Wright", 
+            "long imdb name": "Chris Wright", 
+            "long imdb canonical name": "Wright, Chris"
+        }
+    ], 
+    "sound mix": [], 
+    "location management": [
+        {
+            "canonical name": "Winschetti, Emilio", 
+            "name": "Emilio Winschetti", 
+            "long imdb name": "Emilio Winschetti", 
+            "long imdb canonical name": "Winschetti, Emilio"
+        }
+    ], 
+    "genres": [
+        "Drama"
+    ], 
+    "director": [
+        {
+            "canonical name": "Gerster, Jan Ole", 
+            "name": "Jan Ole Gerster", 
+            "long imdb name": "Jan Ole Gerster", 
+            "long imdb canonical name": "Gerster, Jan Ole"
+        }
+    ], 
+    "stunt performer": [
+        {
+            "canonical name": "Goeres, Martin", 
+            "name": "Martin Goeres", 
+            "long imdb name": "Martin Goeres", 
+            "long imdb canonical name": "Goeres, Martin"
+        }
+    ], 
+    "miscellaneous companies": [
+        {
+            "name": "Adag Film Services", 
+            "long imdb name": "Adag Film Services"
+        }, 
+        {
+            "name": "Franz Gossler Versicherungsvermittlung", 
+            "long imdb name": "Franz Gossler Versicherungsvermittlung"
+        }, 
+        {
+            "name": "Location Networx", 
+            "long imdb name": "Location Networx"
+        }, 
+        {
+            "name": "Tonstudio Hanse Warns", 
+            "long imdb name": "Tonstudio Hanse Warns"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Kirsamer, Philipp", 
+            "name": "Philipp Kirsamer", 
+            "long imdb name": "Philipp Kirsamer", 
+            "long imdb canonical name": "Kirsamer, Philipp"
+        }
+    ], 
+    "akas": [
+        "A Coffee in Berlin::International (English title) (imdb display title), USA (imdb display title)", 
+        "\u041f\u0440\u043e\u0441\u0442\u044b\u0435 \u0441\u043b\u043e\u0436\u043d\u043e\u0441\u0442\u0438 \u041d\u0438\u043a\u043e \u0424\u0438\u0448\u0435\u0440\u0430::Russia", 
+        "Ajme meni::Croatia (imdb display title)", 
+        "Oh Boy::Spain (imdb display title)", 
+        "Oh Boy::Greece (imdb display title)", 
+        "Oh Boy::Hungary (imdb display title)", 
+        "Oh Boy: Un caff\u00e8 a Berlino::Italy (imdb display title)", 
+        "Oh boy, 24 hrs. en Berl\u00edn::Mexico (imdb display title)", 
+        "Oh, Boy!::Poland (imdb display title)", 
+        "Sakra, kluku!::Czech Republic (festival title)"
+    ], 
+    "aspect ratio": "1.85 : 1", 
+    "production companies": [
+        {
+            "name": "Schiwago Film", 
+            "long imdb name": "Schiwago Film"
+        }, 
+        {
+            "name": "Chromosom Filmproduktion", 
+            "long imdb name": "Chromosom Filmproduktion"
+        }, 
+        {
+            "name": "Hessischer Rundfunk (HR)", 
+            "long imdb name": "Hessischer Rundfunk (HR)"
+        }, 
+        {
+            "name": "ARTE", 
+            "long imdb name": "ARTE"
+        }
+    ], 
+    "kind": "movie", 
+    "art department": [
+        {
+            "canonical name": "Balon, Ina", 
+            "name": "Ina Balon", 
+            "long imdb name": "Ina Balon", 
+            "long imdb canonical name": "Balon, Ina"
+        }, 
+        {
+            "canonical name": "Hohm, Matthias", 
+            "name": "Matthias Hohm", 
+            "long imdb name": "Matthias Hohm", 
+            "long imdb canonical name": "Hohm, Matthias"
+        }, 
+        {
+            "canonical name": "Kotonski, Paula", 
+            "name": "Paula Kotonski", 
+            "long imdb name": "Paula Kotonski", 
+            "long imdb canonical name": "Kotonski, Paula"
+        }, 
+        {
+            "canonical name": "Sommer, Steffen", 
+            "name": "Steffen Sommer", 
+            "long imdb name": "Steffen Sommer", 
+            "long imdb canonical name": "Sommer, Steffen"
+        }, 
+        {
+            "canonical name": "Sommer, Steffen", 
+            "name": "Steffen Sommer", 
+            "long imdb name": "Steffen Sommer", 
+            "long imdb canonical name": "Sommer, Steffen"
+        }
+    ], 
+    "countries": [
+        "Germany"
+    ], 
+    "transportation department": [
+        {
+            "canonical name": "Assilin, Philipp", 
+            "name": "Philipp Assilin", 
+            "long imdb name": "Philipp Assilin", 
+            "long imdb canonical name": "Assilin, Philipp"
+        }
+    ], 
+    "plot outline": "This tragicomedy is a self-ironic portrait of a young man who drops out of university and ends up wandering the streets of the city he lives: Berlin...", 
+    "plot": [
+        "This tragicomedy is a self-ironic portrait of a young man who drops out of university and ends up wandering the streets of the city he lives: Berlin. The film deals with the desire to participate in life and the difficulty to find one's place."
+    ], 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BNDgzOTQxNzU1MV5BMl5BanBnXkFtZTgwNzE3MzM4MTE@.jpg", 
+    "canonical title": "Oh Boy", 
+    "cast": [
+        {
+            "canonical name": "Schilling, Tom", 
+            "name": "Tom Schilling", 
+            "long imdb name": "Tom Schilling", 
+            "long imdb canonical name": "Schilling, Tom"
+        }, 
+        {
+            "canonical name": "Sch\u00fcttler, Katharina", 
+            "name": "Katharina Sch\u00fcttler", 
+            "long imdb name": "Katharina Sch\u00fcttler", 
+            "long imdb canonical name": "Sch\u00fcttler, Katharina"
+        }, 
+        {
+            "canonical name": "von Dohn\u00e1nyi, Justus", 
+            "name": "Justus von Dohn\u00e1nyi", 
+            "long imdb name": "Justus von Dohn\u00e1nyi", 
+            "long imdb canonical name": "von Dohn\u00e1nyi, Justus"
+        }, 
+        {
+            "canonical name": "Schr\u00f6ders, Andreas", 
+            "name": "Andreas Schr\u00f6ders", 
+            "long imdb name": "Andreas Schr\u00f6ders", 
+            "long imdb canonical name": "Schr\u00f6ders, Andreas"
+        }, 
+        {
+            "canonical name": "Hauck, Katharina", 
+            "name": "Katharina Hauck", 
+            "long imdb name": "Katharina Hauck", 
+            "long imdb canonical name": "Hauck, Katharina"
+        }, 
+        {
+            "canonical name": "Hosemann, Marc", 
+            "name": "Marc Hosemann", 
+            "long imdb name": "Marc Hosemann", 
+            "long imdb canonical name": "Hosemann, Marc"
+        }, 
+        {
+            "canonical name": "Kempter, Friederike", 
+            "name": "Friederike Kempter", 
+            "long imdb name": "Friederike Kempter", 
+            "long imdb canonical name": "Kempter, Friederike"
+        }, 
+        {
+            "canonical name": "Klawitter, Arnd", 
+            "name": "Arnd Klawitter", 
+            "long imdb name": "Arnd Klawitter", 
+            "long imdb canonical name": "Klawitter, Arnd"
+        }, 
+        {
+            "canonical name": "Birkenfeld, Inga", 
+            "name": "Inga Birkenfeld", 
+            "long imdb name": "Inga Birkenfeld", 
+            "long imdb canonical name": "Birkenfeld, Inga"
+        }, 
+        {
+            "canonical name": "Noethen, Ulrich", 
+            "name": "Ulrich Noethen", 
+            "long imdb name": "Ulrich Noethen", 
+            "long imdb canonical name": "Noethen, Ulrich"
+        }, 
+        {
+            "canonical name": "Modersohn, Leander", 
+            "name": "Leander Modersohn", 
+            "long imdb name": "Leander Modersohn", 
+            "long imdb canonical name": "Modersohn, Leander"
+        }, 
+        {
+            "canonical name": "Brambach, Martin", 
+            "name": "Martin Brambach", 
+            "long imdb name": "Martin Brambach", 
+            "long imdb canonical name": "Brambach, Martin"
+        }, 
+        {
+            "canonical name": "Kahl, Rolf Peter", 
+            "name": "Rolf Peter Kahl", 
+            "long imdb name": "Rolf Peter Kahl", 
+            "long imdb canonical name": "Kahl, Rolf Peter"
+        }, 
+        {
+            "canonical name": "B\u00f6ttner, Lis", 
+            "name": "Lis B\u00f6ttner", 
+            "long imdb name": "Lis B\u00f6ttner", 
+            "long imdb canonical name": "B\u00f6ttner, Lis"
+        }, 
+        {
+            "canonical name": "Trebs, Theo", 
+            "name": "Theo Trebs", 
+            "long imdb name": "Theo Trebs", 
+            "long imdb canonical name": "Trebs, Theo"
+        }, 
+        {
+            "canonical name": "Altomirianos, Alexander", 
+            "name": "Alexander Altomirianos", 
+            "long imdb name": "Alexander Altomirianos", 
+            "long imdb canonical name": "Altomirianos, Alexander"
+        }, 
+        {
+            "canonical name": "J\u00fcrgens, Steffen", 
+            "name": "Steffen J\u00fcrgens", 
+            "long imdb name": "Steffen J\u00fcrgens", 
+            "long imdb canonical name": "J\u00fcrgens, Steffen"
+        }, 
+        {
+            "canonical name": "Schlootz, Ellen", 
+            "name": "Ellen Schlootz", 
+            "long imdb name": "Ellen Schlootz", 
+            "long imdb canonical name": "Schlootz, Ellen"
+        }, 
+        {
+            "canonical name": "Lau, Frederick", 
+            "name": "Frederick Lau", 
+            "long imdb name": "Frederick Lau", 
+            "long imdb canonical name": "Lau, Frederick"
+        }, 
+        {
+            "canonical name": "Bieber, Jakob", 
+            "name": "Jakob Bieber", 
+            "long imdb name": "Jakob Bieber", 
+            "long imdb canonical name": "Bieber, Jakob"
+        }, 
+        {
+            "canonical name": "Hofmann, Robert", 
+            "name": "Robert Hofmann", 
+            "long imdb name": "Robert Hofmann", 
+            "long imdb canonical name": "Hofmann, Robert"
+        }, 
+        {
+            "canonical name": "Williams, Tim", 
+            "name": "Tim Williams", 
+            "long imdb name": "Tim Williams", 
+            "long imdb canonical name": "Williams, Tim"
+        }, 
+        {
+            "canonical name": "Gwisdek, Michael", 
+            "name": "Michael Gwisdek", 
+            "long imdb name": "Michael Gwisdek", 
+            "long imdb canonical name": "Gwisdek, Michael"
+        }, 
+        {
+            "canonical name": "Schnapp, Sanne", 
+            "name": "Sanne Schnapp", 
+            "long imdb name": "Sanne Schnapp", 
+            "long imdb canonical name": "Schnapp, Sanne"
+        }, 
+        {
+            "canonical name": "Faligant, Silvaine", 
+            "name": "Silvaine Faligant", 
+            "long imdb name": "Silvaine Faligant", 
+            "long imdb canonical name": "Faligant, Silvaine"
+        }, 
+        {
+            "canonical name": "Ernst, Annika", 
+            "name": "Annika Ernst", 
+            "long imdb name": "Annika Ernst", 
+            "long imdb canonical name": "Ernst, Annika"
+        }, 
+        {
+            "canonical name": "Ellinghaus, Victor", 
+            "name": "Victor Ellinghaus", 
+            "long imdb name": "Victor Ellinghaus", 
+            "long imdb canonical name": "Ellinghaus, Victor"
+        }, 
+        {
+            "canonical name": "von Habsburg-Lothringen, Paul", 
+            "name": "Paul von Habsburg-Lothringen", 
+            "long imdb name": "Paul von Habsburg-Lothringen", 
+            "long imdb canonical name": "von Habsburg-Lothringen, Paul"
+        }, 
+        {
+            "canonical name": "K\u00fchn, Helen", 
+            "name": "Helen K\u00fchn", 
+            "long imdb name": "Helen K\u00fchn", 
+            "long imdb canonical name": "K\u00fchn, Helen"
+        }, 
+        {
+            "canonical name": "Gern, Joachim", 
+            "name": "Joachim Gern", 
+            "long imdb name": "Joachim Gern", 
+            "long imdb canonical name": "Gern, Joachim"
+        }, 
+        {
+            "canonical name": "Kramer, Lina", 
+            "name": "Lina Kramer", 
+            "long imdb name": "Lina Kramer", 
+            "long imdb canonical name": "Kramer, Lina"
+        }, 
+        {
+            "canonical name": "Wustrack, Tim", 
+            "name": "Tim Wustrack", 
+            "long imdb name": "Tim Wustrack", 
+            "long imdb canonical name": "Wustrack, Tim"
+        }, 
+        {
+            "canonical name": "Fischer, Kathryn", 
+            "name": "Kathryn Fischer", 
+            "long imdb name": "Kathryn Fischer", 
+            "long imdb canonical name": "Fischer, Kathryn"
+        }, 
+        {
+            "canonical name": "Blake, Fred Aaron", 
+            "name": "Fred Aaron Blake", 
+            "long imdb name": "Fred Aaron Blake", 
+            "long imdb canonical name": "Blake, Fred Aaron"
+        }, 
+        {
+            "canonical name": "Nothnagel, Nico", 
+            "name": "Nico Nothnagel", 
+            "long imdb name": "Nico Nothnagel", 
+            "long imdb canonical name": "Nothnagel, Nico"
+        }, 
+        {
+            "canonical name": "Wallraff, Mayra", 
+            "name": "Mayra Wallraff", 
+            "long imdb name": "Mayra Wallraff", 
+            "long imdb canonical name": "Wallraff, Mayra"
+        }
+    ], 
+    "smart long imdb canonical title": "Oh Boy (2012)", 
+    "costume department": [
+        {
+            "canonical name": "Hirt, Isabella", 
+            "name": "Isabella Hirt", 
+            "long imdb name": "Isabella Hirt", 
+            "long imdb canonical name": "Hirt, Isabella"
+        }, 
+        {
+            "canonical name": "Rux, Zora", 
+            "name": "Zora Rux", 
+            "long imdb name": "Zora Rux", 
+            "long imdb canonical name": "Rux, Zora"
+        }, 
+        {
+            "canonical name": "Rux, Zora", 
+            "name": "Zora Rux", 
+            "long imdb name": "Zora Rux", 
+            "long imdb canonical name": "Rux, Zora"
+        }
+    ], 
+    "original music": [
+        {
+            "canonical name": "MacNeil, Cherilyn", 
+            "name": "Cherilyn MacNeil", 
+            "long imdb name": "Cherilyn MacNeil", 
+            "long imdb canonical name": "MacNeil, Cherilyn"
+        }, 
+        {
+            "canonical name": "The Major, Minors", 
+            "name": "Minors The Major", 
+            "long imdb name": "Minors The Major", 
+            "long imdb canonical name": "The Major, Minors"
+        }
+    ], 
+    "smart canonical title": "Oh Boy"
+}

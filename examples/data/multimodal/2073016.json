@@ -1,0 +1,582 @@
+{
+    "music department": [
+        {
+            "canonical name": "Kakon, Varda", 
+            "name": "Varda Kakon", 
+            "long imdb name": "Varda Kakon", 
+            "long imdb canonical name": "Kakon, Varda"
+        }
+    ], 
+    "camera and electrical department": [
+        {
+            "canonical name": "Golan, Nimrod", 
+            "name": "Nimrod Golan", 
+            "long imdb name": "Nimrod Golan", 
+            "long imdb canonical name": "Golan, Nimrod"
+        }, 
+        {
+            "canonical name": "Siman-Tov, Rami", 
+            "name": "Rami Siman-Tov", 
+            "long imdb name": "Rami Siman-Tov", 
+            "long imdb canonical name": "Siman-Tov, Rami"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "Cohen Media Group", 
+            "long imdb name": "Cohen Media Group"
+        }, 
+        {
+            "name": "Cin\u00e9art", 
+            "long imdb name": "Cin\u00e9art"
+        }, 
+        {
+            "name": "Film Kino Text", 
+            "long imdb name": "Film Kino Text"
+        }, 
+        {
+            "name": "Haut et Court", 
+            "long imdb name": "Haut et Court"
+        }, 
+        {
+            "name": "Mirada Distribution", 
+            "long imdb name": "Mirada Distribution"
+        }, 
+        {
+            "name": "Moviola", 
+            "long imdb name": "Moviola"
+        }, 
+        {
+            "name": "Film1", 
+            "long imdb name": "Film1"
+        }
+    ], 
+    "rating": 7.4, 
+    "runtimes": [
+        "USA:105"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "Adda, Val\u00e9rie", 
+            "name": "Val\u00e9rie Adda", 
+            "long imdb name": "Val\u00e9rie Adda", 
+            "long imdb canonical name": "Adda, Val\u00e9rie"
+        }, 
+        {
+            "canonical name": "Doron, Rona", 
+            "name": "Rona Doron", 
+            "long imdb name": "Rona Doron", 
+            "long imdb canonical name": "Doron, Rona"
+        }
+    ], 
+    "year": 2012, 
+    "production design": [
+        {
+            "canonical name": "Markin, Miguel", 
+            "name": "Miguel Markin", 
+            "long imdb name": "Miguel Markin", 
+            "long imdb canonical name": "Markin, Miguel"
+        }
+    ], 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Delacroix, Isabelle", 
+            "name": "Isabelle Delacroix", 
+            "long imdb name": "Isabelle Delacroix", 
+            "long imdb canonical name": "Delacroix, Isabelle"
+        }
+    ], 
+    "color info": [], 
+    "visual effects": [
+        {
+            "canonical name": "Caer, Lo\u00efc", 
+            "name": "Lo\u00efc Caer", 
+            "long imdb name": "Lo\u00efc Caer", 
+            "long imdb canonical name": "Caer, Lo\u00efc"
+        }
+    ], 
+    "votes": 2629, 
+    "producer": [
+        {
+            "canonical name": "Amouyal, Eric", 
+            "name": "Eric Amouyal", 
+            "long imdb name": "Eric Amouyal", 
+            "long imdb canonical name": "Amouyal, Eric"
+        }, 
+        {
+            "canonical name": "Barbarat, Chryst\u00e8le", 
+            "name": "Chryst\u00e8le Barbarat", 
+            "long imdb name": "Chryst\u00e8le Barbarat", 
+            "long imdb canonical name": "Barbarat, Chryst\u00e8le"
+        }, 
+        {
+            "canonical name": "Berdugo, Rapha\u00ebl", 
+            "name": "Rapha\u00ebl Berdugo", 
+            "long imdb name": "Rapha\u00ebl Berdugo", 
+            "long imdb canonical name": "Berdugo, Rapha\u00ebl"
+        }, 
+        {
+            "canonical name": "de Goldschmidt, Fr\u00e9d\u00e9ric", 
+            "name": "Fr\u00e9d\u00e9ric de Goldschmidt", 
+            "long imdb name": "Fr\u00e9d\u00e9ric de Goldschmidt", 
+            "long imdb canonical name": "de Goldschmidt, Fr\u00e9d\u00e9ric"
+        }, 
+        {
+            "canonical name": "Lacombe, Virginie", 
+            "name": "Virginie Lacombe", 
+            "long imdb name": "Virginie Lacombe", 
+            "long imdb canonical name": "Lacombe, Virginie"
+        }
+    ], 
+    "title": "Le fils de l'autre", 
+    "mpaa": "Rated PG-13 for a scene of violence, brief language and drug use", 
+    "assistant director": [
+        {
+            "canonical name": "Banitt, Assaf", 
+            "name": "Assaf Banitt", 
+            "long imdb name": "Assaf Banitt", 
+            "long imdb canonical name": "Banitt, Assaf"
+        }, 
+        {
+            "canonical name": "Davin, Sophie", 
+            "name": "Sophie Davin", 
+            "long imdb name": "Sophie Davin", 
+            "long imdb canonical name": "Davin, Sophie"
+        }, 
+        {
+            "canonical name": "Levy, Louis", 
+            "name": "Louis Levy", 
+            "long imdb name": "Louis Levy", 
+            "long imdb canonical name": "Levy, Louis"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "Fitoussi, Noam", 
+            "name": "Noam Fitoussi", 
+            "long imdb name": "Noam Fitoussi", 
+            "long imdb canonical name": "Fitoussi, Noam"
+        }, 
+        {
+            "canonical name": "L\u00e9vy, Lorraine", 
+            "name": "Lorraine L\u00e9vy", 
+            "long imdb name": "Lorraine L\u00e9vy", 
+            "long imdb canonical name": "L\u00e9vy, Lorraine"
+        }, 
+        {
+            "canonical name": "Saugeon, Nathalie", 
+            "name": "Nathalie Saugeon", 
+            "long imdb name": "Nathalie Saugeon", 
+            "long imdb canonical name": "Saugeon, Nathalie"
+        }
+    ], 
+    "long imdb canonical title": "fils de l'autre, Le (2012)", 
+    "languages": [
+        "French", 
+        "English", 
+        "Arabic", 
+        "Hebrew"
+    ], 
+    "production manager": [
+        {
+            "canonical name": "Copti, Tony", 
+            "name": "Tony Copti", 
+            "long imdb name": "Tony Copti", 
+            "long imdb canonical name": "Copti, Tony"
+        }, 
+        {
+            "canonical name": "Grunenwald, Fr\u00e9d\u00e9ric", 
+            "name": "Fr\u00e9d\u00e9ric Grunenwald", 
+            "long imdb name": "Fr\u00e9d\u00e9ric Grunenwald", 
+            "long imdb canonical name": "Grunenwald, Fr\u00e9d\u00e9ric"
+        }, 
+        {
+            "canonical name": "Levy, Louis", 
+            "name": "Louis Levy", 
+            "long imdb name": "Louis Levy", 
+            "long imdb canonical name": "Levy, Louis"
+        }
+    ], 
+    "casting director": [
+        {
+            "canonical name": "Laguens, Michael", 
+            "name": "Michael Laguens", 
+            "long imdb name": "Michael Laguens", 
+            "long imdb canonical name": "Laguens, Michael"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Gadmer, Sylvie", 
+            "name": "Sylvie Gadmer", 
+            "long imdb name": "Sylvie Gadmer", 
+            "long imdb canonical name": "Gadmer, Sylvie"
+        }
+    ], 
+    "certificates": [
+        "Argentina:13", 
+        "Netherlands:12", 
+        "Singapore:NC-16", 
+        "Switzerland:10::(canton of Geneva)", 
+        "Switzerland:10::(canton of Vaud)", 
+        "USA:PG-13"
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "Baudouin, Antoine", 
+            "name": "Antoine Baudouin", 
+            "long imdb name": "Antoine Baudouin", 
+            "long imdb canonical name": "Baudouin, Antoine"
+        }, 
+        {
+            "canonical name": "Bernard, Jean-Paul", 
+            "name": "Jean-Paul Bernard", 
+            "long imdb name": "Jean-Paul Bernard", 
+            "long imdb canonical name": "Bernard, Jean-Paul"
+        }, 
+        {
+            "canonical name": "Bouchateau, Guillaume", 
+            "name": "Guillaume Bouchateau", 
+            "long imdb name": "Guillaume Bouchateau", 
+            "long imdb canonical name": "Bouchateau, Guillaume"
+        }, 
+        {
+            "canonical name": "Gaborieau, Dominique", 
+            "name": "Dominique Gaborieau", 
+            "long imdb name": "Dominique Gaborieau", 
+            "long imdb canonical name": "Gaborieau, Dominique"
+        }, 
+        {
+            "canonical name": "Lazzerini, Damien", 
+            "name": "Damien Lazzerini", 
+            "long imdb name": "Damien Lazzerini", 
+            "long imdb canonical name": "Lazzerini, Damien"
+        }, 
+        {
+            "canonical name": "Lorthioir, Marion", 
+            "name": "Marion Lorthioir", 
+            "long imdb name": "Marion Lorthioir", 
+            "long imdb canonical name": "Lorthioir, Marion"
+        }, 
+        {
+            "canonical name": "Penot, Florian", 
+            "name": "Florian Penot", 
+            "long imdb name": "Florian Penot", 
+            "long imdb canonical name": "Penot, Florian"
+        }, 
+        {
+            "canonical name": "Raviv, Oren", 
+            "name": "Oren Raviv", 
+            "long imdb name": "Oren Raviv", 
+            "long imdb canonical name": "Raviv, Oren"
+        }
+    ], 
+    "long imdb title": "Le fils de l'autre (2012)", 
+    "country codes": [
+        "fr"
+    ], 
+    "language codes": [
+        "fr", 
+        "en", 
+        "ar", 
+        "he"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BMTM1MzU3NTI0Nl5BMl5BanBnXkFtZTcwNTAyNTc0OA@@._V1._SX97_SY140_.jpg", 
+    "editorial department": [
+        {
+            "canonical name": "Bouyer, Pauline", 
+            "name": "Pauline Bouyer", 
+            "long imdb name": "Pauline Bouyer", 
+            "long imdb canonical name": "Bouyer, Pauline"
+        }, 
+        {
+            "canonical name": "Du Pasquier, Florian", 
+            "name": "Florian Du Pasquier", 
+            "long imdb name": "Florian Du Pasquier", 
+            "long imdb canonical name": "Du Pasquier, Florian"
+        }, 
+        {
+            "canonical name": "Guen, Jean-Baptiste Le", 
+            "name": "Jean-Baptiste Le Guen", 
+            "long imdb name": "Jean-Baptiste Le Guen", 
+            "long imdb canonical name": "Guen, Jean-Baptiste Le"
+        }, 
+        {
+            "canonical name": "Sautarel, Lucile", 
+            "name": "Lucile Sautarel", 
+            "long imdb name": "Lucile Sautarel", 
+            "long imdb canonical name": "Sautarel, Lucile"
+        }
+    ], 
+    "sound mix": [
+        "Dolby Digital"
+    ], 
+    "genres": [
+        "Drama"
+    ], 
+    "director": [
+        {
+            "canonical name": "L\u00e9vy, Lorraine", 
+            "name": "Lorraine L\u00e9vy", 
+            "long imdb name": "Lorraine L\u00e9vy", 
+            "long imdb canonical name": "L\u00e9vy, Lorraine"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Soyer, Emmanuel", 
+            "name": "Emmanuel Soyer", 
+            "long imdb name": "Emmanuel Soyer", 
+            "long imdb canonical name": "Soyer, Emmanuel"
+        }
+    ], 
+    "akas": [
+        "The Other Son::Australia (imdb display title), USA (imdb display title)", 
+        "\u0421\u044b\u043d \u0434\u0440\u0443\u0433\u043e\u0439::Russia", 
+        "Der Sohn der Anderen::Germany (imdb display title)", 
+        "El hijo del otro::Spain (imdb display title)", 
+        "El otro hijo::Argentina (imdb display title)", 
+        "Ha'ben ha'akher::Israel (Hebrew title) (imdb display title)", 
+        "Il figlio dell'altra::Italy (imdb display title)"
+    ], 
+    "production companies": [
+        {
+            "name": "Rapsodie Production", 
+            "long imdb name": "Rapsodie Production"
+        }, 
+        {
+            "name": "Cit\u00e9 Films", 
+            "long imdb name": "Cit\u00e9 Films"
+        }, 
+        {
+            "name": "France 3 Cin\u00e9ma", 
+            "long imdb name": "France 3 Cin\u00e9ma"
+        }, 
+        {
+            "name": "Madeleine Films", 
+            "long imdb name": "Madeleine Films"
+        }, 
+        {
+            "name": "Solo Films", 
+            "long imdb name": "Solo Films"
+        }, 
+        {
+            "name": "Orange Cin\u00e9ma S\u00e9ries", 
+            "long imdb name": "Orange Cin\u00e9ma S\u00e9ries"
+        }, 
+        {
+            "name": "France T\u00e9l\u00e9vision", 
+            "long imdb name": "France T\u00e9l\u00e9vision"
+        }, 
+        {
+            "name": "Useful Production", 
+            "long imdb name": "Useful Production"
+        }, 
+        {
+            "name": "Hoche Artois Images", 
+            "long imdb name": "Hoche Artois Images"
+        }
+    ], 
+    "kind": "movie", 
+    "art department": [
+        {
+            "canonical name": "Roshovsky, Noa", 
+            "name": "Noa Roshovsky", 
+            "long imdb name": "Noa Roshovsky", 
+            "long imdb canonical name": "Roshovsky, Noa"
+        }
+    ], 
+    "countries": [
+        "France"
+    ], 
+    "plot outline": "Two young men, one Israeli and one Palestinian, discover they were accidentally switched at birth.", 
+    "plot": [
+        "Two young men, one Israeli and one Palestinian, discover they were accidentally switched at birth."
+    ], 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BMTM1MzU3NTI0Nl5BMl5BanBnXkFtZTcwNTAyNTc0OA@@.jpg", 
+    "canonical title": "fils de l'autre, Le", 
+    "cast": [
+        {
+            "canonical name": "Devos, Emmanuelle", 
+            "name": "Emmanuelle Devos", 
+            "long imdb name": "Emmanuelle Devos", 
+            "long imdb canonical name": "Devos, Emmanuelle"
+        }, 
+        {
+            "canonical name": "Elb\u00e9, Pascal", 
+            "name": "Pascal Elb\u00e9", 
+            "long imdb name": "Pascal Elb\u00e9", 
+            "long imdb canonical name": "Elb\u00e9, Pascal"
+        }, 
+        {
+            "canonical name": "Sitruk, Jules", 
+            "name": "Jules Sitruk", 
+            "long imdb name": "Jules Sitruk", 
+            "long imdb canonical name": "Sitruk, Jules"
+        }, 
+        {
+            "canonical name": "Dehbi, Mehdi", 
+            "name": "Mehdi Dehbi", 
+            "long imdb name": "Mehdi Dehbi", 
+            "long imdb canonical name": "Dehbi, Mehdi"
+        }, 
+        {
+            "canonical name": "Omari, Areen", 
+            "name": "Areen Omari", 
+            "long imdb name": "Areen Omari", 
+            "long imdb canonical name": "Omari, Areen"
+        }, 
+        {
+            "canonical name": "Natour, Khalifa", 
+            "name": "Khalifa Natour", 
+            "long imdb name": "Khalifa Natour", 
+            "long imdb canonical name": "Natour, Khalifa"
+        }, 
+        {
+            "canonical name": "Shalaby, Mahmud", 
+            "name": "Mahmud Shalaby", 
+            "long imdb name": "Mahmud Shalaby", 
+            "long imdb canonical name": "Shalaby, Mahmud"
+        }, 
+        {
+            "canonical name": "Podalyd\u00e8s, Bruno", 
+            "name": "Bruno Podalyd\u00e8s", 
+            "long imdb name": "Bruno Podalyd\u00e8s", 
+            "long imdb canonical name": "Podalyd\u00e8s, Bruno"
+        }, 
+        {
+            "canonical name": "Dagan, Ezra", 
+            "name": "Ezra Dagan", 
+            "long imdb name": "Ezra Dagan", 
+            "long imdb canonical name": "Dagan, Ezra"
+        }, 
+        {
+            "canonical name": "Or, Tamar Shem", 
+            "name": "Tamar Shem Or", 
+            "long imdb name": "Tamar Shem Or", 
+            "long imdb canonical name": "Or, Tamar Shem"
+        }, 
+        {
+            "canonical name": "Offner, Tomer", 
+            "name": "Tomer Offner", 
+            "long imdb name": "Tomer Offner", 
+            "long imdb canonical name": "Offner, Tomer"
+        }, 
+        {
+            "canonical name": "Manor, Noa", 
+            "name": "Noa Manor", 
+            "long imdb name": "Noa Manor", 
+            "long imdb canonical name": "Manor, Noa"
+        }, 
+        {
+            "canonical name": "Naor, Shira", 
+            "name": "Shira Naor", 
+            "long imdb name": "Shira Naor", 
+            "long imdb canonical name": "Naor, Shira"
+        }, 
+        {
+            "canonical name": "Zriek, Diana", 
+            "name": "Diana Zriek", 
+            "long imdb name": "Diana Zriek", 
+            "long imdb canonical name": "Zriek, Diana"
+        }, 
+        {
+            "canonical name": "Wisselmann, Marie", 
+            "name": "Marie Wisselmann", 
+            "long imdb name": "Marie Wisselmann", 
+            "long imdb canonical name": "Wisselmann, Marie"
+        }, 
+        {
+            "canonical name": "David, Jil Ben", 
+            "name": "Jil Ben David", 
+            "long imdb name": "Jil Ben David", 
+            "long imdb canonical name": "David, Jil Ben"
+        }, 
+        {
+            "canonical name": "Rozman, Yuval", 
+            "name": "Yuval Rozman", 
+            "long imdb name": "Yuval Rozman", 
+            "long imdb canonical name": "Rozman, Yuval"
+        }, 
+        {
+            "canonical name": "Ettinger, Lana", 
+            "name": "Lana Ettinger", 
+            "long imdb name": "Lana Ettinger", 
+            "long imdb canonical name": "Ettinger, Lana"
+        }, 
+        {
+            "canonical name": "Nofi, Loai", 
+            "name": "Loai Nofi", 
+            "long imdb name": "Loai Nofi", 
+            "long imdb canonical name": "Nofi, Loai"
+        }, 
+        {
+            "canonical name": "Bitar, Majd", 
+            "name": "Majd Bitar", 
+            "long imdb name": "Majd Bitar", 
+            "long imdb canonical name": "Bitar, Majd"
+        }, 
+        {
+            "canonical name": "Avrashi, Nir", 
+            "name": "Nir Avrashi", 
+            "long imdb name": "Nir Avrashi", 
+            "long imdb canonical name": "Avrashi, Nir"
+        }, 
+        {
+            "canonical name": "Friebach, Shir", 
+            "name": "Shir Friebach", 
+            "long imdb name": "Shir Friebach", 
+            "long imdb canonical name": "Friebach, Shir"
+        }, 
+        {
+            "canonical name": "Eldar, Beni", 
+            "name": "Beni Eldar", 
+            "long imdb name": "Beni Eldar", 
+            "long imdb canonical name": "Eldar, Beni"
+        }, 
+        {
+            "canonical name": "Lachmi, Ori", 
+            "name": "Ori Lachmi", 
+            "long imdb name": "Ori Lachmi", 
+            "long imdb canonical name": "Lachmi, Ori"
+        }, 
+        {
+            "canonical name": "Yadlin, Natan", 
+            "name": "Natan Yadlin", 
+            "long imdb name": "Natan Yadlin", 
+            "long imdb canonical name": "Yadlin, Natan"
+        }, 
+        {
+            "canonical name": "Amouyal, Samantha", 
+            "name": "Samantha Amouyal", 
+            "long imdb name": "Samantha Amouyal", 
+            "long imdb canonical name": "Amouyal, Samantha"
+        }, 
+        {
+            "canonical name": "Abed, Oum", 
+            "name": "Oum Abed", 
+            "long imdb name": "Oum Abed", 
+            "long imdb canonical name": "Abed, Oum"
+        }, 
+        {
+            "canonical name": "Taroni, Michel", 
+            "name": "Michel Taroni", 
+            "long imdb name": "Michel Taroni", 
+            "long imdb canonical name": "Taroni, Michel"
+        }, 
+        {
+            "canonical name": "Keppa", 
+            "name": "Keppa", 
+            "long imdb name": "Keppa", 
+            "long imdb canonical name": "Keppa"
+        }, 
+        {
+            "canonical name": "Mevorach, Zaki", 
+            "name": "Zaki Mevorach", 
+            "long imdb name": "Zaki Mevorach", 
+            "long imdb canonical name": "Mevorach, Zaki"
+        }
+    ], 
+    "smart long imdb canonical title": "fils de l'autre, Le (2012)", 
+    "smart canonical title": "fils de l'autre, Le"
+}

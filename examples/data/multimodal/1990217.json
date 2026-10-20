@@ -1,0 +1,1109 @@
+{
+    "rating": 6.6, 
+    "camera and electrical department": [
+        {
+            "canonical name": "Barche, Loie", 
+            "name": "Loie Barche", 
+            "long imdb name": "Loie Barche", 
+            "long imdb canonical name": "Barche, Loie"
+        }, 
+        {
+            "canonical name": "Beltr\u00e1n, Fernando", 
+            "name": "Fernando Beltr\u00e1n", 
+            "long imdb name": "Fernando Beltr\u00e1n", 
+            "long imdb canonical name": "Beltr\u00e1n, Fernando"
+        }, 
+        {
+            "canonical name": "Esbri, Xavier", 
+            "name": "Xavier Esbri", 
+            "long imdb name": "Xavier Esbri", 
+            "long imdb canonical name": "Esbri, Xavier"
+        }, 
+        {
+            "canonical name": "Santa, Julio Fern\u00e1ndez", 
+            "name": "Julio Fern\u00e1ndez Santa", 
+            "long imdb name": "Julio Fern\u00e1ndez Santa", 
+            "long imdb canonical name": "Santa, Julio Fern\u00e1ndez"
+        }, 
+        {
+            "canonical name": "Gonz\u00e1lez, Hugo", 
+            "name": "Hugo Gonz\u00e1lez", 
+            "long imdb name": "Hugo Gonz\u00e1lez", 
+            "long imdb canonical name": "Gonz\u00e1lez, Hugo"
+        }, 
+        {
+            "canonical name": "Gonz\u00e1lez, Kevin", 
+            "name": "Kevin Gonz\u00e1lez", 
+            "long imdb name": "Kevin Gonz\u00e1lez", 
+            "long imdb canonical name": "Gonz\u00e1lez, Kevin"
+        }, 
+        {
+            "canonical name": "Lagappe, Adam", 
+            "name": "Adam Lagappe", 
+            "long imdb name": "Adam Lagappe", 
+            "long imdb canonical name": "Lagappe, Adam"
+        }, 
+        {
+            "canonical name": "Ledwith, Oliver", 
+            "name": "Oliver Ledwith", 
+            "long imdb name": "Oliver Ledwith", 
+            "long imdb canonical name": "Ledwith, Oliver"
+        }, 
+        {
+            "canonical name": "Pavie-Crottier, Vanessa", 
+            "name": "Vanessa Pavie-Crottier", 
+            "long imdb name": "Vanessa Pavie-Crottier", 
+            "long imdb canonical name": "Pavie-Crottier, Vanessa"
+        }, 
+        {
+            "canonical name": "Rom\u00e1n, Paco", 
+            "name": "Paco Rom\u00e1n", 
+            "long imdb name": "Paco Rom\u00e1n", 
+            "long imdb canonical name": "Rom\u00e1n, Paco"
+        }, 
+        {
+            "canonical name": "Sequeira, Iv\u00e1n", 
+            "name": "Iv\u00e1n Sequeira", 
+            "long imdb name": "Iv\u00e1n Sequeira", 
+            "long imdb canonical name": "Sequeira, Iv\u00e1n"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "Alcine Terran", 
+            "long imdb name": "Alcine Terran"
+        }, 
+        {
+            "name": "Bac Films", 
+            "long imdb name": "Bac Films"
+        }, 
+        {
+            "name": "Cohen Media Group", 
+            "long imdb name": "Cohen Media Group"
+        }, 
+        {
+            "name": "Six Sales", 
+            "long imdb name": "Six Sales"
+        }, 
+        {
+            "name": "Alta Films", 
+            "long imdb name": "Alta Films"
+        }, 
+        {
+            "name": "Arthaus Filmverleih", 
+            "long imdb name": "Arthaus Filmverleih"
+        }, 
+        {
+            "name": "Arthaus Filmverleih", 
+            "long imdb name": "Arthaus Filmverleih"
+        }, 
+        {
+            "name": "Camino Filmverleih", 
+            "long imdb name": "Camino Filmverleih"
+        }, 
+        {
+            "name": "D Films", 
+            "long imdb name": "D Films"
+        }
+    ], 
+    "runtimes": [
+        "105"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "Huete, Lala", 
+            "name": "Lala Huete", 
+            "long imdb name": "Lala Huete", 
+            "long imdb canonical name": "Huete, Lala"
+        }
+    ], 
+    "thanks": [
+        {
+            "canonical name": "Azcona, Rafael", 
+            "name": "Rafael Azcona", 
+            "long imdb name": "Rafael Azcona", 
+            "long imdb canonical name": "Azcona, Rafael"
+        }, 
+        {
+            "canonical name": "Ca\u00f1adas, Eduardo", 
+            "name": "Eduardo Ca\u00f1adas", 
+            "long imdb name": "Eduardo Ca\u00f1adas", 
+            "long imdb canonical name": "Ca\u00f1adas, Eduardo"
+        }, 
+        {
+            "canonical name": "Gamet, Pierre", 
+            "name": "Pierre Gamet", 
+            "long imdb name": "Pierre Gamet", 
+            "long imdb canonical name": "Gamet, Pierre"
+        }, 
+        {
+            "canonical name": "Hockney, David", 
+            "name": "David Hockney", 
+            "long imdb name": "David Hockney", 
+            "long imdb canonical name": "Hockney, David"
+        }, 
+        {
+            "canonical name": "Lorquin, Olivier", 
+            "name": "Olivier Lorquin", 
+            "long imdb name": "Olivier Lorquin", 
+            "long imdb canonical name": "Lorquin, Olivier"
+        }, 
+        {
+            "canonical name": "Matta, Germana", 
+            "name": "Germana Matta", 
+            "long imdb name": "Germana Matta", 
+            "long imdb canonical name": "Matta, Germana"
+        }, 
+        {
+            "canonical name": "Picollec, Laurence", 
+            "name": "Laurence Picollec", 
+            "long imdb name": "Laurence Picollec", 
+            "long imdb canonical name": "Picollec, Laurence"
+        }, 
+        {
+            "canonical name": "de Sabatino, Beno\u00eet", 
+            "name": "Beno\u00eet de Sabatino", 
+            "long imdb name": "Beno\u00eet de Sabatino", 
+            "long imdb canonical name": "de Sabatino, Beno\u00eet"
+        }, 
+        {
+            "canonical name": "Trueba, M\u00e1ximo", 
+            "name": "M\u00e1ximo Trueba", 
+            "long imdb name": "M\u00e1ximo Trueba", 
+            "long imdb canonical name": "Trueba, M\u00e1ximo"
+        }, 
+        {
+            "canonical name": "Vierny, Dina", 
+            "name": "Dina Vierny", 
+            "long imdb name": "Dina Vierny", 
+            "long imdb canonical name": "Vierny, Dina"
+        }
+    ], 
+    "make up": [
+        {
+            "canonical name": "Gourin-Fayn, Agn\u00e8s", 
+            "name": "Agn\u00e8s Gourin-Fayn", 
+            "long imdb name": "Agn\u00e8s Gourin-Fayn", 
+            "long imdb canonical name": "Gourin-Fayn, Agn\u00e8s"
+        }, 
+        {
+            "canonical name": "Imbert, Sylvie", 
+            "name": "Sylvie Imbert", 
+            "long imdb name": "Sylvie Imbert", 
+            "long imdb canonical name": "Imbert, Sylvie"
+        }, 
+        {
+            "canonical name": "Montes, No\u00e9", 
+            "name": "No\u00e9 Montes", 
+            "long imdb name": "No\u00e9 Montes", 
+            "long imdb canonical name": "Montes, No\u00e9"
+        }, 
+        {
+            "canonical name": "Santfeliu, Montserrat", 
+            "name": "Montserrat Santfeliu", 
+            "long imdb name": "Montserrat Santfeliu", 
+            "long imdb canonical name": "Santfeliu, Montserrat"
+        }, 
+        {
+            "canonical name": "Segonds, Dominique", 
+            "name": "Dominique Segonds", 
+            "long imdb name": "Dominique Segonds", 
+            "long imdb canonical name": "Segonds, Dominique"
+        }, 
+        {
+            "canonical name": "S\u00e1nchez, Amparo", 
+            "name": "Amparo S\u00e1nchez", 
+            "long imdb name": "Amparo S\u00e1nchez", 
+            "long imdb canonical name": "S\u00e1nchez, Amparo"
+        }, 
+        {
+            "canonical name": "Torres, Chantal", 
+            "name": "Chantal Torres", 
+            "long imdb name": "Chantal Torres", 
+            "long imdb canonical name": "Torres, Chantal"
+        }
+    ], 
+    "year": 2012, 
+    "production design": [
+        {
+            "canonical name": "Revuelta, Pilar", 
+            "name": "Pilar Revuelta", 
+            "long imdb name": "Pilar Revuelta", 
+            "long imdb canonical name": "Revuelta, Pilar"
+        }
+    ], 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Aizpurua, Nerea", 
+            "name": "Nerea Aizpurua", 
+            "long imdb name": "Nerea Aizpurua", 
+            "long imdb canonical name": "Aizpurua, Nerea"
+        }, 
+        {
+            "canonical name": "Bassaganyes, Jordi", 
+            "name": "Jordi Bassaganyes", 
+            "long imdb name": "Jordi Bassaganyes", 
+            "long imdb canonical name": "Bassaganyes, Jordi"
+        }, 
+        {
+            "canonical name": "Coulange, Goeffroy", 
+            "name": "Goeffroy Coulange", 
+            "long imdb name": "Goeffroy Coulange", 
+            "long imdb canonical name": "Coulange, Goeffroy"
+        }, 
+        {
+            "canonical name": "Delforn, Florent", 
+            "name": "Florent Delforn", 
+            "long imdb name": "Florent Delforn", 
+            "long imdb canonical name": "Delforn, Florent"
+        }, 
+        {
+            "canonical name": "Dom\u00e8nech, Merc\u00e8", 
+            "name": "Merc\u00e8 Dom\u00e8nech", 
+            "long imdb name": "Merc\u00e8 Dom\u00e8nech", 
+            "long imdb canonical name": "Dom\u00e8nech, Merc\u00e8"
+        }, 
+        {
+            "canonical name": "Duvoisin, Isabelle", 
+            "name": "Isabelle Duvoisin", 
+            "long imdb name": "Isabelle Duvoisin", 
+            "long imdb canonical name": "Duvoisin, Isabelle"
+        }, 
+        {
+            "canonical name": "Forti\u00e0, Daniel", 
+            "name": "Daniel Forti\u00e0", 
+            "long imdb name": "Daniel Forti\u00e0", 
+            "long imdb canonical name": "Forti\u00e0, Daniel"
+        }, 
+        {
+            "canonical name": "Havart, Mathieu", 
+            "name": "Mathieu Havart", 
+            "long imdb name": "Mathieu Havart", 
+            "long imdb canonical name": "Havart, Mathieu"
+        }, 
+        {
+            "canonical name": "Lemasle, David", 
+            "name": "David Lemasle", 
+            "long imdb name": "David Lemasle", 
+            "long imdb canonical name": "Lemasle, David"
+        }, 
+        {
+            "canonical name": "Lorite, Pedro", 
+            "name": "Pedro Lorite", 
+            "long imdb name": "Pedro Lorite", 
+            "long imdb canonical name": "Lorite, Pedro"
+        }, 
+        {
+            "canonical name": "Mart\u00ednez, Carlos", 
+            "name": "Carlos Mart\u00ednez", 
+            "long imdb name": "Carlos Mart\u00ednez", 
+            "long imdb canonical name": "Mart\u00ednez, Carlos"
+        }, 
+        {
+            "canonical name": "Muller, Jean-Paul", 
+            "name": "Jean-Paul Muller", 
+            "long imdb name": "Jean-Paul Muller", 
+            "long imdb canonical name": "Muller, Jean-Paul"
+        }, 
+        {
+            "canonical name": "Rodr\u00edguez, Maloles", 
+            "name": "Maloles Rodr\u00edguez", 
+            "long imdb name": "Maloles Rodr\u00edguez", 
+            "long imdb canonical name": "Rodr\u00edguez, Maloles"
+        }, 
+        {
+            "canonical name": "Sala, Marta", 
+            "name": "Marta Sala", 
+            "long imdb name": "Marta Sala", 
+            "long imdb canonical name": "Sala, Marta"
+        }, 
+        {
+            "canonical name": "Uel\u00e9s, Angel", 
+            "name": "Angel Uel\u00e9s", 
+            "long imdb name": "Angel Uel\u00e9s", 
+            "long imdb canonical name": "Uel\u00e9s, Angel"
+        }, 
+        {
+            "canonical name": "Vidal, Benjam\u00edn", 
+            "name": "Benjam\u00edn Vidal", 
+            "long imdb name": "Benjam\u00edn Vidal", 
+            "long imdb canonical name": "Vidal, Benjam\u00edn"
+        }, 
+        {
+            "canonical name": "Wissinger, Mounia", 
+            "name": "Mounia Wissinger", 
+            "long imdb name": "Mounia Wissinger", 
+            "long imdb canonical name": "Wissinger, Mounia"
+        }
+    ], 
+    "production companies": [
+        {
+            "name": "Fernando Trueba Producciones Cinematogr\u00e1ficas", 
+            "long imdb name": "Fernando Trueba Producciones Cinematogr\u00e1ficas"
+        }, 
+        {
+            "name": "Televisi\u00f3n Espa\u00f1ola (TVE)", 
+            "long imdb name": "Televisi\u00f3n Espa\u00f1ola (TVE)"
+        }, 
+        {
+            "name": "Instituto de la Cinematograf\u00eda y de las Artes Audiovisuales", 
+            "long imdb name": "Instituto de la Cinematograf\u00eda y de las Artes Audiovisuales"
+        }, 
+        {
+            "name": "Instituto de Cr\u00e9dito Oficial (ICO)", 
+            "long imdb name": "Instituto de Cr\u00e9dito Oficial (ICO)"
+        }, 
+        {
+            "name": "Audiovisual Aval SGR", 
+            "long imdb name": "Audiovisual Aval SGR"
+        }
+    ], 
+    "color info": [
+        "Black and White"
+    ], 
+    "visual effects": [
+        {
+            "canonical name": "Nogales, Juan Manuel", 
+            "name": "Juan Manuel Nogales", 
+            "long imdb name": "Juan Manuel Nogales", 
+            "long imdb canonical name": "Nogales, Juan Manuel"
+        }, 
+        {
+            "canonical name": "Rubio, Ana", 
+            "name": "Ana Rubio", 
+            "long imdb name": "Ana Rubio", 
+            "long imdb canonical name": "Rubio, Ana"
+        }
+    ], 
+    "votes": 1112, 
+    "producer": [
+        {
+            "canonical name": "Deluz, Anne", 
+            "name": "Anne Deluz", 
+            "long imdb name": "Anne Deluz", 
+            "long imdb canonical name": "Deluz, Anne"
+        }, 
+        {
+            "canonical name": "Huete, Cristina", 
+            "name": "Cristina Huete", 
+            "long imdb name": "Cristina Huete", 
+            "long imdb canonical name": "Huete, Cristina"
+        }
+    ], 
+    "title": "El artista y la modelo", 
+    "mpaa": "Rated R for sequences of graphic nudity", 
+    "assistant director": [
+        {
+            "canonical name": "Blume, Nathan", 
+            "name": "Nathan Blume", 
+            "long imdb name": "Nathan Blume", 
+            "long imdb canonical name": "Blume, Nathan"
+        }, 
+        {
+            "canonical name": "Deluz, Anne", 
+            "name": "Anne Deluz", 
+            "long imdb name": "Anne Deluz", 
+            "long imdb canonical name": "Deluz, Anne"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "Carri\u00e8re, Jean-Claude", 
+            "name": "Jean-Claude Carri\u00e8re", 
+            "long imdb name": "Jean-Claude Carri\u00e8re", 
+            "long imdb canonical name": "Carri\u00e8re, Jean-Claude"
+        }, 
+        {
+            "canonical name": "Trueba, Fernando", 
+            "name": "Fernando Trueba", 
+            "long imdb name": "Fernando Trueba", 
+            "long imdb canonical name": "Trueba, Fernando"
+        }
+    ], 
+    "long imdb canonical title": "artista y la modelo, El (2012)", 
+    "languages": [
+        "French", 
+        "Spanish"
+    ], 
+    "production manager": [
+        {
+            "canonical name": "Bizet, B\u00e9atrice", 
+            "name": "B\u00e9atrice Bizet", 
+            "long imdb name": "B\u00e9atrice Bizet", 
+            "long imdb canonical name": "Bizet, B\u00e9atrice"
+        }, 
+        {
+            "canonical name": "Huete, Ang\u00e9lica", 
+            "name": "Ang\u00e9lica Huete", 
+            "long imdb name": "Ang\u00e9lica Huete", 
+            "long imdb canonical name": "Huete, Ang\u00e9lica"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Velasco, Marta", 
+            "name": "Marta Velasco", 
+            "long imdb name": "Marta Velasco", 
+            "long imdb canonical name": "Velasco, Marta"
+        }
+    ], 
+    "certificates": [
+        "France:Tous publics", 
+        "Germany:6", 
+        "Ireland:12A", 
+        "Japan:PG12", 
+        "South Korea:18", 
+        "Spain:T", 
+        "USA:R"
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "Chaumeil, Bernard", 
+            "name": "Bernard Chaumeil", 
+            "long imdb name": "Bernard Chaumeil", 
+            "long imdb canonical name": "Chaumeil, Bernard"
+        }, 
+        {
+            "canonical name": "Capilla, \u00c1lex F.", 
+            "name": "\u00c1lex F. Capilla", 
+            "long imdb name": "\u00c1lex F. Capilla", 
+            "long imdb canonical name": "Capilla, \u00c1lex F."
+        }, 
+        {
+            "canonical name": "Castro, Eduardo G.", 
+            "name": "Eduardo G. Castro", 
+            "long imdb name": "Eduardo G. Castro", 
+            "long imdb canonical name": "Castro, Eduardo G."
+        }, 
+        {
+            "canonical name": "Castro, Eduardo G.", 
+            "name": "Eduardo G. Castro", 
+            "long imdb name": "Eduardo G. Castro", 
+            "long imdb canonical name": "Castro, Eduardo G."
+        }, 
+        {
+            "canonical name": "Gamet, Pierre", 
+            "name": "Pierre Gamet", 
+            "long imdb name": "Pierre Gamet", 
+            "long imdb canonical name": "Gamet, Pierre"
+        }, 
+        {
+            "canonical name": "Mart\u00edn, Ana Bel\u00e9n", 
+            "name": "Ana Bel\u00e9n Mart\u00edn", 
+            "long imdb name": "Ana Bel\u00e9n Mart\u00edn", 
+            "long imdb canonical name": "Mart\u00edn, Ana Bel\u00e9n"
+        }, 
+        {
+            "canonical name": "Huete, Miguel Mu\u00f1oz", 
+            "name": "Miguel Mu\u00f1oz Huete", 
+            "long imdb name": "Miguel Mu\u00f1oz Huete", 
+            "long imdb canonical name": "Huete, Miguel Mu\u00f1oz"
+        }, 
+        {
+            "canonical name": "Huete, Miguel Mu\u00f1oz", 
+            "name": "Miguel Mu\u00f1oz Huete", 
+            "long imdb name": "Miguel Mu\u00f1oz Huete", 
+            "long imdb canonical name": "Huete, Miguel Mu\u00f1oz"
+        }, 
+        {
+            "canonical name": "Royo-Villanova, Nacho", 
+            "name": "Nacho Royo-Villanova", 
+            "long imdb name": "Nacho Royo-Villanova", 
+            "long imdb canonical name": "Royo-Villanova, Nacho"
+        }, 
+        {
+            "canonical name": "Royo-Villanova, Nacho", 
+            "name": "Nacho Royo-Villanova", 
+            "long imdb name": "Nacho Royo-Villanova", 
+            "long imdb canonical name": "Royo-Villanova, Nacho"
+        }, 
+        {
+            "canonical name": "Test\u00f3n, Sergio", 
+            "name": "Sergio Test\u00f3n", 
+            "long imdb name": "Sergio Test\u00f3n", 
+            "long imdb canonical name": "Test\u00f3n, Sergio"
+        }
+    ], 
+    "long imdb title": "El artista y la modelo (2012)", 
+    "country codes": [
+        "es", 
+        "fr"
+    ], 
+    "language codes": [
+        "fr", 
+        "es"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BNjE3NjU2Njk3OV5BMl5BanBnXkFtZTcwNzQyMTc4OQ@@._V1._SX97_SY140_.jpg", 
+    "editorial department": [
+        {
+            "canonical name": "Alba, Chema", 
+            "name": "Chema Alba", 
+            "long imdb name": "Chema Alba", 
+            "long imdb canonical name": "Alba, Chema"
+        }, 
+        {
+            "canonical name": "Le\u00f3n, Olmo", 
+            "name": "Olmo Le\u00f3n", 
+            "long imdb name": "Olmo Le\u00f3n", 
+            "long imdb canonical name": "Le\u00f3n, Olmo"
+        }, 
+        {
+            "canonical name": "Mart\u00ednez, Jos\u00e9 Luis", 
+            "name": "Jos\u00e9 Luis Mart\u00ednez", 
+            "long imdb name": "Jos\u00e9 Luis Mart\u00ednez", 
+            "long imdb canonical name": "Mart\u00ednez, Jos\u00e9 Luis"
+        }, 
+        {
+            "canonical name": "Villalonga, Marga", 
+            "name": "Marga Villalonga", 
+            "long imdb name": "Marga Villalonga", 
+            "long imdb canonical name": "Villalonga, Marga"
+        }
+    ], 
+    "sound mix": [
+        "Dolby Digital", 
+        "Dolby SR"
+    ], 
+    "genres": [
+        "Drama"
+    ], 
+    "director": [
+        {
+            "canonical name": "Trueba, Fernando", 
+            "name": "Fernando Trueba", 
+            "long imdb name": "Fernando Trueba", 
+            "long imdb canonical name": "Trueba, Fernando"
+        }
+    ], 
+    "miscellaneous companies": [
+        {
+            "name": "ABC Fly & Drive", 
+            "long imdb name": "ABC Fly & Drive"
+        }, 
+        {
+            "name": "Anim Passion", 
+            "long imdb name": "Anim Passion"
+        }, 
+        {
+            "name": "B-Crek", 
+            "long imdb name": "B-Crek"
+        }, 
+        {
+            "name": "Bandaparte", 
+            "long imdb name": "Bandaparte"
+        }, 
+        {
+            "name": "Best Digital", 
+            "long imdb name": "Best Digital"
+        }, 
+        {
+            "name": "Christian Dior", 
+            "long imdb name": "Christian Dior"
+        }, 
+        {
+            "name": "Contraluz", 
+            "long imdb name": "Contraluz"
+        }, 
+        {
+            "name": "Copra Films", 
+            "long imdb name": "Copra Films"
+        }, 
+        {
+            "name": "Cornejo", 
+            "long imdb name": "Cornejo"
+        }, 
+        {
+            "name": "Grip Crew", 
+            "long imdb name": "Grip Crew"
+        }, 
+        {
+            "name": "Iluminaciones Cinetel", 
+            "long imdb name": "Iluminaciones Cinetel"
+        }, 
+        {
+            "name": "La Bocina", 
+            "long imdb name": "La Bocina"
+        }, 
+        {
+            "name": "Legiscine", 
+            "long imdb name": "Legiscine"
+        }, 
+        {
+            "name": "MGO", 
+            "long imdb name": "MGO"
+        }, 
+        {
+            "name": "Mairie de C\u00e9ret", 
+            "long imdb name": "Mairie de C\u00e9ret"
+        }, 
+        {
+            "name": "Modasa", 
+            "long imdb name": "Modasa"
+        }, 
+        {
+            "name": "Ovatio", 
+            "long imdb name": "Ovatio"
+        }, 
+        {
+            "name": "Sala Team", 
+            "long imdb name": "Sala Team"
+        }, 
+        {
+            "name": "Service Visi\u00f3n", 
+            "long imdb name": "Service Visi\u00f3n"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Vilar, Daniel", 
+            "name": "Daniel Vilar", 
+            "long imdb name": "Daniel Vilar", 
+            "long imdb canonical name": "Vilar, Daniel"
+        }
+    ], 
+    "akas": [
+        "The Artist and the Model::International (English title) (imdb display title), USA (imdb display title)", 
+        "L'artiste et son mod\u00e8le::France (imdb display title)", 
+        "Artysta i modelka::Poland (imdb display title)", 
+        "Das M\u00e4dchen und der K\u00fcnstler::Germany (imdb display title)", 
+        "Futari no atorie - aru ch\u00f4kokuka to moderu::Japan (imdb display title)"
+    ], 
+    "aspect ratio": "2.35 : 1", 
+    "location management": [
+        {
+            "canonical name": "Reguera, Juan", 
+            "name": "Juan Reguera", 
+            "long imdb name": "Juan Reguera", 
+            "long imdb canonical name": "Reguera, Juan"
+        }
+    ], 
+    "kind": "movie", 
+    "art department": [
+        {
+            "canonical name": "Alves, Miguel \u00c1ngel", 
+            "name": "Miguel \u00c1ngel Alves", 
+            "long imdb name": "Miguel \u00c1ngel Alves", 
+            "long imdb canonical name": "Alves, Miguel \u00c1ngel"
+        }, 
+        {
+            "canonical name": "Bagan, Alex", 
+            "name": "Alex Bagan", 
+            "long imdb name": "Alex Bagan", 
+            "long imdb canonical name": "Bagan, Alex"
+        }, 
+        {
+            "canonical name": "Bardotti, L\u00e9onard", 
+            "name": "L\u00e9onard Bardotti", 
+            "long imdb name": "L\u00e9onard Bardotti", 
+            "long imdb canonical name": "Bardotti, L\u00e9onard"
+        }, 
+        {
+            "canonical name": "Ba\u00f1uelos, Aida", 
+            "name": "Aida Ba\u00f1uelos", 
+            "long imdb name": "Aida Ba\u00f1uelos", 
+            "long imdb canonical name": "Ba\u00f1uelos, Aida"
+        }, 
+        {
+            "canonical name": "Ba\u00f1uelos, Mateo Tom\u00e1s", 
+            "name": "Mateo Tom\u00e1s Ba\u00f1uelos", 
+            "long imdb name": "Mateo Tom\u00e1s Ba\u00f1uelos", 
+            "long imdb canonical name": "Ba\u00f1uelos, Mateo Tom\u00e1s"
+        }, 
+        {
+            "canonical name": "Ba\u00f1uelos, Tom\u00e1s", 
+            "name": "Tom\u00e1s Ba\u00f1uelos", 
+            "long imdb name": "Tom\u00e1s Ba\u00f1uelos", 
+            "long imdb canonical name": "Ba\u00f1uelos, Tom\u00e1s"
+        }, 
+        {
+            "canonical name": "Brigand, Michel", 
+            "name": "Michel Brigand", 
+            "long imdb name": "Michel Brigand", 
+            "long imdb canonical name": "Brigand, Michel"
+        }, 
+        {
+            "canonical name": "Casas, Jordi", 
+            "name": "Jordi Casas", 
+            "long imdb name": "Jordi Casas", 
+            "long imdb canonical name": "Casas, Jordi"
+        }, 
+        {
+            "canonical name": "Cendales, Absal\u00f3n", 
+            "name": "Absal\u00f3n Cendales", 
+            "long imdb name": "Absal\u00f3n Cendales", 
+            "long imdb canonical name": "Cendales, Absal\u00f3n"
+        }, 
+        {
+            "canonical name": "Lancho, Luis F.", 
+            "name": "Luis F. Lancho", 
+            "long imdb name": "Luis F. Lancho", 
+            "long imdb canonical name": "Lancho, Luis F."
+        }, 
+        {
+            "canonical name": "Fern\u00e1ndez, Paula", 
+            "name": "Paula Fern\u00e1ndez", 
+            "long imdb name": "Paula Fern\u00e1ndez", 
+            "long imdb canonical name": "Fern\u00e1ndez, Paula"
+        }, 
+        {
+            "canonical name": "Folch, Aida", 
+            "name": "Aida Folch", 
+            "long imdb name": "Aida Folch", 
+            "long imdb canonical name": "Folch, Aida"
+        }, 
+        {
+            "canonical name": "Castellano, Emma G.", 
+            "name": "Emma G. Castellano", 
+            "long imdb name": "Emma G. Castellano", 
+            "long imdb canonical name": "Castellano, Emma G."
+        }, 
+        {
+            "canonical name": "Garcia, Olivier", 
+            "name": "Olivier Garcia", 
+            "long imdb name": "Olivier Garcia", 
+            "long imdb canonical name": "Garcia, Olivier"
+        }, 
+        {
+            "canonical name": "Guti\u00e9rrez, Ana", 
+            "name": "Ana Guti\u00e9rrez", 
+            "long imdb name": "Ana Guti\u00e9rrez", 
+            "long imdb canonical name": "Guti\u00e9rrez, Ana"
+        }, 
+        {
+            "canonical name": "Hurtado, Bryan", 
+            "name": "Bryan Hurtado", 
+            "long imdb name": "Bryan Hurtado", 
+            "long imdb canonical name": "Hurtado, Bryan"
+        }, 
+        {
+            "canonical name": "Iglesias, Mar\u00eda", 
+            "name": "Mar\u00eda Iglesias", 
+            "long imdb name": "Mar\u00eda Iglesias", 
+            "long imdb canonical name": "Iglesias, Mar\u00eda"
+        }, 
+        {
+            "canonical name": "Isidoro, Pablo", 
+            "name": "Pablo Isidoro", 
+            "long imdb name": "Pablo Isidoro", 
+            "long imdb canonical name": "Isidoro, Pablo"
+        }, 
+        {
+            "canonical name": "Jov\u00e9, Jacob", 
+            "name": "Jacob Jov\u00e9", 
+            "long imdb name": "Jacob Jov\u00e9", 
+            "long imdb canonical name": "Jov\u00e9, Jacob"
+        }, 
+        {
+            "canonical name": "L\u00f3pez, \u00c1ngel Luis", 
+            "name": "\u00c1ngel Luis L\u00f3pez", 
+            "long imdb name": "\u00c1ngel Luis L\u00f3pez", 
+            "long imdb canonical name": "L\u00f3pez, \u00c1ngel Luis"
+        }, 
+        {
+            "canonical name": "Mayanobe, Philippe", 
+            "name": "Philippe Mayanobe", 
+            "long imdb name": "Philippe Mayanobe", 
+            "long imdb canonical name": "Mayanobe, Philippe"
+        }, 
+        {
+            "canonical name": "Monsalve, Chincho", 
+            "name": "Chincho Monsalve", 
+            "long imdb name": "Chincho Monsalve", 
+            "long imdb canonical name": "Monsalve, Chincho"
+        }, 
+        {
+            "canonical name": "Revuelta, Arturo", 
+            "name": "Arturo Revuelta", 
+            "long imdb name": "Arturo Revuelta", 
+            "long imdb canonical name": "Revuelta, Arturo"
+        }, 
+        {
+            "canonical name": "Roca, Esther", 
+            "name": "Esther Roca", 
+            "long imdb name": "Esther Roca", 
+            "long imdb canonical name": "Roca, Esther"
+        }, 
+        {
+            "canonical name": "Rocha, Juli\u00e0", 
+            "name": "Juli\u00e0 Rocha", 
+            "long imdb name": "Juli\u00e0 Rocha", 
+            "long imdb canonical name": "Rocha, Juli\u00e0"
+        }, 
+        {
+            "canonical name": "Ruiz, Marc", 
+            "name": "Marc Ruiz", 
+            "long imdb name": "Marc Ruiz", 
+            "long imdb canonical name": "Ruiz, Marc"
+        }, 
+        {
+            "canonical name": "Terr\u00f3n, Irene", 
+            "name": "Irene Terr\u00f3n", 
+            "long imdb name": "Irene Terr\u00f3n", 
+            "long imdb canonical name": "Terr\u00f3n, Irene"
+        }, 
+        {
+            "canonical name": "Teubner, Maximilien", 
+            "name": "Maximilien Teubner", 
+            "long imdb name": "Maximilien Teubner", 
+            "long imdb canonical name": "Teubner, Maximilien"
+        }, 
+        {
+            "canonical name": "Vega, Adri\u00e1n", 
+            "name": "Adri\u00e1n Vega", 
+            "long imdb name": "Adri\u00e1n Vega", 
+            "long imdb canonical name": "Vega, Adri\u00e1n"
+        }
+    ], 
+    "countries": [
+        "Spain", 
+        "France"
+    ], 
+    "transportation department": [
+        {
+            "canonical name": "Castillo, Carlos L\u00f3pez", 
+            "name": "Carlos L\u00f3pez Castillo", 
+            "long imdb name": "Carlos L\u00f3pez Castillo", 
+            "long imdb canonical name": "Castillo, Carlos L\u00f3pez"
+        }
+    ], 
+    "plot outline": "Marc Cros, an elderly sculptor, lives with his wife Lea in the south of France, safe from the War that rages in the distance...", 
+    "plot": [
+        "Marc Cros, an elderly sculptor, lives with his wife Lea in the south of France, safe from the War that rages in the distance. He seems to have reached the end of his life and of his art. One day, L\u00e9a gives shelter to a beautiful young Spanish political refugee named Merc\u00e8. Marc soon understands that the girl, who agrees to pose for him, inspires him and that he has no choice but to embark on this last artistic (and sensual) adventure..."
+    ], 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BNjE3NjU2Njk3OV5BMl5BanBnXkFtZTcwNzQyMTc4OQ@@.jpg", 
+    "canonical title": "artista y la modelo, El", 
+    "cast": [
+        {
+            "canonical name": "Rochefort, Jean", 
+            "name": "Jean Rochefort", 
+            "long imdb name": "Jean Rochefort", 
+            "long imdb canonical name": "Rochefort, Jean"
+        }, 
+        {
+            "canonical name": "Folch, Aida", 
+            "name": "Aida Folch", 
+            "long imdb name": "Aida Folch", 
+            "long imdb canonical name": "Folch, Aida"
+        }, 
+        {
+            "canonical name": "Cardinale, Claudia", 
+            "name": "Claudia Cardinale", 
+            "long imdb name": "Claudia Cardinale", 
+            "long imdb canonical name": "Cardinale, Claudia"
+        }, 
+        {
+            "canonical name": "Lampreave, Chus", 
+            "name": "Chus Lampreave", 
+            "long imdb name": "Chus Lampreave", 
+            "long imdb canonical name": "Lampreave, Chus"
+        }, 
+        {
+            "canonical name": "Otto, G\u00f6tz", 
+            "name": "G\u00f6tz Otto", 
+            "long imdb name": "G\u00f6tz Otto", 
+            "long imdb canonical name": "Otto, G\u00f6tz"
+        }, 
+        {
+            "canonical name": "Sinniger, Christian", 
+            "name": "Christian Sinniger", 
+            "long imdb name": "Christian Sinniger", 
+            "long imdb canonical name": "Sinniger, Christian"
+        }, 
+        {
+            "canonical name": "Gamet, Martin", 
+            "name": "Martin Gamet", 
+            "long imdb name": "Martin Gamet", 
+            "long imdb canonical name": "Gamet, Martin"
+        }, 
+        {
+            "canonical name": "Deluz, Mateo", 
+            "name": "Mateo Deluz", 
+            "long imdb name": "Mateo Deluz", 
+            "long imdb canonical name": "Deluz, Mateo"
+        }, 
+        {
+            "canonical name": "Guilbert, Simon", 
+            "name": "Simon Guilbert", 
+            "long imdb name": "Simon Guilbert", 
+            "long imdb canonical name": "Guilbert, Simon"
+        }, 
+        {
+            "canonical name": "Torrent, Alain", 
+            "name": "Alain Torrent", 
+            "long imdb name": "Alain Torrent", 
+            "long imdb canonical name": "Torrent, Alain"
+        }, 
+        {
+            "canonical name": "Jaquesmin, Michel", 
+            "name": "Michel Jaquesmin", 
+            "long imdb name": "Michel Jaquesmin", 
+            "long imdb canonical name": "Jaquesmin, Michel"
+        }, 
+        {
+            "canonical name": "Astrou, Dorian", 
+            "name": "Dorian Astrou", 
+            "long imdb name": "Dorian Astrou", 
+            "long imdb canonical name": "Astrou, Dorian"
+        }, 
+        {
+            "canonical name": "Riou, Albam", 
+            "name": "Albam Riou", 
+            "long imdb name": "Albam Riou", 
+            "long imdb canonical name": "Riou, Albam"
+        }, 
+        {
+            "canonical name": "Virag, Guillaume", 
+            "name": "Guillaume Virag", 
+            "long imdb name": "Guillaume Virag", 
+            "long imdb canonical name": "Virag, Guillaume"
+        }, 
+        {
+            "canonical name": "Villesvieille, Sarah", 
+            "name": "Sarah Villesvieille", 
+            "long imdb name": "Sarah Villesvieille", 
+            "long imdb canonical name": "Villesvieille, Sarah"
+        }, 
+        {
+            "canonical name": "Llop, Aniol", 
+            "name": "Aniol Llop", 
+            "long imdb name": "Aniol Llop", 
+            "long imdb canonical name": "Llop, Aniol"
+        }, 
+        {
+            "canonical name": "Chafer, Anna Julia", 
+            "name": "Anna Julia Chafer", 
+            "long imdb name": "Anna Julia Chafer", 
+            "long imdb canonical name": "Chafer, Anna Julia"
+        }, 
+        {
+            "canonical name": "Chafer, Liam", 
+            "name": "Liam Chafer", 
+            "long imdb name": "Liam Chafer", 
+            "long imdb canonical name": "Chafer, Liam"
+        }, 
+        {
+            "canonical name": "Ca\u00f1ada, Aniol", 
+            "name": "Aniol Ca\u00f1ada", 
+            "long imdb name": "Aniol Ca\u00f1ada", 
+            "long imdb canonical name": "Ca\u00f1ada, Aniol"
+        }, 
+        {
+            "canonical name": "Ca\u00f1ada, Berta", 
+            "name": "Berta Ca\u00f1ada", 
+            "long imdb name": "Berta Ca\u00f1ada", 
+            "long imdb canonical name": "Ca\u00f1ada, Berta"
+        }, 
+        {
+            "canonical name": "Bruns\u00f3, Carla", 
+            "name": "Carla Bruns\u00f3", 
+            "long imdb name": "Carla Bruns\u00f3", 
+            "long imdb canonical name": "Bruns\u00f3, Carla"
+        }, 
+        {
+            "canonical name": "Bramona, Aina", 
+            "name": "Aina Bramona", 
+            "long imdb name": "Aina Bramona", 
+            "long imdb canonical name": "Bramona, Aina"
+        }, 
+        {
+            "canonical name": "Comerma, Sergi", 
+            "name": "Sergi Comerma", 
+            "long imdb name": "Sergi Comerma", 
+            "long imdb canonical name": "Comerma, Sergi"
+        }, 
+        {
+            "canonical name": "Aranda, Jan", 
+            "name": "Jan Aranda", 
+            "long imdb name": "Jan Aranda", 
+            "long imdb canonical name": "Aranda, Jan"
+        }, 
+        {
+            "canonical name": "Fernandez, Marc", 
+            "name": "Marc Fernandez", 
+            "long imdb name": "Marc Fernandez", 
+            "long imdb canonical name": "Fernandez, Marc"
+        }, 
+        {
+            "canonical name": "Fernandez, Pol", 
+            "name": "Pol Fernandez", 
+            "long imdb name": "Pol Fernandez", 
+            "long imdb canonical name": "Fernandez, Pol"
+        }, 
+        {
+            "canonical name": "Masdeu, Mireia", 
+            "name": "Mireia Masdeu", 
+            "long imdb name": "Mireia Masdeu", 
+            "long imdb canonical name": "Masdeu, Mireia"
+        }, 
+        {
+            "canonical name": "Andurell, Adri\u00e0", 
+            "name": "Adri\u00e0 Andurell", 
+            "long imdb name": "Adri\u00e0 Andurell", 
+            "long imdb canonical name": "Andurell, Adri\u00e0"
+        }, 
+        {
+            "canonical name": "G\u00fcell, Quim", 
+            "name": "Quim G\u00fcell", 
+            "long imdb name": "Quim G\u00fcell", 
+            "long imdb canonical name": "G\u00fcell, Quim"
+        }, 
+        {
+            "canonical name": "Cros, Gen\u00eds", 
+            "name": "Gen\u00eds Cros", 
+            "long imdb name": "Gen\u00eds Cros", 
+            "long imdb canonical name": "Cros, Gen\u00eds"
+        }, 
+        {
+            "canonical name": "Puig, Miquel", 
+            "name": "Miquel Puig", 
+            "long imdb name": "Miquel Puig", 
+            "long imdb canonical name": "Puig, Miquel"
+        }, 
+        {
+            "canonical name": "Codina, Ramon", 
+            "name": "Ramon Codina", 
+            "long imdb name": "Ramon Codina", 
+            "long imdb canonical name": "Codina, Ramon"
+        }, 
+        {
+            "canonical name": "Planadecursach, Agust\u00ed", 
+            "name": "Agust\u00ed Planadecursach", 
+            "long imdb name": "Agust\u00ed Planadecursach", 
+            "long imdb canonical name": "Planadecursach, Agust\u00ed"
+        }, 
+        {
+            "canonical name": "Brigand, Michel", 
+            "name": "Michel Brigand", 
+            "long imdb name": "Michel Brigand", 
+            "long imdb canonical name": "Brigand, Michel"
+        }
+    ], 
+    "smart long imdb canonical title": "El artista y la modelo (2012)", 
+    "costume department": [
+        {
+            "canonical name": "Havivel, V\u00e9ronique", 
+            "name": "V\u00e9ronique Havivel", 
+            "long imdb name": "V\u00e9ronique Havivel", 
+            "long imdb canonical name": "Havivel, V\u00e9ronique"
+        }, 
+        {
+            "canonical name": "Meunier, Eve", 
+            "name": "Eve Meunier", 
+            "long imdb name": "Eve Meunier", 
+            "long imdb canonical name": "Meunier, Eve"
+        }, 
+        {
+            "canonical name": "Sivel, Sonia", 
+            "name": "Sonia Sivel", 
+            "long imdb name": "Sonia Sivel", 
+            "long imdb canonical name": "Sivel, Sonia"
+        }, 
+        {
+            "canonical name": "Urquiza, Eva", 
+            "name": "Eva Urquiza", 
+            "long imdb name": "Eva Urquiza", 
+            "long imdb canonical name": "Urquiza, Eva"
+        }
+    ], 
+    "smart canonical title": "El artista y la modelo"
+}

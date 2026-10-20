@@ -1,0 +1,673 @@
+{
+    "rating": 7.3, 
+    "camera and electrical department": [
+        {
+            "canonical name": "Amelio, Luan", 
+            "name": "Luan Amelio", 
+            "long imdb name": "Luan Amelio", 
+            "long imdb canonical name": "Amelio, Luan"
+        }, 
+        {
+            "canonical name": "Bognanni, Salvatore", 
+            "name": "Salvatore Bognanni", 
+            "long imdb name": "Salvatore Bognanni", 
+            "long imdb canonical name": "Bognanni, Salvatore"
+        }, 
+        {
+            "canonical name": "Cafiero, Paolo", 
+            "name": "Paolo Cafiero", 
+            "long imdb name": "Paolo Cafiero", 
+            "long imdb canonical name": "Cafiero, Paolo"
+        }, 
+        {
+            "canonical name": "Falso, Simone", 
+            "name": "Simone Falso", 
+            "long imdb name": "Simone Falso", 
+            "long imdb canonical name": "Falso, Simone"
+        }, 
+        {
+            "canonical name": "Fiorito, Gianni", 
+            "name": "Gianni Fiorito", 
+            "long imdb name": "Gianni Fiorito", 
+            "long imdb canonical name": "Fiorito, Gianni"
+        }, 
+        {
+            "canonical name": "Marra, Patrizio", 
+            "name": "Patrizio Marra", 
+            "long imdb name": "Patrizio Marra", 
+            "long imdb canonical name": "Marra, Patrizio"
+        }, 
+        {
+            "canonical name": "Policastro, Fabio", 
+            "name": "Fabio Policastro", 
+            "long imdb name": "Fabio Policastro", 
+            "long imdb canonical name": "Policastro, Fabio"
+        }, 
+        {
+            "canonical name": "Saulini, Alessandro", 
+            "name": "Alessandro Saulini", 
+            "long imdb name": "Alessandro Saulini", 
+            "long imdb canonical name": "Saulini, Alessandro"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "Parthenos", 
+            "long imdb name": "Parthenos"
+        }, 
+        {
+            "name": "Alcine Terran", 
+            "long imdb name": "Alcine Terran"
+        }, 
+        {
+            "name": "Artificial Eye", 
+            "long imdb name": "Artificial Eye"
+        }, 
+        {
+            "name": "Cinemien", 
+            "long imdb name": "Cinemien"
+        }, 
+        {
+            "name": "Film Movement", 
+            "long imdb name": "Film Movement"
+        }, 
+        {
+            "name": "Haut et Court", 
+            "long imdb name": "Haut et Court"
+        }, 
+        {
+            "name": "IFA", 
+            "long imdb name": "IFA"
+        }, 
+        {
+            "name": "Rendezvous Filmverleih", 
+            "long imdb name": "Rendezvous Filmverleih"
+        }, 
+        {
+            "name": "Vertigo M\u00e9dia Kft.", 
+            "long imdb name": "Vertigo M\u00e9dia Kft."
+        }, 
+        {
+            "name": "Adriana Chiesa Enterprises", 
+            "long imdb name": "Adriana Chiesa Enterprises"
+        }, 
+        {
+            "name": "Associa\u00e7\u00e3o Il Sorpasso", 
+            "long imdb name": "Associa\u00e7\u00e3o Il Sorpasso"
+        }, 
+        {
+            "name": "Homescreen", 
+            "long imdb name": "Homescreen"
+        }
+    ], 
+    "runtimes": [
+        "98"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "Barbera, Maria Rita", 
+            "name": "Maria Rita Barbera", 
+            "long imdb name": "Maria Rita Barbera", 
+            "long imdb canonical name": "Barbera, Maria Rita"
+        }
+    ], 
+    "thanks": [
+        {
+            "canonical name": "Zhaotian, Tina", 
+            "name": "Tina Zhaotian", 
+            "long imdb name": "Tina Zhaotian", 
+            "long imdb canonical name": "Zhaotian, Tina"
+        }
+    ], 
+    "make up": [
+        {
+            "canonical name": "Persica, Silvia", 
+            "name": "Silvia Persica", 
+            "long imdb name": "Silvia Persica", 
+            "long imdb canonical name": "Persica, Silvia"
+        }, 
+        {
+            "canonical name": "Picconi, Roberta", 
+            "name": "Roberta Picconi", 
+            "long imdb name": "Roberta Picconi", 
+            "long imdb canonical name": "Picconi, Roberta"
+        }
+    ], 
+    "year": 2011, 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Arnoux, Tony", 
+            "name": "Tony Arnoux", 
+            "long imdb name": "Tony Arnoux", 
+            "long imdb canonical name": "Arnoux, Tony"
+        }, 
+        {
+            "canonical name": "Bonsembiante, Paola", 
+            "name": "Paola Bonsembiante", 
+            "long imdb name": "Paola Bonsembiante", 
+            "long imdb canonical name": "Bonsembiante, Paola"
+        }, 
+        {
+            "canonical name": "Carpentieri, Gianni", 
+            "name": "Gianni Carpentieri", 
+            "long imdb name": "Gianni Carpentieri", 
+            "long imdb canonical name": "Carpentieri, Gianni"
+        }, 
+        {
+            "canonical name": "Cassini, Francesca", 
+            "name": "Francesca Cassini", 
+            "long imdb name": "Francesca Cassini", 
+            "long imdb canonical name": "Cassini, Francesca"
+        }, 
+        {
+            "canonical name": "Di Terlizzi, Nicola", 
+            "name": "Nicola Di Terlizzi", 
+            "long imdb name": "Nicola Di Terlizzi", 
+            "long imdb canonical name": "Di Terlizzi, Nicola"
+        }, 
+        {
+            "canonical name": "Offelli, Anna", 
+            "name": "Anna Offelli", 
+            "long imdb name": "Anna Offelli", 
+            "long imdb canonical name": "Offelli, Anna"
+        }, 
+        {
+            "canonical name": "Ricci, Andr\u00e9-Paul", 
+            "name": "Andr\u00e9-Paul Ricci", 
+            "long imdb name": "Andr\u00e9-Paul Ricci", 
+            "long imdb canonical name": "Ricci, Andr\u00e9-Paul"
+        }, 
+        {
+            "canonical name": "Rinaldi, Francesca", 
+            "name": "Francesca Rinaldi", 
+            "long imdb name": "Francesca Rinaldi", 
+            "long imdb canonical name": "Rinaldi, Francesca"
+        }, 
+        {
+            "canonical name": "Seban, Brune", 
+            "name": "Brune Seban", 
+            "long imdb name": "Brune Seban", 
+            "long imdb canonical name": "Seban, Brune"
+        }, 
+        {
+            "canonical name": "Tiozzo, Felice", 
+            "name": "Felice Tiozzo", 
+            "long imdb name": "Felice Tiozzo", 
+            "long imdb canonical name": "Tiozzo, Felice"
+        }, 
+        {
+            "canonical name": "Tiozzo, Nadia", 
+            "name": "Nadia Tiozzo", 
+            "long imdb name": "Nadia Tiozzo", 
+            "long imdb canonical name": "Tiozzo, Nadia"
+        }, 
+        {
+            "canonical name": "Zanon, Marco", 
+            "name": "Marco Zanon", 
+            "long imdb name": "Marco Zanon", 
+            "long imdb canonical name": "Zanon, Marco"
+        }
+    ], 
+    "color info": [], 
+    "visual effects": [
+        {
+            "canonical name": "Barone, Enrico", 
+            "name": "Enrico Barone", 
+            "long imdb name": "Enrico Barone", 
+            "long imdb canonical name": "Barone, Enrico"
+        }, 
+        {
+            "canonical name": "Grotta, Luca Della", 
+            "name": "Luca Della Grotta", 
+            "long imdb name": "Luca Della Grotta", 
+            "long imdb canonical name": "Grotta, Luca Della"
+        }, 
+        {
+            "canonical name": "Maggi, Francesco Antonio", 
+            "name": "Francesco Antonio Maggi", 
+            "long imdb name": "Francesco Antonio Maggi", 
+            "long imdb canonical name": "Maggi, Francesco Antonio"
+        }, 
+        {
+            "canonical name": "Migliari, Rodolfo", 
+            "name": "Rodolfo Migliari", 
+            "long imdb name": "Rodolfo Migliari", 
+            "long imdb canonical name": "Migliari, Rodolfo"
+        }, 
+        {
+            "canonical name": "Tripodi, Marco", 
+            "name": "Marco Tripodi", 
+            "long imdb name": "Marco Tripodi", 
+            "long imdb canonical name": "Tripodi, Marco"
+        }, 
+        {
+            "canonical name": "Valente, Stefano", 
+            "name": "Stefano Valente", 
+            "long imdb name": "Stefano Valente", 
+            "long imdb canonical name": "Valente, Stefano"
+        }
+    ], 
+    "votes": 1304, 
+    "producer": [
+        {
+            "canonical name": "Bonsembiante, Francesco", 
+            "name": "Francesco Bonsembiante", 
+            "long imdb name": "Francesco Bonsembiante", 
+            "long imdb canonical name": "Bonsembiante, Francesco"
+        }, 
+        {
+            "canonical name": "Feder, Francesca", 
+            "name": "Francesca Feder", 
+            "long imdb name": "Francesca Feder", 
+            "long imdb canonical name": "Feder, Francesca"
+        }, 
+        {
+            "canonical name": "Louvet, Arnaud", 
+            "name": "Arnaud Louvet", 
+            "long imdb name": "Arnaud Louvet", 
+            "long imdb canonical name": "Louvet, Arnaud"
+        }, 
+        {
+            "canonical name": "Rosada, Nicola", 
+            "name": "Nicola Rosada", 
+            "long imdb name": "Nicola Rosada", 
+            "long imdb canonical name": "Rosada, Nicola"
+        }
+    ], 
+    "title": "Io sono Li", 
+    "assistant director": [
+        {
+            "canonical name": "Calore, Matteo", 
+            "name": "Matteo Calore", 
+            "long imdb name": "Matteo Calore", 
+            "long imdb canonical name": "Calore, Matteo"
+        }, 
+        {
+            "canonical name": "Castania, Cinzia", 
+            "name": "Cinzia Castania", 
+            "long imdb name": "Cinzia Castania", 
+            "long imdb canonical name": "Castania, Cinzia"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "Segre, Andrea", 
+            "name": "Andrea Segre", 
+            "long imdb name": "Andrea Segre", 
+            "long imdb canonical name": "Segre, Andrea"
+        }, 
+        {
+            "canonical name": "Segre, Andrea", 
+            "name": "Andrea Segre", 
+            "long imdb name": "Andrea Segre", 
+            "long imdb canonical name": "Segre, Andrea"
+        }, 
+        {
+            "canonical name": "Pettenello, Marco", 
+            "name": "Marco Pettenello", 
+            "long imdb name": "Marco Pettenello", 
+            "long imdb canonical name": "Pettenello, Marco"
+        }
+    ], 
+    "long imdb canonical title": "Io sono Li (2011)", 
+    "languages": [
+        "Italian", 
+        "Mandarin"
+    ], 
+    "production manager": [
+        {
+            "canonical name": "Betteni-Barnes, Francesca", 
+            "name": "Francesca Betteni-Barnes", 
+            "long imdb name": "Francesca Betteni-Barnes", 
+            "long imdb canonical name": "Betteni-Barnes, Francesca"
+        }, 
+        {
+            "canonical name": "Gagliardo, Giacomo", 
+            "name": "Giacomo Gagliardo", 
+            "long imdb name": "Giacomo Gagliardo", 
+            "long imdb canonical name": "Gagliardo, Giacomo"
+        }
+    ], 
+    "casting director": [
+        {
+            "canonical name": "Pochintesta, Jorgelina Depetris", 
+            "name": "Jorgelina Depetris Pochintesta", 
+            "long imdb name": "Jorgelina Depetris Pochintesta", 
+            "long imdb canonical name": "Pochintesta, Jorgelina Depetris"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Zavarise, Sara", 
+            "name": "Sara Zavarise", 
+            "long imdb name": "Sara Zavarise", 
+            "long imdb canonical name": "Zavarise, Sara"
+        }
+    ], 
+    "certificates": [
+        "Argentina:13", 
+        "Japan:G", 
+        "Portugal:M/12", 
+        "UK:15"
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "Frati, Paolo", 
+            "name": "Paolo Frati", 
+            "long imdb name": "Paolo Frati", 
+            "long imdb canonical name": "Frati, Paolo"
+        }, 
+        {
+            "canonical name": "Grosso, Stefano", 
+            "name": "Stefano Grosso", 
+            "long imdb name": "Stefano Grosso", 
+            "long imdb canonical name": "Grosso, Stefano"
+        }, 
+        {
+            "canonical name": "Palmerini, Alessandro", 
+            "name": "Alessandro Palmerini", 
+            "long imdb name": "Alessandro Palmerini", 
+            "long imdb canonical name": "Palmerini, Alessandro"
+        }, 
+        {
+            "canonical name": "Spagnol, Riccardo", 
+            "name": "Riccardo Spagnol", 
+            "long imdb name": "Riccardo Spagnol", 
+            "long imdb canonical name": "Spagnol, Riccardo"
+        }, 
+        {
+            "canonical name": "Tumminello, Francesco", 
+            "name": "Francesco Tumminello", 
+            "long imdb name": "Francesco Tumminello", 
+            "long imdb canonical name": "Tumminello, Francesco"
+        }, 
+        {
+            "canonical name": "Zanon, Alessandro", 
+            "name": "Alessandro Zanon", 
+            "long imdb name": "Alessandro Zanon", 
+            "long imdb canonical name": "Zanon, Alessandro"
+        }
+    ], 
+    "long imdb title": "Io sono Li (2011)", 
+    "country codes": [
+        "it", 
+        "fr"
+    ], 
+    "language codes": [
+        "it", 
+        "cmn"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BMjA4MDQ0OTY4N15BMl5BanBnXkFtZTcwMzYzMzc4Ng@@._V1._SX98_SY140_.jpg", 
+    "special effects department": [
+        {
+            "canonical name": "Ricci, Luca", 
+            "name": "Luca Ricci", 
+            "long imdb name": "Luca Ricci", 
+            "long imdb canonical name": "Ricci, Luca"
+        }
+    ], 
+    "editorial department": [
+        {
+            "canonical name": "Orsini, Andrea", 
+            "name": "Andrea Orsini", 
+            "long imdb name": "Andrea Orsini", 
+            "long imdb canonical name": "Orsini, Andrea"
+        }, 
+        {
+            "canonical name": "Russo, Chiara", 
+            "name": "Chiara Russo", 
+            "long imdb name": "Chiara Russo", 
+            "long imdb canonical name": "Russo, Chiara"
+        }
+    ], 
+    "location management": [
+        {
+            "canonical name": "Frasinetti, Elisa", 
+            "name": "Elisa Frasinetti", 
+            "long imdb name": "Elisa Frasinetti", 
+            "long imdb canonical name": "Frasinetti, Elisa"
+        }
+    ], 
+    "genres": [
+        "Drama"
+    ], 
+    "director": [
+        {
+            "canonical name": "Segre, Andrea", 
+            "name": "Andrea Segre", 
+            "long imdb name": "Andrea Segre", 
+            "long imdb canonical name": "Segre, Andrea"
+        }
+    ], 
+    "stunt performer": [
+        {
+            "canonical name": "Mioni, Stefano Maria", 
+            "name": "Stefano Maria Mioni", 
+            "long imdb name": "Stefano Maria Mioni", 
+            "long imdb canonical name": "Mioni, Stefano Maria"
+        }
+    ], 
+    "miscellaneous companies": [
+        {
+            "name": "Kodak", 
+            "long imdb name": "Kodak"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Bigazzi, Luca", 
+            "name": "Luca Bigazzi", 
+            "long imdb name": "Luca Bigazzi", 
+            "long imdb canonical name": "Bigazzi, Luca"
+        }
+    ], 
+    "akas": [
+        "La petite Venise::France (imdb display title)", 
+        "Li and the Poet::UK (festival title)", 
+        "Shun Li and the Poet::International (English title) (imdb display title)", 
+        "A l\u00e1ny \u00e9s a k\u00f6lt\u0151::Hungary", 
+        "Ime mi je Li::Slovenia (imdb display title)", 
+        "Jag heter Li::Sweden (imdb display title)", 
+        "La esperanza de una nueva vida::Argentina (imdb display title)", 
+        "La peque\u00f1a Venecia: Shun Li y el poeta::Spain (imdb display title)", 
+        "Nazywam sie Li::Poland (imdb display title)", 
+        "Shun Li e o Poeta::Portugal (imdb display title)", 
+        "T' onoma mou einai Li::Greece (festival title)", 
+        "Venezianische Freundschaft::Germany (imdb display title)", 
+        "Zovem se Li::Serbia (imdb display title)"
+    ], 
+    "aspect ratio": "2.35 : 1", 
+    "production companies": [
+        {
+            "name": "Jolefilm", 
+            "long imdb name": "Jolefilm"
+        }, 
+        {
+            "name": "Aeternam Films", 
+            "long imdb name": "Aeternam Films"
+        }, 
+        {
+            "name": "Rai Cinema", 
+            "long imdb name": "Rai Cinema"
+        }, 
+        {
+            "name": "Arte France", 
+            "long imdb name": "Arte France"
+        }, 
+        {
+            "name": "arte Cin\u00e9ma", 
+            "long imdb name": "arte Cin\u00e9ma"
+        }, 
+        {
+            "name": "Eurimages", 
+            "long imdb name": "Eurimages"
+        }, 
+        {
+            "name": "Regione del Veneto", 
+            "long imdb name": "Regione del Veneto"
+        }, 
+        {
+            "name": "Lazio Film Commission", 
+            "long imdb name": "Lazio Film Commission"
+        }, 
+        {
+            "name": "Marfin", 
+            "long imdb name": "Marfin"
+        }, 
+        {
+            "name": "Tasci", 
+            "long imdb name": "Tasci"
+        }, 
+        {
+            "name": "Bencom", 
+            "long imdb name": "Bencom"
+        }, 
+        {
+            "name": "Nordesteuropa Editore", 
+            "long imdb name": "Nordesteuropa Editore"
+        }, 
+        {
+            "name": "Comune di Chioggia", 
+            "long imdb name": "Comune di Chioggia"
+        }, 
+        {
+            "name": "Consorzio di Promozione Turistica ConChioggiaS\u00ec", 
+            "long imdb name": "Consorzio di Promozione Turistica ConChioggiaS\u00ec"
+        }, 
+        {
+            "name": "Fabbrica dei Progetti", 
+            "long imdb name": "Fabbrica dei Progetti"
+        }, 
+        {
+            "name": "Cannes Film Festival", 
+            "long imdb name": "Cannes Film Festival"
+        }, 
+        {
+            "name": "ZaLab", 
+            "long imdb name": "ZaLab"
+        }, 
+        {
+            "name": "Ministero per i Beni e le Attivit\u00e0 Culturali (MiBAC)", 
+            "long imdb name": "Ministero per i Beni e le Attivit\u00e0 Culturali (MiBAC)"
+        }
+    ], 
+    "kind": "movie", 
+    "countries": [
+        "Italy", 
+        "France"
+    ], 
+    "plot outline": "A study of the friendship between a Chinese woman and a fisherman who came to Italy from Yugoslavia many years ago, who live in a small city-island in the Veneto lagoon.", 
+    "plot": [
+        "A study of the friendship between a Chinese woman and a fisherman who came to Italy from Yugoslavia many years ago, who live in a small city-island in the Veneto lagoon."
+    ], 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BMjA4MDQ0OTY4N15BMl5BanBnXkFtZTcwMzYzMzc4Ng@@.jpg", 
+    "canonical title": "Io sono Li", 
+    "cast": [
+        {
+            "canonical name": "Zhao, Tao", 
+            "name": "Tao Zhao", 
+            "long imdb name": "Tao Zhao", 
+            "long imdb canonical name": "Zhao, Tao"
+        }, 
+        {
+            "canonical name": "Serbedzija, Rade", 
+            "name": "Rade Serbedzija", 
+            "long imdb name": "Rade Serbedzija", 
+            "long imdb canonical name": "Serbedzija, Rade"
+        }, 
+        {
+            "canonical name": "Paolini, Marco", 
+            "name": "Marco Paolini", 
+            "long imdb name": "Marco Paolini", 
+            "long imdb canonical name": "Paolini, Marco"
+        }, 
+        {
+            "canonical name": "Citran, Roberto", 
+            "name": "Roberto Citran", 
+            "long imdb name": "Roberto Citran", 
+            "long imdb canonical name": "Citran, Roberto"
+        }, 
+        {
+            "canonical name": "Battiston, Giuseppe", 
+            "name": "Giuseppe Battiston", 
+            "long imdb name": "Giuseppe Battiston", 
+            "long imdb canonical name": "Battiston, Giuseppe"
+        }, 
+        {
+            "canonical name": "Bacci, Giordano", 
+            "name": "Giordano Bacci", 
+            "long imdb name": "Giordano Bacci", 
+            "long imdb canonical name": "Bacci, Giordano"
+        }, 
+        {
+            "canonical name": "Mainardi, Spartaco", 
+            "name": "Spartaco Mainardi", 
+            "long imdb name": "Spartaco Mainardi", 
+            "long imdb canonical name": "Mainardi, Spartaco"
+        }, 
+        {
+            "canonical name": "Cheng, Zhong", 
+            "name": "Zhong Cheng", 
+            "long imdb name": "Zhong Cheng", 
+            "long imdb canonical name": "Cheng, Zhong"
+        }, 
+        {
+            "canonical name": "Yuan, Wang", 
+            "name": "Wang Yuan", 
+            "long imdb name": "Wang Yuan", 
+            "long imdb canonical name": "Yuan, Wang"
+        }, 
+        {
+            "canonical name": "Voltolina, Amleto", 
+            "name": "Amleto Voltolina", 
+            "long imdb name": "Amleto Voltolina", 
+            "long imdb canonical name": "Voltolina, Amleto"
+        }, 
+        {
+            "canonical name": "Pennacchi, Andrea", 
+            "name": "Andrea Pennacchi", 
+            "long imdb name": "Andrea Pennacchi", 
+            "long imdb canonical name": "Pennacchi, Andrea"
+        }, 
+        {
+            "canonical name": "Xu, Guo Qiang", 
+            "name": "Guo Qiang Xu", 
+            "long imdb name": "Guo Qiang Xu", 
+            "long imdb canonical name": "Xu, Guo Qiang"
+        }, 
+        {
+            "canonical name": "Perini, Sara", 
+            "name": "Sara Perini", 
+            "long imdb name": "Sara Perini", 
+            "long imdb canonical name": "Perini, Sara"
+        }, 
+        {
+            "canonical name": "Hu, Federico", 
+            "name": "Federico Hu", 
+            "long imdb name": "Federico Hu", 
+            "long imdb canonical name": "Hu, Federico"
+        }, 
+        {
+            "canonical name": "Zhijian, Hi", 
+            "name": "Hi Zhijian", 
+            "long imdb name": "Hi Zhijian", 
+            "long imdb canonical name": "Zhijian, Hi"
+        }, 
+        {
+            "canonical name": "Jamin, Ni", 
+            "name": "Ni Jamin", 
+            "long imdb name": "Ni Jamin", 
+            "long imdb canonical name": "Jamin, Ni"
+        }
+    ], 
+    "smart long imdb canonical title": "Io sono Li (2011)", 
+    "original music": [
+        {
+            "canonical name": "Couturier, Fran\u00e7ois", 
+            "name": "Fran\u00e7ois Couturier", 
+            "long imdb name": "Fran\u00e7ois Couturier", 
+            "long imdb canonical name": "Couturier, Fran\u00e7ois"
+        }
+    ], 
+    "smart canonical title": "Io sono Li"
+}

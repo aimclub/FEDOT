@@ -60,7 +60,7 @@ def test_name_is_not_text(detector):
     assert detector._column_contains_text(column) is False
 
 
-def test_product_name_is_not_text(detector):
+def test_product_name_is_text(detector):
     column = pd.Series([
         "Samsung Galaxy S25 Ultra",
         "Apple iPhone 17 Pro",
@@ -69,7 +69,7 @@ def test_product_name_is_not_text(detector):
         "Lenovo ThinkPad X1",
     ])
 
-    assert detector._column_contains_text(column) is False
+    assert detector._column_contains_text(column) is True
 
 
 def test_category_is_not_text(detector):

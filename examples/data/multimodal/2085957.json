@@ -1,0 +1,679 @@
+{
+    "music department": [
+        {
+            "canonical name": "Conard, Craig", 
+            "name": "Craig Conard", 
+            "long imdb name": "Craig Conard", 
+            "long imdb canonical name": "Conard, Craig"
+        }, 
+        {
+            "canonical name": "Walters, Rich", 
+            "name": "Rich Walters", 
+            "long imdb name": "Rich Walters", 
+            "long imdb canonical name": "Walters, Rich"
+        }
+    ], 
+    "camera and electrical department": [
+        {
+            "canonical name": "Araquel, Ed", 
+            "name": "Ed Araquel", 
+            "long imdb name": "Ed Araquel", 
+            "long imdb canonical name": "Araquel, Ed"
+        }, 
+        {
+            "canonical name": "Borland, Bruce", 
+            "name": "Bruce Borland", 
+            "long imdb name": "Bruce Borland", 
+            "long imdb canonical name": "Borland, Bruce"
+        }, 
+        {
+            "canonical name": "Bukach, David", 
+            "name": "David Bukach", 
+            "long imdb name": "David Bukach", 
+            "long imdb canonical name": "Bukach, David"
+        }, 
+        {
+            "canonical name": "Deluce, Rusty", 
+            "name": "Rusty Deluce", 
+            "long imdb name": "Rusty Deluce", 
+            "long imdb canonical name": "Deluce, Rusty"
+        }, 
+        {
+            "canonical name": "Jackson, James M.", 
+            "name": "James M. Jackson", 
+            "long imdb name": "James M. Jackson", 
+            "long imdb canonical name": "Jackson, James M."
+        }, 
+        {
+            "canonical name": "Lhalungpa, Tenzin", 
+            "name": "Tenzin Lhalungpa", 
+            "long imdb name": "Tenzin Lhalungpa", 
+            "long imdb canonical name": "Lhalungpa, Tenzin"
+        }, 
+        {
+            "canonical name": "McClung, David", 
+            "name": "David McClung", 
+            "long imdb name": "David McClung", 
+            "long imdb canonical name": "McClung, David"
+        }, 
+        {
+            "canonical name": "Overton, Ted", 
+            "name": "Ted Overton", 
+            "long imdb name": "Ted Overton", 
+            "long imdb canonical name": "Overton, Ted"
+        }, 
+        {
+            "canonical name": "Sankey, Mike", 
+            "name": "Mike Sankey", 
+            "long imdb name": "Mike Sankey", 
+            "long imdb canonical name": "Sankey, Mike"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "Sony Pictures Entertainment (SPE)", 
+            "long imdb name": "Sony Pictures Entertainment (SPE)"
+        }, 
+        {
+            "name": "Alliance", 
+            "long imdb name": "Alliance"
+        }, 
+        {
+            "name": "Sony Pictures Entertainment", 
+            "long imdb name": "Sony Pictures Entertainment"
+        }, 
+        {
+            "name": "Sony Pictures Home Entertainment", 
+            "long imdb name": "Sony Pictures Home Entertainment"
+        }, 
+        {
+            "name": "Sony Pictures Home Entertainment", 
+            "long imdb name": "Sony Pictures Home Entertainment"
+        }, 
+        {
+            "name": "Sony Pictures Home Entertainment", 
+            "long imdb name": "Sony Pictures Home Entertainment"
+        }, 
+        {
+            "name": "Universal Sony Pictures Home Entertainment", 
+            "long imdb name": "Universal Sony Pictures Home Entertainment"
+        }
+    ], 
+    "rating": 5.6, 
+    "runtimes": [
+        "95"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "Desroches, Andrea", 
+            "name": "Andrea Desroches", 
+            "long imdb name": "Andrea Desroches", 
+            "long imdb canonical name": "Desroches, Andrea"
+        }
+    ], 
+    "make up": [
+        {
+            "canonical name": "Norrman, Frida", 
+            "name": "Frida Norrman", 
+            "long imdb name": "Frida Norrman", 
+            "long imdb canonical name": "Norrman, Frida"
+        }, 
+        {
+            "canonical name": "Syskakis, Vicki", 
+            "name": "Vicki Syskakis", 
+            "long imdb name": "Vicki Syskakis", 
+            "long imdb canonical name": "Syskakis, Vicki"
+        }, 
+        {
+            "canonical name": "Terezakis, Bill", 
+            "name": "Bill Terezakis", 
+            "long imdb name": "Bill Terezakis", 
+            "long imdb canonical name": "Terezakis, Bill"
+        }
+    ], 
+    "year": 2013, 
+    "production design": [
+        {
+            "canonical name": "Wong, Michael N.", 
+            "name": "Michael N. Wong", 
+            "long imdb name": "Michael N. Wong", 
+            "long imdb canonical name": "Wong, Michael N."
+        }
+    ], 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Arguelles, Cameron", 
+            "name": "Cameron Arguelles", 
+            "long imdb name": "Cameron Arguelles", 
+            "long imdb canonical name": "Arguelles, Cameron"
+        }, 
+        {
+            "canonical name": "Chandler, Doran", 
+            "name": "Doran Chandler", 
+            "long imdb name": "Doran Chandler", 
+            "long imdb canonical name": "Chandler, Doran"
+        }, 
+        {
+            "canonical name": "Clarke, Kimberly", 
+            "name": "Kimberly Clarke", 
+            "long imdb name": "Kimberly Clarke", 
+            "long imdb canonical name": "Clarke, Kimberly"
+        }, 
+        {
+            "canonical name": "Collini, Laura", 
+            "name": "Laura Collini", 
+            "long imdb name": "Laura Collini", 
+            "long imdb canonical name": "Collini, Laura"
+        }, 
+        {
+            "canonical name": "Eagen, Nicola", 
+            "name": "Nicola Eagen", 
+            "long imdb name": "Nicola Eagen", 
+            "long imdb canonical name": "Eagen, Nicola"
+        }, 
+        {
+            "canonical name": "House, Colin", 
+            "name": "Colin House", 
+            "long imdb name": "Colin House", 
+            "long imdb canonical name": "House, Colin"
+        }, 
+        {
+            "canonical name": "Leadbetter, Shandi", 
+            "name": "Shandi Leadbetter", 
+            "long imdb name": "Shandi Leadbetter", 
+            "long imdb canonical name": "Leadbetter, Shandi"
+        }, 
+        {
+            "canonical name": "Remmey, Crystal", 
+            "name": "Crystal Remmey", 
+            "long imdb name": "Crystal Remmey", 
+            "long imdb canonical name": "Remmey, Crystal"
+        }, 
+        {
+            "canonical name": "Vigars, Bill", 
+            "name": "Bill Vigars", 
+            "long imdb name": "Bill Vigars", 
+            "long imdb canonical name": "Vigars, Bill"
+        }, 
+        {
+            "canonical name": "Wheeler, Kelsey", 
+            "name": "Kelsey Wheeler", 
+            "long imdb name": "Kelsey Wheeler", 
+            "long imdb canonical name": "Wheeler, Kelsey"
+        }
+    ], 
+    "color info": [], 
+    "plot": [
+        "The college student Natalie Ross goes missing and her friend and roommate Amanda Rowe accuses her ex-boyfriend Cameron McClure to the police. However nothing is proved against Cameron and Amanda's roommate Zoe decides to rent Natalie's room to share the expenses of their house. They accept the student Hayley Jones and she gets close to Amanda. When the upset Cameron threatens Amanda, Hayley defends her and they have a close relationship. Soon Cameron breaks in their house and hits Amanda; however Hayley arrives at home and hits Cameron on the head with an axe. Hayley convinces Amanda to hide the corpse, burying in the farm of her abusive father Garret Jones. Then she tries to convince Amanda to kill Garret, but Amanda refuses. Hayley kidnaps Amanda's friend Mark to force Amanda to kill her father. What will Amanda do?", 
+        "Two roommates with abusive men in their pasts consider murder as an option to help settle each other's problems."
+    ], 
+    "votes": 2804, 
+    "producer": [
+        {
+            "canonical name": "Brucks, Bryan", 
+            "name": "Bryan Brucks", 
+            "long imdb name": "Bryan Brucks", 
+            "long imdb canonical name": "Brucks, Bryan"
+        }, 
+        {
+            "canonical name": "Futerman, Michele", 
+            "name": "Michele Futerman", 
+            "long imdb name": "Michele Futerman", 
+            "long imdb canonical name": "Futerman, Michele"
+        }, 
+        {
+            "canonical name": "Mann, Kyle", 
+            "name": "Kyle Mann", 
+            "long imdb name": "Kyle Mann", 
+            "long imdb canonical name": "Mann, Kyle"
+        }
+    ], 
+    "title": "Kill for Me", 
+    "mpaa": "Rated R for violence, language and some sexuality", 
+    "assistant director": [
+        {
+            "canonical name": "Leray, Yannick", 
+            "name": "Yannick Leray", 
+            "long imdb name": "Yannick Leray", 
+            "long imdb canonical name": "Leray, Yannick"
+        }, 
+        {
+            "canonical name": "Niiranen, Andrew", 
+            "name": "Andrew Niiranen", 
+            "long imdb name": "Andrew Niiranen", 
+            "long imdb canonical name": "Niiranen, Andrew"
+        }, 
+        {
+            "canonical name": "Shane, Ken", 
+            "name": "Ken Shane", 
+            "long imdb name": "Ken Shane", 
+            "long imdb canonical name": "Shane, Ken"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "Dodd, Christopher", 
+            "name": "Christopher Dodd", 
+            "long imdb name": "Christopher Dodd", 
+            "long imdb canonical name": "Dodd, Christopher"
+        }, 
+        {
+            "canonical name": "Greenspan, Michael", 
+            "name": "Michael Greenspan", 
+            "long imdb name": "Michael Greenspan", 
+            "long imdb canonical name": "Greenspan, Michael"
+        }, 
+        {
+            "canonical name": "Forte, Christian", 
+            "name": "Christian Forte", 
+            "long imdb name": "Christian Forte", 
+            "long imdb canonical name": "Forte, Christian"
+        }
+    ], 
+    "long imdb canonical title": "Kill for Me (2013) (V)", 
+    "languages": [
+        "English"
+    ], 
+    "production manager": [
+        {
+            "canonical name": "Futerman, Michele", 
+            "name": "Michele Futerman", 
+            "long imdb name": "Michele Futerman", 
+            "long imdb canonical name": "Futerman, Michele"
+        }
+    ], 
+    "casting director": [
+        {
+            "canonical name": "Mak, Tiffany", 
+            "name": "Tiffany Mak", 
+            "long imdb name": "Tiffany Mak", 
+            "long imdb canonical name": "Mak, Tiffany"
+        }, 
+        {
+            "canonical name": "Rock, Kerry", 
+            "name": "Kerry Rock", 
+            "long imdb name": "Kerry Rock", 
+            "long imdb canonical name": "Rock, Kerry"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Shearer, Mark", 
+            "name": "Mark Shearer", 
+            "long imdb name": "Mark Shearer", 
+            "long imdb canonical name": "Shearer, Mark"
+        }
+    ], 
+    "certificates": [
+        "Argentina:16", 
+        "Australia:MA15+", 
+        "Canada:14A::(Ontario)", 
+        "Singapore:M18", 
+        "South Korea:18", 
+        "UK:18", 
+        "USA:R"
+    ], 
+    "set decoration": [
+        {
+            "canonical name": "Chohan, Gurjit", 
+            "name": "Gurjit Chohan", 
+            "long imdb name": "Gurjit Chohan", 
+            "long imdb canonical name": "Chohan, Gurjit"
+        }
+    ], 
+    "costume department": [
+        {
+            "canonical name": "Leson, Megan", 
+            "name": "Megan Leson", 
+            "long imdb name": "Megan Leson", 
+            "long imdb canonical name": "Leson, Megan"
+        }, 
+        {
+            "canonical name": "Morgan, Laurel", 
+            "name": "Laurel Morgan", 
+            "long imdb name": "Laurel Morgan", 
+            "long imdb canonical name": "Morgan, Laurel"
+        }, 
+        {
+            "canonical name": "Rudez, Veronika", 
+            "name": "Veronika Rudez", 
+            "long imdb name": "Veronika Rudez", 
+            "long imdb canonical name": "Rudez, Veronika"
+        }
+    ], 
+    "long imdb title": "Kill for Me (2013) (V)", 
+    "country codes": [
+        "ca"
+    ], 
+    "language codes": [
+        "en"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BNjkzMTYwMzc0N15BMl5BanBnXkFtZTgwMjAzNjA2MDE@._V1._SX96_SY140_.jpg", 
+    "editorial department": [
+        {
+            "canonical name": "Dixon, Andrea", 
+            "name": "Andrea Dixon", 
+            "long imdb name": "Andrea Dixon", 
+            "long imdb canonical name": "Dixon, Andrea"
+        }, 
+        {
+            "canonical name": "Pemberton, Matthew", 
+            "name": "Matthew Pemberton", 
+            "long imdb name": "Matthew Pemberton", 
+            "long imdb canonical name": "Pemberton, Matthew"
+        }
+    ], 
+    "genres": [
+        "Drama", 
+        "Thriller"
+    ], 
+    "production companies": [
+        {
+            "name": "Independent Edge Films", 
+            "long imdb name": "Independent Edge Films"
+        }
+    ], 
+    "stunt performer": [
+        {
+            "canonical name": "Aro, Maja", 
+            "name": "Maja Aro", 
+            "long imdb name": "Maja Aro", 
+            "long imdb canonical name": "Aro, Maja"
+        }, 
+        {
+            "canonical name": "Corbett, Fraser", 
+            "name": "Fraser Corbett", 
+            "long imdb name": "Fraser Corbett", 
+            "long imdb canonical name": "Corbett, Fraser"
+        }, 
+        {
+            "canonical name": "Mudry, Crystal", 
+            "name": "Crystal Mudry", 
+            "long imdb name": "Crystal Mudry", 
+            "long imdb canonical name": "Mudry, Crystal"
+        }, 
+        {
+            "canonical name": "Sanca, Jeff", 
+            "name": "Jeff Sanca", 
+            "long imdb name": "Jeff Sanca", 
+            "long imdb canonical name": "Sanca, Jeff"
+        }, 
+        {
+            "canonical name": "Smith, Kimani Ray", 
+            "name": "Kimani Ray Smith", 
+            "long imdb name": "Kimani Ray Smith", 
+            "long imdb canonical name": "Smith, Kimani Ray"
+        }
+    ], 
+    "miscellaneous companies": [
+        {
+            "name": "1010 Audio", 
+            "long imdb name": "1010 Audio"
+        }, 
+        {
+            "name": "DBC Sound", 
+            "long imdb name": "DBC Sound"
+        }, 
+        {
+            "name": "Media Capital Group", 
+            "long imdb name": "Media Capital Group"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Liston, James", 
+            "name": "James Liston", 
+            "long imdb name": "James Liston", 
+            "long imdb canonical name": "Liston, James"
+        }
+    ], 
+    "art direction": [
+        {
+            "canonical name": "Lee, Nancy C.", 
+            "name": "Nancy C. Lee", 
+            "long imdb name": "Nancy C. Lee", 
+            "long imdb canonical name": "Lee, Nancy C."
+        }
+    ], 
+    "akas": [
+        "\u0423\u0431\u0435\u0439 \u0440\u0430\u0434\u0438 \u043c\u0435\u043d\u044f::Russia", 
+        "Benim I\u00e7in \u00d6ld\u00fcr::Turkey (Turkish title) (imdb display title)", 
+        "Kill for Me - D\u00fcsteres Geheimnis::Germany (imdb display title)", 
+        "Kill for Me - Legami Di Morte::Italy (imdb display title)", 
+        "M\u00e1talo por m\u00ed::Argentina (imdb display title)", 
+        "Mata por Mim::Portugal (imdb display title)", 
+        "Mortelle intention::France (imdb display title)", 
+        "Senten\u00e7a de Morte::Brazil (imdb display title)", 
+        "Skotose gia mena::Greece (DVD title)", 
+        "Zabij dla mnie::Poland (imdb display title)"
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "Cheetham, Jay", 
+            "name": "Jay Cheetham", 
+            "long imdb name": "Jay Cheetham", 
+            "long imdb canonical name": "Cheetham, Jay"
+        }, 
+        {
+            "canonical name": "Dodd, Jesse", 
+            "name": "Jesse Dodd", 
+            "long imdb name": "Jesse Dodd", 
+            "long imdb canonical name": "Dodd, Jesse"
+        }, 
+        {
+            "canonical name": "Eliuk, Peter", 
+            "name": "Peter Eliuk", 
+            "long imdb name": "Peter Eliuk", 
+            "long imdb canonical name": "Eliuk, Peter"
+        }, 
+        {
+            "canonical name": "Eliuk, Peter", 
+            "name": "Peter Eliuk", 
+            "long imdb name": "Peter Eliuk", 
+            "long imdb canonical name": "Eliuk, Peter"
+        }, 
+        {
+            "canonical name": "Giammarco, Dean", 
+            "name": "Dean Giammarco", 
+            "long imdb name": "Dean Giammarco", 
+            "long imdb canonical name": "Giammarco, Dean"
+        }, 
+        {
+            "canonical name": "Hibbert, Dave", 
+            "name": "Dave Hibbert", 
+            "long imdb name": "Dave Hibbert", 
+            "long imdb canonical name": "Hibbert, Dave"
+        }, 
+        {
+            "canonical name": "Hillier, Gord", 
+            "name": "Gord Hillier", 
+            "long imdb name": "Gord Hillier", 
+            "long imdb canonical name": "Hillier, Gord"
+        }, 
+        {
+            "canonical name": "Murphy, Maureen", 
+            "name": "Maureen Murphy", 
+            "long imdb name": "Maureen Murphy", 
+            "long imdb canonical name": "Murphy, Maureen"
+        }, 
+        {
+            "canonical name": "Schieber, Tysen", 
+            "name": "Tysen Schieber", 
+            "long imdb name": "Tysen Schieber", 
+            "long imdb canonical name": "Schieber, Tysen"
+        }, 
+        {
+            "canonical name": "Sheppard, Bill", 
+            "name": "Bill Sheppard", 
+            "long imdb name": "Bill Sheppard", 
+            "long imdb canonical name": "Sheppard, Bill"
+        }, 
+        {
+            "canonical name": "Wallace, James", 
+            "name": "James Wallace", 
+            "long imdb name": "James Wallace", 
+            "long imdb canonical name": "Wallace, James"
+        }
+    ], 
+    "director": [
+        {
+            "canonical name": "Greenspan, Michael", 
+            "name": "Michael Greenspan", 
+            "long imdb name": "Michael Greenspan", 
+            "long imdb canonical name": "Greenspan, Michael"
+        }
+    ], 
+    "kind": "video movie", 
+    "art department": [
+        {
+            "canonical name": "Gendemann, Will", 
+            "name": "Will Gendemann", 
+            "long imdb name": "Will Gendemann", 
+            "long imdb canonical name": "Gendemann, Will"
+        }, 
+        {
+            "canonical name": "McIlroy, Katrina", 
+            "name": "Katrina McIlroy", 
+            "long imdb name": "Katrina McIlroy", 
+            "long imdb canonical name": "McIlroy, Katrina"
+        }, 
+        {
+            "canonical name": "Sutherland, Carl", 
+            "name": "Carl Sutherland", 
+            "long imdb name": "Carl Sutherland", 
+            "long imdb canonical name": "Sutherland, Carl"
+        }
+    ], 
+    "countries": [
+        "Canada"
+    ], 
+    "plot outline": "Two roommates with abusive men in their pasts consider murder as an option to help settle each other's problems.", 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BNjkzMTYwMzc0N15BMl5BanBnXkFtZTgwMjAzNjA2MDE@.jpg", 
+    "canonical title": "Kill for Me", 
+    "cast": [
+        {
+            "canonical name": "Cassidy, Katie", 
+            "name": "Katie Cassidy", 
+            "long imdb name": "Katie Cassidy", 
+            "long imdb canonical name": "Cassidy, Katie"
+        }, 
+        {
+            "canonical name": "Spiridakos, Tracy", 
+            "name": "Tracy Spiridakos", 
+            "long imdb name": "Tracy Spiridakos", 
+            "long imdb canonical name": "Spiridakos, Tracy"
+        }, 
+        {
+            "canonical name": "Logue, Donal", 
+            "name": "Donal Logue", 
+            "long imdb name": "Donal Logue", 
+            "long imdb canonical name": "Logue, Donal"
+        }, 
+        {
+            "canonical name": "DiMarco, Adam", 
+            "name": "Adam DiMarco", 
+            "long imdb name": "Adam DiMarco", 
+            "long imdb canonical name": "DiMarco, Adam"
+        }, 
+        {
+            "canonical name": "Chan-Kent, Shannon", 
+            "name": "Shannon Chan-Kent", 
+            "long imdb name": "Shannon Chan-Kent", 
+            "long imdb canonical name": "Chan-Kent, Shannon"
+        }, 
+        {
+            "canonical name": "Coombs, Torrance", 
+            "name": "Torrance Coombs", 
+            "long imdb name": "Torrance Coombs", 
+            "long imdb canonical name": "Coombs, Torrance"
+        }, 
+        {
+            "canonical name": "Horsdal, Chelah", 
+            "name": "Chelah Horsdal", 
+            "long imdb name": "Chelah Horsdal", 
+            "long imdb canonical name": "Horsdal, Chelah"
+        }, 
+        {
+            "canonical name": "Robbins, Ryan", 
+            "name": "Ryan Robbins", 
+            "long imdb name": "Ryan Robbins", 
+            "long imdb canonical name": "Robbins, Ryan"
+        }, 
+        {
+            "canonical name": "Lawrence, Colin", 
+            "name": "Colin Lawrence", 
+            "long imdb name": "Colin Lawrence", 
+            "long imdb canonical name": "Lawrence, Colin"
+        }, 
+        {
+            "canonical name": "Gibson, Leah", 
+            "name": "Leah Gibson", 
+            "long imdb name": "Leah Gibson", 
+            "long imdb canonical name": "Gibson, Leah"
+        }, 
+        {
+            "canonical name": "Zachar, Andrew", 
+            "name": "Andrew Zachar", 
+            "long imdb name": "Andrew Zachar", 
+            "long imdb canonical name": "Zachar, Andrew"
+        }, 
+        {
+            "canonical name": "Croft, Graham", 
+            "name": "Graham Croft", 
+            "long imdb name": "Graham Croft", 
+            "long imdb canonical name": "Croft, Graham"
+        }, 
+        {
+            "canonical name": "Wilson, Joanne", 
+            "name": "Joanne Wilson", 
+            "long imdb name": "Joanne Wilson", 
+            "long imdb canonical name": "Wilson, Joanne"
+        }, 
+        {
+            "canonical name": "Mudry, Crystal", 
+            "name": "Crystal Mudry", 
+            "long imdb name": "Crystal Mudry", 
+            "long imdb canonical name": "Mudry, Crystal"
+        }, 
+        {
+            "canonical name": "Corbett, Denis", 
+            "name": "Denis Corbett", 
+            "long imdb name": "Denis Corbett", 
+            "long imdb canonical name": "Corbett, Denis"
+        }, 
+        {
+            "canonical name": "Cox, Brittani", 
+            "name": "Brittani Cox", 
+            "long imdb name": "Brittani Cox", 
+            "long imdb canonical name": "Cox, Brittani"
+        }, 
+        {
+            "canonical name": "Evans, Lini", 
+            "name": "Lini Evans", 
+            "long imdb name": "Lini Evans", 
+            "long imdb canonical name": "Evans, Lini"
+        }, 
+        {
+            "canonical name": "LaBelle, Rob", 
+            "name": "Rob LaBelle", 
+            "long imdb name": "Rob LaBelle", 
+            "long imdb canonical name": "LaBelle, Rob"
+        }, 
+        {
+            "canonical name": "Van Ritzen, Kirsten", 
+            "name": "Kirsten Van Ritzen", 
+            "long imdb name": "Kirsten Van Ritzen", 
+            "long imdb canonical name": "Van Ritzen, Kirsten"
+        }
+    ], 
+    "smart long imdb canonical title": "Kill for Me (2013) (V)", 
+    "original music": [
+        {
+            "canonical name": "Brook, Michael", 
+            "name": "Michael Brook", 
+            "long imdb name": "Michael Brook", 
+            "long imdb canonical name": "Brook, Michael"
+        }
+    ], 
+    "smart canonical title": "Kill for Me"
+}

@@ -1,0 +1,764 @@
+{
+    "music department": [
+        {
+            "canonical name": "Colvin, Genevi\u00e8ve Thomas", 
+            "name": "Genevi\u00e8ve Thomas Colvin", 
+            "long imdb name": "Genevi\u00e8ve Thomas Colvin", 
+            "long imdb canonical name": "Colvin, Genevi\u00e8ve Thomas"
+        }, 
+        {
+            "canonical name": "Krenkel, Nathaniel", 
+            "name": "Nathaniel Krenkel", 
+            "long imdb name": "Nathaniel Krenkel", 
+            "long imdb canonical name": "Krenkel, Nathaniel"
+        }
+    ], 
+    "camera and electrical department": [
+        {
+            "canonical name": "Bupp, Nicholas", 
+            "name": "Nicholas Bupp", 
+            "long imdb name": "Nicholas Bupp", 
+            "long imdb canonical name": "Bupp, Nicholas"
+        }, 
+        {
+            "canonical name": "Garbutt, Frank Anthony", 
+            "name": "Frank Anthony Garbutt", 
+            "long imdb name": "Frank Anthony Garbutt", 
+            "long imdb canonical name": "Garbutt, Frank Anthony"
+        }, 
+        {
+            "canonical name": "Garcia, Michael", 
+            "name": "Michael Garcia", 
+            "long imdb name": "Michael Garcia", 
+            "long imdb canonical name": "Garcia, Michael"
+        }, 
+        {
+            "canonical name": "Keshishian, Mher", 
+            "name": "Mher Keshishian", 
+            "long imdb name": "Mher Keshishian", 
+            "long imdb canonical name": "Keshishian, Mher"
+        }, 
+        {
+            "canonical name": "Miller, Kevin J.", 
+            "name": "Kevin J. Miller", 
+            "long imdb name": "Kevin J. Miller", 
+            "long imdb canonical name": "Miller, Kevin J."
+        }, 
+        {
+            "canonical name": "Olsen, Tennille", 
+            "name": "Tennille Olsen", 
+            "long imdb name": "Tennille Olsen", 
+            "long imdb canonical name": "Olsen, Tennille"
+        }, 
+        {
+            "canonical name": "Thomas, William", 
+            "name": "William Thomas", 
+            "long imdb name": "William Thomas", 
+            "long imdb canonical name": "Thomas, William"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "Phase 4 Films", 
+            "long imdb name": "Phase 4 Films"
+        }, 
+        {
+            "name": "Bac Films", 
+            "long imdb name": "Bac Films"
+        }, 
+        {
+            "name": "Phase 4 Films", 
+            "long imdb name": "Phase 4 Films"
+        }, 
+        {
+            "name": "Phase 4 Films", 
+            "long imdb name": "Phase 4 Films"
+        }, 
+        {
+            "name": "Angel Films", 
+            "long imdb name": "Angel Films"
+        }, 
+        {
+            "name": "Cinemax", 
+            "long imdb name": "Cinemax"
+        }, 
+        {
+            "name": "Paycom Multimedia", 
+            "long imdb name": "Paycom Multimedia"
+        }, 
+        {
+            "name": "Revolver Entertainment", 
+            "long imdb name": "Revolver Entertainment"
+        }, 
+        {
+            "name": "Rialto Distribution", 
+            "long imdb name": "Rialto Distribution"
+        }, 
+        {
+            "name": "Rialto Distribution", 
+            "long imdb name": "Rialto Distribution"
+        }, 
+        {
+            "name": "Rialto Entertainment", 
+            "long imdb name": "Rialto Entertainment"
+        }
+    ], 
+    "rating": 6.9, 
+    "runtimes": [
+        "96"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "Berman, Stacey", 
+            "name": "Stacey Berman", 
+            "long imdb name": "Stacey Berman", 
+            "long imdb canonical name": "Berman, Stacey"
+        }
+    ], 
+    "thanks": [
+        {
+            "canonical name": "Acosta, Julian", 
+            "name": "Julian Acosta", 
+            "long imdb name": "Julian Acosta", 
+            "long imdb canonical name": "Acosta, Julian"
+        }, 
+        {
+            "canonical name": "Arakelian, Margot", 
+            "name": "Margot Arakelian", 
+            "long imdb name": "Margot Arakelian", 
+            "long imdb canonical name": "Arakelian, Margot"
+        }, 
+        {
+            "canonical name": "Cronemberger, Diogo", 
+            "name": "Diogo Cronemberger", 
+            "long imdb name": "Diogo Cronemberger", 
+            "long imdb canonical name": "Cronemberger, Diogo"
+        }, 
+        {
+            "canonical name": "Donnermeyer, Nicholas", 
+            "name": "Nicholas Donnermeyer", 
+            "long imdb name": "Nicholas Donnermeyer", 
+            "long imdb canonical name": "Donnermeyer, Nicholas"
+        }, 
+        {
+            "canonical name": "Duce, Chris", 
+            "name": "Chris Duce", 
+            "long imdb name": "Chris Duce", 
+            "long imdb canonical name": "Duce, Chris"
+        }, 
+        {
+            "canonical name": "Kr\u00fcgel, Florian", 
+            "name": "Florian Kr\u00fcgel", 
+            "long imdb name": "Florian Kr\u00fcgel", 
+            "long imdb canonical name": "Kr\u00fcgel, Florian"
+        }, 
+        {
+            "canonical name": "Laszlo, Chris", 
+            "name": "Chris Laszlo", 
+            "long imdb name": "Chris Laszlo", 
+            "long imdb canonical name": "Laszlo, Chris"
+        }, 
+        {
+            "canonical name": "Sickels, Robert", 
+            "name": "Robert Sickels", 
+            "long imdb name": "Robert Sickels", 
+            "long imdb canonical name": "Sickels, Robert"
+        }, 
+        {
+            "canonical name": "Silveira, Miguel", 
+            "name": "Miguel Silveira", 
+            "long imdb name": "Miguel Silveira", 
+            "long imdb canonical name": "Silveira, Miguel"
+        }, 
+        {
+            "canonical name": "S\u00e9cheret, Jean-Marceau", 
+            "name": "Jean-Marceau S\u00e9cheret", 
+            "long imdb name": "Jean-Marceau S\u00e9cheret", 
+            "long imdb canonical name": "S\u00e9cheret, Jean-Marceau"
+        }
+    ], 
+    "make up": [
+        {
+            "canonical name": "Cohen, Tina", 
+            "name": "Tina Cohen", 
+            "long imdb name": "Tina Cohen", 
+            "long imdb canonical name": "Cohen, Tina"
+        }, 
+        {
+            "canonical name": "Ford, Heather", 
+            "name": "Heather Ford", 
+            "long imdb name": "Heather Ford", 
+            "long imdb canonical name": "Ford, Heather"
+        }, 
+        {
+            "canonical name": "Machaiek, Katie", 
+            "name": "Katie Machaiek", 
+            "long imdb name": "Katie Machaiek", 
+            "long imdb canonical name": "Machaiek, Katie"
+        }, 
+        {
+            "canonical name": "Newman, Allie", 
+            "name": "Allie Newman", 
+            "long imdb name": "Allie Newman", 
+            "long imdb canonical name": "Newman, Allie"
+        }
+    ], 
+    "year": 2012, 
+    "production design": [
+        {
+            "canonical name": "Van Dam, Elizabeth", 
+            "name": "Elizabeth Van Dam", 
+            "long imdb name": "Elizabeth Van Dam", 
+            "long imdb canonical name": "Van Dam, Elizabeth"
+        }
+    ], 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Blanks, Teddy", 
+            "name": "Teddy Blanks", 
+            "long imdb name": "Teddy Blanks", 
+            "long imdb canonical name": "Blanks, Teddy"
+        }, 
+        {
+            "canonical name": "Chew, Amy B.", 
+            "name": "Amy B. Chew", 
+            "long imdb name": "Amy B. Chew", 
+            "long imdb canonical name": "Chew, Amy B."
+        }, 
+        {
+            "canonical name": "Compton, Carol A.", 
+            "name": "Carol A. Compton", 
+            "long imdb name": "Carol A. Compton", 
+            "long imdb canonical name": "Compton, Carol A."
+        }, 
+        {
+            "canonical name": "Cronin, Sisi", 
+            "name": "Sisi Cronin", 
+            "long imdb name": "Sisi Cronin", 
+            "long imdb canonical name": "Cronin, Sisi"
+        }, 
+        {
+            "canonical name": "Grimshaw, Bianca", 
+            "name": "Bianca Grimshaw", 
+            "long imdb name": "Bianca Grimshaw", 
+            "long imdb canonical name": "Grimshaw, Bianca"
+        }, 
+        {
+            "canonical name": "Lleras, Elisa", 
+            "name": "Elisa Lleras", 
+            "long imdb name": "Elisa Lleras", 
+            "long imdb canonical name": "Lleras, Elisa"
+        }, 
+        {
+            "canonical name": "Sandler, Josh", 
+            "name": "Josh Sandler", 
+            "long imdb name": "Josh Sandler", 
+            "long imdb canonical name": "Sandler, Josh"
+        }, 
+        {
+            "canonical name": "Wahab, Kaiser", 
+            "name": "Kaiser Wahab", 
+            "long imdb name": "Kaiser Wahab", 
+            "long imdb canonical name": "Wahab, Kaiser"
+        }
+    ], 
+    "color info": [], 
+    "visual effects": [
+        {
+            "canonical name": "Lemke, Alex", 
+            "name": "Alex Lemke", 
+            "long imdb name": "Alex Lemke", 
+            "long imdb canonical name": "Lemke, Alex"
+        }
+    ], 
+    "votes": 4503, 
+    "producer": [
+        {
+            "canonical name": "Caldwell, Jessica", 
+            "name": "Jessica Caldwell", 
+            "long imdb name": "Jessica Caldwell", 
+            "long imdb canonical name": "Caldwell, Jessica"
+        }, 
+        {
+            "canonical name": "De Leon, Alejandro", 
+            "name": "Alejandro De Leon", 
+            "long imdb name": "Alejandro De Leon", 
+            "long imdb canonical name": "De Leon, Alejandro"
+        }, 
+        {
+            "canonical name": "McGuire, Michael M.", 
+            "name": "Michael M. McGuire", 
+            "long imdb name": "Michael M. McGuire", 
+            "long imdb canonical name": "McGuire, Michael M."
+        }, 
+        {
+            "canonical name": "Neustadter, Richard", 
+            "name": "Richard Neustadter", 
+            "long imdb name": "Richard Neustadter", 
+            "long imdb canonical name": "Neustadter, Richard"
+        }
+    ], 
+    "title": "Electrick Children", 
+    "mpaa": "Rated R for language including brief sexual references", 
+    "assistant director": [
+        {
+            "canonical name": "Fritz, Ben", 
+            "name": "Ben Fritz", 
+            "long imdb name": "Ben Fritz", 
+            "long imdb canonical name": "Fritz, Ben"
+        }, 
+        {
+            "canonical name": "Keith, Jeff", 
+            "name": "Jeff Keith", 
+            "long imdb name": "Jeff Keith", 
+            "long imdb canonical name": "Keith, Jeff"
+        }, 
+        {
+            "canonical name": "Werth, Adam", 
+            "name": "Adam Werth", 
+            "long imdb name": "Adam Werth", 
+            "long imdb canonical name": "Werth, Adam"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "Thomas, Rebecca", 
+            "name": "Rebecca Thomas", 
+            "long imdb name": "Rebecca Thomas", 
+            "long imdb canonical name": "Thomas, Rebecca"
+        }
+    ], 
+    "long imdb canonical title": "Electrick Children (2012)", 
+    "languages": [
+        "English"
+    ], 
+    "production manager": [
+        {
+            "canonical name": "De Leon, Alejandro", 
+            "name": "Alejandro De Leon", 
+            "long imdb name": "Alejandro De Leon", 
+            "long imdb canonical name": "De Leon, Alejandro"
+        }, 
+        {
+            "canonical name": "Hauser, Andrew", 
+            "name": "Andrew Hauser", 
+            "long imdb name": "Andrew Hauser", 
+            "long imdb canonical name": "Hauser, Andrew"
+        }, 
+        {
+            "canonical name": "McGuire, Michael M.", 
+            "name": "Michael M. McGuire", 
+            "long imdb name": "Michael M. McGuire", 
+            "long imdb canonical name": "McGuire, Michael M."
+        }
+    ], 
+    "casting director": [
+        {
+            "canonical name": "Stern, Adrienne", 
+            "name": "Adrienne Stern", 
+            "long imdb name": "Adrienne Stern", 
+            "long imdb canonical name": "Stern, Adrienne"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Lilly, Jennifer", 
+            "name": "Jennifer Lilly", 
+            "long imdb name": "Jennifer Lilly", 
+            "long imdb canonical name": "Lilly, Jennifer"
+        }
+    ], 
+    "certificates": [
+        "Sweden:11", 
+        "UK:15", 
+        "USA:R"
+    ], 
+    "set decoration": [
+        {
+            "canonical name": "Van Dam, Elizabeth", 
+            "name": "Elizabeth Van Dam", 
+            "long imdb name": "Elizabeth Van Dam", 
+            "long imdb canonical name": "Van Dam, Elizabeth"
+        }
+    ], 
+    "costume department": [
+        {
+            "canonical name": "Callan, Chrissy", 
+            "name": "Chrissy Callan", 
+            "long imdb name": "Chrissy Callan", 
+            "long imdb canonical name": "Callan, Chrissy"
+        }
+    ], 
+    "long imdb title": "Electrick Children (2012)", 
+    "country codes": [
+        "us"
+    ], 
+    "language codes": [
+        "en"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BMjMwNjEyNDQ2N15BMl5BanBnXkFtZTcwODU1NTMxOQ@@._V1._SX97_SY140_.jpg", 
+    "casting department": [
+        {
+            "canonical name": "Westbye, Kjerstin", 
+            "name": "Kjerstin Westbye", 
+            "long imdb name": "Kjerstin Westbye", 
+            "long imdb canonical name": "Westbye, Kjerstin"
+        }
+    ], 
+    "editorial department": [
+        {
+            "canonical name": "Ward, Taylor Alexander", 
+            "name": "Taylor Alexander Ward", 
+            "long imdb name": "Taylor Alexander Ward", 
+            "long imdb canonical name": "Ward, Taylor Alexander"
+        }, 
+        {
+            "canonical name": "Zeichner, Martin", 
+            "name": "Martin Zeichner", 
+            "long imdb name": "Martin Zeichner", 
+            "long imdb canonical name": "Zeichner, Martin"
+        }
+    ], 
+    "genres": [
+        "Drama"
+    ], 
+    "production companies": [
+        {
+            "name": "Live Wire Films", 
+            "long imdb name": "Live Wire Films"
+        }
+    ], 
+    "stunt performer": [
+        {
+            "canonical name": "McGirl, Scott", 
+            "name": "Scott McGirl", 
+            "long imdb name": "Scott McGirl", 
+            "long imdb canonical name": "McGirl, Scott"
+        }, 
+        {
+            "canonical name": "Tipton, Sonny", 
+            "name": "Sonny Tipton", 
+            "long imdb name": "Sonny Tipton", 
+            "long imdb canonical name": "Tipton, Sonny"
+        }, 
+        {
+            "canonical name": "Williams, Darlene Ava", 
+            "name": "Darlene Ava Williams", 
+            "long imdb name": "Darlene Ava Williams", 
+            "long imdb canonical name": "Williams, Darlene Ava"
+        }
+    ], 
+    "miscellaneous companies": [
+        {
+            "name": "CHIPS", 
+            "long imdb name": "CHIPS"
+        }, 
+        {
+            "name": "Chapman/Leonard Studio Equipment", 
+            "long imdb name": "Chapman/Leonard Studio Equipment"
+        }, 
+        {
+            "name": "IndieClear", 
+            "long imdb name": "IndieClear"
+        }, 
+        {
+            "name": "Kickstarter", 
+            "long imdb name": "Kickstarter"
+        }, 
+        {
+            "name": "Post Factory NY", 
+            "long imdb name": "Post Factory NY"
+        }, 
+        {
+            "name": "Sonic Magic", 
+            "long imdb name": "Sonic Magic"
+        }, 
+        {
+            "name": "Technicolor Postworks New York", 
+            "long imdb name": "Technicolor Postworks New York"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Troelstrup, Mattias", 
+            "name": "Mattias Troelstrup", 
+            "long imdb name": "Mattias Troelstrup", 
+            "long imdb canonical name": "Troelstrup, Mattias"
+        }
+    ], 
+    "art direction": [
+        {
+            "canonical name": "Braun, Kurt", 
+            "name": "Kurt Braun", 
+            "long imdb name": "Kurt Braun", 
+            "long imdb canonical name": "Braun, Kurt"
+        }
+    ], 
+    "akas": [
+        "\u0423\u0436\u0435 \u043d\u0435 \u0434\u0435\u0442\u0438::Russia", 
+        "A Fita Azul::Brazil (imdb display title)", 
+        "Electrick Children::Spain (alternative title)", 
+        "Elektryczne dzieci::Poland (imdb display title)", 
+        "Szepl\u0151telen fogantat\u00e1s::Hungary"
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "Enns, Anthony", 
+            "name": "Anthony Enns", 
+            "long imdb name": "Anthony Enns", 
+            "long imdb canonical name": "Enns, Anthony"
+        }, 
+        {
+            "canonical name": "Levy, Perry", 
+            "name": "Perry Levy", 
+            "long imdb name": "Perry Levy", 
+            "long imdb canonical name": "Levy, Perry"
+        }, 
+        {
+            "canonical name": "Milano, Eric", 
+            "name": "Eric Milano", 
+            "long imdb name": "Eric Milano", 
+            "long imdb canonical name": "Milano, Eric"
+        }, 
+        {
+            "canonical name": "Roy, Richard", 
+            "name": "Richard Roy", 
+            "long imdb name": "Richard Roy", 
+            "long imdb canonical name": "Roy, Richard"
+        }, 
+        {
+            "canonical name": "Snedecor, Matt", 
+            "name": "Matt Snedecor", 
+            "long imdb name": "Matt Snedecor", 
+            "long imdb canonical name": "Snedecor, Matt"
+        }, 
+        {
+            "canonical name": "Tollen, Steven", 
+            "name": "Steven Tollen", 
+            "long imdb name": "Steven Tollen", 
+            "long imdb canonical name": "Tollen, Steven"
+        }
+    ], 
+    "director": [
+        {
+            "canonical name": "Thomas, Rebecca", 
+            "name": "Rebecca Thomas", 
+            "long imdb name": "Rebecca Thomas", 
+            "long imdb canonical name": "Thomas, Rebecca"
+        }
+    ], 
+    "kind": "movie", 
+    "art department": [
+        {
+            "canonical name": "Brady, Berkley", 
+            "name": "Berkley Brady", 
+            "long imdb name": "Berkley Brady", 
+            "long imdb canonical name": "Brady, Berkley"
+        }, 
+        {
+            "canonical name": "Smith, Colin", 
+            "name": "Colin Smith", 
+            "long imdb name": "Colin Smith", 
+            "long imdb canonical name": "Smith, Colin"
+        }
+    ], 
+    "countries": [
+        "USA"
+    ], 
+    "transportation department": [
+        {
+            "canonical name": "Halstead, Les", 
+            "name": "Les Halstead", 
+            "long imdb name": "Les Halstead", 
+            "long imdb canonical name": "Halstead, Les"
+        }, 
+        {
+            "canonical name": "Halstead, Les", 
+            "name": "Les Halstead", 
+            "long imdb name": "Les Halstead", 
+            "long imdb canonical name": "Halstead, Les"
+        }
+    ], 
+    "plot outline": "Rachel, a teenager born and raised in her Mormon community, believes that she has been inpregnated by listening to music and must get to Vegas to find the \"father\" of her miracle baby.", 
+    "plot": [
+        "Pregnant by music? Rachel, a young teenager from a fundamentalist Mormon community, believes in immaculate conception, while her fundamentally religious family regards her condition as an intolerable transgression. The search for the child's origins is a revelation for the 15-year-old.", 
+        "In a Mormon community in Utah, the fifteen year-old Rachel Angela McKnight discovers that she is pregnant. She believes in Immaculate Conception by the music of a blue cassette tape that she had listened to in a cassette recorder. Her father and religious leader Paul blames her brother Mr. Will and expels him from home; he also arranges a marriage in the community for Rachel. However she decides to go to Las Vegas to seek out the father of her baby. She steals Paul's pickup truck and heads to Vegas, and Mr. Will that is sleeping in the trunk goes with her. They meet the skater Clyde and his friend, the musician Johnny and Clyde invites Rachel and Mr. Will to go with them in their van to the place where they live. Rachel and Clyde become romantically involved and Clyde offers to marry her. However Rachel wants to find the musician on the tape.", 
+        "Rachel, a teenager born and raised in her Mormon community, believes that she has been inpregnated by listening to music and must get to Vegas to find the \"father\" of her miracle baby."
+    ], 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BMjMwNjEyNDQ2N15BMl5BanBnXkFtZTcwODU1NTMxOQ@@.jpg", 
+    "canonical title": "Electrick Children", 
+    "cast": [
+        {
+            "canonical name": "Garner, Julia", 
+            "name": "Julia Garner", 
+            "long imdb name": "Julia Garner", 
+            "long imdb canonical name": "Garner, Julia"
+        }, 
+        {
+            "canonical name": "Aiken, Liam", 
+            "name": "Liam Aiken", 
+            "long imdb name": "Liam Aiken", 
+            "long imdb canonical name": "Aiken, Liam"
+        }, 
+        {
+            "canonical name": "Zane, Billy", 
+            "name": "Billy Zane", 
+            "long imdb name": "Billy Zane", 
+            "long imdb canonical name": "Zane, Billy"
+        }, 
+        {
+            "canonical name": "Watros, Cynthia", 
+            "name": "Cynthia Watros", 
+            "long imdb name": "Cynthia Watros", 
+            "long imdb canonical name": "Watros, Cynthia"
+        }, 
+        {
+            "canonical name": "Pirard, Rachel", 
+            "name": "Rachel Pirard", 
+            "long imdb name": "Rachel Pirard", 
+            "long imdb canonical name": "Pirard, Rachel"
+        }, 
+        {
+            "canonical name": "Chamberlain, Scott", 
+            "name": "Scott Chamberlain", 
+            "long imdb name": "Scott Chamberlain", 
+            "long imdb canonical name": "Chamberlain, Scott"
+        }, 
+        {
+            "canonical name": "DiGiorgio, Vincent J.", 
+            "name": "Vincent J. DiGiorgio", 
+            "long imdb name": "Vincent J. DiGiorgio", 
+            "long imdb canonical name": "DiGiorgio, Vincent J."
+        }, 
+        {
+            "canonical name": "Culkin, Rory", 
+            "name": "Rory Culkin", 
+            "long imdb name": "Rory Culkin", 
+            "long imdb canonical name": "Culkin, Rory"
+        }, 
+        {
+            "canonical name": "Amedori, John Patrick", 
+            "name": "John Patrick Amedori", 
+            "long imdb name": "John Patrick Amedori", 
+            "long imdb canonical name": "Amedori, John Patrick"
+        }, 
+        {
+            "canonical name": "Owens, Thomas", 
+            "name": "Thomas Owens", 
+            "long imdb name": "Thomas Owens", 
+            "long imdb canonical name": "Owens, Thomas"
+        }, 
+        {
+            "canonical name": "Gard, Cassidy", 
+            "name": "Cassidy Gard", 
+            "long imdb name": "Cassidy Gard", 
+            "long imdb canonical name": "Gard, Cassidy"
+        }, 
+        {
+            "canonical name": "Baldion, Paola", 
+            "name": "Paola Baldion", 
+            "long imdb name": "Paola Baldion", 
+            "long imdb canonical name": "Baldion, Paola"
+        }, 
+        {
+            "canonical name": "Camilleri, Guy", 
+            "name": "Guy Camilleri", 
+            "long imdb name": "Guy Camilleri", 
+            "long imdb canonical name": "Camilleri, Guy"
+        }, 
+        {
+            "canonical name": "DePaul, Lenny", 
+            "name": "Lenny DePaul", 
+            "long imdb name": "Lenny DePaul", 
+            "long imdb canonical name": "DePaul, Lenny"
+        }, 
+        {
+            "canonical name": "Fritz, Ben", 
+            "name": "Ben Fritz", 
+            "long imdb name": "Ben Fritz", 
+            "long imdb canonical name": "Fritz, Ben"
+        }, 
+        {
+            "canonical name": "Henrie, Amber", 
+            "name": "Amber Henrie", 
+            "long imdb name": "Amber Henrie", 
+            "long imdb canonical name": "Henrie, Amber"
+        }, 
+        {
+            "canonical name": "Sage, Bill", 
+            "name": "Bill Sage", 
+            "long imdb name": "Bill Sage", 
+            "long imdb canonical name": "Sage, Bill"
+        }, 
+        {
+            "canonical name": "LaPaglia, Trevor", 
+            "name": "Trevor LaPaglia", 
+            "long imdb name": "Trevor LaPaglia", 
+            "long imdb canonical name": "LaPaglia, Trevor"
+        }, 
+        {
+            "canonical name": "Hall, Autumn", 
+            "name": "Autumn Hall", 
+            "long imdb name": "Autumn Hall", 
+            "long imdb canonical name": "Hall, Autumn"
+        }, 
+        {
+            "canonical name": "Sawyer, Chris", 
+            "name": "Chris Sawyer", 
+            "long imdb name": "Chris Sawyer", 
+            "long imdb canonical name": "Sawyer, Chris"
+        }, 
+        {
+            "canonical name": "Brandimarti, Eva Lokelani", 
+            "name": "Eva Lokelani Brandimarti", 
+            "long imdb name": "Eva Lokelani Brandimarti", 
+            "long imdb canonical name": "Brandimarti, Eva Lokelani"
+        }, 
+        {
+            "canonical name": "Halstead, Les", 
+            "name": "Les Halstead", 
+            "long imdb name": "Les Halstead", 
+            "long imdb canonical name": "Halstead, Les"
+        }, 
+        {
+            "canonical name": "Liuzzi, Ariana", 
+            "name": "Ariana Liuzzi", 
+            "long imdb name": "Ariana Liuzzi", 
+            "long imdb canonical name": "Liuzzi, Ariana"
+        }, 
+        {
+            "canonical name": "Love, Daniel", 
+            "name": "Daniel Love", 
+            "long imdb name": "Daniel Love", 
+            "long imdb canonical name": "Love, Daniel"
+        }, 
+        {
+            "canonical name": "Nearman, Melissa", 
+            "name": "Melissa Nearman", 
+            "long imdb name": "Melissa Nearman", 
+            "long imdb canonical name": "Nearman, Melissa"
+        }, 
+        {
+            "canonical name": "Sawyer, Brooke McKenna", 
+            "name": "Brooke McKenna Sawyer", 
+            "long imdb name": "Brooke McKenna Sawyer", 
+            "long imdb canonical name": "Sawyer, Brooke McKenna"
+        }, 
+        {
+            "canonical name": "Vercher, Cherry", 
+            "name": "Cherry Vercher", 
+            "long imdb name": "Cherry Vercher", 
+            "long imdb canonical name": "Vercher, Cherry"
+        }
+    ], 
+    "smart long imdb canonical title": "Electrick Children (2012)", 
+    "original music": [
+        {
+            "canonical name": "Colvin, Eric", 
+            "name": "Eric Colvin", 
+            "long imdb name": "Eric Colvin", 
+            "long imdb canonical name": "Colvin, Eric"
+        }
+    ], 
+    "smart canonical title": "Electrick Children"
+}

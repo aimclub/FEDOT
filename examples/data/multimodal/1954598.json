@@ -1,0 +1,580 @@
+{
+    "music department": [
+        {
+            "canonical name": "Bhattacharya, Amitabh", 
+            "name": "Amitabh Bhattacharya", 
+            "long imdb name": "Amitabh Bhattacharya", 
+            "long imdb canonical name": "Bhattacharya, Amitabh"
+        }, 
+        {
+            "canonical name": "Dadlani, Vishal", 
+            "name": "Vishal Dadlani", 
+            "long imdb name": "Vishal Dadlani", 
+            "long imdb canonical name": "Dadlani, Vishal"
+        }, 
+        {
+            "canonical name": "Dayal, Benny", 
+            "name": "Benny Dayal", 
+            "long imdb name": "Benny Dayal", 
+            "long imdb canonical name": "Dayal, Benny"
+        }, 
+        {
+            "canonical name": "Manchandani, Anushka", 
+            "name": "Anushka Manchandani", 
+            "long imdb name": "Anushka Manchandani", 
+            "long imdb canonical name": "Manchandani, Anushka"
+        }, 
+        {
+            "canonical name": "Merchant, Salim", 
+            "name": "Salim Merchant", 
+            "long imdb name": "Salim Merchant", 
+            "long imdb canonical name": "Merchant, Salim"
+        }, 
+        {
+            "canonical name": "Pandit, Shraddha", 
+            "name": "Shraddha Pandit", 
+            "long imdb name": "Shraddha Pandit", 
+            "long imdb canonical name": "Pandit, Shraddha"
+        }, 
+        {
+            "canonical name": "Pandit, Shweta", 
+            "name": "Shweta Pandit", 
+            "long imdb name": "Shweta Pandit", 
+            "long imdb canonical name": "Pandit, Shweta"
+        }, 
+        {
+            "canonical name": "Rao, Shilpa", 
+            "name": "Shilpa Rao", 
+            "long imdb name": "Shilpa Rao", 
+            "long imdb canonical name": "Rao, Shilpa"
+        }, 
+        {
+            "canonical name": "Sharma, Dipesh", 
+            "name": "Dipesh Sharma", 
+            "long imdb name": "Dipesh Sharma", 
+            "long imdb canonical name": "Sharma, Dipesh"
+        }, 
+        {
+            "canonical name": "Singh, Ranveer", 
+            "name": "Ranveer Singh", 
+            "long imdb name": "Ranveer Singh", 
+            "long imdb canonical name": "Singh, Ranveer"
+        }, 
+        {
+            "canonical name": "Tiku, Tanuj", 
+            "name": "Tanuj Tiku", 
+            "long imdb name": "Tanuj Tiku", 
+            "long imdb canonical name": "Tiku, Tanuj"
+        }
+    ], 
+    "camera and electrical department": [
+        {
+            "canonical name": "Ahmed, Rafique", 
+            "name": "Rafique Ahmed", 
+            "long imdb name": "Rafique Ahmed", 
+            "long imdb canonical name": "Ahmed, Rafique"
+        }, 
+        {
+            "canonical name": "Chandran, Ravi K.", 
+            "name": "Ravi K. Chandran", 
+            "long imdb name": "Ravi K. Chandran", 
+            "long imdb canonical name": "Chandran, Ravi K."
+        }, 
+        {
+            "canonical name": "Chatterjee, Anirban", 
+            "name": "Anirban Chatterjee", 
+            "long imdb name": "Anirban Chatterjee", 
+            "long imdb canonical name": "Chatterjee, Anirban"
+        }, 
+        {
+            "canonical name": "Kumar, A. German", 
+            "name": "A. German Kumar", 
+            "long imdb name": "A. German Kumar", 
+            "long imdb canonical name": "Kumar, A. German"
+        }, 
+        {
+            "canonical name": "Verma, Kapil", 
+            "name": "Kapil Verma", 
+            "long imdb name": "Kapil Verma", 
+            "long imdb canonical name": "Verma, Kapil"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "Jalan Distributors", 
+            "long imdb name": "Jalan Distributors"
+        }, 
+        {
+            "name": "Yash Raj Films", 
+            "long imdb name": "Yash Raj Films"
+        }
+    ], 
+    "rating": 6.0, 
+    "runtimes": [
+        "140"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "Chauhan, Arun J.", 
+            "name": "Arun J. Chauhan", 
+            "long imdb name": "Arun J. Chauhan", 
+            "long imdb canonical name": "Chauhan, Arun J."
+        }
+    ], 
+    "make up": [
+        {
+            "canonical name": "Saini, Puneet", 
+            "name": "Puneet Saini", 
+            "long imdb name": "Puneet Saini", 
+            "long imdb canonical name": "Saini, Puneet"
+        }
+    ], 
+    "year": 2011, 
+    "production design": [
+        {
+            "canonical name": "Khan, Wasiq", 
+            "name": "Wasiq Khan", 
+            "long imdb name": "Wasiq Khan", 
+            "long imdb canonical name": "Khan, Wasiq"
+        }
+    ], 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Badruddin, Fayyaz", 
+            "name": "Fayyaz Badruddin", 
+            "long imdb name": "Fayyaz Badruddin", 
+            "long imdb canonical name": "Badruddin, Fayyaz"
+        }, 
+        {
+            "canonical name": "Ghei, Sahdev", 
+            "name": "Sahdev Ghei", 
+            "long imdb name": "Sahdev Ghei", 
+            "long imdb canonical name": "Ghei, Sahdev"
+        }, 
+        {
+            "canonical name": "Goswami, Prarthana", 
+            "name": "Prarthana Goswami", 
+            "long imdb name": "Prarthana Goswami", 
+            "long imdb canonical name": "Goswami, Prarthana"
+        }, 
+        {
+            "canonical name": "Malhotra, Rajesh", 
+            "name": "Rajesh Malhotra", 
+            "long imdb name": "Rajesh Malhotra", 
+            "long imdb canonical name": "Malhotra, Rajesh"
+        }, 
+        {
+            "canonical name": "Malhotra, Rohan", 
+            "name": "Rohan Malhotra", 
+            "long imdb name": "Rohan Malhotra", 
+            "long imdb canonical name": "Malhotra, Rohan"
+        }, 
+        {
+            "canonical name": "Merchant, Alnoor", 
+            "name": "Alnoor Merchant", 
+            "long imdb name": "Alnoor Merchant", 
+            "long imdb canonical name": "Merchant, Alnoor"
+        }, 
+        {
+            "canonical name": "Merchant, Shruti", 
+            "name": "Shruti Merchant", 
+            "long imdb name": "Shruti Merchant", 
+            "long imdb canonical name": "Merchant, Shruti"
+        }, 
+        {
+            "canonical name": "Merchant, Vaibhavi", 
+            "name": "Vaibhavi Merchant", 
+            "long imdb name": "Vaibhavi Merchant", 
+            "long imdb canonical name": "Merchant, Vaibhavi"
+        }, 
+        {
+            "canonical name": "Mongia, Atul", 
+            "name": "Atul Mongia", 
+            "long imdb name": "Atul Mongia", 
+            "long imdb canonical name": "Mongia, Atul"
+        }, 
+        {
+            "canonical name": "Monteen, Kerry", 
+            "name": "Kerry Monteen", 
+            "long imdb name": "Kerry Monteen", 
+            "long imdb canonical name": "Monteen, Kerry"
+        }, 
+        {
+            "canonical name": "Rawat, Deepak", 
+            "name": "Deepak Rawat", 
+            "long imdb name": "Deepak Rawat", 
+            "long imdb canonical name": "Rawat, Deepak"
+        }, 
+        {
+            "canonical name": "Singh, Abhay", 
+            "name": "Abhay Singh", 
+            "long imdb name": "Abhay Singh", 
+            "long imdb canonical name": "Singh, Abhay"
+        }
+    ], 
+    "color info": [], 
+    "visual effects": [
+        {
+            "canonical name": "Khandagle, Swapnil", 
+            "name": "Swapnil Khandagle", 
+            "long imdb name": "Swapnil Khandagle", 
+            "long imdb canonical name": "Khandagle, Swapnil"
+        }, 
+        {
+            "canonical name": "Prasad, Rohit", 
+            "name": "Rohit Prasad", 
+            "long imdb name": "Rohit Prasad", 
+            "long imdb canonical name": "Prasad, Rohit"
+        }, 
+        {
+            "canonical name": "Sethy, Nirakar", 
+            "name": "Nirakar Sethy", 
+            "long imdb name": "Nirakar Sethy", 
+            "long imdb canonical name": "Sethy, Nirakar"
+        }, 
+        {
+            "canonical name": "Sharma, Ruchira", 
+            "name": "Ruchira Sharma", 
+            "long imdb name": "Ruchira Sharma", 
+            "long imdb canonical name": "Sharma, Ruchira"
+        }, 
+        {
+            "canonical name": "Singh, Sarabjeet", 
+            "name": "Sarabjeet Singh", 
+            "long imdb name": "Sarabjeet Singh", 
+            "long imdb canonical name": "Singh, Sarabjeet"
+        }
+    ], 
+    "votes": 6013, 
+    "producer": [
+        {
+            "canonical name": "Chopra, Aditya", 
+            "name": "Aditya Chopra", 
+            "long imdb name": "Aditya Chopra", 
+            "long imdb canonical name": "Chopra, Aditya"
+        }, 
+        {
+            "canonical name": "Chopra, Yash", 
+            "name": "Yash Chopra", 
+            "long imdb name": "Yash Chopra", 
+            "long imdb canonical name": "Chopra, Yash"
+        }, 
+        {
+            "canonical name": "Shivalkar, Sanjay", 
+            "name": "Sanjay Shivalkar", 
+            "long imdb name": "Sanjay Shivalkar", 
+            "long imdb canonical name": "Shivalkar, Sanjay"
+        }, 
+        {
+            "canonical name": "Singh, Aashish", 
+            "name": "Aashish Singh", 
+            "long imdb name": "Aashish Singh", 
+            "long imdb canonical name": "Singh, Aashish"
+        }
+    ], 
+    "title": "Ladies vs. Ricky Bahl", 
+    "assistant director": [
+        {
+            "canonical name": "Anand, Lakshya Raj", 
+            "name": "Lakshya Raj Anand", 
+            "long imdb name": "Lakshya Raj Anand", 
+            "long imdb canonical name": "Anand, Lakshya Raj"
+        }, 
+        {
+            "canonical name": "Chopra, Adhip", 
+            "name": "Adhip Chopra", 
+            "long imdb name": "Adhip Chopra", 
+            "long imdb canonical name": "Chopra, Adhip"
+        }, 
+        {
+            "canonical name": "Kapil, Akshat", 
+            "name": "Akshat Kapil", 
+            "long imdb name": "Akshat Kapil", 
+            "long imdb canonical name": "Kapil, Akshat"
+        }, 
+        {
+            "canonical name": "Minawala, Abhiraj", 
+            "name": "Abhiraj Minawala", 
+            "long imdb name": "Abhiraj Minawala", 
+            "long imdb canonical name": "Minawala, Abhiraj"
+        }, 
+        {
+            "canonical name": "Rawail, Bharat", 
+            "name": "Bharat Rawail", 
+            "long imdb name": "Bharat Rawail", 
+            "long imdb canonical name": "Rawail, Bharat"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "Bhagat, Devika", 
+            "name": "Devika Bhagat", 
+            "long imdb name": "Devika Bhagat", 
+            "long imdb canonical name": "Bhagat, Devika"
+        }, 
+        {
+            "canonical name": "Chopra, Aditya", 
+            "name": "Aditya Chopra", 
+            "long imdb name": "Aditya Chopra", 
+            "long imdb canonical name": "Chopra, Aditya"
+        }, 
+        {
+            "canonical name": "Faisal, Habib", 
+            "name": "Habib Faisal", 
+            "long imdb name": "Habib Faisal", 
+            "long imdb canonical name": "Faisal, Habib"
+        }, 
+        {
+            "canonical name": "Faisal, Habib", 
+            "name": "Habib Faisal", 
+            "long imdb name": "Habib Faisal", 
+            "long imdb canonical name": "Faisal, Habib"
+        }
+    ], 
+    "long imdb canonical title": "Ladies vs. Ricky Bahl (2011)", 
+    "languages": [
+        "Hindi", 
+        "Punjabi", 
+        "Urdu", 
+        "English"
+    ], 
+    "set decoration": [
+        {
+            "canonical name": "Sethi, Rashmi", 
+            "name": "Rashmi Sethi", 
+            "long imdb name": "Rashmi Sethi", 
+            "long imdb canonical name": "Sethi, Rashmi"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Rao, Namrata", 
+            "name": "Namrata Rao", 
+            "long imdb name": "Namrata Rao", 
+            "long imdb canonical name": "Rao, Namrata"
+        }
+    ], 
+    "certificates": [
+        "Singapore:NC-16", 
+        "UK:PG", 
+        "USA:Not Rated"
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "Chatterjee, Sarit", 
+            "name": "Sarit Chatterjee", 
+            "long imdb name": "Sarit Chatterjee", 
+            "long imdb canonical name": "Chatterjee, Sarit"
+        }, 
+        {
+            "canonical name": "Das, Pritam", 
+            "name": "Pritam Das", 
+            "long imdb name": "Pritam Das", 
+            "long imdb canonical name": "Das, Pritam"
+        }, 
+        {
+            "canonical name": "Gangadharan, Ganesh", 
+            "name": "Ganesh Gangadharan", 
+            "long imdb name": "Ganesh Gangadharan", 
+            "long imdb canonical name": "Gangadharan, Ganesh"
+        }, 
+        {
+            "canonical name": "Haldar, Jayant", 
+            "name": "Jayant Haldar", 
+            "long imdb name": "Jayant Haldar", 
+            "long imdb canonical name": "Haldar, Jayant"
+        }, 
+        {
+            "canonical name": "Mathur, Anuj", 
+            "name": "Anuj Mathur", 
+            "long imdb name": "Anuj Mathur", 
+            "long imdb canonical name": "Mathur, Anuj"
+        }, 
+        {
+            "canonical name": "Ravee, Renganaath", 
+            "name": "Renganaath Ravee", 
+            "long imdb name": "Renganaath Ravee", 
+            "long imdb canonical name": "Ravee, Renganaath"
+        }, 
+        {
+            "canonical name": "Sharma, Dipesh", 
+            "name": "Dipesh Sharma", 
+            "long imdb name": "Dipesh Sharma", 
+            "long imdb canonical name": "Sharma, Dipesh"
+        }
+    ], 
+    "long imdb title": "Ladies vs. Ricky Bahl (2011)", 
+    "country codes": [
+        "in"
+    ], 
+    "language codes": [
+        "hi", 
+        "pa", 
+        "ur", 
+        "en"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BMTc5ODE0OTIzN15BMl5BanBnXkFtZTcwMDc5MjAxNw@@._V1._SX90_SY140_.jpg", 
+    "casting department": [
+        {
+            "canonical name": "Maurya, Sanjeev", 
+            "name": "Sanjeev Maurya", 
+            "long imdb name": "Sanjeev Maurya", 
+            "long imdb canonical name": "Maurya, Sanjeev"
+        }
+    ], 
+    "editorial department": [
+        {
+            "canonical name": "Soni, Mitesh", 
+            "name": "Mitesh Soni", 
+            "long imdb name": "Mitesh Soni", 
+            "long imdb canonical name": "Soni, Mitesh"
+        }
+    ], 
+    "sound mix": [
+        "Dolby Digital"
+    ], 
+    "genres": [
+        "Comedy", 
+        "Drama"
+    ], 
+    "director": [
+        {
+            "canonical name": "Sharma, Maneesh", 
+            "name": "Maneesh Sharma", 
+            "long imdb name": "Maneesh Sharma", 
+            "long imdb canonical name": "Sharma, Maneesh"
+        }
+    ], 
+    "miscellaneous companies": [
+        {
+            "name": "Everymedia Technologies", 
+            "long imdb name": "Everymedia Technologies"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Mishra, Aseem", 
+            "name": "Aseem Mishra", 
+            "long imdb name": "Aseem Mishra", 
+            "long imdb canonical name": "Mishra, Aseem"
+        }
+    ], 
+    "akas": [
+        "\u041b\u0435\u0434\u0438 \u043f\u0440\u043e\u0442\u0438\u0432 \u0420\u0438\u043a\u043a\u0438 \u0411\u0430\u0445\u043b\u0430::Russia"
+    ], 
+    "production companies": [
+        {
+            "name": "Yash Raj Films", 
+            "long imdb name": "Yash Raj Films"
+        }
+    ], 
+    "kind": "movie", 
+    "art department": [
+        {
+            "canonical name": "Adagale, Baban", 
+            "name": "Baban Adagale", 
+            "long imdb name": "Baban Adagale", 
+            "long imdb canonical name": "Adagale, Baban"
+        }, 
+        {
+            "canonical name": "Ahmad, Sikander", 
+            "name": "Sikander Ahmad", 
+            "long imdb name": "Sikander Ahmad", 
+            "long imdb canonical name": "Ahmad, Sikander"
+        }, 
+        {
+            "canonical name": "Husain, Musa", 
+            "name": "Musa Husain", 
+            "long imdb name": "Musa Husain", 
+            "long imdb canonical name": "Husain, Musa"
+        }, 
+        {
+            "canonical name": "Keluskar, Laxmi", 
+            "name": "Laxmi Keluskar", 
+            "long imdb name": "Laxmi Keluskar", 
+            "long imdb canonical name": "Keluskar, Laxmi"
+        }, 
+        {
+            "canonical name": "Khan, Tariq Umar", 
+            "name": "Tariq Umar Khan", 
+            "long imdb name": "Tariq Umar Khan", 
+            "long imdb canonical name": "Khan, Tariq Umar"
+        }, 
+        {
+            "canonical name": "Sohoni, Malavika", 
+            "name": "Malavika Sohoni", 
+            "long imdb name": "Malavika Sohoni", 
+            "long imdb canonical name": "Sohoni, Malavika"
+        }
+    ], 
+    "countries": [
+        "India"
+    ], 
+    "plot outline": "Three women hire a fourth to try and get even with a con-man.", 
+    "plot": [
+        "Delhi-based Dimple Chaddha lives a wealthy lifestyle with her parents, and has a steady boyfriend in Sunny Singh. On the pretext of attending a Sangeet, she goes on a date with him, consumes alcohol, passes out, and is brought home in his arms. He impresses her parents and they not only approve of him but Mr. Chaddha uses goon-power to evict tenants from a Bungalow on Barakhamba Road which belongs to Sunny's grandfather. He then offers to purchase it for Rs.2 Crores and advances Rs.20 Lakhs to Sunny, who takes the cash and disappears - leaving Mr. Chaddha to face the real owners as well as being arrested by the police. Sunny strikes again, this time as Deven Shah in Mumbai, and his target is business executive, Raina Parulekar, who he cons for Rs.90 Lakhs by selling her a fake painting. The media gets involved. Dimple, together with a Lucknow-based widow, Saira Rashid, who has lost Rs.10 Lakhs to a man called Iqbal Khan, contact her. They soon discover that Sunny, Deven and Iqbal are one and the same, and get together in Mumbai, hire a fast-talking sales-girl, Ishika Desai, to con Sunny. They then manage to trace him to Goa where he is going by the name of Vikram Thapar. Watch as events unfold when the trio put forth their plan to get even with this con-man.", 
+        "Three women hire a fourth to try and get even with a con-man."
+    ], 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BMTc5ODE0OTIzN15BMl5BanBnXkFtZTcwMDc5MjAxNw@@.jpg", 
+    "canonical title": "Ladies vs. Ricky Bahl", 
+    "cast": [
+        {
+            "canonical name": "Singh, Ranveer", 
+            "name": "Ranveer Singh", 
+            "long imdb name": "Ranveer Singh", 
+            "long imdb canonical name": "Singh, Ranveer"
+        }, 
+        {
+            "canonical name": "Sharma, Anushka", 
+            "name": "Anushka Sharma", 
+            "long imdb name": "Anushka Sharma", 
+            "long imdb canonical name": "Sharma, Anushka"
+        }, 
+        {
+            "canonical name": "Chopra, Parineeti", 
+            "name": "Parineeti Chopra", 
+            "long imdb name": "Parineeti Chopra", 
+            "long imdb canonical name": "Chopra, Parineeti"
+        }, 
+        {
+            "canonical name": "Sharma, Dipannita", 
+            "name": "Dipannita Sharma", 
+            "long imdb name": "Dipannita Sharma", 
+            "long imdb canonical name": "Sharma, Dipannita"
+        }, 
+        {
+            "canonical name": "Sharma, Aditi", 
+            "name": "Aditi Sharma", 
+            "long imdb name": "Aditi Sharma", 
+            "long imdb canonical name": "Sharma, Aditi"
+        }, 
+        {
+            "canonical name": "Anand, Akshay", 
+            "name": "Akshay Anand", 
+            "long imdb name": "Akshay Anand", 
+            "long imdb canonical name": "Anand, Akshay"
+        }, 
+        {
+            "canonical name": "Sharma, Shireesh", 
+            "name": "Shireesh Sharma", 
+            "long imdb name": "Shireesh Sharma", 
+            "long imdb canonical name": "Sharma, Shireesh"
+        }
+    ], 
+    "smart long imdb canonical title": "Ladies vs. Ricky Bahl (2011)", 
+    "original music": [
+        {
+            "canonical name": "Merchant, Salim", 
+            "name": "Salim Merchant", 
+            "long imdb name": "Salim Merchant", 
+            "long imdb canonical name": "Merchant, Salim"
+        }, 
+        {
+            "canonical name": "Merchant, Suleiman", 
+            "name": "Suleiman Merchant", 
+            "long imdb name": "Suleiman Merchant", 
+            "long imdb canonical name": "Merchant, Suleiman"
+        }
+    ], 
+    "smart canonical title": "Ladies vs. Ricky Bahl"
+}

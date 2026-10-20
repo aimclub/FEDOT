@@ -1,0 +1,667 @@
+{
+    "music department": [
+        {
+            "canonical name": "Rienks, Rebecca", 
+            "name": "Rebecca Rienks", 
+            "long imdb name": "Rebecca Rienks", 
+            "long imdb canonical name": "Rienks, Rebecca"
+        }
+    ], 
+    "camera and electrical department": [
+        {
+            "canonical name": "Carroll, Chris", 
+            "name": "Chris Carroll", 
+            "long imdb name": "Chris Carroll", 
+            "long imdb canonical name": "Carroll, Chris"
+        }, 
+        {
+            "canonical name": "Cole, Bret", 
+            "name": "Bret Cole", 
+            "long imdb name": "Bret Cole", 
+            "long imdb canonical name": "Cole, Bret"
+        }, 
+        {
+            "canonical name": "Coplan, Dan", 
+            "name": "Dan Coplan", 
+            "long imdb name": "Dan Coplan", 
+            "long imdb canonical name": "Coplan, Dan"
+        }, 
+        {
+            "canonical name": "Kibbutz, Liam", 
+            "name": "Liam Kibbutz", 
+            "long imdb name": "Liam Kibbutz", 
+            "long imdb canonical name": "Kibbutz, Liam"
+        }, 
+        {
+            "canonical name": "Kramer, David A.", 
+            "name": "David A. Kramer", 
+            "long imdb name": "David A. Kramer", 
+            "long imdb canonical name": "Kramer, David A."
+        }, 
+        {
+            "canonical name": "Mocey-Hanton, Paul", 
+            "name": "Paul Mocey-Hanton", 
+            "long imdb name": "Paul Mocey-Hanton", 
+            "long imdb canonical name": "Mocey-Hanton, Paul"
+        }, 
+        {
+            "canonical name": "Rojas, Manuel", 
+            "name": "Manuel Rojas", 
+            "long imdb name": "Manuel Rojas", 
+            "long imdb canonical name": "Rojas, Manuel"
+        }, 
+        {
+            "canonical name": "Shamel, Joe", 
+            "name": "Joe Shamel", 
+            "long imdb name": "Joe Shamel", 
+            "long imdb canonical name": "Shamel, Joe"
+        }, 
+        {
+            "canonical name": "Slade, Casey", 
+            "name": "Casey Slade", 
+            "long imdb name": "Casey Slade", 
+            "long imdb canonical name": "Slade, Casey"
+        }, 
+        {
+            "canonical name": "Slade, Casey", 
+            "name": "Casey Slade", 
+            "long imdb name": "Casey Slade", 
+            "long imdb canonical name": "Slade, Casey"
+        }, 
+        {
+            "canonical name": "Ventura, Luigi", 
+            "name": "Luigi Ventura", 
+            "long imdb name": "Luigi Ventura", 
+            "long imdb canonical name": "Ventura, Luigi"
+        }, 
+        {
+            "canonical name": "Warren, Justin Paul", 
+            "name": "Justin Paul Warren", 
+            "long imdb name": "Justin Paul Warren", 
+            "long imdb canonical name": "Warren, Justin Paul"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "Vertical Entertainment", 
+            "long imdb name": "Vertical Entertainment"
+        }, 
+        {
+            "name": "Aventi", 
+            "long imdb name": "Aventi"
+        }, 
+        {
+            "name": "Aventi", 
+            "long imdb name": "Aventi"
+        }, 
+        {
+            "name": "Capelight Pictures", 
+            "long imdb name": "Capelight Pictures"
+        }, 
+        {
+            "name": "Capelight Pictures", 
+            "long imdb name": "Capelight Pictures"
+        }, 
+        {
+            "name": "Eagle Films", 
+            "long imdb name": "Eagle Films"
+        }, 
+        {
+            "name": "Marco Polo Production", 
+            "long imdb name": "Marco Polo Production"
+        }, 
+        {
+            "name": "Signature Entertainment", 
+            "long imdb name": "Signature Entertainment"
+        }, 
+        {
+            "name": "Three Lines Pictures", 
+            "long imdb name": "Three Lines Pictures"
+        }, 
+        {
+            "name": "Vertical Entertainment", 
+            "long imdb name": "Vertical Entertainment"
+        }, 
+        {
+            "name": "Vertical Entertainment", 
+            "long imdb name": "Vertical Entertainment"
+        }, 
+        {
+            "name": "Vertical Entertainment", 
+            "long imdb name": "Vertical Entertainment"
+        }, 
+        {
+            "name": "Village", 
+            "long imdb name": "Village"
+        }
+    ], 
+    "rating": 6.5, 
+    "runtimes": [
+        "82"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "Hume, Sheila", 
+            "name": "Sheila Hume", 
+            "long imdb name": "Sheila Hume", 
+            "long imdb canonical name": "Hume, Sheila"
+        }
+    ], 
+    "thanks": [
+        {
+            "canonical name": "Cook, Matt", 
+            "name": "Matt Cook", 
+            "long imdb name": "Matt Cook", 
+            "long imdb canonical name": "Cook, Matt"
+        }
+    ], 
+    "make up": [
+        {
+            "canonical name": "Kinney, Brian", 
+            "name": "Brian Kinney", 
+            "long imdb name": "Brian Kinney", 
+            "long imdb canonical name": "Kinney, Brian"
+        }, 
+        {
+            "canonical name": "Robey, Sara", 
+            "name": "Sara Robey", 
+            "long imdb name": "Sara Robey", 
+            "long imdb canonical name": "Robey, Sara"
+        }, 
+        {
+            "canonical name": "Wagle, Maia", 
+            "name": "Maia Wagle", 
+            "long imdb name": "Maia Wagle", 
+            "long imdb canonical name": "Wagle, Maia"
+        }
+    ], 
+    "year": 2013, 
+    "production design": [
+        {
+            "canonical name": "Jones, Elizabeth J.", 
+            "name": "Elizabeth J. Jones", 
+            "long imdb name": "Elizabeth J. Jones", 
+            "long imdb canonical name": "Jones, Elizabeth J."
+        }
+    ], 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Bjerklie, Sarah", 
+            "name": "Sarah Bjerklie", 
+            "long imdb name": "Sarah Bjerklie", 
+            "long imdb canonical name": "Bjerklie, Sarah"
+        }, 
+        {
+            "canonical name": "Black, Adam C.", 
+            "name": "Adam C. Black", 
+            "long imdb name": "Adam C. Black", 
+            "long imdb canonical name": "Black, Adam C."
+        }, 
+        {
+            "canonical name": "Compton, Carol A.", 
+            "name": "Carol A. Compton", 
+            "long imdb name": "Carol A. Compton", 
+            "long imdb canonical name": "Compton, Carol A."
+        }, 
+        {
+            "canonical name": "Dobson, Jim", 
+            "name": "Jim Dobson", 
+            "long imdb name": "Jim Dobson", 
+            "long imdb canonical name": "Dobson, Jim"
+        }, 
+        {
+            "canonical name": "McDuffee, Tim", 
+            "name": "Tim McDuffee", 
+            "long imdb name": "Tim McDuffee", 
+            "long imdb canonical name": "McDuffee, Tim"
+        }, 
+        {
+            "canonical name": "Perez, Kristina", 
+            "name": "Kristina Perez", 
+            "long imdb name": "Kristina Perez", 
+            "long imdb canonical name": "Perez, Kristina"
+        }, 
+        {
+            "canonical name": "Totten, Jeffrey", 
+            "name": "Jeffrey Totten", 
+            "long imdb name": "Jeffrey Totten", 
+            "long imdb canonical name": "Totten, Jeffrey"
+        }
+    ], 
+    "long imdb canonical title": "Scenic Route (2013)", 
+    "color info": [], 
+    "languages": [
+        "English"
+    ], 
+    "votes": 8287, 
+    "producer": [
+        {
+            "canonical name": "Armstrong, Ami", 
+            "name": "Ami Armstrong", 
+            "long imdb name": "Ami Armstrong", 
+            "long imdb canonical name": "Armstrong, Ami"
+        }, 
+        {
+            "canonical name": "Freeman, Scott", 
+            "name": "Scott Freeman", 
+            "long imdb name": "Scott Freeman", 
+            "long imdb canonical name": "Freeman, Scott"
+        }, 
+        {
+            "canonical name": "Green, Paul", 
+            "name": "Paul Green", 
+            "long imdb name": "Paul Green", 
+            "long imdb canonical name": "Green, Paul"
+        }, 
+        {
+            "canonical name": "Hambel, Brion", 
+            "name": "Brion Hambel", 
+            "long imdb name": "Brion Hambel", 
+            "long imdb canonical name": "Hambel, Brion"
+        }, 
+        {
+            "canonical name": "Jensen, Paul", 
+            "name": "Paul Jensen", 
+            "long imdb name": "Paul Jensen", 
+            "long imdb canonical name": "Jensen, Paul"
+        }, 
+        {
+            "canonical name": "Redmon, Keith", 
+            "name": "Keith Redmon", 
+            "long imdb name": "Keith Redmon", 
+            "long imdb canonical name": "Redmon, Keith"
+        }, 
+        {
+            "canonical name": "Rivett, Luke", 
+            "name": "Luke Rivett", 
+            "long imdb name": "Luke Rivett", 
+            "long imdb canonical name": "Rivett, Luke"
+        }
+    ], 
+    "title": "Scenic Route", 
+    "mpaa": "Rated R for language, some violence and a scene of sexuality", 
+    "assistant director": [
+        {
+            "canonical name": "Rickey, Cristi", 
+            "name": "Cristi Rickey", 
+            "long imdb name": "Cristi Rickey", 
+            "long imdb canonical name": "Rickey, Cristi"
+        }, 
+        {
+            "canonical name": "Rosen, Chad", 
+            "name": "Chad Rosen", 
+            "long imdb name": "Chad Rosen", 
+            "long imdb canonical name": "Rosen, Chad"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "Killen, Kyle", 
+            "name": "Kyle Killen", 
+            "long imdb name": "Kyle Killen", 
+            "long imdb canonical name": "Killen, Kyle"
+        }
+    ], 
+    "casting director": [
+        {
+            "canonical name": "Cooper, Jennifer", 
+            "name": "Jennifer Cooper", 
+            "long imdb name": "Jennifer Cooper", 
+            "long imdb canonical name": "Cooper, Jennifer"
+        }
+    ], 
+    "visual effects": [
+        {
+            "canonical name": "McVay, Thomas", 
+            "name": "Thomas McVay", 
+            "long imdb name": "Thomas McVay", 
+            "long imdb canonical name": "McVay, Thomas"
+        }, 
+        {
+            "canonical name": "Roberts, Jessica", 
+            "name": "Jessica Roberts", 
+            "long imdb name": "Jessica Roberts", 
+            "long imdb canonical name": "Roberts, Jessica"
+        }, 
+        {
+            "canonical name": "Tazioli, Geno", 
+            "name": "Geno Tazioli", 
+            "long imdb name": "Geno Tazioli", 
+            "long imdb canonical name": "Tazioli, Geno"
+        }
+    ], 
+    "production manager": [
+        {
+            "canonical name": "Rosen, Chad", 
+            "name": "Chad Rosen", 
+            "long imdb name": "Chad Rosen", 
+            "long imdb canonical name": "Rosen, Chad"
+        }, 
+        {
+            "canonical name": "Sullivan, Michelle", 
+            "name": "Michelle Sullivan", 
+            "long imdb name": "Michelle Sullivan", 
+            "long imdb canonical name": "Sullivan, Michelle"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Marra, Kindra", 
+            "name": "Kindra Marra", 
+            "long imdb name": "Kindra Marra", 
+            "long imdb canonical name": "Marra, Kindra"
+        }
+    ], 
+    "certificates": [
+        "Germany:16", 
+        "Netherlands:16", 
+        "South Korea:15::(2015)", 
+        "UK:15", 
+        "USA:R"
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "de Montebello, Charles", 
+            "name": "Charles de Montebello", 
+            "long imdb name": "Charles de Montebello", 
+            "long imdb canonical name": "de Montebello, Charles"
+        }, 
+        {
+            "canonical name": "Fragoso, Gabriel", 
+            "name": "Gabriel Fragoso", 
+            "long imdb name": "Gabriel Fragoso", 
+            "long imdb canonical name": "Fragoso, Gabriel"
+        }, 
+        {
+            "canonical name": "Huus, Brandon", 
+            "name": "Brandon Huus", 
+            "long imdb name": "Brandon Huus", 
+            "long imdb canonical name": "Huus, Brandon"
+        }, 
+        {
+            "canonical name": "Lemar, Vicki", 
+            "name": "Vicki Lemar", 
+            "long imdb name": "Vicki Lemar", 
+            "long imdb canonical name": "Lemar, Vicki"
+        }, 
+        {
+            "canonical name": "Sheldon, Carrie", 
+            "name": "Carrie Sheldon", 
+            "long imdb name": "Carrie Sheldon", 
+            "long imdb canonical name": "Sheldon, Carrie"
+        }, 
+        {
+            "canonical name": "van Haaff, Alex", 
+            "name": "Alex van Haaff", 
+            "long imdb name": "Alex van Haaff", 
+            "long imdb canonical name": "van Haaff, Alex"
+        }, 
+        {
+            "canonical name": "Young, Tareek", 
+            "name": "Tareek Young", 
+            "long imdb name": "Tareek Young", 
+            "long imdb canonical name": "Young, Tareek"
+        }, 
+        {
+            "canonical name": "Corrales, Rachel", 
+            "name": "Rachel Corrales", 
+            "long imdb name": "Rachel Corrales", 
+            "long imdb canonical name": "Corrales, Rachel"
+        }
+    ], 
+    "long imdb title": "Scenic Route (2013)", 
+    "country codes": [
+        "us"
+    ], 
+    "language codes": [
+        "en"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BMjAyNjIyOTU0M15BMl5BanBnXkFtZTcwNTUwOTI2OQ@@._V1._SX95_SY140_.jpg", 
+    "casting department": [
+        {
+            "canonical name": "Jameyson, Lindsay", 
+            "name": "Lindsay Jameyson", 
+            "long imdb name": "Lindsay Jameyson", 
+            "long imdb canonical name": "Jameyson, Lindsay"
+        }
+    ], 
+    "editorial department": [
+        {
+            "canonical name": "Houck, Spencer", 
+            "name": "Spencer Houck", 
+            "long imdb name": "Spencer Houck", 
+            "long imdb canonical name": "Houck, Spencer"
+        }, 
+        {
+            "canonical name": "Kosters, Donovan", 
+            "name": "Donovan Kosters", 
+            "long imdb name": "Donovan Kosters", 
+            "long imdb canonical name": "Kosters, Donovan"
+        }, 
+        {
+            "canonical name": "Roberts, Jessica", 
+            "name": "Jessica Roberts", 
+            "long imdb name": "Jessica Roberts", 
+            "long imdb canonical name": "Roberts, Jessica"
+        }, 
+        {
+            "canonical name": "Roberts, Jessica", 
+            "name": "Jessica Roberts", 
+            "long imdb name": "Jessica Roberts", 
+            "long imdb canonical name": "Roberts, Jessica"
+        }, 
+        {
+            "canonical name": "Sullivan, Michelle", 
+            "name": "Michelle Sullivan", 
+            "long imdb name": "Michelle Sullivan", 
+            "long imdb canonical name": "Sullivan, Michelle"
+        }, 
+        {
+            "canonical name": "Zappia, Joe", 
+            "name": "Joe Zappia", 
+            "long imdb name": "Joe Zappia", 
+            "long imdb canonical name": "Zappia, Joe"
+        }
+    ], 
+    "genres": [
+        "Drama", 
+        "Thriller"
+    ], 
+    "production companies": [
+        {
+            "name": "Anonymous Content", 
+            "long imdb name": "Anonymous Content"
+        }, 
+        {
+            "name": "Best Medicine Productions", 
+            "long imdb name": "Best Medicine Productions"
+        }
+    ], 
+    "stunt performer": [
+        {
+            "canonical name": "Kubr, Mark", 
+            "name": "Mark Kubr", 
+            "long imdb name": "Mark Kubr", 
+            "long imdb canonical name": "Kubr, Mark"
+        }, 
+        {
+            "canonical name": "Merendino, J. Travis", 
+            "name": "J. Travis Merendino", 
+            "long imdb name": "J. Travis Merendino", 
+            "long imdb canonical name": "Merendino, J. Travis"
+        }
+    ], 
+    "miscellaneous companies": [
+        {
+            "name": "CDM Sound Studios", 
+            "long imdb name": "CDM Sound Studios"
+        }, 
+        {
+            "name": "Digital Post Services", 
+            "long imdb name": "Digital Post Services"
+        }, 
+        {
+            "name": "Division Camera", 
+            "long imdb name": "Division Camera"
+        }, 
+        {
+            "name": "IndieClear", 
+            "long imdb name": "IndieClear"
+        }, 
+        {
+            "name": "Katrina Wan PR", 
+            "long imdb name": "Katrina Wan PR"
+        }, 
+        {
+            "name": "Lit Post", 
+            "long imdb name": "Lit Post"
+        }, 
+        {
+            "name": "Lit Post", 
+            "long imdb name": "Lit Post"
+        }, 
+        {
+            "name": "Pictorvision", 
+            "long imdb name": "Pictorvision"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "O'Dea, Sean", 
+            "name": "Sean O'Dea", 
+            "long imdb name": "Sean O'Dea", 
+            "long imdb canonical name": "O'Dea, Sean"
+        }
+    ], 
+    "art direction": [
+        {
+            "canonical name": "Preston, Sean", 
+            "name": "Sean Preston", 
+            "long imdb name": "Sean Preston", 
+            "long imdb canonical name": "Preston, Sean"
+        }
+    ], 
+    "akas": [
+        "Wrecked::UK (imdb display title)", 
+        "\u03a3\u03b5 \u03b5\u03c7\u03b8\u03c1\u03b9\u03ba\u03cc \u03ad\u03b4\u03b1\u03c6\u03bf\u03c2::Greece", 
+        "\u0416\u0438\u0432\u043e\u043f\u0438\u0441\u043d\u044b\u0439 \u043c\u0430\u0440\u0448\u0440\u0443\u0442::Russia", 
+        "A Rota de Colis\u00e3o::Brazil (imdb display title)", 
+        "Ker\u00fcl\u0151\u00fat::Hungary", 
+        "Manzarali Rota::Turkey (Turkish title) (imdb display title)", 
+        "Route vers l'enfer::France (imdb display title)", 
+        "U pustinji::Croatia"
+    ], 
+    "aspect ratio": "1.85 : 1", 
+    "director": [
+        {
+            "canonical name": "Goetz, Kevin", 
+            "name": "Kevin Goetz", 
+            "long imdb name": "Kevin Goetz", 
+            "long imdb canonical name": "Goetz, Kevin"
+        }, 
+        {
+            "canonical name": "Goetz, Michael", 
+            "name": "Michael Goetz", 
+            "long imdb name": "Michael Goetz", 
+            "long imdb canonical name": "Goetz, Michael"
+        }
+    ], 
+    "kind": "movie", 
+    "art department": [
+        {
+            "canonical name": "Baker, Casey Lain", 
+            "name": "Casey Lain Baker", 
+            "long imdb name": "Casey Lain Baker", 
+            "long imdb canonical name": "Baker, Casey Lain"
+        }, 
+        {
+            "canonical name": "Laspina, Lance", 
+            "name": "Lance Laspina", 
+            "long imdb name": "Lance Laspina", 
+            "long imdb canonical name": "Laspina, Lance"
+        }, 
+        {
+            "canonical name": "Theriot, D.J.", 
+            "name": "D.J. Theriot", 
+            "long imdb name": "D.J. Theriot", 
+            "long imdb canonical name": "Theriot, D.J."
+        }
+    ], 
+    "countries": [
+        "USA"
+    ], 
+    "plot outline": "Tensions rise between lifelong friends Mitchell and Carter after their truck breaks down on an isolated desert road as they start to attack each other's life decisions with unwavering brutality.", 
+    "plot": [
+        "Tensions rise between lifelong friends Mitchell and Carter after their truck breaks down on an isolated desert road as they start to attack each other's life decisions with unwavering brutality."
+    ], 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BMjAyNjIyOTU0M15BMl5BanBnXkFtZTcwNTUwOTI2OQ@@.jpg", 
+    "canonical title": "Scenic Route", 
+    "cast": [
+        {
+            "canonical name": "Duhamel, Josh", 
+            "name": "Josh Duhamel", 
+            "long imdb name": "Josh Duhamel", 
+            "long imdb canonical name": "Duhamel, Josh"
+        }, 
+        {
+            "canonical name": "Fogler, Dan", 
+            "name": "Dan Fogler", 
+            "long imdb name": "Dan Fogler", 
+            "long imdb canonical name": "Fogler, Dan"
+        }, 
+        {
+            "canonical name": "Goetz, Peter Michael", 
+            "name": "Peter Michael Goetz", 
+            "long imdb name": "Peter Michael Goetz", 
+            "long imdb canonical name": "Goetz, Peter Michael"
+        }, 
+        {
+            "canonical name": "Burson, Christie", 
+            "name": "Christie Burson", 
+            "long imdb name": "Christie Burson", 
+            "long imdb canonical name": "Burson, Christie"
+        }, 
+        {
+            "canonical name": "Donovan, Jamie", 
+            "name": "Jamie Donovan", 
+            "long imdb name": "Jamie Donovan", 
+            "long imdb canonical name": "Donovan, Jamie"
+        }, 
+        {
+            "canonical name": "Laurie, Miracle", 
+            "name": "Miracle Laurie", 
+            "long imdb name": "Miracle Laurie", 
+            "long imdb canonical name": "Laurie, Miracle"
+        }, 
+        {
+            "canonical name": "Maher, Ethan", 
+            "name": "Ethan Maher", 
+            "long imdb name": "Ethan Maher", 
+            "long imdb canonical name": "Maher, Ethan"
+        }
+    ], 
+    "smart long imdb canonical title": "Scenic Route (2013)", 
+    "costume department": [
+        {
+            "canonical name": "Meredith, Elizabeth", 
+            "name": "Elizabeth Meredith", 
+            "long imdb name": "Elizabeth Meredith", 
+            "long imdb canonical name": "Meredith, Elizabeth"
+        }, 
+        {
+            "canonical name": "Suarez, Glinda", 
+            "name": "Glinda Suarez", 
+            "long imdb name": "Glinda Suarez", 
+            "long imdb canonical name": "Suarez, Glinda"
+        }
+    ], 
+    "original music": [
+        {
+            "canonical name": "Einziger, Michael", 
+            "name": "Michael Einziger", 
+            "long imdb name": "Michael Einziger", 
+            "long imdb canonical name": "Einziger, Michael"
+        }
+    ], 
+    "smart canonical title": "Scenic Route"
+}

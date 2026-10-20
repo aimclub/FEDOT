@@ -1,0 +1,781 @@
+{
+    "rating": 6.5, 
+    "special effects companies": [
+        {
+            "name": "Algous Studio", 
+            "long imdb name": "Algous Studio"
+        }, 
+        {
+            "name": "Asymmetric VFX", 
+            "long imdb name": "Asymmetric VFX"
+        }, 
+        {
+            "name": "Trigraph", 
+            "long imdb name": "Trigraph"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "AcmeFilm", 
+            "long imdb name": "AcmeFilm"
+        }
+    ], 
+    "runtimes": [
+        "106"
+    ], 
+    "year": 2011, 
+    "production design": [
+        {
+            "canonical name": "Viktorov, Valeriy", 
+            "name": "Valeriy Viktorov", 
+            "long imdb name": "Valeriy Viktorov", 
+            "long imdb canonical name": "Viktorov, Valeriy"
+        }
+    ], 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Alekseeva, Anna", 
+            "name": "Anna Alekseeva", 
+            "long imdb name": "Anna Alekseeva", 
+            "long imdb canonical name": "Alekseeva, Anna"
+        }, 
+        {
+            "canonical name": "Gratchev, Sergei", 
+            "name": "Sergei Gratchev", 
+            "long imdb name": "Sergei Gratchev", 
+            "long imdb canonical name": "Gratchev, Sergei"
+        }, 
+        {
+            "canonical name": "Korchuganov, Yuriy", 
+            "name": "Yuriy Korchuganov", 
+            "long imdb name": "Yuriy Korchuganov", 
+            "long imdb canonical name": "Korchuganov, Yuriy"
+        }, 
+        {
+            "canonical name": "Menshenina, Natalia", 
+            "name": "Natalia Menshenina", 
+            "long imdb name": "Natalia Menshenina", 
+            "long imdb canonical name": "Menshenina, Natalia"
+        }, 
+        {
+            "canonical name": "Zakondyrina, Olga", 
+            "name": "Olga Zakondyrina", 
+            "long imdb name": "Olga Zakondyrina", 
+            "long imdb canonical name": "Zakondyrina, Olga"
+        }
+    ], 
+    "color info": [], 
+    "visual effects": [
+        {
+            "canonical name": "Afanasiev, Illia", 
+            "name": "Illia Afanasiev", 
+            "long imdb name": "Illia Afanasiev", 
+            "long imdb canonical name": "Afanasiev, Illia"
+        }, 
+        {
+            "canonical name": "Arkhipov, Alexander", 
+            "name": "Alexander Arkhipov", 
+            "long imdb name": "Alexander Arkhipov", 
+            "long imdb canonical name": "Arkhipov, Alexander"
+        }, 
+        {
+            "canonical name": "Belyaev, Oleg", 
+            "name": "Oleg Belyaev", 
+            "long imdb name": "Oleg Belyaev", 
+            "long imdb canonical name": "Belyaev, Oleg"
+        }, 
+        {
+            "canonical name": "Bogdanov, Vasiliy", 
+            "name": "Vasiliy Bogdanov", 
+            "long imdb name": "Vasiliy Bogdanov", 
+            "long imdb canonical name": "Bogdanov, Vasiliy"
+        }, 
+        {
+            "canonical name": "Bogomaz, Yuriy", 
+            "name": "Yuriy Bogomaz", 
+            "long imdb name": "Yuriy Bogomaz", 
+            "long imdb canonical name": "Bogomaz, Yuriy"
+        }, 
+        {
+            "canonical name": "Deyashkin, Dmitriy", 
+            "name": "Dmitriy Deyashkin", 
+            "long imdb name": "Dmitriy Deyashkin", 
+            "long imdb canonical name": "Deyashkin, Dmitriy"
+        }, 
+        {
+            "canonical name": "Drogin, Andrey", 
+            "name": "Andrey Drogin", 
+            "long imdb name": "Andrey Drogin", 
+            "long imdb canonical name": "Drogin, Andrey"
+        }, 
+        {
+            "canonical name": "Dubinin, Arkadiy", 
+            "name": "Arkadiy Dubinin", 
+            "long imdb name": "Arkadiy Dubinin", 
+            "long imdb canonical name": "Dubinin, Arkadiy"
+        }, 
+        {
+            "canonical name": "Fioletov, Andrey", 
+            "name": "Andrey Fioletov", 
+            "long imdb name": "Andrey Fioletov", 
+            "long imdb canonical name": "Fioletov, Andrey"
+        }, 
+        {
+            "canonical name": "Goryacheva, Daria", 
+            "name": "Daria Goryacheva", 
+            "long imdb name": "Daria Goryacheva", 
+            "long imdb canonical name": "Goryacheva, Daria"
+        }, 
+        {
+            "canonical name": "Goryaev, Nikolay", 
+            "name": "Nikolay Goryaev", 
+            "long imdb name": "Nikolay Goryaev", 
+            "long imdb canonical name": "Goryaev, Nikolay"
+        }, 
+        {
+            "canonical name": "Gulyashko, Elena", 
+            "name": "Elena Gulyashko", 
+            "long imdb name": "Elena Gulyashko", 
+            "long imdb canonical name": "Gulyashko, Elena"
+        }, 
+        {
+            "canonical name": "Gusev, Alexey", 
+            "name": "Alexey Gusev", 
+            "long imdb name": "Alexey Gusev", 
+            "long imdb canonical name": "Gusev, Alexey"
+        }, 
+        {
+            "canonical name": "Gutorova, Kamilla", 
+            "name": "Kamilla Gutorova", 
+            "long imdb name": "Kamilla Gutorova", 
+            "long imdb canonical name": "Gutorova, Kamilla"
+        }, 
+        {
+            "canonical name": "Guziev, Igor", 
+            "name": "Igor Guziev", 
+            "long imdb name": "Igor Guziev", 
+            "long imdb canonical name": "Guziev, Igor"
+        }, 
+        {
+            "canonical name": "Isakov, Aleksandr", 
+            "name": "Aleksandr Isakov", 
+            "long imdb name": "Aleksandr Isakov", 
+            "long imdb canonical name": "Isakov, Aleksandr"
+        }, 
+        {
+            "canonical name": "Isakov, Alexander", 
+            "name": "Alexander Isakov", 
+            "long imdb name": "Alexander Isakov", 
+            "long imdb canonical name": "Isakov, Alexander"
+        }, 
+        {
+            "canonical name": "Isakov, Alexander", 
+            "name": "Alexander Isakov", 
+            "long imdb name": "Alexander Isakov", 
+            "long imdb canonical name": "Isakov, Alexander"
+        }, 
+        {
+            "canonical name": "Iustinov, Vladimir", 
+            "name": "Vladimir Iustinov", 
+            "long imdb name": "Vladimir Iustinov", 
+            "long imdb canonical name": "Iustinov, Vladimir"
+        }, 
+        {
+            "canonical name": "Kern, Ton", 
+            "name": "Ton Kern", 
+            "long imdb name": "Ton Kern", 
+            "long imdb canonical name": "Kern, Ton"
+        }, 
+        {
+            "canonical name": "Kolisnyk, Dmytro", 
+            "name": "Dmytro Kolisnyk", 
+            "long imdb name": "Dmytro Kolisnyk", 
+            "long imdb canonical name": "Kolisnyk, Dmytro"
+        }, 
+        {
+            "canonical name": "Korniltsev, Michael", 
+            "name": "Michael Korniltsev", 
+            "long imdb name": "Michael Korniltsev", 
+            "long imdb canonical name": "Korniltsev, Michael"
+        }, 
+        {
+            "canonical name": "Korobkin, Aleksey", 
+            "name": "Aleksey Korobkin", 
+            "long imdb name": "Aleksey Korobkin", 
+            "long imdb canonical name": "Korobkin, Aleksey"
+        }, 
+        {
+            "canonical name": "Korolev, Alexey", 
+            "name": "Alexey Korolev", 
+            "long imdb name": "Alexey Korolev", 
+            "long imdb canonical name": "Korolev, Alexey"
+        }, 
+        {
+            "canonical name": "Kostomarov, Nikolay", 
+            "name": "Nikolay Kostomarov", 
+            "long imdb name": "Nikolay Kostomarov", 
+            "long imdb canonical name": "Kostomarov, Nikolay"
+        }, 
+        {
+            "canonical name": "Kozhekin, Vladimir", 
+            "name": "Vladimir Kozhekin", 
+            "long imdb name": "Vladimir Kozhekin", 
+            "long imdb canonical name": "Kozhekin, Vladimir"
+        }, 
+        {
+            "canonical name": "Kozhekin, Vladimir", 
+            "name": "Vladimir Kozhekin", 
+            "long imdb name": "Vladimir Kozhekin", 
+            "long imdb canonical name": "Kozhekin, Vladimir"
+        }, 
+        {
+            "canonical name": "Kozitsin, Igor", 
+            "name": "Igor Kozitsin", 
+            "long imdb name": "Igor Kozitsin", 
+            "long imdb canonical name": "Kozitsin, Igor"
+        }, 
+        {
+            "canonical name": "Kucher, Maksim", 
+            "name": "Maksim Kucher", 
+            "long imdb name": "Maksim Kucher", 
+            "long imdb canonical name": "Kucher, Maksim"
+        }, 
+        {
+            "canonical name": "Kucherov, Oleksandr", 
+            "name": "Oleksandr Kucherov", 
+            "long imdb name": "Oleksandr Kucherov", 
+            "long imdb canonical name": "Kucherov, Oleksandr"
+        }, 
+        {
+            "canonical name": "Lakisov, Viktor", 
+            "name": "Viktor Lakisov", 
+            "long imdb name": "Viktor Lakisov", 
+            "long imdb canonical name": "Lakisov, Viktor"
+        }, 
+        {
+            "canonical name": "Moskalenko, Oleksii", 
+            "name": "Oleksii Moskalenko", 
+            "long imdb name": "Oleksii Moskalenko", 
+            "long imdb canonical name": "Moskalenko, Oleksii"
+        }, 
+        {
+            "canonical name": "Muravev, Sergey", 
+            "name": "Sergey Muravev", 
+            "long imdb name": "Sergey Muravev", 
+            "long imdb canonical name": "Muravev, Sergey"
+        }, 
+        {
+            "canonical name": "Musatov, Nikita", 
+            "name": "Nikita Musatov", 
+            "long imdb name": "Nikita Musatov", 
+            "long imdb canonical name": "Musatov, Nikita"
+        }, 
+        {
+            "canonical name": "Nikulina, Olga", 
+            "name": "Olga Nikulina", 
+            "long imdb name": "Olga Nikulina", 
+            "long imdb canonical name": "Nikulina, Olga"
+        }, 
+        {
+            "canonical name": "Oplanchuk, Alexander", 
+            "name": "Alexander Oplanchuk", 
+            "long imdb name": "Alexander Oplanchuk", 
+            "long imdb canonical name": "Oplanchuk, Alexander"
+        }, 
+        {
+            "canonical name": "Pestrikova, Elena", 
+            "name": "Elena Pestrikova", 
+            "long imdb name": "Elena Pestrikova", 
+            "long imdb canonical name": "Pestrikova, Elena"
+        }, 
+        {
+            "canonical name": "Ponomarev, Alexander", 
+            "name": "Alexander Ponomarev", 
+            "long imdb name": "Alexander Ponomarev", 
+            "long imdb canonical name": "Ponomarev, Alexander"
+        }, 
+        {
+            "canonical name": "Remizov, Ivan", 
+            "name": "Ivan Remizov", 
+            "long imdb name": "Ivan Remizov", 
+            "long imdb canonical name": "Remizov, Ivan"
+        }, 
+        {
+            "canonical name": "Sedov, Dennis", 
+            "name": "Dennis Sedov", 
+            "long imdb name": "Dennis Sedov", 
+            "long imdb canonical name": "Sedov, Dennis"
+        }, 
+        {
+            "canonical name": "Selivanov, Alexey", 
+            "name": "Alexey Selivanov", 
+            "long imdb name": "Alexey Selivanov", 
+            "long imdb canonical name": "Selivanov, Alexey"
+        }, 
+        {
+            "canonical name": "Sharafutdinov, Ruslan", 
+            "name": "Ruslan Sharafutdinov", 
+            "long imdb name": "Ruslan Sharafutdinov", 
+            "long imdb canonical name": "Sharafutdinov, Ruslan"
+        }, 
+        {
+            "canonical name": "Silakova, Anna", 
+            "name": "Anna Silakova", 
+            "long imdb name": "Anna Silakova", 
+            "long imdb canonical name": "Silakova, Anna"
+        }, 
+        {
+            "canonical name": "Starkov, Aleksandr", 
+            "name": "Aleksandr Starkov", 
+            "long imdb name": "Aleksandr Starkov", 
+            "long imdb canonical name": "Starkov, Aleksandr"
+        }, 
+        {
+            "canonical name": "Tiunov, Ivan", 
+            "name": "Ivan Tiunov", 
+            "long imdb name": "Ivan Tiunov", 
+            "long imdb canonical name": "Tiunov, Ivan"
+        }, 
+        {
+            "canonical name": "Tiunov, Ivan", 
+            "name": "Ivan Tiunov", 
+            "long imdb name": "Ivan Tiunov", 
+            "long imdb canonical name": "Tiunov, Ivan"
+        }, 
+        {
+            "canonical name": "Treboganov, Vitaliy", 
+            "name": "Vitaliy Treboganov", 
+            "long imdb name": "Vitaliy Treboganov", 
+            "long imdb canonical name": "Treboganov, Vitaliy"
+        }, 
+        {
+            "canonical name": "Tytov, Anton", 
+            "name": "Anton Tytov", 
+            "long imdb name": "Anton Tytov", 
+            "long imdb canonical name": "Tytov, Anton"
+        }, 
+        {
+            "canonical name": "Verenko, Oleg", 
+            "name": "Oleg Verenko", 
+            "long imdb name": "Oleg Verenko", 
+            "long imdb canonical name": "Verenko, Oleg"
+        }, 
+        {
+            "canonical name": "Yakovleva, Anna", 
+            "name": "Anna Yakovleva", 
+            "long imdb name": "Anna Yakovleva", 
+            "long imdb canonical name": "Yakovleva, Anna"
+        }
+    ], 
+    "votes": 1463, 
+    "producer": [
+        {
+            "canonical name": "Bekmambetov, Timur", 
+            "name": "Timur Bekmambetov", 
+            "long imdb name": "Timur Bekmambetov", 
+            "long imdb canonical name": "Bekmambetov, Timur"
+        }, 
+        {
+            "canonical name": "Kharina, Olga", 
+            "name": "Olga Kharina", 
+            "long imdb name": "Olga Kharina", 
+            "long imdb canonical name": "Kharina, Olga"
+        }, 
+        {
+            "canonical name": "Remizova, Alexandra", 
+            "name": "Alexandra Remizova", 
+            "long imdb name": "Alexandra Remizova", 
+            "long imdb canonical name": "Remizova, Alexandra"
+        }, 
+        {
+            "canonical name": "Stromilova, Iva", 
+            "name": "Iva Stromilova", 
+            "long imdb name": "Iva Stromilova", 
+            "long imdb canonical name": "Stromilova, Iva"
+        }
+    ], 
+    "title": "Yolki 2", 
+    "smart canonical title": "Yolki 2", 
+    "writer": [
+        {
+            "canonical name": "Kharina, Olga", 
+            "name": "Olga Kharina", 
+            "long imdb name": "Olga Kharina", 
+            "long imdb canonical name": "Kharina, Olga"
+        }, 
+        {
+            "canonical name": "kg, Sakhar 1", 
+            "name": "Sakhar 1 kg", 
+            "long imdb name": "Sakhar 1 kg", 
+            "long imdb canonical name": "kg, Sakhar 1"
+        }, 
+        {
+            "canonical name": "Nepomnyashchiy, Roman", 
+            "name": "Roman Nepomnyashchiy", 
+            "long imdb name": "Roman Nepomnyashchiy", 
+            "long imdb canonical name": "Nepomnyashchiy, Roman"
+        }, 
+        {
+            "canonical name": "Matison, Anna", 
+            "name": "Anna Matison", 
+            "long imdb name": "Anna Matison", 
+            "long imdb canonical name": "Matison, Anna"
+        }, 
+        {
+            "canonical name": "Bekmambetov, Timur", 
+            "name": "Timur Bekmambetov", 
+            "long imdb name": "Timur Bekmambetov", 
+            "long imdb canonical name": "Bekmambetov, Timur"
+        }
+    ], 
+    "long imdb canonical title": "Yolki 2 (2011)", 
+    "languages": [
+        "Russian"
+    ], 
+    "editor": [
+        {
+            "canonical name": "Bulygin, Nikolai", 
+            "name": "Nikolai Bulygin", 
+            "long imdb name": "Nikolai Bulygin", 
+            "long imdb canonical name": "Bulygin, Nikolai"
+        }, 
+        {
+            "canonical name": "Chupakov, Aleksandr", 
+            "name": "Aleksandr Chupakov", 
+            "long imdb name": "Aleksandr Chupakov", 
+            "long imdb canonical name": "Chupakov, Aleksandr"
+        }
+    ], 
+    "certificates": [
+        "South Korea:12::(2016)"
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "Titov, Ivan", 
+            "name": "Ivan Titov", 
+            "long imdb name": "Ivan Titov", 
+            "long imdb canonical name": "Titov, Ivan"
+        }
+    ], 
+    "long imdb title": "Yolki 2 (2011)", 
+    "country codes": [
+        "ru"
+    ], 
+    "language codes": [
+        "ru"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BMjEyMTE1NDg3NF5BMl5BanBnXkFtZTgwMDI5NzkxNDE@._V1._SX93_SY140_.jpg", 
+    "editorial department": [
+        {
+            "canonical name": "Mesnyankin, Andrey", 
+            "name": "Andrey Mesnyankin", 
+            "long imdb name": "Andrey Mesnyankin", 
+            "long imdb canonical name": "Mesnyankin, Andrey"
+        }
+    ], 
+    "genres": [
+        "Comedy"
+    ], 
+    "production companies": [
+        {
+            "name": "Bazelevs Production", 
+            "long imdb name": "Bazelevs Production"
+        }
+    ], 
+    "stunt performer": [
+        {
+            "canonical name": "Ivanov, Viktor", 
+            "name": "Viktor Ivanov", 
+            "long imdb name": "Viktor Ivanov", 
+            "long imdb canonical name": "Ivanov, Viktor"
+        }, 
+        {
+            "canonical name": "Nosulenko, Sergey", 
+            "name": "Sergey Nosulenko", 
+            "long imdb name": "Sergey Nosulenko", 
+            "long imdb canonical name": "Nosulenko, Sergey"
+        }, 
+        {
+            "canonical name": "Starykh, Fedor", 
+            "name": "Fedor Starykh", 
+            "long imdb name": "Fedor Starykh", 
+            "long imdb canonical name": "Starykh, Fedor"
+        }
+    ], 
+    "miscellaneous companies": [
+        {
+            "name": "Algous Studio", 
+            "long imdb name": "Algous Studio"
+        }, 
+        {
+            "name": "Cinelex", 
+            "long imdb name": "Cinelex"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Bulygin, Nikolai", 
+            "name": "Nikolai Bulygin", 
+            "long imdb name": "Nikolai Bulygin", 
+            "long imdb canonical name": "Bulygin, Nikolai"
+        }, 
+        {
+            "canonical name": "Kapanadze, Levan", 
+            "name": "Levan Kapanadze", 
+            "long imdb name": "Levan Kapanadze", 
+            "long imdb canonical name": "Kapanadze, Levan"
+        }, 
+        {
+            "canonical name": "Makarov, Andrey", 
+            "name": "Andrey Makarov", 
+            "long imdb name": "Andrey Makarov", 
+            "long imdb canonical name": "Makarov, Andrey"
+        }, 
+        {
+            "canonical name": "Shinkorenko, Maksim", 
+            "name": "Maksim Shinkorenko", 
+            "long imdb name": "Maksim Shinkorenko", 
+            "long imdb canonical name": "Shinkorenko, Maksim"
+        }, 
+        {
+            "canonical name": "Trofimov, Sergey", 
+            "name": "Sergey Trofimov", 
+            "long imdb name": "Sergey Trofimov", 
+            "long imdb canonical name": "Trofimov, Sergey"
+        }
+    ], 
+    "akas": [
+        "\u0415\u043b\u043a\u0438 2::Russia", 
+        "\u0415\u043b\u0445\u0438 2::Bulgaria (Bulgarian title)", 
+        "Choinki 2::Poland (imdb display title)", 
+        "Eglutes 2::Lithuania (imdb display title)"
+    ], 
+    "aspect ratio": "2.35 : 1", 
+    "director": [
+        {
+            "canonical name": "Baranov, Aleksandr", 
+            "name": "Aleksandr Baranov", 
+            "long imdb name": "Aleksandr Baranov", 
+            "long imdb canonical name": "Baranov, Aleksandr"
+        }, 
+        {
+            "canonical name": "Gabriadze, Levan", 
+            "name": "Levan Gabriadze", 
+            "long imdb name": "Levan Gabriadze", 
+            "long imdb canonical name": "Gabriadze, Levan"
+        }, 
+        {
+            "canonical name": "Kiselev, Dmitriy", 
+            "name": "Dmitriy Kiselev", 
+            "long imdb name": "Dmitriy Kiselev", 
+            "long imdb canonical name": "Kiselev, Dmitriy"
+        }, 
+        {
+            "canonical name": "Kott, Aleksandr", 
+            "name": "Aleksandr Kott", 
+            "long imdb name": "Aleksandr Kott", 
+            "long imdb canonical name": "Kott, Aleksandr"
+        }
+    ], 
+    "kind": "movie", 
+    "countries": [
+        "Russia"
+    ], 
+    "plot outline": "Film is a collection of several interlinked stories that happen on the New Year's eve.", 
+    "plot": [
+        "Film is a collection of several interlinked stories that happen on the New Year's eve."
+    ], 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BMjEyMTE1NDg3NF5BMl5BanBnXkFtZTgwMDI5NzkxNDE@.jpg", 
+    "canonical title": "Yolki 2", 
+    "cast": [
+        {
+            "canonical name": "Abramova, Evgeniya", 
+            "name": "Evgeniya Abramova", 
+            "long imdb name": "Evgeniya Abramova", 
+            "long imdb canonical name": "Abramova, Evgeniya"
+        }, 
+        {
+            "canonical name": "Aksyonova-Kavalay, Olga", 
+            "name": "Olga Aksyonova-Kavalay", 
+            "long imdb name": "Olga Aksyonova-Kavalay", 
+            "long imdb canonical name": "Aksyonova-Kavalay, Olga"
+        }, 
+        {
+            "canonical name": "Arkhipova, Irina", 
+            "name": "Irina Arkhipova", 
+            "long imdb name": "Irina Arkhipova", 
+            "long imdb canonical name": "Arkhipova, Irina"
+        }, 
+        {
+            "canonical name": "Bakhtadze, Dato", 
+            "name": "Dato Bakhtadze", 
+            "long imdb name": "Dato Bakhtadze", 
+            "long imdb canonical name": "Bakhtadze, Dato"
+        }, 
+        {
+            "canonical name": "Barshak, Pavel", 
+            "name": "Pavel Barshak", 
+            "long imdb name": "Pavel Barshak", 
+            "long imdb canonical name": "Barshak, Pavel"
+        }, 
+        {
+            "canonical name": "Bezrukov, Sergey", 
+            "name": "Sergey Bezrukov", 
+            "long imdb name": "Sergey Bezrukov", 
+            "long imdb canonical name": "Bezrukov, Sergey"
+        }, 
+        {
+            "canonical name": "Brezhneva, Vera", 
+            "name": "Vera Brezhneva", 
+            "long imdb name": "Vera Brezhneva", 
+            "long imdb canonical name": "Brezhneva, Vera"
+        }, 
+        {
+            "canonical name": "Chipovskaya, Anna", 
+            "name": "Anna Chipovskaya", 
+            "long imdb name": "Anna Chipovskaya", 
+            "long imdb canonical name": "Chipovskaya, Anna"
+        }, 
+        {
+            "canonical name": "Domogarov, Aleksandr", 
+            "name": "Aleksandr Domogarov", 
+            "long imdb name": "Aleksandr Domogarov", 
+            "long imdb canonical name": "Domogarov, Aleksandr"
+        }, 
+        {
+            "canonical name": "Driga, Sveta", 
+            "name": "Sveta Driga", 
+            "long imdb name": "Sveta Driga", 
+            "long imdb canonical name": "Driga, Sveta"
+        }, 
+        {
+            "canonical name": "Frolov, Sergey", 
+            "name": "Sergey Frolov", 
+            "long imdb name": "Sergey Frolov", 
+            "long imdb canonical name": "Frolov, Sergey"
+        }, 
+        {
+            "canonical name": "Fyodorov, Pyotr", 
+            "name": "Pyotr Fyodorov", 
+            "long imdb name": "Pyotr Fyodorov", 
+            "long imdb canonical name": "Fyodorov, Pyotr"
+        }, 
+        {
+            "canonical name": "Gogu, Dmitriy", 
+            "name": "Dmitriy Gogu", 
+            "long imdb name": "Dmitriy Gogu", 
+            "long imdb canonical name": "Gogu, Dmitriy"
+        }, 
+        {
+            "canonical name": "Golovin, Aleksandr", 
+            "name": "Aleksandr Golovin", 
+            "long imdb name": "Aleksandr Golovin", 
+            "long imdb canonical name": "Golovin, Aleksandr"
+        }, 
+        {
+            "canonical name": "Khabenskiy, Konstantin", 
+            "name": "Konstantin Khabenskiy", 
+            "long imdb name": "Konstantin Khabenskiy", 
+            "long imdb canonical name": "Khabenskiy, Konstantin"
+        }, 
+        {
+            "canonical name": "Kikabidze, Vakhtang", 
+            "name": "Vakhtang Kikabidze", 
+            "long imdb name": "Vakhtang Kikabidze", 
+            "long imdb canonical name": "Kikabidze, Vakhtang"
+        }, 
+        {
+            "canonical name": "Kutsenko, Yuriy", 
+            "name": "Yuriy Kutsenko", 
+            "long imdb name": "Yuriy Kutsenko", 
+            "long imdb canonical name": "Kutsenko, Yuriy"
+        }, 
+        {
+            "canonical name": "Madiyev, Sanzhar", 
+            "name": "Sanzhar Madiyev", 
+            "long imdb name": "Sanzhar Madiyev", 
+            "long imdb canonical name": "Madiyev, Sanzhar"
+        }, 
+        {
+            "canonical name": "Motuzenko, Aleksandr", 
+            "name": "Aleksandr Motuzenko", 
+            "long imdb name": "Aleksandr Motuzenko", 
+            "long imdb canonical name": "Motuzenko, Aleksandr"
+        }, 
+        {
+            "canonical name": "Ortsuev, Iznaur", 
+            "name": "Iznaur Ortsuev", 
+            "long imdb name": "Iznaur Ortsuev", 
+            "long imdb canonical name": "Ortsuev, Iznaur"
+        }, 
+        {
+            "canonical name": "Poroshina, Mariya", 
+            "name": "Mariya Poroshina", 
+            "long imdb name": "Mariya Poroshina", 
+            "long imdb canonical name": "Poroshina, Mariya"
+        }, 
+        {
+            "canonical name": "Poselenov, Igor", 
+            "name": "Igor Poselenov", 
+            "long imdb name": "Igor Poselenov", 
+            "long imdb canonical name": "Poselenov, Igor"
+        }, 
+        {
+            "canonical name": "Presnyakov, Nikita", 
+            "name": "Nikita Presnyakov", 
+            "long imdb name": "Nikita Presnyakov", 
+            "long imdb canonical name": "Presnyakov, Nikita"
+        }, 
+        {
+            "canonical name": "Robak, Aleksandr", 
+            "name": "Aleksandr Robak", 
+            "long imdb name": "Aleksandr Robak", 
+            "long imdb canonical name": "Robak, Aleksandr"
+        }, 
+        {
+            "canonical name": "Shalayeva, Mariya", 
+            "name": "Mariya Shalayeva", 
+            "long imdb name": "Mariya Shalayeva", 
+            "long imdb canonical name": "Shalayeva, Mariya"
+        }, 
+        {
+            "canonical name": "Styopin, Sergey", 
+            "name": "Sergey Styopin", 
+            "long imdb name": "Sergey Styopin", 
+            "long imdb canonical name": "Styopin, Sergey"
+        }, 
+        {
+            "canonical name": "Svetlakov, Sergey", 
+            "name": "Sergey Svetlakov", 
+            "long imdb name": "Sergey Svetlakov", 
+            "long imdb canonical name": "Svetlakov, Sergey"
+        }, 
+        {
+            "canonical name": "Tabakov, Oleg", 
+            "name": "Oleg Tabakov", 
+            "long imdb name": "Oleg Tabakov", 
+            "long imdb canonical name": "Tabakov, Oleg"
+        }, 
+        {
+            "canonical name": "Urgant, Ivan", 
+            "name": "Ivan Urgant", 
+            "long imdb name": "Ivan Urgant", 
+            "long imdb canonical name": "Urgant, Ivan"
+        }, 
+        {
+            "canonical name": "Verzhbitskiy, Viktor", 
+            "name": "Viktor Verzhbitskiy", 
+            "long imdb name": "Viktor Verzhbitskiy", 
+            "long imdb canonical name": "Verzhbitskiy, Viktor"
+        }
+    ], 
+    "smart long imdb canonical title": "Yolki 2 (2011)", 
+    "original music": [
+        {
+            "canonical name": "Esenin, Pavel", 
+            "name": "Pavel Esenin", 
+            "long imdb name": "Pavel Esenin", 
+            "long imdb canonical name": "Esenin, Pavel"
+        }
+    ]
+}

@@ -1,0 +1,946 @@
+{
+    "music department": [
+        {
+            "canonical name": "Bell, Marc", 
+            "name": "Marc Bell", 
+            "long imdb name": "Marc Bell", 
+            "long imdb canonical name": "Bell, Marc"
+        }, 
+        {
+            "canonical name": "Bell, Marc", 
+            "name": "Marc Bell", 
+            "long imdb name": "Marc Bell", 
+            "long imdb canonical name": "Bell, Marc"
+        }, 
+        {
+            "canonical name": "Strobl, Bernard Gari\u00e9py", 
+            "name": "Bernard Gari\u00e9py Strobl", 
+            "long imdb name": "Bernard Gari\u00e9py Strobl", 
+            "long imdb canonical name": "Strobl, Bernard Gari\u00e9py"
+        }, 
+        {
+            "canonical name": "L\u00e9pine, S\u00e9bastien", 
+            "name": "S\u00e9bastien L\u00e9pine", 
+            "long imdb name": "S\u00e9bastien L\u00e9pine", 
+            "long imdb canonical name": "L\u00e9pine, S\u00e9bastien"
+        }
+    ], 
+    "special effects companies": [
+        {
+            "name": "MFX Productions", 
+            "long imdb name": "MFX Productions"
+        }, 
+        {
+            "name": "Rodeo FX", 
+            "long imdb name": "Rodeo FX"
+        }
+    ], 
+    "camera and electrical department": [
+        {
+            "canonical name": "Breton, Marcel", 
+            "name": "Marcel Breton", 
+            "long imdb name": "Marcel Breton", 
+            "long imdb canonical name": "Breton, Marcel"
+        }, 
+        {
+            "canonical name": "Develey, Franck", 
+            "name": "Franck Develey", 
+            "long imdb name": "Franck Develey", 
+            "long imdb canonical name": "Develey, Franck"
+        }, 
+        {
+            "canonical name": "Fortin-Taillon, Gabriel", 
+            "name": "Gabriel Fortin-Taillon", 
+            "long imdb name": "Gabriel Fortin-Taillon", 
+            "long imdb canonical name": "Fortin-Taillon, Gabriel"
+        }, 
+        {
+            "canonical name": "Kavanagh, Jean", 
+            "name": "Jean Kavanagh", 
+            "long imdb name": "Jean Kavanagh", 
+            "long imdb canonical name": "Kavanagh, Jean"
+        }, 
+        {
+            "canonical name": "Mostert, Denis-Noel", 
+            "name": "Denis-Noel Mostert", 
+            "long imdb name": "Denis-Noel Mostert", 
+            "long imdb canonical name": "Mostert, Denis-Noel"
+        }, 
+        {
+            "canonical name": "Tessier, Isabelle", 
+            "name": "Isabelle Tessier", 
+            "long imdb name": "Isabelle Tessier", 
+            "long imdb canonical name": "Tessier, Isabelle"
+        }, 
+        {
+            "canonical name": "Viola, Filippo", 
+            "name": "Filippo Viola", 
+            "long imdb name": "Filippo Viola", 
+            "long imdb canonical name": "Viola, Filippo"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "Albatros Film", 
+            "long imdb name": "Albatros Film"
+        }, 
+        {
+            "name": "Cathay-Keris Films", 
+            "long imdb name": "Cathay-Keris Films"
+        }, 
+        {
+            "name": "Distribution Company", 
+            "long imdb name": "Distribution Company"
+        }, 
+        {
+            "name": "E1 Films Canada", 
+            "long imdb name": "E1 Films Canada"
+        }, 
+        {
+            "name": "Festive Films", 
+            "long imdb name": "Festive Films"
+        }, 
+        {
+            "name": "Imagine Films Distribution", 
+            "long imdb name": "Imagine Films Distribution"
+        }, 
+        {
+            "name": "Imagine Films Distribution", 
+            "long imdb name": "Imagine Films Distribution"
+        }, 
+        {
+            "name": "Music Box Films", 
+            "long imdb name": "Music Box Films"
+        }, 
+        {
+            "name": "StraDa Films", 
+            "long imdb name": "StraDa Films"
+        }, 
+        {
+            "name": "UGC Distribution", 
+            "long imdb name": "UGC Distribution"
+        }, 
+        {
+            "name": "Vertigo M\u00e9dia Kft.", 
+            "long imdb name": "Vertigo M\u00e9dia Kft."
+        }, 
+        {
+            "name": "Zazie Films", 
+            "long imdb name": "Zazie Films"
+        }, 
+        {
+            "name": "\u00d8st for Paradis", 
+            "long imdb name": "\u00d8st for Paradis"
+        }, 
+        {
+            "name": "Audio Visual Entertainment", 
+            "long imdb name": "Audio Visual Entertainment"
+        }, 
+        {
+            "name": "Christal Films Distribution", 
+            "long imdb name": "Christal Films Distribution"
+        }, 
+        {
+            "name": "Film1", 
+            "long imdb name": "Film1"
+        }, 
+        {
+            "name": "Filmfreak Distributie", 
+            "long imdb name": "Filmfreak Distributie"
+        }, 
+        {
+            "name": "Filmfreak Distributie", 
+            "long imdb name": "Filmfreak Distributie"
+        }, 
+        {
+            "name": "Kam & Ronson Enterprise Co", 
+            "long imdb name": "Kam & Ronson Enterprise Co"
+        }, 
+        {
+            "name": "Kam & Ronson Enterprise Co", 
+            "long imdb name": "Kam & Ronson Enterprise Co"
+        }, 
+        {
+            "name": "Kurmaca Film", 
+            "long imdb name": "Kurmaca Film"
+        }, 
+        {
+            "name": "Officine UBU", 
+            "long imdb name": "Officine UBU"
+        }, 
+        {
+            "name": "Vendetta Filmes", 
+            "long imdb name": "Vendetta Filmes"
+        }, 
+        {
+            "name": "good movies!", 
+            "long imdb name": "good movies!"
+        }
+    ], 
+    "rating": 7.5, 
+    "runtimes": [
+        "Canada:94"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "Chamberland, Francesca", 
+            "name": "Francesca Chamberland", 
+            "long imdb name": "Francesca Chamberland", 
+            "long imdb canonical name": "Chamberland, Francesca"
+        }
+    ], 
+    "make up": [
+        {
+            "canonical name": "Casault, Katryn", 
+            "name": "Katryn Casault", 
+            "long imdb name": "Katryn Casault", 
+            "long imdb canonical name": "Casault, Katryn"
+        }, 
+        {
+            "canonical name": "Landry, Ann-Louise", 
+            "name": "Ann-Louise Landry", 
+            "long imdb name": "Ann-Louise Landry", 
+            "long imdb canonical name": "Landry, Ann-Louise"
+        }
+    ], 
+    "year": 2011, 
+    "production design": [
+        {
+            "canonical name": "Frechette, Emmanuel", 
+            "name": "Emmanuel Frechette", 
+            "long imdb name": "Emmanuel Frechette", 
+            "long imdb canonical name": "Frechette, Emmanuel"
+        }
+    ], 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Boy\u00e9, Laurent", 
+            "name": "Laurent Boy\u00e9", 
+            "long imdb name": "Laurent Boy\u00e9", 
+            "long imdb canonical name": "Boy\u00e9, Laurent"
+        }, 
+        {
+            "canonical name": "Fradette, Josiane", 
+            "name": "Josiane Fradette", 
+            "long imdb name": "Josiane Fradette", 
+            "long imdb canonical name": "Fradette, Josiane"
+        }, 
+        {
+            "canonical name": "Hamel, Marjorie", 
+            "name": "Marjorie Hamel", 
+            "long imdb name": "Marjorie Hamel", 
+            "long imdb canonical name": "Hamel, Marjorie"
+        }, 
+        {
+            "canonical name": "H\u00e9bert, \u00c9laine", 
+            "name": "\u00c9laine H\u00e9bert", 
+            "long imdb name": "\u00c9laine H\u00e9bert", 
+            "long imdb canonical name": "H\u00e9bert, \u00c9laine"
+        }, 
+        {
+            "canonical name": "Tougas-Fr\u00e9chette, Gabrielle", 
+            "name": "Gabrielle Tougas-Fr\u00e9chette", 
+            "long imdb name": "Gabrielle Tougas-Fr\u00e9chette", 
+            "long imdb canonical name": "Tougas-Fr\u00e9chette, Gabrielle"
+        }
+    ], 
+    "color info": [], 
+    "visual effects": [
+        {
+            "canonical name": "Boucher, Marie-Pierre", 
+            "name": "Marie-Pierre Boucher", 
+            "long imdb name": "Marie-Pierre Boucher", 
+            "long imdb canonical name": "Boucher, Marie-Pierre"
+        }, 
+        {
+            "canonical name": "Cl\u00e9ment, Francis", 
+            "name": "Francis Cl\u00e9ment", 
+            "long imdb name": "Francis Cl\u00e9ment", 
+            "long imdb canonical name": "Cl\u00e9ment, Francis"
+        }, 
+        {
+            "canonical name": "David, Patrick", 
+            "name": "Patrick David", 
+            "long imdb name": "Patrick David", 
+            "long imdb canonical name": "David, Patrick"
+        }, 
+        {
+            "canonical name": "Gagne, Jean-Francois", 
+            "name": "Jean-Francois Gagne", 
+            "long imdb name": "Jean-Francois Gagne", 
+            "long imdb canonical name": "Gagne, Jean-Francois"
+        }, 
+        {
+            "canonical name": "Godin, Annie", 
+            "name": "Annie Godin", 
+            "long imdb name": "Annie Godin", 
+            "long imdb canonical name": "Godin, Annie"
+        }, 
+        {
+            "canonical name": "Khanikian, Ara", 
+            "name": "Ara Khanikian", 
+            "long imdb name": "Ara Khanikian", 
+            "long imdb canonical name": "Khanikian, Ara"
+        }, 
+        {
+            "canonical name": "Moreau, S\u00e9bastien", 
+            "name": "S\u00e9bastien Moreau", 
+            "long imdb name": "S\u00e9bastien Moreau", 
+            "long imdb canonical name": "Moreau, S\u00e9bastien"
+        }, 
+        {
+            "canonical name": "O'Rourke, Josiane", 
+            "name": "Josiane O'Rourke", 
+            "long imdb name": "Josiane O'Rourke", 
+            "long imdb canonical name": "O'Rourke, Josiane"
+        }, 
+        {
+            "canonical name": "Soles, Jordan", 
+            "name": "Jordan Soles", 
+            "long imdb name": "Jordan Soles", 
+            "long imdb canonical name": "Soles, Jordan"
+        }, 
+        {
+            "canonical name": "Tom, Kar Hung", 
+            "name": "Kar Hung Tom", 
+            "long imdb name": "Kar Hung Tom", 
+            "long imdb canonical name": "Tom, Kar Hung"
+        }, 
+        {
+            "canonical name": "Tremblay, Robin", 
+            "name": "Robin Tremblay", 
+            "long imdb name": "Robin Tremblay", 
+            "long imdb canonical name": "Tremblay, Robin"
+        }, 
+        {
+            "canonical name": "Arvisais, Mathieu", 
+            "name": "Mathieu Arvisais", 
+            "long imdb name": "Mathieu Arvisais", 
+            "long imdb canonical name": "Arvisais, Mathieu"
+        }
+    ], 
+    "votes": 15853, 
+    "producer": [
+        {
+            "canonical name": "D\u00e9ry, Luc", 
+            "name": "Luc D\u00e9ry", 
+            "long imdb name": "Luc D\u00e9ry", 
+            "long imdb canonical name": "D\u00e9ry, Luc"
+        }, 
+        {
+            "canonical name": "McCraw, Kim", 
+            "name": "Kim McCraw", 
+            "long imdb name": "Kim McCraw", 
+            "long imdb canonical name": "McCraw, Kim"
+        }, 
+        {
+            "canonical name": "Paiement, Claude", 
+            "name": "Claude Paiement", 
+            "long imdb name": "Claude Paiement", 
+            "long imdb canonical name": "Paiement, Claude"
+        }
+    ], 
+    "title": "Monsieur Lazhar", 
+    "mpaa": "Rated PG-13 for mature thematic material, a disturbing image and brief language", 
+    "assistant director": [
+        {
+            "canonical name": "Crevier, Lili-Anne", 
+            "name": "Lili-Anne Crevier", 
+            "long imdb name": "Lili-Anne Crevier", 
+            "long imdb canonical name": "Crevier, Lili-Anne"
+        }, 
+        {
+            "canonical name": "C\u00f4t\u00e9-Ch\u00e9nier, Ariane", 
+            "name": "Ariane C\u00f4t\u00e9-Ch\u00e9nier", 
+            "long imdb name": "Ariane C\u00f4t\u00e9-Ch\u00e9nier", 
+            "long imdb canonical name": "C\u00f4t\u00e9-Ch\u00e9nier, Ariane"
+        }, 
+        {
+            "canonical name": "DiVito, Yanick", 
+            "name": "Yanick DiVito", 
+            "long imdb name": "Yanick DiVito", 
+            "long imdb canonical name": "DiVito, Yanick"
+        }, 
+        {
+            "canonical name": "Doucet, Carole", 
+            "name": "Carole Doucet", 
+            "long imdb name": "Carole Doucet", 
+            "long imdb canonical name": "Doucet, Carole"
+        }, 
+        {
+            "canonical name": "Joelle, Malo", 
+            "name": "Malo Joelle", 
+            "long imdb name": "Malo Joelle", 
+            "long imdb canonical name": "Joelle, Malo"
+        }, 
+        {
+            "canonical name": "Malo, Jo\u00eblle", 
+            "name": "Jo\u00eblle Malo", 
+            "long imdb name": "Jo\u00eblle Malo", 
+            "long imdb canonical name": "Malo, Jo\u00eblle"
+        }, 
+        {
+            "canonical name": "Milot, Valerie", 
+            "name": "Valerie Milot", 
+            "long imdb name": "Valerie Milot", 
+            "long imdb canonical name": "Milot, Valerie"
+        }, 
+        {
+            "canonical name": "Parenteau, Eric", 
+            "name": "Eric Parenteau", 
+            "long imdb name": "Eric Parenteau", 
+            "long imdb canonical name": "Parenteau, Eric"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "Falardeau, Philippe", 
+            "name": "Philippe Falardeau", 
+            "long imdb name": "Philippe Falardeau", 
+            "long imdb canonical name": "Falardeau, Philippe"
+        }, 
+        {
+            "canonical name": "la Cheneli\u00e8re, Evelyne de", 
+            "name": "Evelyne de la Cheneli\u00e8re", 
+            "long imdb name": "Evelyne de la Cheneli\u00e8re", 
+            "long imdb canonical name": "la Cheneli\u00e8re, Evelyne de"
+        }
+    ], 
+    "long imdb canonical title": "Monsieur Lazhar (2011)", 
+    "languages": [
+        "French", 
+        "English", 
+        "Arabic"
+    ], 
+    "casting director": [
+        {
+            "canonical name": "Beaugrand-Champagne, Emanuelle", 
+            "name": "Emanuelle Beaugrand-Champagne", 
+            "long imdb name": "Emanuelle Beaugrand-Champagne", 
+            "long imdb canonical name": "Beaugrand-Champagne, Emanuelle"
+        }, 
+        {
+            "canonical name": "Boutrie, Nathalie", 
+            "name": "Nathalie Boutrie", 
+            "long imdb name": "Nathalie Boutrie", 
+            "long imdb canonical name": "Boutrie, Nathalie"
+        }, 
+        {
+            "canonical name": "Demontoy, Constance", 
+            "name": "Constance Demontoy", 
+            "long imdb name": "Constance Demontoy", 
+            "long imdb canonical name": "Demontoy, Constance"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Lafleur, St\u00e9phane", 
+            "name": "St\u00e9phane Lafleur", 
+            "long imdb name": "St\u00e9phane Lafleur", 
+            "long imdb canonical name": "Lafleur, St\u00e9phane"
+        }
+    ], 
+    "certificates": [
+        "Argentina:13", 
+        "Canada:PG::(Ontario)", 
+        "Canada:G::(Qu\u00e9bec)", 
+        "Germany:0", 
+        "Hong Kong:IIA", 
+        "Ireland:12A", 
+        "Japan:G", 
+        "Netherlands:6", 
+        "Portugal:M/12", 
+        "Singapore:PG13", 
+        "South Korea:12", 
+        "Switzerland:10::(canton of Geneva)", 
+        "Switzerland:10::(canton of Vaud)", 
+        "UK:12A", 
+        "USA:PG-13"
+    ], 
+    "set decoration": [
+        {
+            "canonical name": "Arseneault, Jos\u00e9e", 
+            "name": "Jos\u00e9e Arseneault", 
+            "long imdb name": "Jos\u00e9e Arseneault", 
+            "long imdb canonical name": "Arseneault, Jos\u00e9e"
+        }
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "Beaudin, Mathieu", 
+            "name": "Mathieu Beaudin", 
+            "long imdb name": "Mathieu Beaudin", 
+            "long imdb canonical name": "Beaudin, Mathieu"
+        }, 
+        {
+            "canonical name": "Bellazzi, Catherine", 
+            "name": "Catherine Bellazzi", 
+            "long imdb name": "Catherine Bellazzi", 
+            "long imdb canonical name": "Bellazzi, Catherine"
+        }, 
+        {
+            "canonical name": "Bellemare, Sylvain", 
+            "name": "Sylvain Bellemare", 
+            "long imdb name": "Sylvain Bellemare", 
+            "long imdb canonical name": "Bellemare, Sylvain"
+        }, 
+        {
+            "canonical name": "Bertrand, Pierre", 
+            "name": "Pierre Bertrand", 
+            "long imdb name": "Pierre Bertrand", 
+            "long imdb canonical name": "Bertrand, Pierre"
+        }, 
+        {
+            "canonical name": "Cloutier, Sophie", 
+            "name": "Sophie Cloutier", 
+            "long imdb name": "Sophie Cloutier", 
+            "long imdb canonical name": "Cloutier, Sophie"
+        }, 
+        {
+            "canonical name": "Duranleau, Bertrand", 
+            "name": "Bertrand Duranleau", 
+            "long imdb name": "Bertrand Duranleau", 
+            "long imdb canonical name": "Duranleau, Bertrand"
+        }, 
+        {
+            "canonical name": "Gallagher, Shaun-Nicholas", 
+            "name": "Shaun-Nicholas Gallagher", 
+            "long imdb name": "Shaun-Nicholas Gallagher", 
+            "long imdb canonical name": "Gallagher, Shaun-Nicholas"
+        }, 
+        {
+            "canonical name": "Strobl, Bernard Gari\u00e9py", 
+            "name": "Bernard Gari\u00e9py Strobl", 
+            "long imdb name": "Bernard Gari\u00e9py Strobl", 
+            "long imdb canonical name": "Strobl, Bernard Gari\u00e9py"
+        }, 
+        {
+            "canonical name": "Meilleur, Simon", 
+            "name": "Simon Meilleur", 
+            "long imdb name": "Simon Meilleur", 
+            "long imdb canonical name": "Meilleur, Simon"
+        }, 
+        {
+            "canonical name": "St-Laurent, Jean-Philippe", 
+            "name": "Jean-Philippe St-Laurent", 
+            "long imdb name": "Jean-Philippe St-Laurent", 
+            "long imdb canonical name": "St-Laurent, Jean-Philippe"
+        }
+    ], 
+    "long imdb title": "Monsieur Lazhar (2011)", 
+    "country codes": [
+        "ca"
+    ], 
+    "language codes": [
+        "fr", 
+        "en", 
+        "ar"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BNjM0NTYyNTkwNF5BMl5BanBnXkFtZTcwMzQwOTUzNw@@._V1._SX94_SY140_.jpg", 
+    "special effects department": [
+        {
+            "canonical name": "Murray, Guillaume", 
+            "name": "Guillaume Murray", 
+            "long imdb name": "Guillaume Murray", 
+            "long imdb canonical name": "Murray, Guillaume"
+        }
+    ], 
+    "editorial department": [
+        {
+            "canonical name": "Daniel, Erik", 
+            "name": "Erik Daniel", 
+            "long imdb name": "Erik Daniel", 
+            "long imdb canonical name": "Daniel, Erik"
+        }, 
+        {
+            "canonical name": "Montreuil, Arthur", 
+            "name": "Arthur Montreuil", 
+            "long imdb name": "Arthur Montreuil", 
+            "long imdb canonical name": "Montreuil, Arthur"
+        }, 
+        {
+            "canonical name": "Ouellet, Mirenda", 
+            "name": "Mirenda Ouellet", 
+            "long imdb name": "Mirenda Ouellet", 
+            "long imdb canonical name": "Ouellet, Mirenda"
+        }, 
+        {
+            "canonical name": "Patry, Etienne", 
+            "name": "Etienne Patry", 
+            "long imdb name": "Etienne Patry", 
+            "long imdb canonical name": "Patry, Etienne"
+        }, 
+        {
+            "canonical name": "Tarnowski, Arthur", 
+            "name": "Arthur Tarnowski", 
+            "long imdb name": "Arthur Tarnowski", 
+            "long imdb canonical name": "Tarnowski, Arthur"
+        }
+    ], 
+    "sound mix": [
+        "Dolby Digital"
+    ], 
+    "genres": [
+        "Comedy", 
+        "Drama"
+    ], 
+    "director": [
+        {
+            "canonical name": "Falardeau, Philippe", 
+            "name": "Philippe Falardeau", 
+            "long imdb name": "Philippe Falardeau", 
+            "long imdb canonical name": "Falardeau, Philippe"
+        }
+    ], 
+    "miscellaneous companies": [
+        {
+            "name": "Cinepool", 
+            "long imdb name": "Cinepool"
+        }, 
+        {
+            "name": "D\u00e9partement Camera", 
+            "long imdb name": "D\u00e9partement Camera"
+        }, 
+        {
+            "name": "Fredell Pogodin and Associates", 
+            "long imdb name": "Fredell Pogodin and Associates"
+        }, 
+        {
+            "name": "Video Assist", 
+            "long imdb name": "Video Assist"
+        }, 
+        {
+            "name": "Vision Globale", 
+            "long imdb name": "Vision Globale"
+        }, 
+        {
+            "name": "Vision Globale", 
+            "long imdb name": "Vision Globale"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Plante, Ronald", 
+            "name": "Ronald Plante", 
+            "long imdb name": "Ronald Plante", 
+            "long imdb canonical name": "Plante, Ronald"
+        }
+    ], 
+    "akas": [
+        "Monsieur Lazhar::International (English title) (imdb display title)", 
+        "Profesor Lazhar::Argentina (imdb display title), Spain (imdb display title)", 
+        "\u0413\u043e\u0441\u043f\u043e\u0434\u0438\u043d \u041b\u0430\u0437\u0430\u0440::Russia", 
+        "Canim \u00d6gretmenim::Turkey (Turkish title) (imdb display title)", 
+        "Den gode l\u00e6reren::Norway (imdb display title)", 
+        "Gospodin Lazhar::Croatia (imdb display title)", 
+        "Lazhar tan\u00e1r \u00far::Hungary (imdb display title)", 
+        "O \u0395\u03be\u03b1\u03b9\u03c1\u03b5\u03c4\u03b9\u03ba\u03cc\u03c2 \u039a\u03cd\u03c1\u03b9\u03bf\u03c2 \u039b\u03b1\u03b6\u03ac\u03c1::Greece", 
+        "O Que Traz Boas Novas::Brazil (imdb display title)", 
+        "O exairetikos kyrios Lazhar::Greece (alternative transliteration)", 
+        "Pan Lazhar::Poland (imdb display title)", 
+        "Professor Lazhar::Portugal (imdb display title)", 
+        "U\u010ditelj Lazar::Serbia", 
+        "Ucitelj::Slovenia (imdb display title)"
+    ], 
+    "aspect ratio": "2.35 : 1", 
+    "production companies": [
+        {
+            "name": "micro_scope", 
+            "long imdb name": "micro_scope"
+        }
+    ], 
+    "kind": "movie", 
+    "countries": [
+        "Canada"
+    ], 
+    "plot outline": "At a Montr\u00e9al public grade school, an Algerian immigrant is hired to replace a popular teacher who committed suicide in her classroom. While helping his students deal with their grief, his own recent loss is revealed.", 
+    "plot": [
+        "Bachir Lazhar, an Algerian immigrant, is hired to replace an elementary school teacher who died tragically. While the class goes through a long healing process, nobody in the school is aware of Bachir's painful former life; nor that he is at risk of being deported at any moment. Adapted from Evelyne de la Cheneliere's play, Bachir Lazhar depicts the encounter between two distant worlds and the power of self-expression. Using great sensitivity and humor, Philippe Falardeau follows a humble man who is ready to transcend his own loss in order to accompany children beyond the silence and taboo of death.", 
+        "Montr\u00e9al public grade school teacher Martine Lachance has just committed suicide by hanging in her classroom. One of her pupils, Simon, is the one that finds her, although another of her students, Alice, also ends up seeing the hanging dead body. Beyond the provision of grief counseling, Mme. Vaillancourt, the school's principal, has a difficult time finding a replacement teacher because of the gruesome nature of the death, which is why she hires Algerian immigrant, Bachir Lazhar, despite her reservations in doing so. Lazhar lied about both his background and his Canadian residency status to get the job. In reality, he is going through the refugee claimant process to stay in Canada, that process which includes digging up the painful reason for leaving Algeria without his wife and two children. Lazhar goes through a steep learning curve in teaching his class of eleven and twelve year olds, his style and methods which resemble old school teaching, such as hitting the students as discipline and using antiquated teaching terminology. As he progresses through the year, his interactions with both his students and school colleagues shows Lazhar that perhaps it is time to move on with his life in every aspect. However, Martine's death hangs over the classroom like the unspoken elephant in the room, especially as it has to do with Simon and Alice's relationship with each other since the death.", 
+        "At a Montr\u00e9al public grade school, an Algerian immigrant is hired to replace a popular teacher who committed suicide in her classroom. While helping his students deal with their grief, his own recent loss is revealed."
+    ], 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BNjM0NTYyNTkwNF5BMl5BanBnXkFtZTcwMzQwOTUzNw@@.jpg", 
+    "canonical title": "Monsieur Lazhar", 
+    "cast": [
+        {
+            "canonical name": "Fellag, Mohamed", 
+            "name": "Mohamed Fellag", 
+            "long imdb name": "Mohamed Fellag", 
+            "long imdb canonical name": "Fellag, Mohamed"
+        }, 
+        {
+            "canonical name": "N\u00e9lisse, Sophie", 
+            "name": "Sophie N\u00e9lisse", 
+            "long imdb name": "Sophie N\u00e9lisse", 
+            "long imdb canonical name": "N\u00e9lisse, Sophie"
+        }, 
+        {
+            "canonical name": "N\u00e9ron, \u00c9milien", 
+            "name": "\u00c9milien N\u00e9ron", 
+            "long imdb name": "\u00c9milien N\u00e9ron", 
+            "long imdb canonical name": "N\u00e9ron, \u00c9milien"
+        }, 
+        {
+            "canonical name": "Beauregard, Marie-\u00c8ve", 
+            "name": "Marie-\u00c8ve Beauregard", 
+            "long imdb name": "Marie-\u00c8ve Beauregard", 
+            "long imdb canonical name": "Beauregard, Marie-\u00c8ve"
+        }, 
+        {
+            "canonical name": "Millard, Vincent", 
+            "name": "Vincent Millard", 
+            "long imdb name": "Vincent Millard", 
+            "long imdb canonical name": "Millard, Vincent"
+        }, 
+        {
+            "canonical name": "Benslimane, Seddik", 
+            "name": "Seddik Benslimane", 
+            "long imdb name": "Seddik Benslimane", 
+            "long imdb canonical name": "Benslimane, Seddik"
+        }, 
+        {
+            "canonical name": "Leblanc, Louis-David", 
+            "name": "Louis-David Leblanc", 
+            "long imdb name": "Louis-David Leblanc", 
+            "long imdb canonical name": "Leblanc, Louis-David"
+        }, 
+        {
+            "canonical name": "Verdier, Gabriel", 
+            "name": "Gabriel Verdier", 
+            "long imdb name": "Gabriel Verdier", 
+            "long imdb canonical name": "Verdier, Gabriel"
+        }, 
+        {
+            "canonical name": "Soucy-Lord, Marianne", 
+            "name": "Marianne Soucy-Lord", 
+            "long imdb name": "Marianne Soucy-Lord", 
+            "long imdb canonical name": "Soucy-Lord, Marianne"
+        }, 
+        {
+            "canonical name": "Proulx, Danielle", 
+            "name": "Danielle Proulx", 
+            "long imdb name": "Danielle Proulx", 
+            "long imdb canonical name": "Proulx, Danielle"
+        }, 
+        {
+            "canonical name": "Poupart, Brigitte", 
+            "name": "Brigitte Poupart", 
+            "long imdb name": "Brigitte Poupart", 
+            "long imdb canonical name": "Poupart, Brigitte"
+        }, 
+        {
+            "canonical name": "Philip, Jules", 
+            "name": "Jules Philip", 
+            "long imdb name": "Jules Philip", 
+            "long imdb canonical name": "Philip, Jules"
+        }, 
+        {
+            "canonical name": "Champagne, Louis", 
+            "name": "Louis Champagne", 
+            "long imdb name": "Louis Champagne", 
+            "long imdb canonical name": "Champagne, Louis"
+        }, 
+        {
+            "canonical name": "Gadouas, Daniel", 
+            "name": "Daniel Gadouas", 
+            "long imdb name": "Daniel Gadouas", 
+            "long imdb canonical name": "Gadouas, Daniel"
+        }, 
+        {
+            "canonical name": "Ruel, Francine", 
+            "name": "Francine Ruel", 
+            "long imdb name": "Francine Ruel", 
+            "long imdb canonical name": "Ruel, Francine"
+        }, 
+        {
+            "canonical name": "Sanscartier, Sophie", 
+            "name": "Sophie Sanscartier", 
+            "long imdb name": "Sophie Sanscartier", 
+            "long imdb canonical name": "Sanscartier, Sophie"
+        }, 
+        {
+            "canonical name": "Lagarde, Nicole-Sylvie", 
+            "name": "Nicole-Sylvie Lagarde", 
+            "long imdb name": "Nicole-Sylvie Lagarde", 
+            "long imdb canonical name": "Lagarde, Nicole-Sylvie"
+        }, 
+        {
+            "canonical name": "Robitaille, Andr\u00e9", 
+            "name": "Andr\u00e9 Robitaille", 
+            "long imdb name": "Andr\u00e9 Robitaille", 
+            "long imdb canonical name": "Robitaille, Andr\u00e9"
+        }, 
+        {
+            "canonical name": "Charlebois, Marie", 
+            "name": "Marie Charlebois", 
+            "long imdb name": "Marie Charlebois", 
+            "long imdb canonical name": "Charlebois, Marie"
+        }, 
+        {
+            "canonical name": "la Cheneli\u00e8re, Evelyne de", 
+            "name": "Evelyne de la Cheneli\u00e8re", 
+            "long imdb name": "Evelyne de la Cheneli\u00e8re", 
+            "long imdb canonical name": "la Cheneli\u00e8re, Evelyne de"
+        }, 
+        {
+            "canonical name": "Demers, St\u00e9phane", 
+            "name": "St\u00e9phane Demers", 
+            "long imdb name": "St\u00e9phane Demers", 
+            "long imdb canonical name": "Demers, St\u00e9phane"
+        }, 
+        {
+            "canonical name": "Costa, Nathalie", 
+            "name": "Nathalie Costa", 
+            "long imdb name": "Nathalie Costa", 
+            "long imdb canonical name": "Costa, Nathalie"
+        }, 
+        {
+            "canonical name": "Baribeau, Judith", 
+            "name": "Judith Baribeau", 
+            "long imdb name": "Judith Baribeau", 
+            "long imdb canonical name": "Baribeau, Judith"
+        }, 
+        {
+            "canonical name": "Arandi, Jose", 
+            "name": "Jose Arandi", 
+            "long imdb name": "Jose Arandi", 
+            "long imdb canonical name": "Arandi, Jose"
+        }, 
+        {
+            "canonical name": "Girard, Emmanuelle", 
+            "name": "Emmanuelle Girard", 
+            "long imdb name": "Emmanuelle Girard", 
+            "long imdb canonical name": "Girard, Emmanuelle"
+        }, 
+        {
+            "canonical name": "Thouin, Gabrielle", 
+            "name": "Gabrielle Thouin", 
+            "long imdb name": "Gabrielle Thouin", 
+            "long imdb canonical name": "Thouin, Gabrielle"
+        }, 
+        {
+            "canonical name": "Cadorette, Maxime", 
+            "name": "Maxime Cadorette", 
+            "long imdb name": "Maxime Cadorette", 
+            "long imdb canonical name": "Cadorette, Maxime"
+        }, 
+        {
+            "canonical name": "L'Esp\u00e9rance, Marion", 
+            "name": "Marion L'Esp\u00e9rance", 
+            "long imdb name": "Marion L'Esp\u00e9rance", 
+            "long imdb canonical name": "L'Esp\u00e9rance, Marion"
+        }, 
+        {
+            "canonical name": "Pominville, Laurie", 
+            "name": "Laurie Pominville", 
+            "long imdb name": "Laurie Pominville", 
+            "long imdb canonical name": "Pominville, Laurie"
+        }, 
+        {
+            "canonical name": "Terriault, Jean-Luc", 
+            "name": "Jean-Luc Terriault", 
+            "long imdb name": "Jean-Luc Terriault", 
+            "long imdb canonical name": "Terriault, Jean-Luc"
+        }, 
+        {
+            "canonical name": "Arbour, Carol-Anne", 
+            "name": "Carol-Anne Arbour", 
+            "long imdb name": "Carol-Anne Arbour", 
+            "long imdb canonical name": "Arbour, Carol-Anne"
+        }, 
+        {
+            "canonical name": "Cloutier, Enrik", 
+            "name": "Enrik Cloutier", 
+            "long imdb name": "Enrik Cloutier", 
+            "long imdb canonical name": "Cloutier, Enrik"
+        }, 
+        {
+            "canonical name": "Chartier, Samuel", 
+            "name": "Samuel Chartier", 
+            "long imdb name": "Samuel Chartier", 
+            "long imdb canonical name": "Chartier, Samuel"
+        }, 
+        {
+            "canonical name": "Tall, Mandani", 
+            "name": "Mandani Tall", 
+            "long imdb name": "Mandani Tall", 
+            "long imdb canonical name": "Tall, Mandani"
+        }, 
+        {
+            "canonical name": "Bernier, Anne-Frederique", 
+            "name": "Anne-Frederique Bernier", 
+            "long imdb name": "Anne-Frederique Bernier", 
+            "long imdb canonical name": "Bernier, Anne-Frederique"
+        }, 
+        {
+            "canonical name": "Filion, Marie Kim", 
+            "name": "Marie Kim Filion", 
+            "long imdb name": "Marie Kim Filion", 
+            "long imdb canonical name": "Filion, Marie Kim"
+        }, 
+        {
+            "canonical name": "Monty, Fabiola", 
+            "name": "Fabiola Monty", 
+            "long imdb name": "Fabiola Monty", 
+            "long imdb canonical name": "Monty, Fabiola"
+        }, 
+        {
+            "canonical name": "Miller, Salome Ettien", 
+            "name": "Salome Ettien Miller", 
+            "long imdb name": "Salome Ettien Miller", 
+            "long imdb canonical name": "Miller, Salome Ettien"
+        }, 
+        {
+            "canonical name": "Lalumi\u00e8re, Mariane", 
+            "name": "Mariane Lalumi\u00e8re", 
+            "long imdb name": "Mariane Lalumi\u00e8re", 
+            "long imdb canonical name": "Lalumi\u00e8re, Mariane"
+        }, 
+        {
+            "canonical name": "Charbonneau, Jessica", 
+            "name": "Jessica Charbonneau", 
+            "long imdb name": "Jessica Charbonneau", 
+            "long imdb canonical name": "Charbonneau, Jessica"
+        }, 
+        {
+            "canonical name": "Allard, Marie-F\u00e9lixe", 
+            "name": "Marie-F\u00e9lixe Allard", 
+            "long imdb name": "Marie-F\u00e9lixe Allard", 
+            "long imdb canonical name": "Allard, Marie-F\u00e9lixe"
+        }, 
+        {
+            "canonical name": "Bensaddek, Bachir", 
+            "name": "Bachir Bensaddek", 
+            "long imdb name": "Bachir Bensaddek", 
+            "long imdb canonical name": "Bensaddek, Bachir"
+        }, 
+        {
+            "canonical name": "Lalibert\u00e9, H\u00e9l\u00e9na", 
+            "name": "H\u00e9l\u00e9na Lalibert\u00e9", 
+            "long imdb name": "H\u00e9l\u00e9na Lalibert\u00e9", 
+            "long imdb canonical name": "Lalibert\u00e9, H\u00e9l\u00e9na"
+        }, 
+        {
+            "canonical name": "Giroux, Vincent", 
+            "name": "Vincent Giroux", 
+            "long imdb name": "Vincent Giroux", 
+            "long imdb canonical name": "Giroux, Vincent"
+        }, 
+        {
+            "canonical name": "Gr\u00e9goire, H\u00e9l\u00e8ne", 
+            "name": "H\u00e9l\u00e8ne Gr\u00e9goire", 
+            "long imdb name": "H\u00e9l\u00e8ne Gr\u00e9goire", 
+            "long imdb canonical name": "Gr\u00e9goire, H\u00e9l\u00e8ne"
+        }
+    ], 
+    "smart long imdb canonical title": "Monsieur Lazhar (2011)", 
+    "original music": [
+        {
+            "canonical name": "L\u00e9on, Martin", 
+            "name": "Martin L\u00e9on", 
+            "long imdb name": "Martin L\u00e9on", 
+            "long imdb canonical name": "L\u00e9on, Martin"
+        }
+    ], 
+    "smart canonical title": "Monsieur Lazhar"
+}

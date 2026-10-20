@@ -1,15 +1,14 @@
+import re
+import string
 from abc import abstractmethod
+from collections import Counter
 from typing import List
 
 import numpy as np
 import pandas as pd
-import string
-import re
-from collections import Counter
-
-from fedot.core.constants import FRACTION_OF_UNIQUE_VALUES
-from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 from sklearn.feature_extraction.text import TfidfVectorizer
+
+from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 
 ALLOWED_NAN_PERCENT = 0.9
 
@@ -103,91 +102,129 @@ class TextDataDetector(DataDetector):
         """
         return f'data_source_text/{data_part_key}'
 
-    def _column_contains_text(self, column: pd.Series) -> bool:
-        """
-        Checks whether a column contains natural-language text.
-
-        Structured values such as links, identifiers and numeric strings
-        are excluded from text detection.
-
-        :param column: pandas Series with data
-        :return: True if column contains natural-language text, False otherwise
-        """
-        if not (
-            pd.api.types.is_object_dtype(column)
-            or pd.api.types.is_string_dtype(column)
-        ):
-            return False
-
-        values = (
-            column
-            .dropna()
-            .astype(str)
-            .str.strip()
+    @staticmethod
+    def _is_serialized_collection(value: str) -> bool:
+        """Check whether a value is a serialized collection."""
+        value = value.strip()
+        return (value.startswith('{') and value.endswith('}')) or (
+            value.startswith('[') and value.endswith(']')
         )
 
-        values = values[
-            values != ""
-        ]
+    @staticmethod
+    def _is_slug(value: str) -> bool:
+        return re.fullmatch(
+            r'[a-z0-9]+(?:[-_][a-z0-9]+){2,}', value.strip(), re.IGNORECASE
+        ) is not None
 
+    @staticmethod
+    def _is_person_name(value: str) -> bool:
+        parts = value.strip().split()
+        if not 2 <= len(parts) <= 3:
+            return False
+        stopwords = {'the', 'and', 'of', 'for', 'has', 'in', 'at', 'with', 'a', 'an'}
+        if any(part.lower() in stopwords for part in parts):
+            return False
+        return all(re.fullmatch(r"[A-Z][a-zA-Z'-]*", part) for part in parts)
+
+    @classmethod
+    def _is_person_list(cls, value: str) -> bool:
+        names = [name.strip() for name in value.split(',')]
+        if len(names) < 3:
+            return False
+        return sum(cls._is_person_name(name) for name in names) / len(names) >= 0.8
+
+    def analyze_column(self, column: pd.Series) -> dict:
+        """Return the text prediction and features used to make it."""
+        if not (pd.api.types.is_object_dtype(column)
+                or pd.api.types.is_string_dtype(column)):
+            return {'is_text': False, 'reason': 'NOT_STRING', 'features': {}}
+
+        values = column.dropna().astype(str).str.strip()
+        values = values[values != '']
         if len(values) < self.MIN_VALUES:
-            return False
-
+            return {'is_text': False, 'reason': 'TOO_FEW_VALUES', 'features': {}}
         if self._is_float_compatible(column):
-            return False
+            return {'is_text': False, 'reason': 'NUMERIC_STRINGS', 'features': {}}
 
-        features = self.extract_features(
-            values
+        features = self.extract_features(values)
+        for name in ('url_ratio', 'email_ratio', 'uuid_ratio', 'numeric_ratio',
+                     'path_ratio', 'id_ratio'):
+            if features[name] >= self.STRUCTURED_THRESHOLD:
+                return {
+                    'is_text': False,
+                    'reason': f'STRUCTURED_{name.upper()}',
+                    'features': features,
+                }
+
+        collection_ratio = values.map(self._is_serialized_collection).mean()
+        slug_ratio = values.map(self._is_slug).mean()
+        person_list_ratio = values.map(self._is_person_list).mean()
+        person_ratio = values.map(self._is_person_name).mean()
+        features.update({
+            'collection_ratio': collection_ratio,
+            'slug_ratio': slug_ratio,
+            'person_list_ratio': person_list_ratio,
+            'person_ratio': person_ratio,
+        })
+
+        for name, reason in (
+            ('collection_ratio', 'SERIALIZED_COLLECTION'),
+            ('slug_ratio', 'SLUG_VALUES'),
+            ('person_list_ratio', 'PERSON_LIST'),
+        ):
+            if features[name] >= 0.6:
+                return {'is_text': False, 'reason': reason, 'features': features}
+        if person_ratio >= 0.8 and features['mean_word_count'] <= 3.2:
+            return {'is_text': False, 'reason': 'PERSON_NAMES', 'features': features}
+
+        mean_words = features['mean_word_count']
+        mean_length = features['mean_length']
+        alphabetic = features['alphabetic_ratio']
+        unique_ratio = features['unique_ratio']
+        vocabulary = features['vocabulary_size']
+
+        long_text = (
+            features['median_word_count'] >= 7
+            and features['median_length'] >= 40
+            and alphabetic >= 0.50
+        ) or (mean_words >= 5 and mean_length >= 50 and alphabetic >= 0.52)
+        if long_text:
+            return {'is_text': True, 'reason': 'LONG_TEXT', 'features': features}
+
+        short_text = (
+            unique_ratio >= 0.45
+            and mean_words >= 2.4
+            and mean_length >= 12
+            and alphabetic >= 0.48
+            and vocabulary >= 15
         )
+        if short_text:
+            return {'is_text': True, 'reason': 'DIVERSE_SHORT_TEXT', 'features': features}
 
-        structured_features = [
-            "url_ratio",
-            "email_ratio",
-            "uuid_ratio",
-            "path_ratio",
-            "numeric_ratio",
-            "id_ratio",
-        ]
+        repeated_text = (
+            mean_words >= 3.4
+            and mean_length >= 18
+            and alphabetic >= 0.65
+            and vocabulary >= 40
+            and (unique_ratio >= 0.03
+                 or features['function_word_ratio'] >= 0.02
+                 or mean_words >= 3.8)
+        )
+        if repeated_text:
+            return {
+                'is_text': True,
+                'reason': 'REPEATED_COMPOSITIONAL_TEXT',
+                'features': features,
+            }
+        return {
+            'is_text': False,
+            'reason': 'CATEGORICAL_OR_UNCERTAIN',
+            'features': features,
+        }
 
-        for feature in structured_features:
-            if (
-                features[feature]
-                >= self.STRUCTURED_THRESHOLD
-            ):
-                return False
-
-        if (
-            features["unique_ratio"]
-            < self.MIN_UNIQUE_RATIO
-        ):
-            return False
-
-        if (
-            features["median_word_count"] >= 7
-            and features["median_length"] >= 35
-            and features["alphabetic_ratio"] >= 0.55
-        ):
-            return True
-
-        if (
-            features["mean_word_count"] >= 5
-            and features["mean_length"] >= 25
-            and features["alphabetic_ratio"] >= 0.60
-            and features["digit_ratio"] < 0.25
-            and features["pattern_unique_ratio"] >= 0.15
-        ):
-            return True
-
-        if (
-            features["mean_word_count"] >= 4
-            and features["mean_length"] >= 20
-            and features["alphabetic_ratio"] >= 0.70
-            and features["digit_ratio"] < 0.15
-            and features["function_word_ratio"] >= 0.04
-        ):
-            return True
-
-        return False
+    def _column_contains_text(self, column: pd.Series) -> bool:
+        """Check whether a column contains natural-language text."""
+        return bool(self.analyze_column(column)['is_text'])
 
     @staticmethod
     def _safe_std(values: pd.Series) -> float:
@@ -632,33 +669,17 @@ class TextDataDetector(DataDetector):
 
     @staticmethod
     def find_sparse_columns(data_frame: pd.DataFrame) -> List[str]:
-        """
-        Finds string columns containing too many missing values.
-
-        :param data_frame: pandas DataFrame to process
-        :return: list of sparse string columns' names
-        """
+        """Find string columns with too many missing values."""
         sparse_columns = []
-
         for column_name in data_frame.columns:
             column = data_frame[column_name]
-
-            if not (
-                    pd.api.types.is_object_dtype(column)
-                    or pd.api.types.is_string_dtype(column)
-            ):
+            if not (pd.api.types.is_object_dtype(column)
+                    or pd.api.types.is_string_dtype(column)):
                 continue
-
-            if (
-                    column.isna().sum()
-                    / len(column)
-                    > ALLOWED_NAN_PERCENT
-            ):
-                sparse_columns.append(
-                    column_name
-                )
-
+            if len(column) and column.isna().sum() / len(column) > ALLOWED_NAN_PERCENT:
+                sparse_columns.append(column_name)
         return sparse_columns
+
 
 class TimeSeriesDataDetector(DataDetector):
     """

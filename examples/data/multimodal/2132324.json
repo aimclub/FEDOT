@@ -1,0 +1,782 @@
+{
+    "rating": 6.5, 
+    "camera and electrical department": [
+        {
+            "canonical name": "Blanc, Fernando", 
+            "name": "Fernando Blanc", 
+            "long imdb name": "Fernando Blanc", 
+            "long imdb canonical name": "Blanc, Fernando"
+        }, 
+        {
+            "canonical name": "Cateriano, Luis", 
+            "name": "Luis Cateriano", 
+            "long imdb name": "Luis Cateriano", 
+            "long imdb canonical name": "Cateriano, Luis"
+        }, 
+        {
+            "canonical name": "Fernandez, Juan Alejo", 
+            "name": "Juan Alejo Fernandez", 
+            "long imdb name": "Juan Alejo Fernandez", 
+            "long imdb canonical name": "Fernandez, Juan Alejo"
+        }, 
+        {
+            "canonical name": "Hermo, Daniel", 
+            "name": "Daniel Hermo", 
+            "long imdb name": "Daniel Hermo", 
+            "long imdb canonical name": "Hermo, Daniel"
+        }, 
+        {
+            "canonical name": "Magallanes, Andres Paul", 
+            "name": "Andres Paul Magallanes", 
+            "long imdb name": "Andres Paul Magallanes", 
+            "long imdb canonical name": "Magallanes, Andres Paul"
+        }, 
+        {
+            "canonical name": "Mayer, Nicol\u00e1s", 
+            "name": "Nicol\u00e1s Mayer", 
+            "long imdb name": "Nicol\u00e1s Mayer", 
+            "long imdb canonical name": "Mayer, Nicol\u00e1s"
+        }, 
+        {
+            "canonical name": "Mendiz\u00e1bal, Diego", 
+            "name": "Diego Mendiz\u00e1bal", 
+            "long imdb name": "Diego Mendiz\u00e1bal", 
+            "long imdb canonical name": "Mendiz\u00e1bal, Diego"
+        }, 
+        {
+            "canonical name": "Santamarina, Federico", 
+            "name": "Federico Santamarina", 
+            "long imdb name": "Federico Santamarina", 
+            "long imdb canonical name": "Santamarina, Federico"
+        }, 
+        {
+            "canonical name": "Trivino, Dar\u00edo", 
+            "name": "Dar\u00edo Trivino", 
+            "long imdb name": "Dar\u00edo Trivino", 
+            "long imdb canonical name": "Trivino, Dar\u00edo"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "Ad Vitam Distribution", 
+            "long imdb name": "Ad Vitam Distribution"
+        }, 
+        {
+            "name": "Amstelfilm", 
+            "long imdb name": "Amstelfilm"
+        }, 
+        {
+            "name": "Buena Vista International", 
+            "long imdb name": "Buena Vista International"
+        }, 
+        {
+            "name": "O'Brother Distribution", 
+            "long imdb name": "O'Brother Distribution"
+        }, 
+        {
+            "name": "Seven Films - Spentzos Film", 
+            "long imdb name": "Seven Films - Spentzos Film"
+        }, 
+        {
+            "name": "Strand Releasing", 
+            "long imdb name": "Strand Releasing"
+        }, 
+        {
+            "name": "Strand Releasing", 
+            "long imdb name": "Strand Releasing"
+        }, 
+        {
+            "name": "Alta Films", 
+            "long imdb name": "Alta Films"
+        }, 
+        {
+            "name": "Blu Shine", 
+            "long imdb name": "Blu Shine"
+        }, 
+        {
+            "name": "Canibal Networks", 
+            "long imdb name": "Canibal Networks"
+        }, 
+        {
+            "name": "Madman Entertainment", 
+            "long imdb name": "Madman Entertainment"
+        }, 
+        {
+            "name": "Paris Filmes", 
+            "long imdb name": "Paris Filmes"
+        }
+    ], 
+    "runtimes": [
+        "105"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "Urruti, Marisa", 
+            "name": "Marisa Urruti", 
+            "long imdb name": "Marisa Urruti", 
+            "long imdb canonical name": "Urruti, Marisa"
+        }
+    ], 
+    "thanks": [
+        {
+            "canonical name": "Dardenne, Jean-Pierre", 
+            "name": "Jean-Pierre Dardenne", 
+            "long imdb name": "Jean-Pierre Dardenne", 
+            "long imdb canonical name": "Dardenne, Jean-Pierre"
+        }, 
+        {
+            "canonical name": "Dardenne, Luc", 
+            "name": "Luc Dardenne", 
+            "long imdb name": "Luc Dardenne", 
+            "long imdb canonical name": "Dardenne, Luc"
+        }
+    ], 
+    "make up": [
+        {
+            "canonical name": "Hermo, Mariela", 
+            "name": "Mariela Hermo", 
+            "long imdb name": "Mariela Hermo", 
+            "long imdb canonical name": "Hermo, Mariela"
+        }, 
+        {
+            "canonical name": "Moccia, Alberto", 
+            "name": "Alberto Moccia", 
+            "long imdb name": "Alberto Moccia", 
+            "long imdb canonical name": "Moccia, Alberto"
+        }, 
+        {
+            "canonical name": "Oclander, Carolina", 
+            "name": "Carolina Oclander", 
+            "long imdb name": "Carolina Oclander", 
+            "long imdb canonical name": "Oclander, Carolina"
+        }, 
+        {
+            "canonical name": "Veron, Etelvina", 
+            "name": "Etelvina Veron", 
+            "long imdb name": "Etelvina Veron", 
+            "long imdb canonical name": "Veron, Etelvina"
+        }
+    ], 
+    "year": 2012, 
+    "production design": [
+        {
+            "canonical name": "De Gaspar, Juan Pedro", 
+            "name": "Juan Pedro De Gaspar", 
+            "long imdb name": "Juan Pedro De Gaspar", 
+            "long imdb canonical name": "De Gaspar, Juan Pedro"
+        }
+    ], 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Badenes, Lina", 
+            "name": "Lina Badenes", 
+            "long imdb name": "Lina Badenes", 
+            "long imdb canonical name": "Badenes, Lina"
+        }, 
+        {
+            "canonical name": "Garc\u00eda, Crist\u00f3bal", 
+            "name": "Crist\u00f3bal Garc\u00eda", 
+            "long imdb name": "Crist\u00f3bal Garc\u00eda", 
+            "long imdb canonical name": "Garc\u00eda, Crist\u00f3bal"
+        }, 
+        {
+            "canonical name": "Cobo, Mayi Guti\u00e9rrez", 
+            "name": "Mayi Guti\u00e9rrez Cobo", 
+            "long imdb name": "Mayi Guti\u00e9rrez Cobo", 
+            "long imdb canonical name": "Cobo, Mayi Guti\u00e9rrez"
+        }, 
+        {
+            "canonical name": "Cobo, Mayi Guti\u00e9rrez", 
+            "name": "Mayi Guti\u00e9rrez Cobo", 
+            "long imdb name": "Mayi Guti\u00e9rrez Cobo", 
+            "long imdb canonical name": "Cobo, Mayi Guti\u00e9rrez"
+        }, 
+        {
+            "canonical name": "Lepoutre, Cl\u00e9ment", 
+            "name": "Cl\u00e9ment Lepoutre", 
+            "long imdb name": "Cl\u00e9ment Lepoutre", 
+            "long imdb canonical name": "Lepoutre, Cl\u00e9ment"
+        }, 
+        {
+            "canonical name": "Lustig, Jacqueline", 
+            "name": "Jacqueline Lustig", 
+            "long imdb name": "Jacqueline Lustig", 
+            "long imdb canonical name": "Lustig, Jacqueline"
+        }, 
+        {
+            "canonical name": "Ramos, Pablo", 
+            "name": "Pablo Ramos", 
+            "long imdb name": "Pablo Ramos", 
+            "long imdb canonical name": "Ramos, Pablo"
+        }, 
+        {
+            "canonical name": "Sanucci, Edgardo", 
+            "name": "Edgardo Sanucci", 
+            "long imdb name": "Edgardo Sanucci", 
+            "long imdb canonical name": "Sanucci, Edgardo"
+        }
+    ], 
+    "color info": [], 
+    "visual effects": [
+        {
+            "canonical name": "Estrada, Andr\u00e9s P.", 
+            "name": "Andr\u00e9s P. Estrada", 
+            "long imdb name": "Andr\u00e9s P. Estrada", 
+            "long imdb canonical name": "Estrada, Andr\u00e9s P."
+        }, 
+        {
+            "canonical name": "Gomez, Maxi", 
+            "name": "Maxi Gomez", 
+            "long imdb name": "Maxi Gomez", 
+            "long imdb canonical name": "Gomez, Maxi"
+        }, 
+        {
+            "canonical name": "Olivares, Juan", 
+            "name": "Juan Olivares", 
+            "long imdb name": "Juan Olivares", 
+            "long imdb canonical name": "Olivares, Juan"
+        }, 
+        {
+            "canonical name": "Pernich, Tom\u00e1s", 
+            "name": "Tom\u00e1s Pernich", 
+            "long imdb name": "Tom\u00e1s Pernich", 
+            "long imdb canonical name": "Pernich, Tom\u00e1s"
+        }, 
+        {
+            "canonical name": "Quartieri, Leonardo", 
+            "name": "Leonardo Quartieri", 
+            "long imdb name": "Leonardo Quartieri", 
+            "long imdb canonical name": "Quartieri, Leonardo"
+        }, 
+        {
+            "canonical name": "Varisto, Alejo", 
+            "name": "Alejo Varisto", 
+            "long imdb name": "Alejo Varisto", 
+            "long imdb canonical name": "Varisto, Alejo"
+        }, 
+        {
+            "canonical name": "Vilardeb\u00f3, Iara Rodriguez", 
+            "name": "Iara Rodriguez Vilardeb\u00f3", 
+            "long imdb name": "Iara Rodriguez Vilardeb\u00f3", 
+            "long imdb canonical name": "Vilardeb\u00f3, Iara Rodriguez"
+        }, 
+        {
+            "canonical name": "Villanueva, Ezequiel", 
+            "name": "Ezequiel Villanueva", 
+            "long imdb name": "Ezequiel Villanueva", 
+            "long imdb canonical name": "Villanueva, Ezequiel"
+        }
+    ], 
+    "votes": 3437, 
+    "producer": [
+        {
+            "canonical name": "Baudens, Laurent", 
+            "name": "Laurent Baudens", 
+            "long imdb name": "Laurent Baudens", 
+            "long imdb canonical name": "Baudens, Laurent"
+        }, 
+        {
+            "canonical name": "Burah, R\u00e9mi", 
+            "name": "R\u00e9mi Burah", 
+            "long imdb name": "R\u00e9mi Burah", 
+            "long imdb canonical name": "Burah, R\u00e9mi"
+        }, 
+        {
+            "canonical name": "Cacetta, Alejandro", 
+            "name": "Alejandro Cacetta", 
+            "long imdb name": "Alejandro Cacetta", 
+            "long imdb canonical name": "Cacetta, Alejandro"
+        }, 
+        {
+            "canonical name": "Cacetta, Alejandro", 
+            "name": "Alejandro Cacetta", 
+            "long imdb name": "Alejandro Cacetta", 
+            "long imdb canonical name": "Cacetta, Alejandro"
+        }, 
+        {
+            "canonical name": "Domehri, Didar", 
+            "name": "Didar Domehri", 
+            "long imdb name": "Didar Domehri", 
+            "long imdb canonical name": "Domehri, Didar"
+        }, 
+        {
+            "canonical name": "Galli, Juan Pablo", 
+            "name": "Juan Pablo Galli", 
+            "long imdb name": "Juan Pablo Galli", 
+            "long imdb canonical name": "Galli, Juan Pablo"
+        }, 
+        {
+            "canonical name": "Gordon, Juan", 
+            "name": "Juan Gordon", 
+            "long imdb name": "Juan Gordon", 
+            "long imdb canonical name": "Gordon, Juan"
+        }, 
+        {
+            "canonical name": "Lovece, Juan", 
+            "name": "Juan Lovece", 
+            "long imdb name": "Juan Lovece", 
+            "long imdb canonical name": "Lovece, Juan"
+        }, 
+        {
+            "canonical name": "Nouaille, Ga\u00ebl", 
+            "name": "Ga\u00ebl Nouaille", 
+            "long imdb name": "Ga\u00ebl Nouaille", 
+            "long imdb canonical name": "Nouaille, Ga\u00ebl"
+        }, 
+        {
+            "canonical name": "Trapero, Pablo", 
+            "name": "Pablo Trapero", 
+            "long imdb name": "Pablo Trapero", 
+            "long imdb canonical name": "Trapero, Pablo"
+        }, 
+        {
+            "canonical name": "Trapero, Pablo", 
+            "name": "Pablo Trapero", 
+            "long imdb name": "Pablo Trapero", 
+            "long imdb canonical name": "Trapero, Pablo"
+        }, 
+        {
+            "canonical name": "Vera, Juan", 
+            "name": "Juan Vera", 
+            "long imdb name": "Juan Vera", 
+            "long imdb canonical name": "Vera, Juan"
+        }
+    ], 
+    "title": "Elefante blanco", 
+    "assistant director": [
+        {
+            "canonical name": "Masip, Santiago", 
+            "name": "Santiago Masip", 
+            "long imdb name": "Santiago Masip", 
+            "long imdb canonical name": "Masip, Santiago"
+        }, 
+        {
+            "canonical name": "Pozzo, Marcello", 
+            "name": "Marcello Pozzo", 
+            "long imdb name": "Marcello Pozzo", 
+            "long imdb canonical name": "Pozzo, Marcello"
+        }, 
+        {
+            "canonical name": "Tiscornia, Fabiana", 
+            "name": "Fabiana Tiscornia", 
+            "long imdb name": "Fabiana Tiscornia", 
+            "long imdb canonical name": "Tiscornia, Fabiana"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "Fadel, Alejandro", 
+            "name": "Alejandro Fadel", 
+            "long imdb name": "Alejandro Fadel", 
+            "long imdb canonical name": "Fadel, Alejandro"
+        }, 
+        {
+            "canonical name": "Mauregui, Mart\u00edn", 
+            "name": "Mart\u00edn Mauregui", 
+            "long imdb name": "Mart\u00edn Mauregui", 
+            "long imdb canonical name": "Mauregui, Mart\u00edn"
+        }, 
+        {
+            "canonical name": "Mitre, Santiago", 
+            "name": "Santiago Mitre", 
+            "long imdb name": "Santiago Mitre", 
+            "long imdb canonical name": "Mitre, Santiago"
+        }, 
+        {
+            "canonical name": "Trapero, Pablo", 
+            "name": "Pablo Trapero", 
+            "long imdb name": "Pablo Trapero", 
+            "long imdb canonical name": "Trapero, Pablo"
+        }
+    ], 
+    "long imdb canonical title": "Elefante blanco (2012)", 
+    "languages": [
+        "Spanish"
+    ], 
+    "production manager": [
+        {
+            "canonical name": "Greco, Augusto", 
+            "name": "Augusto Greco", 
+            "long imdb name": "Augusto Greco", 
+            "long imdb canonical name": "Greco, Augusto"
+        }, 
+        {
+            "canonical name": "Cobo, Mayi Guti\u00e9rrez", 
+            "name": "Mayi Guti\u00e9rrez Cobo", 
+            "long imdb name": "Mayi Guti\u00e9rrez Cobo", 
+            "long imdb canonical name": "Cobo, Mayi Guti\u00e9rrez"
+        }, 
+        {
+            "canonical name": "G\u00f3mez, Miguel Angel", 
+            "name": "Miguel Angel G\u00f3mez", 
+            "long imdb name": "Miguel Angel G\u00f3mez", 
+            "long imdb canonical name": "G\u00f3mez, Miguel Angel"
+        }, 
+        {
+            "canonical name": "Lovece, Juan", 
+            "name": "Juan Lovece", 
+            "long imdb name": "Juan Lovece", 
+            "long imdb canonical name": "Lovece, Juan"
+        }, 
+        {
+            "canonical name": "Moreno, Mar\u00eda", 
+            "name": "Mar\u00eda Moreno", 
+            "long imdb name": "Mar\u00eda Moreno", 
+            "long imdb canonical name": "Moreno, Mar\u00eda"
+        }, 
+        {
+            "canonical name": "Rutolo, Daniel", 
+            "name": "Daniel Rutolo", 
+            "long imdb name": "Daniel Rutolo", 
+            "long imdb canonical name": "Rutolo, Daniel"
+        }
+    ], 
+    "set decoration": [
+        {
+            "canonical name": "Pasini, Antonella", 
+            "name": "Antonella Pasini", 
+            "long imdb name": "Antonella Pasini", 
+            "long imdb canonical name": "Pasini, Antonella"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Estrada, Andr\u00e9s P.", 
+            "name": "Andr\u00e9s P. Estrada", 
+            "long imdb name": "Andr\u00e9s P. Estrada", 
+            "long imdb canonical name": "Estrada, Andr\u00e9s P."
+        }, 
+        {
+            "canonical name": "Capillas, Nacho Ruiz", 
+            "name": "Nacho Ruiz Capillas", 
+            "long imdb name": "Nacho Ruiz Capillas", 
+            "long imdb canonical name": "Capillas, Nacho Ruiz"
+        }, 
+        {
+            "canonical name": "Trapero, Pablo", 
+            "name": "Pablo Trapero", 
+            "long imdb name": "Pablo Trapero", 
+            "long imdb canonical name": "Trapero, Pablo"
+        }
+    ], 
+    "certificates": [
+        "Argentina:16", 
+        "Australia:MA15+::(2013)", 
+        "France:Tous publics", 
+        "Ireland:15A", 
+        "Mexico:B15", 
+        "Netherlands:12", 
+        "New Zealand:R16", 
+        "Spain:13", 
+        "UK:15", 
+        "USA:Not Rated"
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "D'Elia, Vicente", 
+            "name": "Vicente D'Elia", 
+            "long imdb name": "Vicente D'Elia", 
+            "long imdb canonical name": "D'Elia, Vicente"
+        }, 
+        {
+            "canonical name": "de Loredo, Leandro", 
+            "name": "Leandro de Loredo", 
+            "long imdb name": "Leandro de Loredo", 
+            "long imdb canonical name": "de Loredo, Leandro"
+        }, 
+        {
+            "canonical name": "Esquerro, Federico", 
+            "name": "Federico Esquerro", 
+            "long imdb name": "Federico Esquerro", 
+            "long imdb canonical name": "Esquerro, Federico"
+        }, 
+        {
+            "canonical name": "Lid\u00f3n, Carlos", 
+            "name": "Carlos Lid\u00f3n", 
+            "long imdb name": "Carlos Lid\u00f3n", 
+            "long imdb canonical name": "Lid\u00f3n, Carlos"
+        }, 
+        {
+            "canonical name": "Migone, Roberto", 
+            "name": "Roberto Migone", 
+            "long imdb name": "Roberto Migone", 
+            "long imdb canonical name": "Migone, Roberto"
+        }, 
+        {
+            "canonical name": "Pedemonte, Francisco", 
+            "name": "Francisco Pedemonte", 
+            "long imdb name": "Francisco Pedemonte", 
+            "long imdb canonical name": "Pedemonte, Francisco"
+        }
+    ], 
+    "long imdb title": "Elefante blanco (2012)", 
+    "country codes": [
+        "ar", 
+        "es", 
+        "fr"
+    ], 
+    "language codes": [
+        "es"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BMTM5MjQzMDkyM15BMl5BanBnXkFtZTcwMjczMjk2Nw@@._V1._SX100_SY140_.jpg", 
+    "special effects department": [
+        {
+            "canonical name": "Cueva, Federico", 
+            "name": "Federico Cueva", 
+            "long imdb name": "Federico Cueva", 
+            "long imdb canonical name": "Cueva, Federico"
+        }
+    ], 
+    "editorial department": [
+        {
+            "canonical name": "Cavanagh, Luisa", 
+            "name": "Luisa Cavanagh", 
+            "long imdb name": "Luisa Cavanagh", 
+            "long imdb canonical name": "Cavanagh, Luisa"
+        }, 
+        {
+            "canonical name": "G\u00f3mez, Beatriz", 
+            "name": "Beatriz G\u00f3mez", 
+            "long imdb name": "Beatriz G\u00f3mez", 
+            "long imdb canonical name": "G\u00f3mez, Beatriz"
+        }, 
+        {
+            "canonical name": "Pernich, Tom\u00e1s", 
+            "name": "Tom\u00e1s Pernich", 
+            "long imdb name": "Tom\u00e1s Pernich", 
+            "long imdb canonical name": "Pernich, Tom\u00e1s"
+        }
+    ], 
+    "location management": [
+        {
+            "canonical name": "Bentancur, Nicolas Agustin", 
+            "name": "Nicolas Agustin Bentancur", 
+            "long imdb name": "Nicolas Agustin Bentancur", 
+            "long imdb canonical name": "Bentancur, Nicolas Agustin"
+        }, 
+        {
+            "canonical name": "Escudero, Manuel Fernandez", 
+            "name": "Manuel Fernandez Escudero", 
+            "long imdb name": "Manuel Fernandez Escudero", 
+            "long imdb canonical name": "Escudero, Manuel Fernandez"
+        }
+    ], 
+    "genres": [
+        "Drama"
+    ], 
+    "director": [
+        {
+            "canonical name": "Trapero, Pablo", 
+            "name": "Pablo Trapero", 
+            "long imdb name": "Pablo Trapero", 
+            "long imdb canonical name": "Trapero, Pablo"
+        }
+    ], 
+    "stunt performer": [
+        {
+            "canonical name": "Cueva, Federico", 
+            "name": "Federico Cueva", 
+            "long imdb name": "Federico Cueva", 
+            "long imdb canonical name": "Cueva, Federico"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Nieto, Guillermo", 
+            "name": "Guillermo Nieto", 
+            "long imdb name": "Guillermo Nieto", 
+            "long imdb canonical name": "Nieto, Guillermo"
+        }
+    ], 
+    "art direction": [
+        {
+            "canonical name": "Brun, Fernando", 
+            "name": "Fernando Brun", 
+            "long imdb name": "Fernando Brun", 
+            "long imdb canonical name": "Brun, Fernando"
+        }
+    ], 
+    "akas": [
+        "Elefante blanco::France (imdb display title), Spain (imdb display title)", 
+        "White Elephant::International (English title) (imdb display title)", 
+        "\u0411\u0435\u043b\u044b\u0439 \u0441\u043b\u043e\u043d::Russia", 
+        "Bialy slon::Poland (imdb display title)", 
+        "Die verborgene Stadt::Germany (imdb display title)", 
+        "Elefante Branco::Brazil (imdb display title)", 
+        "Lefkos elefantas::Greece (imdb display title)"
+    ], 
+    "aspect ratio": "2.35 : 1", 
+    "production companies": [
+        {
+            "name": "ARTE", 
+            "long imdb name": "ARTE"
+        }, 
+        {
+            "name": "Borsalino Productions", 
+            "long imdb name": "Borsalino Productions"
+        }, 
+        {
+            "name": "Canal+ Espa\u00f1a", 
+            "long imdb name": "Canal+ Espa\u00f1a"
+        }, 
+        {
+            "name": "Canal+", 
+            "long imdb name": "Canal+"
+        }, 
+        {
+            "name": "Full House", 
+            "long imdb name": "Full House"
+        }, 
+        {
+            "name": "Instituto Nacional de Cine y Artes Audiovisuales", 
+            "long imdb name": "Instituto Nacional de Cine y Artes Audiovisuales"
+        }, 
+        {
+            "name": "Instituto de la Cinematograf\u00eda y de las Artes Audiovisuales", 
+            "long imdb name": "Instituto de la Cinematograf\u00eda y de las Artes Audiovisuales"
+        }, 
+        {
+            "name": "Maneki Films", 
+            "long imdb name": "Maneki Films"
+        }, 
+        {
+            "name": "Matanza Cine", 
+            "long imdb name": "Matanza Cine"
+        }, 
+        {
+            "name": "Morena Films", 
+            "long imdb name": "Morena Films"
+        }, 
+        {
+            "name": "Patagonik Film Group", 
+            "long imdb name": "Patagonik Film Group"
+        }, 
+        {
+            "name": "Televisi\u00f3n Espa\u00f1ola", 
+            "long imdb name": "Televisi\u00f3n Espa\u00f1ola"
+        }, 
+        {
+            "name": "Wild Bunch", 
+            "long imdb name": "Wild Bunch"
+        }
+    ], 
+    "kind": "movie", 
+    "art department": [
+        {
+            "canonical name": "Castelo, Fernanda", 
+            "name": "Fernanda Castelo", 
+            "long imdb name": "Fernanda Castelo", 
+            "long imdb canonical name": "Castelo, Fernanda"
+        }, 
+        {
+            "canonical name": "Cortona, Alejandro", 
+            "name": "Alejandro Cortona", 
+            "long imdb name": "Alejandro Cortona", 
+            "long imdb canonical name": "Cortona, Alejandro"
+        }, 
+        {
+            "canonical name": "Pasini, Antonella", 
+            "name": "Antonella Pasini", 
+            "long imdb name": "Antonella Pasini", 
+            "long imdb canonical name": "Pasini, Antonella"
+        }
+    ], 
+    "countries": [
+        "Argentina", 
+        "Spain", 
+        "France"
+    ], 
+    "plot outline": "While working alongside his long-time friend and colleague in building a hospital for the residents of a Buenos Aries shantytown, a troubled priest finds solace in a young, atheist social worker.", 
+    "plot": [
+        "The \"Villa Virgin\", a shantytown in the slums of Buenos Aires. Julian and Nicolas, two priests and long-standing friends, work tirelessly to help the local people. Julian uses his political connections to oversee the construction of a hospital. Nicolas joins him following the failure of a project he was leading in the jungle, after paramilitary forces assassinated members of the community. Deeply troubled, he finds a little comfort in Luciana, a young, attractive, atheist social worker. As Nicolas' faith weakens, tension and violence between the slum drug dealing cartels grow. And when work on the hospital is halted by ministerial decree, the fuse is lit...", 
+        "While working alongside his long-time friend and colleague in building a hospital for the residents of a Buenos Aries shantytown, a troubled priest finds solace in a young, atheist social worker."
+    ], 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BMTM5MjQzMDkyM15BMl5BanBnXkFtZTcwMjczMjk2Nw@@.jpg", 
+    "canonical title": "Elefante blanco", 
+    "cast": [
+        {
+            "canonical name": "Dar\u00edn, Ricardo", 
+            "name": "Ricardo Dar\u00edn", 
+            "long imdb name": "Ricardo Dar\u00edn", 
+            "long imdb canonical name": "Dar\u00edn, Ricardo"
+        }, 
+        {
+            "canonical name": "Renier, J\u00e9r\u00e9mie", 
+            "name": "J\u00e9r\u00e9mie Renier", 
+            "long imdb name": "J\u00e9r\u00e9mie Renier", 
+            "long imdb canonical name": "Renier, J\u00e9r\u00e9mie"
+        }, 
+        {
+            "canonical name": "Gusman, Martina", 
+            "name": "Martina Gusman", 
+            "long imdb name": "Martina Gusman", 
+            "long imdb canonical name": "Gusman, Martina"
+        }, 
+        {
+            "canonical name": "Arancibia, Miguel", 
+            "name": "Miguel Arancibia", 
+            "long imdb name": "Miguel Arancibia", 
+            "long imdb canonical name": "Arancibia, Miguel"
+        }, 
+        {
+            "canonical name": "Barga, Federico", 
+            "name": "Federico Barga", 
+            "long imdb name": "Federico Barga", 
+            "long imdb canonical name": "Barga, Federico"
+        }, 
+        {
+            "canonical name": "D\u00edaz, Esteban", 
+            "name": "Esteban D\u00edaz", 
+            "long imdb name": "Esteban D\u00edaz", 
+            "long imdb canonical name": "D\u00edaz, Esteban"
+        }, 
+        {
+            "canonical name": "Gatti, Pablo", 
+            "name": "Pablo Gatti", 
+            "long imdb name": "Pablo Gatti", 
+            "long imdb canonical name": "Gatti, Pablo"
+        }, 
+        {
+            "canonical name": "Jakob, Walter", 
+            "name": "Walter Jakob", 
+            "long imdb name": "Walter Jakob", 
+            "long imdb canonical name": "Jakob, Walter"
+        }, 
+        {
+            "canonical name": "Ramos, Raul", 
+            "name": "Raul Ramos", 
+            "long imdb name": "Raul Ramos", 
+            "long imdb canonical name": "Ramos, Raul"
+        }, 
+        {
+            "canonical name": "Varela, Susana", 
+            "name": "Susana Varela", 
+            "long imdb name": "Susana Varela", 
+            "long imdb canonical name": "Varela, Susana"
+        }, 
+        {
+            "canonical name": "Zarza, Julio", 
+            "name": "Julio Zarza", 
+            "long imdb name": "Julio Zarza", 
+            "long imdb canonical name": "Zarza, Julio"
+        }
+    ], 
+    "smart long imdb canonical title": "Elefante blanco (2012)", 
+    "costume department": [
+        {
+            "canonical name": "Alaluf, Nora Lia", 
+            "name": "Nora Lia Alaluf", 
+            "long imdb name": "Nora Lia Alaluf", 
+            "long imdb canonical name": "Alaluf, Nora Lia"
+        }
+    ], 
+    "original music": [
+        {
+            "canonical name": "Nyman, Michael", 
+            "name": "Michael Nyman", 
+            "long imdb name": "Michael Nyman", 
+            "long imdb canonical name": "Nyman, Michael"
+        }
+    ], 
+    "smart canonical title": "Elefante blanco"
+}

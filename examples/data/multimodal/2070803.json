@@ -1,0 +1,683 @@
+{
+    "music department": [
+        {
+            "canonical name": "J\u00e4gerstedt, Markus", 
+            "name": "Markus J\u00e4gerstedt", 
+            "long imdb name": "Markus J\u00e4gerstedt", 
+            "long imdb canonical name": "J\u00e4gerstedt, Markus"
+        }
+    ], 
+    "camera and electrical department": [
+        {
+            "canonical name": "Bye, Atle", 
+            "name": "Atle Bye", 
+            "long imdb name": "Atle Bye", 
+            "long imdb canonical name": "Bye, Atle"
+        }, 
+        {
+            "canonical name": "Kustosik, Robert", 
+            "name": "Robert Kustosik", 
+            "long imdb name": "Robert Kustosik", 
+            "long imdb canonical name": "Kustosik, Robert"
+        }, 
+        {
+            "canonical name": "K\u00e4\u00e4nt\u00e4, Kent", 
+            "name": "Kent K\u00e4\u00e4nt\u00e4", 
+            "long imdb name": "Kent K\u00e4\u00e4nt\u00e4", 
+            "long imdb canonical name": "K\u00e4\u00e4nt\u00e4, Kent"
+        }, 
+        {
+            "canonical name": "Ohlstr\u00f6m, Bj\u00f6rn", 
+            "name": "Bj\u00f6rn Ohlstr\u00f6m", 
+            "long imdb name": "Bj\u00f6rn Ohlstr\u00f6m", 
+            "long imdb canonical name": "Ohlstr\u00f6m, Bj\u00f6rn"
+        }, 
+        {
+            "canonical name": "Slininger, Davon", 
+            "name": "Davon Slininger", 
+            "long imdb name": "Davon Slininger", 
+            "long imdb canonical name": "Slininger, Davon"
+        }, 
+        {
+            "canonical name": "Stenwall, Karin", 
+            "name": "Karin Stenwall", 
+            "long imdb name": "Karin Stenwall", 
+            "long imdb canonical name": "Stenwall, Karin"
+        }, 
+        {
+            "canonical name": "Str\u00f6m, Carl-Mikael", 
+            "name": "Carl-Mikael Str\u00f6m", 
+            "long imdb name": "Carl-Mikael Str\u00f6m", 
+            "long imdb canonical name": "Str\u00f6m, Carl-Mikael"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "Nordisk Film AB", 
+            "long imdb name": "Nordisk Film AB"
+        }
+    ], 
+    "rating": 6.3, 
+    "costume designer": [
+        {
+            "canonical name": "Sj\u00f6lin, Ulrika", 
+            "name": "Ulrika Sj\u00f6lin", 
+            "long imdb name": "Ulrika Sj\u00f6lin", 
+            "long imdb canonical name": "Sj\u00f6lin, Ulrika"
+        }
+    ], 
+    "make up": [
+        {
+            "canonical name": "Gustafsson, Caroline", 
+            "name": "Caroline Gustafsson", 
+            "long imdb name": "Caroline Gustafsson", 
+            "long imdb canonical name": "Gustafsson, Caroline"
+        }, 
+        {
+            "canonical name": "Karlsson, Camilla", 
+            "name": "Camilla Karlsson", 
+            "long imdb name": "Camilla Karlsson", 
+            "long imdb canonical name": "Karlsson, Camilla"
+        }, 
+        {
+            "canonical name": "Sj\u00f6lin, Ulrika", 
+            "name": "Ulrika Sj\u00f6lin", 
+            "long imdb name": "Ulrika Sj\u00f6lin", 
+            "long imdb canonical name": "Sj\u00f6lin, Ulrika"
+        }
+    ], 
+    "year": 2012, 
+    "production design": [
+        {
+            "canonical name": "Sj\u00f6gren, Sara", 
+            "name": "Sara Sj\u00f6gren", 
+            "long imdb name": "Sara Sj\u00f6gren", 
+            "long imdb canonical name": "Sj\u00f6gren, Sara"
+        }
+    ], 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Clauss, Maria", 
+            "name": "Maria Clauss", 
+            "long imdb name": "Maria Clauss", 
+            "long imdb canonical name": "Clauss, Maria"
+        }, 
+        {
+            "canonical name": "Karlsson, Eva-Lena", 
+            "name": "Eva-Lena Karlsson", 
+            "long imdb name": "Eva-Lena Karlsson", 
+            "long imdb canonical name": "Karlsson, Eva-Lena"
+        }, 
+        {
+            "canonical name": "Sanders, Anna Lebar", 
+            "name": "Anna Lebar Sanders", 
+            "long imdb name": "Anna Lebar Sanders", 
+            "long imdb canonical name": "Sanders, Anna Lebar"
+        }, 
+        {
+            "canonical name": "Olsson, Claes", 
+            "name": "Claes Olsson", 
+            "long imdb name": "Claes Olsson", 
+            "long imdb canonical name": "Olsson, Claes"
+        }
+    ], 
+    "color info": [], 
+    "special effects department": [
+        {
+            "canonical name": "Haraldsted, S\u00f8ren Skov", 
+            "name": "S\u00f8ren Skov Haraldsted", 
+            "long imdb name": "S\u00f8ren Skov Haraldsted", 
+            "long imdb canonical name": "Haraldsted, S\u00f8ren Skov"
+        }, 
+        {
+            "canonical name": "Hedegaard, Mark", 
+            "name": "Mark Hedegaard", 
+            "long imdb name": "Mark Hedegaard", 
+            "long imdb canonical name": "Hedegaard, Mark"
+        }, 
+        {
+            "canonical name": "H\u00f8imark, Carl Oscar", 
+            "name": "Carl Oscar H\u00f8imark", 
+            "long imdb name": "Carl Oscar H\u00f8imark", 
+            "long imdb canonical name": "H\u00f8imark, Carl Oscar"
+        }, 
+        {
+            "canonical name": "H\u00f8jmark, Hummer", 
+            "name": "Hummer H\u00f8jmark", 
+            "long imdb name": "Hummer H\u00f8jmark", 
+            "long imdb canonical name": "H\u00f8jmark, Hummer"
+        }, 
+        {
+            "canonical name": "Kitter, Christian", 
+            "name": "Christian Kitter", 
+            "long imdb name": "Christian Kitter", 
+            "long imdb canonical name": "Kitter, Christian"
+        }
+    ], 
+    "visual effects": [
+        {
+            "canonical name": "Blomdahl, H\u00e5kan", 
+            "name": "H\u00e5kan Blomdahl", 
+            "long imdb name": "H\u00e5kan Blomdahl", 
+            "long imdb canonical name": "Blomdahl, H\u00e5kan"
+        }, 
+        {
+            "canonical name": "Toorell, Johan", 
+            "name": "Johan Toorell", 
+            "long imdb name": "Johan Toorell", 
+            "long imdb canonical name": "Toorell, Johan"
+        }
+    ], 
+    "votes": 99, 
+    "producer": [
+        {
+            "canonical name": "Ask, Jessica", 
+            "name": "Jessica Ask", 
+            "long imdb name": "Jessica Ask", 
+            "long imdb canonical name": "Ask, Jessica"
+        }, 
+        {
+            "canonical name": "Carlsson, Gunnar", 
+            "name": "Gunnar Carlsson", 
+            "long imdb name": "Gunnar Carlsson", 
+            "long imdb canonical name": "Carlsson, Gunnar"
+        }, 
+        {
+            "canonical name": "Lidbeck, Malcolm", 
+            "name": "Malcolm Lidbeck", 
+            "long imdb name": "Malcolm Lidbeck", 
+            "long imdb canonical name": "Lidbeck, Malcolm"
+        }, 
+        {
+            "canonical name": "Mohlin, Leif", 
+            "name": "Leif Mohlin", 
+            "long imdb name": "Leif Mohlin", 
+            "long imdb canonical name": "Mohlin, Leif"
+        }, 
+        {
+            "canonical name": "Olsson, David", 
+            "name": "David Olsson", 
+            "long imdb name": "David Olsson", 
+            "long imdb canonical name": "Olsson, David"
+        }
+    ], 
+    "title": "Lycka till och ta hand om varandra", 
+    "assistant director": [
+        {
+            "canonical name": "Isla, Leo", 
+            "name": "Leo Isla", 
+            "long imdb name": "Leo Isla", 
+            "long imdb canonical name": "Isla, Leo"
+        }, 
+        {
+            "canonical name": "Sanders, Anna Lebar", 
+            "name": "Anna Lebar Sanders", 
+            "long imdb name": "Anna Lebar Sanders", 
+            "long imdb canonical name": "Sanders, Anna Lebar"
+        }, 
+        {
+            "canonical name": "Ramirez, Yvette", 
+            "name": "Yvette Ramirez", 
+            "long imdb name": "Yvette Ramirez", 
+            "long imdb canonical name": "Ramirez, Yvette"
+        }, 
+        {
+            "canonical name": "Velasquez, James", 
+            "name": "James Velasquez", 
+            "long imdb name": "James Velasquez", 
+            "long imdb canonical name": "Velasquez, James"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "Haglund, Kalle", 
+            "name": "Kalle Haglund", 
+            "long imdb name": "Kalle Haglund", 
+            "long imdb canonical name": "Haglund, Kalle"
+        }
+    ], 
+    "long imdb canonical title": "Lycka till och ta hand om varandra (2012)", 
+    "languages": [
+        "Swedish"
+    ], 
+    "production manager": [
+        {
+            "canonical name": "Bye, Atle", 
+            "name": "Atle Bye", 
+            "long imdb name": "Atle Bye", 
+            "long imdb canonical name": "Bye, Atle"
+        }
+    ], 
+    "casting director": [
+        {
+            "canonical name": "Schultzberg, Malou", 
+            "name": "Malou Schultzberg", 
+            "long imdb name": "Malou Schultzberg", 
+            "long imdb canonical name": "Schultzberg, Malou"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Mark, Henning", 
+            "name": "Henning Mark", 
+            "long imdb name": "Henning Mark", 
+            "long imdb canonical name": "Mark, Henning"
+        }
+    ], 
+    "certificates": [
+        "Sweden:7"
+    ], 
+    "costume department": [
+        {
+            "canonical name": "Engstr\u00f6m, Elin", 
+            "name": "Elin Engstr\u00f6m", 
+            "long imdb name": "Elin Engstr\u00f6m", 
+            "long imdb canonical name": "Engstr\u00f6m, Elin"
+        }, 
+        {
+            "canonical name": "Wing\u00e5rd, Flora", 
+            "name": "Flora Wing\u00e5rd", 
+            "long imdb name": "Flora Wing\u00e5rd", 
+            "long imdb canonical name": "Wing\u00e5rd, Flora"
+        }
+    ], 
+    "long imdb title": "Lycka till och ta hand om varandra (2012)", 
+    "country codes": [
+        "se"
+    ], 
+    "language codes": [
+        "sv"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BOTU3YzMzNWQtOGVmNy00YzEwLTgzOGEtZGI5ODZiMzMyYWQxXkEyXkFqcGdeQXVyMTQzMjU1NjE@._V1._SX95_SY140_.jpg", 
+    "casting department": [
+        {
+            "canonical name": "Elinderson, Stina", 
+            "name": "Stina Elinderson", 
+            "long imdb name": "Stina Elinderson", 
+            "long imdb canonical name": "Elinderson, Stina"
+        }, 
+        {
+            "canonical name": "Forn\u00e4nger, Fredrik", 
+            "name": "Fredrik Forn\u00e4nger", 
+            "long imdb name": "Fredrik Forn\u00e4nger", 
+            "long imdb canonical name": "Forn\u00e4nger, Fredrik"
+        }
+    ], 
+    "special effects companies": [
+        {
+            "name": "Filmgate", 
+            "long imdb name": "Filmgate"
+        }
+    ], 
+    "location management": [
+        {
+            "canonical name": "Magnusson, Maria", 
+            "name": "Maria Magnusson", 
+            "long imdb name": "Maria Magnusson", 
+            "long imdb canonical name": "Magnusson, Maria"
+        }, 
+        {
+            "canonical name": "Thornblad, John", 
+            "name": "John Thornblad", 
+            "long imdb name": "John Thornblad", 
+            "long imdb canonical name": "Thornblad, John"
+        }
+    ], 
+    "genres": [
+        "Comedy", 
+        "Drama"
+    ], 
+    "director": [
+        {
+            "canonical name": "Sj\u00f6gren, Jens", 
+            "name": "Jens Sj\u00f6gren", 
+            "long imdb name": "Jens Sj\u00f6gren", 
+            "long imdb canonical name": "Sj\u00f6gren, Jens"
+        }
+    ], 
+    "stunt performer": [
+        {
+            "canonical name": "Zetterlund, Martin", 
+            "name": "Martin Zetterlund", 
+            "long imdb name": "Martin Zetterlund", 
+            "long imdb canonical name": "Zetterlund, Martin"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Sandgren, Linus", 
+            "name": "Linus Sandgren", 
+            "long imdb name": "Linus Sandgren", 
+            "long imdb canonical name": "Sandgren, Linus"
+        }
+    ], 
+    "akas": [
+        "Viel Gl\u00fcck, und passt auf euch auf::Germany (imdb display title)"
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "Andersson, Henric", 
+            "name": "Henric Andersson", 
+            "long imdb name": "Henric Andersson", 
+            "long imdb canonical name": "Andersson, Henric"
+        }, 
+        {
+            "canonical name": "Degerberg, Anders", 
+            "name": "Anders Degerberg", 
+            "long imdb name": "Anders Degerberg", 
+            "long imdb canonical name": "Degerberg, Anders"
+        }, 
+        {
+            "canonical name": "Guldager, Erik", 
+            "name": "Erik Guldager", 
+            "long imdb name": "Erik Guldager", 
+            "long imdb canonical name": "Guldager, Erik"
+        }, 
+        {
+            "canonical name": "Guldager, Erik", 
+            "name": "Erik Guldager", 
+            "long imdb name": "Erik Guldager", 
+            "long imdb canonical name": "Guldager, Erik"
+        }, 
+        {
+            "canonical name": "Karshikoff, Aleksander", 
+            "name": "Aleksander Karshikoff", 
+            "long imdb name": "Aleksander Karshikoff", 
+            "long imdb canonical name": "Karshikoff, Aleksander"
+        }, 
+        {
+            "canonical name": "Kristoffersson, Sara", 
+            "name": "Sara Kristoffersson", 
+            "long imdb name": "Sara Kristoffersson", 
+            "long imdb canonical name": "Kristoffersson, Sara"
+        }, 
+        {
+            "canonical name": "N\u00e4slund, Joel", 
+            "name": "Joel N\u00e4slund", 
+            "long imdb name": "Joel N\u00e4slund", 
+            "long imdb canonical name": "N\u00e4slund, Joel"
+        }, 
+        {
+            "canonical name": "Olausson, Ulf", 
+            "name": "Ulf Olausson", 
+            "long imdb name": "Ulf Olausson", 
+            "long imdb canonical name": "Olausson, Ulf"
+        }, 
+        {
+            "canonical name": "Pasztor, G\u00e1bor", 
+            "name": "G\u00e1bor Pasztor", 
+            "long imdb name": "G\u00e1bor Pasztor", 
+            "long imdb canonical name": "Pasztor, G\u00e1bor"
+        }, 
+        {
+            "canonical name": "Silverin, David", 
+            "name": "David Silverin", 
+            "long imdb name": "David Silverin", 
+            "long imdb canonical name": "Silverin, David"
+        }
+    ], 
+    "production companies": [
+        {
+            "name": "Acne Film", 
+            "long imdb name": "Acne Film"
+        }, 
+        {
+            "name": "Film V\u00e4st", 
+            "long imdb name": "Film V\u00e4st"
+        }, 
+        {
+            "name": "Svenska Filminstitutet", 
+            "long imdb name": "Svenska Filminstitutet"
+        }
+    ], 
+    "kind": "movie", 
+    "art department": [
+        {
+            "canonical name": "Back, Mikael", 
+            "name": "Mikael Back", 
+            "long imdb name": "Mikael Back", 
+            "long imdb canonical name": "Back, Mikael"
+        }, 
+        {
+            "canonical name": "Davidsson, Mats", 
+            "name": "Mats Davidsson", 
+            "long imdb name": "Mats Davidsson", 
+            "long imdb canonical name": "Davidsson, Mats"
+        }, 
+        {
+            "canonical name": "Dotevall, Ida", 
+            "name": "Ida Dotevall", 
+            "long imdb name": "Ida Dotevall", 
+            "long imdb canonical name": "Dotevall, Ida"
+        }, 
+        {
+            "canonical name": "Flink, Elin", 
+            "name": "Elin Flink", 
+            "long imdb name": "Elin Flink", 
+            "long imdb canonical name": "Flink, Elin"
+        }, 
+        {
+            "canonical name": "Gr\u00f6nvall, Rickard", 
+            "name": "Rickard Gr\u00f6nvall", 
+            "long imdb name": "Rickard Gr\u00f6nvall", 
+            "long imdb canonical name": "Gr\u00f6nvall, Rickard"
+        }, 
+        {
+            "canonical name": "Lagerberg, G\u00f6ran", 
+            "name": "G\u00f6ran Lagerberg", 
+            "long imdb name": "G\u00f6ran Lagerberg", 
+            "long imdb canonical name": "Lagerberg, G\u00f6ran"
+        }, 
+        {
+            "canonical name": "Sandgren, Linus", 
+            "name": "Linus Sandgren", 
+            "long imdb name": "Linus Sandgren", 
+            "long imdb canonical name": "Sandgren, Linus"
+        }, 
+        {
+            "canonical name": "Sandqvist, Karin", 
+            "name": "Karin Sandqvist", 
+            "long imdb name": "Karin Sandqvist", 
+            "long imdb canonical name": "Sandqvist, Karin"
+        }, 
+        {
+            "canonical name": "Sj\u00f6gren, Sara", 
+            "name": "Sara Sj\u00f6gren", 
+            "long imdb name": "Sara Sj\u00f6gren", 
+            "long imdb canonical name": "Sj\u00f6gren, Sara"
+        }, 
+        {
+            "canonical name": "Wiktorin, Erika", 
+            "name": "Erika Wiktorin", 
+            "long imdb name": "Erika Wiktorin", 
+            "long imdb canonical name": "Wiktorin, Erika"
+        }, 
+        {
+            "canonical name": "Wiren, Lars Rickard", 
+            "name": "Lars Rickard Wiren", 
+            "long imdb name": "Lars Rickard Wiren", 
+            "long imdb canonical name": "Wiren, Lars Rickard"
+        }, 
+        {
+            "canonical name": "Zandhoff, Frank", 
+            "name": "Frank Zandhoff", 
+            "long imdb name": "Frank Zandhoff", 
+            "long imdb canonical name": "Zandhoff, Frank"
+        }
+    ], 
+    "countries": [
+        "Sweden"
+    ], 
+    "transportation department": [
+        {
+            "canonical name": "Stjepic, Maki", 
+            "name": "Maki Stjepic", 
+            "long imdb name": "Maki Stjepic", 
+            "long imdb canonical name": "Stjepic, Maki"
+        }
+    ], 
+    "plot outline": "Alvar is a pensioner who hides his guilt by \"constructing\" fictitious memoirs. By chance he meets Miriam...", 
+    "plot": [
+        "Alvar is a pensioner who hides his guilt by \"constructing\" fictitious memoirs. By chance he meets Miriam, a socially tone deaf and obstinate teenager, and they become friends. Their friendship deepens when they begin to inspire downhearted people with public art, and comes to a head when they themselves have to blossom."
+    ], 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BOTU3YzMzNWQtOGVmNy00YzEwLTgzOGEtZGI5ODZiMzMyYWQxXkEyXkFqcGdeQXVyMTQzMjU1NjE@.jpg", 
+    "canonical title": "Lycka till och ta hand om varandra", 
+    "cast": [
+        {
+            "canonical name": "Carlsson, Bengt C.W.", 
+            "name": "Bengt C.W. Carlsson", 
+            "long imdb name": "Bengt C.W. Carlsson", 
+            "long imdb canonical name": "Carlsson, Bengt C.W."
+        }, 
+        {
+            "canonical name": "Neij, Claudia", 
+            "name": "Claudia Neij", 
+            "long imdb name": "Claudia Neij", 
+            "long imdb canonical name": "Neij, Claudia"
+        }, 
+        {
+            "canonical name": "Nord, Ika", 
+            "name": "Ika Nord", 
+            "long imdb name": "Ika Nord", 
+            "long imdb canonical name": "Nord, Ika"
+        }, 
+        {
+            "canonical name": "Gunnarsson, Fredrik", 
+            "name": "Fredrik Gunnarsson", 
+            "long imdb name": "Fredrik Gunnarsson", 
+            "long imdb canonical name": "Gunnarsson, Fredrik"
+        }, 
+        {
+            "canonical name": "Ahrle, Leif", 
+            "name": "Leif Ahrle", 
+            "long imdb name": "Leif Ahrle", 
+            "long imdb canonical name": "Ahrle, Leif"
+        }, 
+        {
+            "canonical name": "Langhammer, Ia", 
+            "name": "Ia Langhammer", 
+            "long imdb name": "Ia Langhammer", 
+            "long imdb canonical name": "Langhammer, Ia"
+        }, 
+        {
+            "canonical name": "Ulveson, Johan", 
+            "name": "Johan Ulveson", 
+            "long imdb name": "Johan Ulveson", 
+            "long imdb canonical name": "Ulveson, Johan"
+        }, 
+        {
+            "canonical name": "Gr\u00f6ning, Eleonora", 
+            "name": "Eleonora Gr\u00f6ning", 
+            "long imdb name": "Eleonora Gr\u00f6ning", 
+            "long imdb canonical name": "Gr\u00f6ning, Eleonora"
+        }, 
+        {
+            "canonical name": "De Geer, Carl Johan", 
+            "name": "Carl Johan De Geer", 
+            "long imdb name": "Carl Johan De Geer", 
+            "long imdb canonical name": "De Geer, Carl Johan"
+        }, 
+        {
+            "canonical name": "Vikman, Henrik", 
+            "name": "Henrik Vikman", 
+            "long imdb name": "Henrik Vikman", 
+            "long imdb canonical name": "Vikman, Henrik"
+        }, 
+        {
+            "canonical name": "Fj\u00e4llstr\u00f6m, Christer", 
+            "name": "Christer Fj\u00e4llstr\u00f6m", 
+            "long imdb name": "Christer Fj\u00e4llstr\u00f6m", 
+            "long imdb canonical name": "Fj\u00e4llstr\u00f6m, Christer"
+        }, 
+        {
+            "canonical name": "Almkvist, Simon", 
+            "name": "Simon Almkvist", 
+            "long imdb name": "Simon Almkvist", 
+            "long imdb canonical name": "Almkvist, Simon"
+        }, 
+        {
+            "canonical name": "Andersson, Paulina", 
+            "name": "Paulina Andersson", 
+            "long imdb name": "Paulina Andersson", 
+            "long imdb canonical name": "Andersson, Paulina"
+        }, 
+        {
+            "canonical name": "Elfstr\u00f6m, Homan", 
+            "name": "Homan Elfstr\u00f6m", 
+            "long imdb name": "Homan Elfstr\u00f6m", 
+            "long imdb canonical name": "Elfstr\u00f6m, Homan"
+        }, 
+        {
+            "canonical name": "Emanuelsson, Lena", 
+            "name": "Lena Emanuelsson", 
+            "long imdb name": "Lena Emanuelsson", 
+            "long imdb canonical name": "Emanuelsson, Lena"
+        }, 
+        {
+            "canonical name": "Haglund, Kalle", 
+            "name": "Kalle Haglund", 
+            "long imdb name": "Kalle Haglund", 
+            "long imdb canonical name": "Haglund, Kalle"
+        }, 
+        {
+            "canonical name": "Jutblad, Nils", 
+            "name": "Nils Jutblad", 
+            "long imdb name": "Nils Jutblad", 
+            "long imdb canonical name": "Jutblad, Nils"
+        }, 
+        {
+            "canonical name": "Lien, Karin", 
+            "name": "Karin Lien", 
+            "long imdb name": "Karin Lien", 
+            "long imdb canonical name": "Lien, Karin"
+        }, 
+        {
+            "canonical name": "Mossberg, Henrik", 
+            "name": "Henrik Mossberg", 
+            "long imdb name": "Henrik Mossberg", 
+            "long imdb canonical name": "Mossberg, Henrik"
+        }, 
+        {
+            "canonical name": "Sj\u00f6man, Henrik", 
+            "name": "Henrik Sj\u00f6man", 
+            "long imdb name": "Henrik Sj\u00f6man", 
+            "long imdb canonical name": "Sj\u00f6man, Henrik"
+        }, 
+        {
+            "canonical name": "T\u00e4ng-Ekfeldt, Monica", 
+            "name": "Monica T\u00e4ng-Ekfeldt", 
+            "long imdb name": "Monica T\u00e4ng-Ekfeldt", 
+            "long imdb canonical name": "T\u00e4ng-Ekfeldt, Monica"
+        }, 
+        {
+            "canonical name": "Viiala, Kristiina", 
+            "name": "Kristiina Viiala", 
+            "long imdb name": "Kristiina Viiala", 
+            "long imdb canonical name": "Viiala, Kristiina"
+        }
+    ], 
+    "smart long imdb canonical title": "Lycka till och ta hand om varandra (2012)", 
+    "original music": [
+        {
+            "canonical name": "J\u00e4gerstedt, Markus", 
+            "name": "Markus J\u00e4gerstedt", 
+            "long imdb name": "Markus J\u00e4gerstedt", 
+            "long imdb canonical name": "J\u00e4gerstedt, Markus"
+        }
+    ], 
+    "editorial department": [
+        {
+            "canonical name": "Blomdahl, H\u00e5kan", 
+            "name": "H\u00e5kan Blomdahl", 
+            "long imdb name": "H\u00e5kan Blomdahl", 
+            "long imdb canonical name": "Blomdahl, H\u00e5kan"
+        }, 
+        {
+            "canonical name": "Str\u00f6m, Carl-Mikael", 
+            "name": "Carl-Mikael Str\u00f6m", 
+            "long imdb name": "Carl-Mikael Str\u00f6m", 
+            "long imdb canonical name": "Str\u00f6m, Carl-Mikael"
+        }
+    ], 
+    "smart canonical title": "Lycka till och ta hand om varandra"
+}

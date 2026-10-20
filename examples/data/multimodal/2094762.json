@@ -1,0 +1,706 @@
+{
+    "music department": [
+        {
+            "canonical name": "Honess, Gary", 
+            "name": "Gary Honess", 
+            "long imdb name": "Gary Honess", 
+            "long imdb canonical name": "Honess, Gary"
+        }, 
+        {
+            "canonical name": "Kim, Shin", 
+            "name": "Shin Kim", 
+            "long imdb name": "Shin Kim", 
+            "long imdb canonical name": "Kim, Shin"
+        }, 
+        {
+            "canonical name": "Sarrazin, Marie-Eve", 
+            "name": "Marie-Eve Sarrazin", 
+            "long imdb name": "Marie-Eve Sarrazin", 
+            "long imdb canonical name": "Sarrazin, Marie-Eve"
+        }, 
+        {
+            "canonical name": "Seligman, Brian", 
+            "name": "Brian Seligman", 
+            "long imdb name": "Brian Seligman", 
+            "long imdb canonical name": "Seligman, Brian"
+        }
+    ], 
+    "camera and electrical department": [
+        {
+            "canonical name": "Baker, Scott", 
+            "name": "Scott Baker", 
+            "long imdb name": "Scott Baker", 
+            "long imdb canonical name": "Baker, Scott"
+        }, 
+        {
+            "canonical name": "Emms, Tyler", 
+            "name": "Tyler Emms", 
+            "long imdb name": "Tyler Emms", 
+            "long imdb canonical name": "Emms, Tyler"
+        }, 
+        {
+            "canonical name": "Entch, Tex", 
+            "name": "Tex Entch", 
+            "long imdb name": "Tex Entch", 
+            "long imdb canonical name": "Entch, Tex"
+        }, 
+        {
+            "canonical name": "Heathcote, Michael", 
+            "name": "Michael Heathcote", 
+            "long imdb name": "Michael Heathcote", 
+            "long imdb canonical name": "Heathcote, Michael"
+        }, 
+        {
+            "canonical name": "Jewell, Craig", 
+            "name": "Craig Jewell", 
+            "long imdb name": "Craig Jewell", 
+            "long imdb canonical name": "Jewell, Craig"
+        }, 
+        {
+            "canonical name": "Jewell, Craig", 
+            "name": "Craig Jewell", 
+            "long imdb name": "Craig Jewell", 
+            "long imdb canonical name": "Jewell, Craig"
+        }, 
+        {
+            "canonical name": "Kralik, Christopher", 
+            "name": "Christopher Kralik", 
+            "long imdb name": "Christopher Kralik", 
+            "long imdb canonical name": "Kralik, Christopher"
+        }, 
+        {
+            "canonical name": "Kralik, Christopher", 
+            "name": "Christopher Kralik", 
+            "long imdb name": "Christopher Kralik", 
+            "long imdb canonical name": "Kralik, Christopher"
+        }, 
+        {
+            "canonical name": "Patrichi, Catalin", 
+            "name": "Catalin Patrichi", 
+            "long imdb name": "Catalin Patrichi", 
+            "long imdb canonical name": "Patrichi, Catalin"
+        }, 
+        {
+            "canonical name": "Putintsev, Max", 
+            "name": "Max Putintsev", 
+            "long imdb name": "Max Putintsev", 
+            "long imdb canonical name": "Putintsev, Max"
+        }, 
+        {
+            "canonical name": "Tagliaferri, Robert", 
+            "name": "Robert Tagliaferri", 
+            "long imdb name": "Robert Tagliaferri", 
+            "long imdb canonical name": "Tagliaferri, Robert"
+        }, 
+        {
+            "canonical name": "White, Dan Grease", 
+            "name": "Dan Grease White", 
+            "long imdb name": "Dan Grease White", 
+            "long imdb canonical name": "White, Dan Grease"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "Paladin", 
+            "long imdb name": "Paladin"
+        }, 
+        {
+            "name": "Atlantic Film", 
+            "long imdb name": "Atlantic Film"
+        }, 
+        {
+            "name": "E1 Entertainment", 
+            "long imdb name": "E1 Entertainment"
+        }, 
+        {
+            "name": "KVH Media Group", 
+            "long imdb name": "KVH Media Group"
+        }
+    ], 
+    "rating": 4.8, 
+    "runtimes": [
+        "87"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "Harris, Michael", 
+            "name": "Michael Harris", 
+            "long imdb name": "Michael Harris", 
+            "long imdb canonical name": "Harris, Michael"
+        }
+    ], 
+    "make up": [
+        {
+            "canonical name": "Brink, Trina", 
+            "name": "Trina Brink", 
+            "long imdb name": "Trina Brink", 
+            "long imdb canonical name": "Brink, Trina"
+        }, 
+        {
+            "canonical name": "Busey, Erin", 
+            "name": "Erin Busey", 
+            "long imdb name": "Erin Busey", 
+            "long imdb canonical name": "Busey, Erin"
+        }
+    ], 
+    "year": 2013, 
+    "production design": [
+        {
+            "canonical name": "Morrow, Wendy", 
+            "name": "Wendy Morrow", 
+            "long imdb name": "Wendy Morrow", 
+            "long imdb canonical name": "Morrow, Wendy"
+        }
+    ], 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Brown, Aaron", 
+            "name": "Aaron Brown", 
+            "long imdb name": "Aaron Brown", 
+            "long imdb canonical name": "Brown, Aaron"
+        }, 
+        {
+            "canonical name": "Costa, Rachael", 
+            "name": "Rachael Costa", 
+            "long imdb name": "Rachael Costa", 
+            "long imdb canonical name": "Costa, Rachael"
+        }, 
+        {
+            "canonical name": "D'Alessandro, Anthony", 
+            "name": "Anthony D'Alessandro", 
+            "long imdb name": "Anthony D'Alessandro", 
+            "long imdb canonical name": "D'Alessandro, Anthony"
+        }, 
+        {
+            "canonical name": "Harmon, Cynde", 
+            "name": "Cynde Harmon", 
+            "long imdb name": "Cynde Harmon", 
+            "long imdb canonical name": "Harmon, Cynde"
+        }, 
+        {
+            "canonical name": "Herod, Myles", 
+            "name": "Myles Herod", 
+            "long imdb name": "Myles Herod", 
+            "long imdb canonical name": "Herod, Myles"
+        }, 
+        {
+            "canonical name": "Leznoff, Daniel", 
+            "name": "Daniel Leznoff", 
+            "long imdb name": "Daniel Leznoff", 
+            "long imdb canonical name": "Leznoff, Daniel"
+        }, 
+        {
+            "canonical name": "Nadeau, Tyler", 
+            "name": "Tyler Nadeau", 
+            "long imdb name": "Tyler Nadeau", 
+            "long imdb canonical name": "Nadeau, Tyler"
+        }, 
+        {
+            "canonical name": "Riel, Lyne", 
+            "name": "Lyne Riel", 
+            "long imdb name": "Lyne Riel", 
+            "long imdb canonical name": "Riel, Lyne"
+        }, 
+        {
+            "canonical name": "Rivers, JoAnne", 
+            "name": "JoAnne Rivers", 
+            "long imdb name": "JoAnne Rivers", 
+            "long imdb canonical name": "Rivers, JoAnne"
+        }, 
+        {
+            "canonical name": "Zaslavsky, Steve", 
+            "name": "Steve Zaslavsky", 
+            "long imdb name": "Steve Zaslavsky", 
+            "long imdb canonical name": "Zaslavsky, Steve"
+        }
+    ], 
+    "long imdb canonical title": "And Now a Word from Our Sponsor (2013)", 
+    "production companies": [
+        {
+            "name": "Adman Productions", 
+            "long imdb name": "Adman Productions"
+        }, 
+        {
+            "name": "Ezeqial Productions", 
+            "long imdb name": "Ezeqial Productions"
+        }
+    ], 
+    "color info": [], 
+    "visual effects": [
+        {
+            "canonical name": "Drago, Damian", 
+            "name": "Damian Drago", 
+            "long imdb name": "Damian Drago", 
+            "long imdb canonical name": "Drago, Damian"
+        }, 
+        {
+            "canonical name": "Harrington, Christopher Rush", 
+            "name": "Christopher Rush Harrington", 
+            "long imdb name": "Christopher Rush Harrington", 
+            "long imdb canonical name": "Harrington, Christopher Rush"
+        }, 
+        {
+            "canonical name": "Myers, James B.", 
+            "name": "James B. Myers", 
+            "long imdb name": "James B. Myers", 
+            "long imdb canonical name": "Myers, James B."
+        }, 
+        {
+            "canonical name": "Sapp, Jamie", 
+            "name": "Jamie Sapp", 
+            "long imdb name": "Jamie Sapp", 
+            "long imdb canonical name": "Sapp, Jamie"
+        }, 
+        {
+            "canonical name": "Toll, Heather", 
+            "name": "Heather Toll", 
+            "long imdb name": "Heather Toll", 
+            "long imdb canonical name": "Toll, Heather"
+        }, 
+        {
+            "canonical name": "VanHook, Cameron", 
+            "name": "Cameron VanHook", 
+            "long imdb name": "Cameron VanHook", 
+            "long imdb canonical name": "VanHook, Cameron"
+        }, 
+        {
+            "canonical name": "VanHook, Kevin", 
+            "name": "Kevin VanHook", 
+            "long imdb name": "Kevin VanHook", 
+            "long imdb canonical name": "VanHook, Kevin"
+        }
+    ], 
+    "votes": 730, 
+    "producer": [
+        {
+            "canonical name": "Bernbaum, Zack", 
+            "name": "Zack Bernbaum", 
+            "long imdb name": "Zack Bernbaum", 
+            "long imdb canonical name": "Bernbaum, Zack"
+        }, 
+        {
+            "canonical name": "Costa, Rachael", 
+            "name": "Rachael Costa", 
+            "long imdb name": "Rachael Costa", 
+            "long imdb canonical name": "Costa, Rachael"
+        }, 
+        {
+            "canonical name": "Hamilton, John", 
+            "name": "John Hamilton", 
+            "long imdb name": "John Hamilton", 
+            "long imdb canonical name": "Hamilton, John"
+        }, 
+        {
+            "canonical name": "Hamilton-Wright, Michael", 
+            "name": "Michael Hamilton-Wright", 
+            "long imdb name": "Michael Hamilton-Wright", 
+            "long imdb canonical name": "Hamilton-Wright, Michael"
+        }, 
+        {
+            "canonical name": "Mooney, Lynn", 
+            "name": "Lynn Mooney", 
+            "long imdb name": "Lynn Mooney", 
+            "long imdb canonical name": "Mooney, Lynn"
+        }, 
+        {
+            "canonical name": "Rossner, Danny", 
+            "name": "Danny Rossner", 
+            "long imdb name": "Danny Rossner", 
+            "long imdb canonical name": "Rossner, Danny"
+        }
+    ], 
+    "title": "And Now a Word from Our Sponsor", 
+    "assistant director": [
+        {
+            "canonical name": "Dietl, Raissa", 
+            "name": "Raissa Dietl", 
+            "long imdb name": "Raissa Dietl", 
+            "long imdb canonical name": "Dietl, Raissa"
+        }, 
+        {
+            "canonical name": "Harmon, Allan", 
+            "name": "Allan Harmon", 
+            "long imdb name": "Allan Harmon", 
+            "long imdb canonical name": "Harmon, Allan"
+        }, 
+        {
+            "canonical name": "Kabbach, Joseph", 
+            "name": "Joseph Kabbach", 
+            "long imdb name": "Joseph Kabbach", 
+            "long imdb canonical name": "Kabbach, Joseph"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "Hamilton-Wright, Michael", 
+            "name": "Michael Hamilton-Wright", 
+            "long imdb name": "Michael Hamilton-Wright", 
+            "long imdb canonical name": "Hamilton-Wright, Michael"
+        }, 
+        {
+            "canonical name": "Hamilton-Wright, Michael", 
+            "name": "Michael Hamilton-Wright", 
+            "long imdb name": "Michael Hamilton-Wright", 
+            "long imdb canonical name": "Hamilton-Wright, Michael"
+        }
+    ], 
+    "casting director": [
+        {
+            "canonical name": "Lang, Michelle", 
+            "name": "Michelle Lang", 
+            "long imdb name": "Michelle Lang", 
+            "long imdb canonical name": "Lang, Michelle"
+        }
+    ], 
+    "languages": [
+        "English"
+    ], 
+    "production manager": [
+        {
+            "canonical name": "Oppenheimer, Matthew", 
+            "name": "Matthew Oppenheimer", 
+            "long imdb name": "Matthew Oppenheimer", 
+            "long imdb canonical name": "Oppenheimer, Matthew"
+        }, 
+        {
+            "canonical name": "Warner, Burton L.", 
+            "name": "Burton L. Warner", 
+            "long imdb name": "Burton L. Warner", 
+            "long imdb canonical name": "Warner, Burton L."
+        }
+    ], 
+    "set decoration": [
+        {
+            "canonical name": "Scarf\u00f3, Rachelle", 
+            "name": "Rachelle Scarf\u00f3", 
+            "long imdb name": "Rachelle Scarf\u00f3", 
+            "long imdb canonical name": "Scarf\u00f3, Rachelle"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Vandewater, James", 
+            "name": "James Vandewater", 
+            "long imdb name": "James Vandewater", 
+            "long imdb canonical name": "Vandewater, James"
+        }
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "Barrucco, Joe", 
+            "name": "Joe Barrucco", 
+            "long imdb name": "Joe Barrucco", 
+            "long imdb canonical name": "Barrucco, Joe"
+        }, 
+        {
+            "canonical name": "Barrucco, Joe", 
+            "name": "Joe Barrucco", 
+            "long imdb name": "Joe Barrucco", 
+            "long imdb canonical name": "Barrucco, Joe"
+        }, 
+        {
+            "canonical name": "Bovingdon, Tod", 
+            "name": "Tod Bovingdon", 
+            "long imdb name": "Tod Bovingdon", 
+            "long imdb canonical name": "Bovingdon, Tod"
+        }, 
+        {
+            "canonical name": "Brambilla, Jos\u00e9 Gagnon", 
+            "name": "Jos\u00e9 Gagnon Brambilla", 
+            "long imdb name": "Jos\u00e9 Gagnon Brambilla", 
+            "long imdb canonical name": "Brambilla, Jos\u00e9 Gagnon"
+        }, 
+        {
+            "canonical name": "Hoop, Eric", 
+            "name": "Eric Hoop", 
+            "long imdb name": "Eric Hoop", 
+            "long imdb canonical name": "Hoop, Eric"
+        }, 
+        {
+            "canonical name": "Jamey, Kevin", 
+            "name": "Kevin Jamey", 
+            "long imdb name": "Kevin Jamey", 
+            "long imdb canonical name": "Jamey, Kevin"
+        }, 
+        {
+            "canonical name": "Lim, Jamie", 
+            "name": "Jamie Lim", 
+            "long imdb name": "Jamie Lim", 
+            "long imdb canonical name": "Lim, Jamie"
+        }, 
+        {
+            "canonical name": "Lim, Jamie", 
+            "name": "Jamie Lim", 
+            "long imdb name": "Jamie Lim", 
+            "long imdb canonical name": "Lim, Jamie"
+        }
+    ], 
+    "long imdb title": "And Now a Word from Our Sponsor (2013)", 
+    "country codes": [
+        "ca"
+    ], 
+    "language codes": [
+        "en"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BMzYzMjA5NDY1N15BMl5BanBnXkFtZTcwNzM2NzAzOQ@@._V1._SX94_SY140_.jpg", 
+    "editorial department": [
+        {
+            "canonical name": "Fisher, Conor", 
+            "name": "Conor Fisher", 
+            "long imdb name": "Conor Fisher", 
+            "long imdb canonical name": "Fisher, Conor"
+        }, 
+        {
+            "canonical name": "Kosmack, Sarah", 
+            "name": "Sarah Kosmack", 
+            "long imdb name": "Sarah Kosmack", 
+            "long imdb canonical name": "Kosmack, Sarah"
+        }, 
+        {
+            "canonical name": "Odlum, Wade", 
+            "name": "Wade Odlum", 
+            "long imdb name": "Wade Odlum", 
+            "long imdb canonical name": "Odlum, Wade"
+        }, 
+        {
+            "canonical name": "Remba, Monica", 
+            "name": "Monica Remba", 
+            "long imdb name": "Monica Remba", 
+            "long imdb canonical name": "Remba, Monica"
+        }, 
+        {
+            "canonical name": "Renaud, Scott", 
+            "name": "Scott Renaud", 
+            "long imdb name": "Scott Renaud", 
+            "long imdb canonical name": "Renaud, Scott"
+        }
+    ], 
+    "genres": [
+        "Comedy", 
+        "Drama"
+    ], 
+    "director": [
+        {
+            "canonical name": "Bernbaum, Zack", 
+            "name": "Zack Bernbaum", 
+            "long imdb name": "Zack Bernbaum", 
+            "long imdb canonical name": "Bernbaum, Zack"
+        }
+    ], 
+    "miscellaneous companies": [
+        {
+            "name": "CC Clearances", 
+            "long imdb name": "CC Clearances"
+        }, 
+        {
+            "name": "Prodigy Public Relations", 
+            "long imdb name": "Prodigy Public Relations"
+        }, 
+        {
+            "name": "Timeline Audio", 
+            "long imdb name": "Timeline Audio"
+        }, 
+        {
+            "name": "Tunnel Post", 
+            "long imdb name": "Tunnel Post"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Whitehead, Stephen Chandler", 
+            "name": "Stephen Chandler Whitehead", 
+            "long imdb name": "Stephen Chandler Whitehead", 
+            "long imdb canonical name": "Whitehead, Stephen Chandler"
+        }
+    ], 
+    "akas": [
+        "Mainoskatkolla::Finland (DVD title)", 
+        "Slogans::Sweden (DVD title)"
+    ], 
+    "aspect ratio": "2.35 : 1", 
+    "location management": [
+        {
+            "canonical name": "Thomas, Jake", 
+            "name": "Jake Thomas", 
+            "long imdb name": "Jake Thomas", 
+            "long imdb canonical name": "Thomas, Jake"
+        }
+    ], 
+    "kind": "movie", 
+    "art department": [
+        {
+            "canonical name": "Birch, Derek", 
+            "name": "Derek Birch", 
+            "long imdb name": "Derek Birch", 
+            "long imdb canonical name": "Birch, Derek"
+        }, 
+        {
+            "canonical name": "Cormier, Maxime", 
+            "name": "Maxime Cormier", 
+            "long imdb name": "Maxime Cormier", 
+            "long imdb canonical name": "Cormier, Maxime"
+        }, 
+        {
+            "canonical name": "Dietl, Raissa", 
+            "name": "Raissa Dietl", 
+            "long imdb name": "Raissa Dietl", 
+            "long imdb canonical name": "Dietl, Raissa"
+        }, 
+        {
+            "canonical name": "Horsman, Jessamyn", 
+            "name": "Jessamyn Horsman", 
+            "long imdb name": "Jessamyn Horsman", 
+            "long imdb canonical name": "Horsman, Jessamyn"
+        }, 
+        {
+            "canonical name": "Scarf\u00f3, Rachelle", 
+            "name": "Rachelle Scarf\u00f3", 
+            "long imdb name": "Rachelle Scarf\u00f3", 
+            "long imdb canonical name": "Scarf\u00f3, Rachelle"
+        }, 
+        {
+            "canonical name": "Vizsy, Sean", 
+            "name": "Sean Vizsy", 
+            "long imdb name": "Sean Vizsy", 
+            "long imdb canonical name": "Vizsy, Sean"
+        }, 
+        {
+            "canonical name": "Whitehead, Jessica", 
+            "name": "Jessica Whitehead", 
+            "long imdb name": "Jessica Whitehead", 
+            "long imdb canonical name": "Whitehead, Jessica"
+        }, 
+        {
+            "canonical name": "Young, Diana", 
+            "name": "Diana Young", 
+            "long imdb name": "Diana Young", 
+            "long imdb canonical name": "Young, Diana"
+        }
+    ], 
+    "countries": [
+        "Canada"
+    ], 
+    "plot outline": "An advertising CEO wakes up in the hospital speaking only in ad slogans.", 
+    "plot": [
+        "An advertising CEO is found mysteriously unconscious in front of a wall of TVs in an electronics store. When he wakes up in the hospital, he is only able to communicate through advertising slogans. Taken in by the head of the hospital's charity foundation, he begins to have a profound affect on her life and the strained relationship she has with her daughter.", 
+        "An advertising CEO wakes up in the hospital speaking only in ad slogans."
+    ], 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BMzYzMjA5NDY1N15BMl5BanBnXkFtZTcwNzM2NzAzOQ@@.jpg", 
+    "canonical title": "And Now a Word from Our Sponsor", 
+    "cast": [
+        {
+            "canonical name": "Greenwood, Bruce", 
+            "name": "Bruce Greenwood", 
+            "long imdb name": "Bruce Greenwood", 
+            "long imdb canonical name": "Greenwood, Bruce"
+        }, 
+        {
+            "canonical name": "Posey, Parker", 
+            "name": "Parker Posey", 
+            "long imdb name": "Parker Posey", 
+            "long imdb canonical name": "Posey, Parker"
+        }, 
+        {
+            "canonical name": "Blue, Callum", 
+            "name": "Callum Blue", 
+            "long imdb name": "Callum Blue", 
+            "long imdb canonical name": "Blue, Callum"
+        }, 
+        {
+            "canonical name": "MacDonald, Allie", 
+            "name": "Allie MacDonald", 
+            "long imdb name": "Allie MacDonald", 
+            "long imdb canonical name": "MacDonald, Allie"
+        }, 
+        {
+            "canonical name": "Ward, Rhys", 
+            "name": "Rhys Ward", 
+            "long imdb name": "Rhys Ward", 
+            "long imdb canonical name": "Ward, Rhys"
+        }, 
+        {
+            "canonical name": "Doiron, Allison Dawn", 
+            "name": "Allison Dawn Doiron", 
+            "long imdb name": "Allison Dawn Doiron", 
+            "long imdb canonical name": "Doiron, Allison Dawn"
+        }, 
+        {
+            "canonical name": "Rosenstein, Howard", 
+            "name": "Howard Rosenstein", 
+            "long imdb name": "Howard Rosenstein", 
+            "long imdb canonical name": "Rosenstein, Howard"
+        }, 
+        {
+            "canonical name": "Radford, Natalie", 
+            "name": "Natalie Radford", 
+            "long imdb name": "Natalie Radford", 
+            "long imdb canonical name": "Radford, Natalie"
+        }, 
+        {
+            "canonical name": "Spilchuk, Jamie", 
+            "name": "Jamie Spilchuk", 
+            "long imdb name": "Jamie Spilchuk", 
+            "long imdb canonical name": "Spilchuk, Jamie"
+        }, 
+        {
+            "canonical name": "Saunders, Paul James", 
+            "name": "Paul James Saunders", 
+            "long imdb name": "Paul James Saunders", 
+            "long imdb canonical name": "Saunders, Paul James"
+        }, 
+        {
+            "canonical name": "Wallis, James", 
+            "name": "James Wallis", 
+            "long imdb name": "James Wallis", 
+            "long imdb canonical name": "Wallis, James"
+        }, 
+        {
+            "canonical name": "Mercer, Garth", 
+            "name": "Garth Mercer", 
+            "long imdb name": "Garth Mercer", 
+            "long imdb canonical name": "Mercer, Garth"
+        }, 
+        {
+            "canonical name": "Wilson, Rachel", 
+            "name": "Rachel Wilson", 
+            "long imdb name": "Rachel Wilson", 
+            "long imdb canonical name": "Wilson, Rachel"
+        }, 
+        {
+            "canonical name": "Harmon, Jessica", 
+            "name": "Jessica Harmon", 
+            "long imdb name": "Jessica Harmon", 
+            "long imdb canonical name": "Harmon, Jessica"
+        }, 
+        {
+            "canonical name": "Wright, W. Steven", 
+            "name": "W. Steven Wright", 
+            "long imdb name": "W. Steven Wright", 
+            "long imdb canonical name": "Wright, W. Steven"
+        }
+    ], 
+    "smart long imdb canonical title": "And Now a Word from Our Sponsor (2013)", 
+    "costume department": [
+        {
+            "canonical name": "Brown, Bonnie", 
+            "name": "Bonnie Brown", 
+            "long imdb name": "Bonnie Brown", 
+            "long imdb canonical name": "Brown, Bonnie"
+        }, 
+        {
+            "canonical name": "Generall, Krista", 
+            "name": "Krista Generall", 
+            "long imdb name": "Krista Generall", 
+            "long imdb canonical name": "Generall, Krista"
+        }
+    ], 
+    "original music": [
+        {
+            "canonical name": "Procunier, Erica", 
+            "name": "Erica Procunier", 
+            "long imdb name": "Erica Procunier", 
+            "long imdb canonical name": "Procunier, Erica"
+        }
+    ], 
+    "smart canonical title": "And Now a Word from Our Sponsor"
+}

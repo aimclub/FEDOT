@@ -1,0 +1,846 @@
+{
+    "music department": [
+        {
+            "canonical name": "Cocke, Danny", 
+            "name": "Danny Cocke", 
+            "long imdb name": "Danny Cocke", 
+            "long imdb canonical name": "Cocke, Danny"
+        }, 
+        {
+            "canonical name": "Erskine, Felix", 
+            "name": "Felix Erskine", 
+            "long imdb name": "Felix Erskine", 
+            "long imdb canonical name": "Erskine, Felix"
+        }, 
+        {
+            "canonical name": "Leon, Dane", 
+            "name": "Dane Leon", 
+            "long imdb name": "Dane Leon", 
+            "long imdb canonical name": "Leon, Dane"
+        }, 
+        {
+            "canonical name": "Newlin, Chris", 
+            "name": "Chris Newlin", 
+            "long imdb name": "Chris Newlin", 
+            "long imdb canonical name": "Newlin, Chris"
+        }, 
+        {
+            "canonical name": "Newlin, Chris", 
+            "name": "Chris Newlin", 
+            "long imdb name": "Chris Newlin", 
+            "long imdb canonical name": "Newlin, Chris"
+        }, 
+        {
+            "canonical name": "Newlin, Chris", 
+            "name": "Chris Newlin", 
+            "long imdb name": "Chris Newlin", 
+            "long imdb canonical name": "Newlin, Chris"
+        }
+    ], 
+    "camera and electrical department": [
+        {
+            "canonical name": "Bryant, Neal", 
+            "name": "Neal Bryant", 
+            "long imdb name": "Neal Bryant", 
+            "long imdb canonical name": "Bryant, Neal"
+        }, 
+        {
+            "canonical name": "Childress, Emery", 
+            "name": "Emery Childress", 
+            "long imdb name": "Emery Childress", 
+            "long imdb canonical name": "Childress, Emery"
+        }, 
+        {
+            "canonical name": "Flowers, Mike", 
+            "name": "Mike Flowers", 
+            "long imdb name": "Mike Flowers", 
+            "long imdb canonical name": "Flowers, Mike"
+        }, 
+        {
+            "canonical name": "Hadwick, Greg", 
+            "name": "Greg Hadwick", 
+            "long imdb name": "Greg Hadwick", 
+            "long imdb canonical name": "Hadwick, Greg"
+        }, 
+        {
+            "canonical name": "McPherson, Ron", 
+            "name": "Ron McPherson", 
+            "long imdb name": "Ron McPherson", 
+            "long imdb canonical name": "McPherson, Ron"
+        }, 
+        {
+            "canonical name": "Moriatis, Michael", 
+            "name": "Michael Moriatis", 
+            "long imdb name": "Michael Moriatis", 
+            "long imdb canonical name": "Moriatis, Michael"
+        }, 
+        {
+            "canonical name": "O'Rourke, Andrew", 
+            "name": "Andrew O'Rourke", 
+            "long imdb name": "Andrew O'Rourke", 
+            "long imdb canonical name": "O'Rourke, Andrew"
+        }, 
+        {
+            "canonical name": "Yates, Dustin", 
+            "name": "Dustin Yates", 
+            "long imdb name": "Dustin Yates", 
+            "long imdb canonical name": "Yates, Dustin"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "Image Entertainment", 
+            "long imdb name": "Image Entertainment"
+        }, 
+        {
+            "name": "Eagle Films", 
+            "long imdb name": "Eagle Films"
+        }, 
+        {
+            "name": "Image Entertainment", 
+            "long imdb name": "Image Entertainment"
+        }, 
+        {
+            "name": "Image Entertainment", 
+            "long imdb name": "Image Entertainment"
+        }, 
+        {
+            "name": "Koch Media", 
+            "long imdb name": "Koch Media"
+        }, 
+        {
+            "name": "One2See Movies", 
+            "long imdb name": "One2See Movies"
+        }, 
+        {
+            "name": "Paragon Movies", 
+            "long imdb name": "Paragon Movies"
+        }, 
+        {
+            "name": "Paragon Movies", 
+            "long imdb name": "Paragon Movies"
+        }, 
+        {
+            "name": "Take One", 
+            "long imdb name": "Take One"
+        }
+    ], 
+    "rating": 3.8, 
+    "runtimes": [
+        "100"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "Ronzone, Flora", 
+            "name": "Flora Ronzone", 
+            "long imdb name": "Flora Ronzone", 
+            "long imdb canonical name": "Ronzone, Flora"
+        }
+    ], 
+    "make up": [
+        {
+            "canonical name": "Auten, Nicole R.", 
+            "name": "Nicole R. Auten", 
+            "long imdb name": "Nicole R. Auten", 
+            "long imdb canonical name": "Auten, Nicole R."
+        }, 
+        {
+            "canonical name": "Bullo, Kristen", 
+            "name": "Kristen Bullo", 
+            "long imdb name": "Kristen Bullo", 
+            "long imdb canonical name": "Bullo, Kristen"
+        }, 
+        {
+            "canonical name": "Johnson, Angie", 
+            "name": "Angie Johnson", 
+            "long imdb name": "Angie Johnson", 
+            "long imdb canonical name": "Johnson, Angie"
+        }, 
+        {
+            "canonical name": "Koszti, Stefania", 
+            "name": "Stefania Koszti", 
+            "long imdb name": "Stefania Koszti", 
+            "long imdb canonical name": "Koszti, Stefania"
+        }, 
+        {
+            "canonical name": "Lovell, Judy", 
+            "name": "Judy Lovell", 
+            "long imdb name": "Judy Lovell", 
+            "long imdb canonical name": "Lovell, Judy"
+        }, 
+        {
+            "canonical name": "Ramirez, Valerie", 
+            "name": "Valerie Ramirez", 
+            "long imdb name": "Valerie Ramirez", 
+            "long imdb canonical name": "Ramirez, Valerie"
+        }, 
+        {
+            "canonical name": "Whitman, Devin", 
+            "name": "Devin Whitman", 
+            "long imdb name": "Devin Whitman", 
+            "long imdb canonical name": "Whitman, Devin"
+        }
+    ], 
+    "year": 2013, 
+    "production design": [
+        {
+            "canonical name": "Bonsorte, Anael", 
+            "name": "Anael Bonsorte", 
+            "long imdb name": "Anael Bonsorte", 
+            "long imdb canonical name": "Bonsorte, Anael"
+        }, 
+        {
+            "canonical name": "Glover, April", 
+            "name": "April Glover", 
+            "long imdb name": "April Glover", 
+            "long imdb canonical name": "Glover, April"
+        }
+    ], 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Abderezai, Sia", 
+            "name": "Sia Abderezai", 
+            "long imdb name": "Sia Abderezai", 
+            "long imdb canonical name": "Abderezai, Sia"
+        }, 
+        {
+            "canonical name": "Benton, Nate", 
+            "name": "Nate Benton", 
+            "long imdb name": "Nate Benton", 
+            "long imdb canonical name": "Benton, Nate"
+        }, 
+        {
+            "canonical name": "Blythe, James", 
+            "name": "James Blythe", 
+            "long imdb name": "James Blythe", 
+            "long imdb canonical name": "Blythe, James"
+        }, 
+        {
+            "canonical name": "Casterlin, Heather", 
+            "name": "Heather Casterlin", 
+            "long imdb name": "Heather Casterlin", 
+            "long imdb canonical name": "Casterlin, Heather"
+        }, 
+        {
+            "canonical name": "Compton, Carol A.", 
+            "name": "Carol A. Compton", 
+            "long imdb name": "Carol A. Compton", 
+            "long imdb canonical name": "Compton, Carol A."
+        }, 
+        {
+            "canonical name": "Curtis, Morgan", 
+            "name": "Morgan Curtis", 
+            "long imdb name": "Morgan Curtis", 
+            "long imdb canonical name": "Curtis, Morgan"
+        }, 
+        {
+            "canonical name": "French, Nick", 
+            "name": "Nick French", 
+            "long imdb name": "Nick French", 
+            "long imdb canonical name": "French, Nick"
+        }, 
+        {
+            "canonical name": "Heath, Chelsea", 
+            "name": "Chelsea Heath", 
+            "long imdb name": "Chelsea Heath", 
+            "long imdb canonical name": "Heath, Chelsea"
+        }, 
+        {
+            "canonical name": "Holm, Max", 
+            "name": "Max Holm", 
+            "long imdb name": "Max Holm", 
+            "long imdb canonical name": "Holm, Max"
+        }, 
+        {
+            "canonical name": "Kozel, Jesse", 
+            "name": "Jesse Kozel", 
+            "long imdb name": "Jesse Kozel", 
+            "long imdb canonical name": "Kozel, Jesse"
+        }, 
+        {
+            "canonical name": "Lang, Judy", 
+            "name": "Judy Lang", 
+            "long imdb name": "Judy Lang", 
+            "long imdb canonical name": "Lang, Judy"
+        }, 
+        {
+            "canonical name": "Medina, Lisa", 
+            "name": "Lisa Medina", 
+            "long imdb name": "Lisa Medina", 
+            "long imdb canonical name": "Medina, Lisa"
+        }, 
+        {
+            "canonical name": "Montgomery, Mike", 
+            "name": "Mike Montgomery", 
+            "long imdb name": "Mike Montgomery", 
+            "long imdb canonical name": "Montgomery, Mike"
+        }, 
+        {
+            "canonical name": "O'Rourke, Andrew", 
+            "name": "Andrew O'Rourke", 
+            "long imdb name": "Andrew O'Rourke", 
+            "long imdb canonical name": "O'Rourke, Andrew"
+        }, 
+        {
+            "canonical name": "Roper, Kimberley", 
+            "name": "Kimberley Roper", 
+            "long imdb name": "Kimberley Roper", 
+            "long imdb canonical name": "Roper, Kimberley"
+        }, 
+        {
+            "canonical name": "Smithson, Shawn", 
+            "name": "Shawn Smithson", 
+            "long imdb name": "Shawn Smithson", 
+            "long imdb canonical name": "Smithson, Shawn"
+        }, 
+        {
+            "canonical name": "Starr, Katherine", 
+            "name": "Katherine Starr", 
+            "long imdb name": "Katherine Starr", 
+            "long imdb canonical name": "Starr, Katherine"
+        }, 
+        {
+            "canonical name": "Torres, Vince", 
+            "name": "Vince Torres", 
+            "long imdb name": "Vince Torres", 
+            "long imdb canonical name": "Torres, Vince"
+        }, 
+        {
+            "canonical name": "Van Houten, David E.", 
+            "name": "David E. Van Houten", 
+            "long imdb name": "David E. Van Houten", 
+            "long imdb canonical name": "Van Houten, David E."
+        }
+    ], 
+    "color info": [], 
+    "visual effects": [
+        {
+            "canonical name": "Van Woert, David", 
+            "name": "David Van Woert", 
+            "long imdb name": "David Van Woert", 
+            "long imdb canonical name": "Van Woert, David"
+        }
+    ], 
+    "votes": 705, 
+    "producer": [
+        {
+            "canonical name": "Branch, Christopher", 
+            "name": "Christopher Branch", 
+            "long imdb name": "Christopher Branch", 
+            "long imdb canonical name": "Branch, Christopher"
+        }, 
+        {
+            "canonical name": "De Lucia, Cesar Villacis", 
+            "name": "Cesar Villacis De Lucia", 
+            "long imdb name": "Cesar Villacis De Lucia", 
+            "long imdb canonical name": "De Lucia, Cesar Villacis"
+        }, 
+        {
+            "canonical name": "Finney, Justin", 
+            "name": "Justin Finney", 
+            "long imdb name": "Justin Finney", 
+            "long imdb canonical name": "Finney, Justin"
+        }, 
+        {
+            "canonical name": "Finney, Justin", 
+            "name": "Justin Finney", 
+            "long imdb name": "Justin Finney", 
+            "long imdb canonical name": "Finney, Justin"
+        }, 
+        {
+            "canonical name": "Hampton, Jason", 
+            "name": "Jason Hampton", 
+            "long imdb name": "Jason Hampton", 
+            "long imdb canonical name": "Hampton, Jason"
+        }, 
+        {
+            "canonical name": "Rahal, Kaid", 
+            "name": "Kaid Rahal", 
+            "long imdb name": "Kaid Rahal", 
+            "long imdb canonical name": "Rahal, Kaid"
+        }, 
+        {
+            "canonical name": "Rattray, Wendy S.", 
+            "name": "Wendy S. Rattray", 
+            "long imdb name": "Wendy S. Rattray", 
+            "long imdb canonical name": "Rattray, Wendy S."
+        }, 
+        {
+            "canonical name": "Reed, Nick", 
+            "name": "Nick Reed", 
+            "long imdb name": "Nick Reed", 
+            "long imdb canonical name": "Reed, Nick"
+        }, 
+        {
+            "canonical name": "Rivera, Emilio", 
+            "name": "Emilio Rivera", 
+            "long imdb name": "Emilio Rivera", 
+            "long imdb canonical name": "Rivera, Emilio"
+        }, 
+        {
+            "canonical name": "Sexton, Bryan S.", 
+            "name": "Bryan S. Sexton", 
+            "long imdb name": "Bryan S. Sexton", 
+            "long imdb canonical name": "Sexton, Bryan S."
+        }, 
+        {
+            "canonical name": "Steers, Jonathan", 
+            "name": "Jonathan Steers", 
+            "long imdb name": "Jonathan Steers", 
+            "long imdb canonical name": "Steers, Jonathan"
+        }
+    ], 
+    "title": "The Devil's in the Details", 
+    "mpaa": "Rated R for strong violence, torture and language throughout", 
+    "assistant director": [
+        {
+            "canonical name": "Cotto, Giovanni", 
+            "name": "Giovanni Cotto", 
+            "long imdb name": "Giovanni Cotto", 
+            "long imdb canonical name": "Cotto, Giovanni"
+        }, 
+        {
+            "canonical name": "Duque, Alvaro", 
+            "name": "Alvaro Duque", 
+            "long imdb name": "Alvaro Duque", 
+            "long imdb canonical name": "Duque, Alvaro"
+        }, 
+        {
+            "canonical name": "Dylan, Andy", 
+            "name": "Andy Dylan", 
+            "long imdb name": "Andy Dylan", 
+            "long imdb canonical name": "Dylan, Andy"
+        }, 
+        {
+            "canonical name": "Hampton, Jason", 
+            "name": "Jason Hampton", 
+            "long imdb name": "Jason Hampton", 
+            "long imdb canonical name": "Hampton, Jason"
+        }, 
+        {
+            "canonical name": "Montgomery, Mike", 
+            "name": "Mike Montgomery", 
+            "long imdb name": "Mike Montgomery", 
+            "long imdb canonical name": "Montgomery, Mike"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "Boone, Waymon", 
+            "name": "Waymon Boone", 
+            "long imdb name": "Waymon Boone", 
+            "long imdb canonical name": "Boone, Waymon"
+        }
+    ], 
+    "long imdb canonical title": "Devil's in the Details, The (2013)", 
+    "languages": [
+        "English"
+    ], 
+    "production manager": [
+        {
+            "canonical name": "Garratt, Michael", 
+            "name": "Michael Garratt", 
+            "long imdb name": "Michael Garratt", 
+            "long imdb canonical name": "Garratt, Michael"
+        }, 
+        {
+            "canonical name": "Medina, Lisa", 
+            "name": "Lisa Medina", 
+            "long imdb name": "Lisa Medina", 
+            "long imdb canonical name": "Medina, Lisa"
+        }
+    ], 
+    "casting director": [
+        {
+            "canonical name": "Schweber, Emily", 
+            "name": "Emily Schweber", 
+            "long imdb name": "Emily Schweber", 
+            "long imdb canonical name": "Schweber, Emily"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Boone, Waymon", 
+            "name": "Waymon Boone", 
+            "long imdb name": "Waymon Boone", 
+            "long imdb canonical name": "Boone, Waymon"
+        }, 
+        {
+            "canonical name": "Parks, Ian", 
+            "name": "Ian Parks", 
+            "long imdb name": "Ian Parks", 
+            "long imdb canonical name": "Parks, Ian"
+        }
+    ], 
+    "certificates": [
+        "Denmark:15", 
+        "Finland:K-16", 
+        "Germany:16", 
+        "Netherlands:16", 
+        "Norway:15", 
+        "South Korea:18::(2015)", 
+        "USA:R"
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "Adams, Ben", 
+            "name": "Ben Adams", 
+            "long imdb name": "Ben Adams", 
+            "long imdb canonical name": "Adams, Ben"
+        }, 
+        {
+            "canonical name": "Alexander, Noah", 
+            "name": "Noah Alexander", 
+            "long imdb name": "Noah Alexander", 
+            "long imdb canonical name": "Alexander, Noah"
+        }, 
+        {
+            "canonical name": "Bercovitch, Paul", 
+            "name": "Paul Bercovitch", 
+            "long imdb name": "Paul Bercovitch", 
+            "long imdb canonical name": "Bercovitch, Paul"
+        }, 
+        {
+            "canonical name": "Boone, Waymon", 
+            "name": "Waymon Boone", 
+            "long imdb name": "Waymon Boone", 
+            "long imdb canonical name": "Boone, Waymon"
+        }, 
+        {
+            "canonical name": "Brodnick, Matt", 
+            "name": "Matt Brodnick", 
+            "long imdb name": "Matt Brodnick", 
+            "long imdb canonical name": "Brodnick, Matt"
+        }, 
+        {
+            "canonical name": "Burnett, Kammy", 
+            "name": "Kammy Burnett", 
+            "long imdb name": "Kammy Burnett", 
+            "long imdb canonical name": "Burnett, Kammy"
+        }, 
+        {
+            "canonical name": "Hovland, Matt", 
+            "name": "Matt Hovland", 
+            "long imdb name": "Matt Hovland", 
+            "long imdb canonical name": "Hovland, Matt"
+        }, 
+        {
+            "canonical name": "Hovland, Matt", 
+            "name": "Matt Hovland", 
+            "long imdb name": "Matt Hovland", 
+            "long imdb canonical name": "Hovland, Matt"
+        }, 
+        {
+            "canonical name": "Lane, Kyle", 
+            "name": "Kyle Lane", 
+            "long imdb name": "Kyle Lane", 
+            "long imdb canonical name": "Lane, Kyle"
+        }, 
+        {
+            "canonical name": "Lane, Kyle", 
+            "name": "Kyle Lane", 
+            "long imdb name": "Kyle Lane", 
+            "long imdb canonical name": "Lane, Kyle"
+        }, 
+        {
+            "canonical name": "Smith, Nathan", 
+            "name": "Nathan Smith", 
+            "long imdb name": "Nathan Smith", 
+            "long imdb canonical name": "Smith, Nathan"
+        }, 
+        {
+            "canonical name": "Snow, Dan", 
+            "name": "Dan Snow", 
+            "long imdb name": "Dan Snow", 
+            "long imdb canonical name": "Snow, Dan"
+        }, 
+        {
+            "canonical name": "Vockel, Kelly", 
+            "name": "Kelly Vockel", 
+            "long imdb name": "Kelly Vockel", 
+            "long imdb canonical name": "Vockel, Kelly"
+        }
+    ], 
+    "long imdb title": "The Devil's in the Details (2013)", 
+    "country codes": [
+        "us"
+    ], 
+    "language codes": [
+        "en"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BMTM5NDc5NTE5OF5BMl5BanBnXkFtZTcwMDU3NjE5OA@@._V1._SX100_SY100_.jpg", 
+    "casting department": [
+        {
+            "canonical name": "Zambetti, Lisa", 
+            "name": "Lisa Zambetti", 
+            "long imdb name": "Lisa Zambetti", 
+            "long imdb canonical name": "Zambetti, Lisa"
+        }
+    ], 
+    "editorial department": [
+        {
+            "canonical name": "Ides, Joel", 
+            "name": "Joel Ides", 
+            "long imdb name": "Joel Ides", 
+            "long imdb canonical name": "Ides, Joel"
+        }, 
+        {
+            "canonical name": "Pownall, Chris", 
+            "name": "Chris Pownall", 
+            "long imdb name": "Chris Pownall", 
+            "long imdb canonical name": "Pownall, Chris"
+        }
+    ], 
+    "location management": [
+        {
+            "canonical name": "Lopez, Vincent", 
+            "name": "Vincent Lopez", 
+            "long imdb name": "Vincent Lopez", 
+            "long imdb canonical name": "Lopez, Vincent"
+        }
+    ], 
+    "genres": [
+        "Thriller"
+    ], 
+    "director": [
+        {
+            "canonical name": "Boone, Waymon", 
+            "name": "Waymon Boone", 
+            "long imdb name": "Waymon Boone", 
+            "long imdb canonical name": "Boone, Waymon"
+        }
+    ], 
+    "stunt performer": [
+        {
+            "canonical name": "Azarly, Koby", 
+            "name": "Koby Azarly", 
+            "long imdb name": "Koby Azarly", 
+            "long imdb canonical name": "Azarly, Koby"
+        }, 
+        {
+            "canonical name": "Campbell, Keith", 
+            "name": "Keith Campbell", 
+            "long imdb name": "Keith Campbell", 
+            "long imdb canonical name": "Campbell, Keith"
+        }, 
+        {
+            "canonical name": "Collins, Brian Patrick", 
+            "name": "Brian Patrick Collins", 
+            "long imdb name": "Brian Patrick Collins", 
+            "long imdb canonical name": "Collins, Brian Patrick"
+        }, 
+        {
+            "canonical name": "Cueto, Esteban", 
+            "name": "Esteban Cueto", 
+            "long imdb name": "Esteban Cueto", 
+            "long imdb canonical name": "Cueto, Esteban"
+        }, 
+        {
+            "canonical name": "Mikulecky, Tim", 
+            "name": "Tim Mikulecky", 
+            "long imdb name": "Tim Mikulecky", 
+            "long imdb canonical name": "Mikulecky, Tim"
+        }, 
+        {
+            "canonical name": "Stone, Steven", 
+            "name": "Steven Stone", 
+            "long imdb name": "Steven Stone", 
+            "long imdb canonical name": "Stone, Steven"
+        }
+    ], 
+    "miscellaneous companies": [
+        {
+            "name": "Anarchy Post", 
+            "long imdb name": "Anarchy Post"
+        }, 
+        {
+            "name": "IndieClear", 
+            "long imdb name": "IndieClear"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "McMahon, Kevin", 
+            "name": "Kevin McMahon", 
+            "long imdb name": "Kevin McMahon", 
+            "long imdb canonical name": "McMahon, Kevin"
+        }
+    ], 
+    "art direction": [
+        {
+            "canonical name": "Bonsorte, Anael", 
+            "name": "Anael Bonsorte", 
+            "long imdb name": "Anael Bonsorte", 
+            "long imdb canonical name": "Bonsorte, Anael"
+        }
+    ], 
+    "akas": [
+        "Der Teufel im Detail::Germany (DVD title)", 
+        "Le diable en personne::France (imdb display title)", 
+        "The Devil's in the Details::Norway (imdb display title)"
+    ], 
+    "production companies": [
+        {
+            "name": "Dark Details", 
+            "long imdb name": "Dark Details"
+        }, 
+        {
+            "name": "Hollywood Media Bridge", 
+            "long imdb name": "Hollywood Media Bridge"
+        }
+    ], 
+    "kind": "movie", 
+    "countries": [
+        "USA"
+    ], 
+    "plot outline": "After serving a brutal tour of duty, veteran soldier Thomas Conrad is looking forward to a peaceful life at home with his family. But a drug cartel's ruthless enforcer has other plans for him.", 
+    "plot": [
+        "After serving a brutal tour of duty, veteran soldier Thomas Conrad is looking forward to a peaceful life at home with his family. But a drug cartel's ruthless enforcer has other plans for him."
+    ], 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BMTM5NDc5NTE5OF5BMl5BanBnXkFtZTcwMDU3NjE5OA@@.jpg", 
+    "canonical title": "Devil's in the Details, The", 
+    "cast": [
+        {
+            "canonical name": "Liotta, Ray", 
+            "name": "Ray Liotta", 
+            "long imdb name": "Ray Liotta", 
+            "long imdb canonical name": "Liotta, Ray"
+        }, 
+        {
+            "canonical name": "Rivera, Emilio", 
+            "name": "Emilio Rivera", 
+            "long imdb name": "Emilio Rivera", 
+            "long imdb canonical name": "Rivera, Emilio"
+        }, 
+        {
+            "canonical name": "Mathews, Joel", 
+            "name": "Joel Mathews", 
+            "long imdb name": "Joel Mathews", 
+            "long imdb canonical name": "Mathews, Joel"
+        }, 
+        {
+            "canonical name": "Barry, Raymond J.", 
+            "name": "Raymond J. Barry", 
+            "long imdb name": "Raymond J. Barry", 
+            "long imdb canonical name": "Barry, Raymond J."
+        }, 
+        {
+            "canonical name": "Gugliemi, Noel", 
+            "name": "Noel Gugliemi", 
+            "long imdb name": "Noel Gugliemi", 
+            "long imdb canonical name": "Gugliemi, Noel"
+        }, 
+        {
+            "canonical name": "Garrison, Lane", 
+            "name": "Lane Garrison", 
+            "long imdb name": "Lane Garrison", 
+            "long imdb canonical name": "Garrison, Lane"
+        }, 
+        {
+            "canonical name": "Jacobson, Jake", 
+            "name": "Jake Jacobson", 
+            "long imdb name": "Jake Jacobson", 
+            "long imdb canonical name": "Jacobson, Jake"
+        }, 
+        {
+            "canonical name": "Ivlev, Tina", 
+            "name": "Tina Ivlev", 
+            "long imdb name": "Tina Ivlev", 
+            "long imdb canonical name": "Ivlev, Tina"
+        }, 
+        {
+            "canonical name": "del Puerto, Arturo", 
+            "name": "Arturo del Puerto", 
+            "long imdb name": "Arturo del Puerto", 
+            "long imdb canonical name": "del Puerto, Arturo"
+        }, 
+        {
+            "canonical name": "Thakur, Albert", 
+            "name": "Albert Thakur", 
+            "long imdb name": "Albert Thakur", 
+            "long imdb canonical name": "Thakur, Albert"
+        }, 
+        {
+            "canonical name": "Lyng, Jenna", 
+            "name": "Jenna Lyng", 
+            "long imdb name": "Jenna Lyng", 
+            "long imdb canonical name": "Lyng, Jenna"
+        }, 
+        {
+            "canonical name": "Nielson, Shi Ne", 
+            "name": "Shi Ne Nielson", 
+            "long imdb name": "Shi Ne Nielson", 
+            "long imdb canonical name": "Nielson, Shi Ne"
+        }, 
+        {
+            "canonical name": "Rivera, Yadi Valerio", 
+            "name": "Yadi Valerio Rivera", 
+            "long imdb name": "Yadi Valerio Rivera", 
+            "long imdb canonical name": "Rivera, Yadi Valerio"
+        }, 
+        {
+            "canonical name": "Finney, Justin", 
+            "name": "Justin Finney", 
+            "long imdb name": "Justin Finney", 
+            "long imdb canonical name": "Finney, Justin"
+        }, 
+        {
+            "canonical name": "Acres, Ava", 
+            "name": "Ava Acres", 
+            "long imdb name": "Ava Acres", 
+            "long imdb canonical name": "Acres, Ava"
+        }, 
+        {
+            "canonical name": "Benton, Nathaniel", 
+            "name": "Nathaniel Benton", 
+            "long imdb name": "Nathaniel Benton", 
+            "long imdb canonical name": "Benton, Nathaniel"
+        }, 
+        {
+            "canonical name": "Parks, Ian", 
+            "name": "Ian Parks", 
+            "long imdb name": "Ian Parks", 
+            "long imdb canonical name": "Parks, Ian"
+        }, 
+        {
+            "canonical name": "Deloach, Nikki", 
+            "name": "Nikki Deloach", 
+            "long imdb name": "Nikki Deloach", 
+            "long imdb canonical name": "Deloach, Nikki"
+        }, 
+        {
+            "canonical name": "McGee, Wes", 
+            "name": "Wes McGee", 
+            "long imdb name": "Wes McGee", 
+            "long imdb canonical name": "McGee, Wes"
+        }, 
+        {
+            "canonical name": "Nardulli, Guy", 
+            "name": "Guy Nardulli", 
+            "long imdb name": "Guy Nardulli", 
+            "long imdb canonical name": "Nardulli, Guy"
+        }, 
+        {
+            "canonical name": "Oldham, Claire Elizabeth", 
+            "name": "Claire Elizabeth Oldham", 
+            "long imdb name": "Claire Elizabeth Oldham", 
+            "long imdb canonical name": "Oldham, Claire Elizabeth"
+        }, 
+        {
+            "canonical name": "Pergament, Barbara", 
+            "name": "Barbara Pergament", 
+            "long imdb name": "Barbara Pergament", 
+            "long imdb canonical name": "Pergament, Barbara"
+        }
+    ], 
+    "smart long imdb canonical title": "Devil's in the Details, The (2013)", 
+    "original music": [
+        {
+            "canonical name": "Cocke, Danny", 
+            "name": "Danny Cocke", 
+            "long imdb name": "Danny Cocke", 
+            "long imdb canonical name": "Cocke, Danny"
+        }
+    ], 
+    "smart canonical title": "Devil's in the Details, The"
+}

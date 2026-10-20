@@ -1,0 +1,4 @@
+[flake8]
+max-line-length = 99
+exclude = .git,__pycache__,.pytest_cache,reports
+extend-ignore = E203,W503

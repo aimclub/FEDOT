@@ -1,0 +1,844 @@
+{
+    "music department": [
+        {
+            "canonical name": "van Oosterhout, Jakob", 
+            "name": "Jakob van Oosterhout", 
+            "long imdb name": "Jakob van Oosterhout", 
+            "long imdb canonical name": "van Oosterhout, Jakob"
+        }
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "Alink, Dennis", 
+            "name": "Dennis Alink", 
+            "long imdb name": "Dennis Alink", 
+            "long imdb canonical name": "Alink, Dennis"
+        }, 
+        {
+            "canonical name": "Bijpost, Paul", 
+            "name": "Paul Bijpost", 
+            "long imdb name": "Paul Bijpost", 
+            "long imdb canonical name": "Bijpost, Paul"
+        }, 
+        {
+            "canonical name": "Ghislain, Patrick", 
+            "name": "Patrick Ghislain", 
+            "long imdb name": "Patrick Ghislain", 
+            "long imdb canonical name": "Ghislain, Patrick"
+        }, 
+        {
+            "canonical name": "Gravendaal, Coen", 
+            "name": "Coen Gravendaal", 
+            "long imdb name": "Coen Gravendaal", 
+            "long imdb canonical name": "Gravendaal, Coen"
+        }, 
+        {
+            "canonical name": "Happ\u00e9, Dominic", 
+            "name": "Dominic Happ\u00e9", 
+            "long imdb name": "Dominic Happ\u00e9", 
+            "long imdb canonical name": "Happ\u00e9, Dominic"
+        }, 
+        {
+            "canonical name": "Hoogstraten, Luuk", 
+            "name": "Luuk Hoogstraten", 
+            "long imdb name": "Luuk Hoogstraten", 
+            "long imdb canonical name": "Hoogstraten, Luuk"
+        }, 
+        {
+            "canonical name": "Jellema, Jaap", 
+            "name": "Jaap Jellema", 
+            "long imdb name": "Jaap Jellema", 
+            "long imdb canonical name": "Jellema, Jaap"
+        }, 
+        {
+            "canonical name": "Jong, Hans", 
+            "name": "Hans Jong", 
+            "long imdb name": "Hans Jong", 
+            "long imdb canonical name": "Jong, Hans"
+        }, 
+        {
+            "canonical name": "Rietra, Jonne", 
+            "name": "Jonne Rietra", 
+            "long imdb name": "Jonne Rietra", 
+            "long imdb canonical name": "Rietra, Jonne"
+        }, 
+        {
+            "canonical name": "Schuermans, Magali", 
+            "name": "Magali Schuermans", 
+            "long imdb name": "Magali Schuermans", 
+            "long imdb canonical name": "Schuermans, Magali"
+        }, 
+        {
+            "canonical name": "Warnier, Peter", 
+            "name": "Peter Warnier", 
+            "long imdb name": "Peter Warnier", 
+            "long imdb canonical name": "Warnier, Peter"
+        }, 
+        {
+            "canonical name": "Warnier, Peter", 
+            "name": "Peter Warnier", 
+            "long imdb name": "Peter Warnier", 
+            "long imdb canonical name": "Warnier, Peter"
+        }, 
+        {
+            "canonical name": "Warnier, Peter", 
+            "name": "Peter Warnier", 
+            "long imdb name": "Peter Warnier", 
+            "long imdb canonical name": "Warnier, Peter"
+        }
+    ], 
+    "camera and electrical department": [
+        {
+            "canonical name": "Das, Erno", 
+            "name": "Erno Das", 
+            "long imdb name": "Erno Das", 
+            "long imdb canonical name": "Das, Erno"
+        }, 
+        {
+            "canonical name": "Demper, Bob", 
+            "name": "Bob Demper", 
+            "long imdb name": "Bob Demper", 
+            "long imdb canonical name": "Demper, Bob"
+        }, 
+        {
+            "canonical name": "Dillo, Daan", 
+            "name": "Daan Dillo", 
+            "long imdb name": "Daan Dillo", 
+            "long imdb canonical name": "Dillo, Daan"
+        }, 
+        {
+            "canonical name": "Leermakers, Thomas", 
+            "name": "Thomas Leermakers", 
+            "long imdb name": "Thomas Leermakers", 
+            "long imdb canonical name": "Leermakers, Thomas"
+        }, 
+        {
+            "canonical name": "Umut, Jesse", 
+            "name": "Jesse Umut", 
+            "long imdb name": "Jesse Umut", 
+            "long imdb canonical name": "Umut, Jesse"
+        }, 
+        {
+            "canonical name": "den Vlekkert, Roy van", 
+            "name": "Roy van den Vlekkert", 
+            "long imdb name": "Roy van den Vlekkert", 
+            "long imdb canonical name": "den Vlekkert, Roy van"
+        }, 
+        {
+            "canonical name": "van Liempd, Saskia", 
+            "name": "Saskia van Liempd", 
+            "long imdb name": "Saskia van Liempd", 
+            "long imdb canonical name": "van Liempd, Saskia"
+        }, 
+        {
+            "canonical name": "Verkaart, Jasper", 
+            "name": "Jasper Verkaart", 
+            "long imdb name": "Jasper Verkaart", 
+            "long imdb canonical name": "Verkaart, Jasper"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "ARP S\u00e9lection", 
+            "long imdb name": "ARP S\u00e9lection"
+        }, 
+        {
+            "name": "Cin\u00e9art", 
+            "long imdb name": "Cin\u00e9art"
+        }, 
+        {
+            "name": "Cin\u00e9art", 
+            "long imdb name": "Cin\u00e9art"
+        }, 
+        {
+            "name": "Drafthouse Films", 
+            "long imdb name": "Drafthouse Films"
+        }, 
+        {
+            "name": "Films We Like", 
+            "long imdb name": "Films We Like"
+        }, 
+        {
+            "name": "Pandastorm Pictures", 
+            "long imdb name": "Pandastorm Pictures"
+        }, 
+        {
+            "name": "Shochiku Company", 
+            "long imdb name": "Shochiku Company"
+        }, 
+        {
+            "name": "Angel Films", 
+            "long imdb name": "Angel Films"
+        }, 
+        {
+            "name": "Ascot Elite Home Entertainment", 
+            "long imdb name": "Ascot Elite Home Entertainment"
+        }, 
+        {
+            "name": "Ascot Elite Home Entertainment", 
+            "long imdb name": "Ascot Elite Home Entertainment"
+        }, 
+        {
+            "name": "Film1", 
+            "long imdb name": "Film1"
+        }, 
+        {
+            "name": "Mozinet", 
+            "long imdb name": "Mozinet"
+        }, 
+        {
+            "name": "Must K\u00e4si", 
+            "long imdb name": "Must K\u00e4si"
+        }, 
+        {
+            "name": "Pris Audiovisuais", 
+            "long imdb name": "Pris Audiovisuais"
+        }, 
+        {
+            "name": "Twin Pics", 
+            "long imdb name": "Twin Pics"
+        }, 
+        {
+            "name": "Twin Pics", 
+            "long imdb name": "Twin Pics"
+        }
+    ], 
+    "rating": 6.8, 
+    "runtimes": [
+        "113"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "Gudmundsen-Holmgreen, Stine", 
+            "name": "Stine Gudmundsen-Holmgreen", 
+            "long imdb name": "Stine Gudmundsen-Holmgreen", 
+            "long imdb canonical name": "Gudmundsen-Holmgreen, Stine"
+        }
+    ], 
+    "make up": [
+        {
+            "canonical name": "Hillenbrink, Erik", 
+            "name": "Erik Hillenbrink", 
+            "long imdb name": "Erik Hillenbrink", 
+            "long imdb canonical name": "Hillenbrink, Erik"
+        }, 
+        {
+            "canonical name": "Hillenbrink, Rob", 
+            "name": "Rob Hillenbrink", 
+            "long imdb name": "Rob Hillenbrink", 
+            "long imdb canonical name": "Hillenbrink, Rob"
+        }, 
+        {
+            "canonical name": "Hoogveld, Marike", 
+            "name": "Marike Hoogveld", 
+            "long imdb name": "Marike Hoogveld", 
+            "long imdb canonical name": "Hoogveld, Marike"
+        }
+    ], 
+    "year": 2013, 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Nemchik, Stephan", 
+            "name": "Stephan Nemchik", 
+            "long imdb name": "Stephan Nemchik", 
+            "long imdb canonical name": "Nemchik, Stephan"
+        }, 
+        {
+            "canonical name": "Rastelli, Els", 
+            "name": "Els Rastelli", 
+            "long imdb name": "Els Rastelli", 
+            "long imdb canonical name": "Rastelli, Els"
+        }, 
+        {
+            "canonical name": "van Eis, Sebastiaan", 
+            "name": "Sebastiaan van Eis", 
+            "long imdb name": "Sebastiaan van Eis", 
+            "long imdb canonical name": "van Eis, Sebastiaan"
+        }, 
+        {
+            "canonical name": "van Eis, Sebastiaan", 
+            "name": "Sebastiaan van Eis", 
+            "long imdb name": "Sebastiaan van Eis", 
+            "long imdb canonical name": "van Eis, Sebastiaan"
+        }
+    ], 
+    "color info": [
+        "(HD)"
+    ], 
+    "visual effects": [
+        {
+            "canonical name": "Kleyn, Dennis", 
+            "name": "Dennis Kleyn", 
+            "long imdb name": "Dennis Kleyn", 
+            "long imdb canonical name": "Kleyn, Dennis"
+        }, 
+        {
+            "canonical name": "Kleyn, Violette", 
+            "name": "Violette Kleyn", 
+            "long imdb name": "Violette Kleyn", 
+            "long imdb canonical name": "Kleyn, Violette"
+        }, 
+        {
+            "canonical name": "der Peet, Frank van", 
+            "name": "Frank van der Peet", 
+            "long imdb name": "Frank van der Peet", 
+            "long imdb canonical name": "der Peet, Frank van"
+        }, 
+        {
+            "canonical name": "van Vuure, Albert", 
+            "name": "Albert van Vuure", 
+            "long imdb name": "Albert van Vuure", 
+            "long imdb canonical name": "van Vuure, Albert"
+        }
+    ], 
+    "votes": 11571, 
+    "producer": [
+        {
+            "canonical name": "Glad, Mogens", 
+            "name": "Mogens Glad", 
+            "long imdb name": "Mogens Glad", 
+            "long imdb canonical name": "Glad, Mogens"
+        }, 
+        {
+            "canonical name": "Gysel, Eurydice", 
+            "name": "Eurydice Gysel", 
+            "long imdb name": "Eurydice Gysel", 
+            "long imdb canonical name": "Gysel, Eurydice"
+        }, 
+        {
+            "canonical name": "Mortier, Koen", 
+            "name": "Koen Mortier", 
+            "long imdb name": "Koen Mortier", 
+            "long imdb canonical name": "Mortier, Koen"
+        }, 
+        {
+            "canonical name": "Mosegaard, Tine", 
+            "name": "Tine Mosegaard", 
+            "long imdb name": "Tine Mosegaard", 
+            "long imdb canonical name": "Mosegaard, Tine"
+        }, 
+        {
+            "canonical name": "van Warmerdam, Marc", 
+            "name": "Marc van Warmerdam", 
+            "long imdb name": "Marc van Warmerdam", 
+            "long imdb canonical name": "van Warmerdam, Marc"
+        }, 
+        {
+            "canonical name": "van Zwieten, Berry", 
+            "name": "Berry van Zwieten", 
+            "long imdb name": "Berry van Zwieten", 
+            "long imdb canonical name": "van Zwieten, Berry"
+        }
+    ], 
+    "title": "Borgman", 
+    "assistant director": [
+        {
+            "canonical name": "Donker, Sander", 
+            "name": "Sander Donker", 
+            "long imdb name": "Sander Donker", 
+            "long imdb canonical name": "Donker, Sander"
+        }, 
+        {
+            "canonical name": "Niels, Hidde", 
+            "name": "Hidde Niels", 
+            "long imdb name": "Hidde Niels", 
+            "long imdb canonical name": "Niels, Hidde"
+        }, 
+        {
+            "canonical name": "van Ufford, Willem Quarles", 
+            "name": "Willem Quarles van Ufford", 
+            "long imdb name": "Willem Quarles van Ufford", 
+            "long imdb canonical name": "van Ufford, Willem Quarles"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "van Warmerdam, Alex", 
+            "name": "Alex van Warmerdam", 
+            "long imdb name": "Alex van Warmerdam", 
+            "long imdb canonical name": "van Warmerdam, Alex"
+        }
+    ], 
+    "long imdb canonical title": "Borgman (2013)", 
+    "languages": [
+        "Dutch", 
+        "English"
+    ], 
+    "production manager": [
+        {
+            "canonical name": "Schutte, Roland", 
+            "name": "Roland Schutte", 
+            "long imdb name": "Roland Schutte", 
+            "long imdb canonical name": "Schutte, Roland"
+        }, 
+        {
+            "canonical name": "de Geer, Kris van", 
+            "name": "Kris van de Geer", 
+            "long imdb name": "Kris van de Geer", 
+            "long imdb canonical name": "de Geer, Kris van"
+        }, 
+        {
+            "canonical name": "der Leeden, Maarten van", 
+            "name": "Maarten van der Leeden", 
+            "long imdb name": "Maarten van der Leeden", 
+            "long imdb canonical name": "der Leeden, Maarten van"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Burg, Job ter", 
+            "name": "Job ter Burg", 
+            "long imdb name": "Job ter Burg", 
+            "long imdb canonical name": "Burg, Job ter"
+        }
+    ], 
+    "certificates": [
+        "Argentina:18", 
+        "Canada:14A::(British Columbia)", 
+        "France:12", 
+        "Germany:16", 
+        "Japan:R15+", 
+        "Netherlands:16", 
+        "Portugal:M/12", 
+        "Singapore:NC16", 
+        "USA:Not Rated"
+    ], 
+    "costume department": [
+        {
+            "canonical name": "Enderberg, Fleur", 
+            "name": "Fleur Enderberg", 
+            "long imdb name": "Fleur Enderberg", 
+            "long imdb canonical name": "Enderberg, Fleur"
+        }, 
+        {
+            "canonical name": "Gudmundsen-Holmgren, Ida Skov", 
+            "name": "Ida Skov Gudmundsen-Holmgren", 
+            "long imdb name": "Ida Skov Gudmundsen-Holmgren", 
+            "long imdb canonical name": "Gudmundsen-Holmgren, Ida Skov"
+        }, 
+        {
+            "canonical name": "Kofoed, Ole", 
+            "name": "Ole Kofoed", 
+            "long imdb name": "Ole Kofoed", 
+            "long imdb canonical name": "Kofoed, Ole"
+        }, 
+        {
+            "canonical name": "Trompetter, Bibi", 
+            "name": "Bibi Trompetter", 
+            "long imdb name": "Bibi Trompetter", 
+            "long imdb canonical name": "Trompetter, Bibi"
+        }
+    ], 
+    "long imdb title": "Borgman (2013)", 
+    "country codes": [
+        "nl", 
+        "be", 
+        "dk"
+    ], 
+    "language codes": [
+        "nl", 
+        "en"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BNDg5OTk0OTI3MF5BMl5BanBnXkFtZTgwMjYxMDM1MTE@._V1._SX95_SY140_.jpg", 
+    "casting department": [
+        {
+            "canonical name": "Besseling, Shanti", 
+            "name": "Shanti Besseling", 
+            "long imdb name": "Shanti Besseling", 
+            "long imdb canonical name": "Besseling, Shanti"
+        }, 
+        {
+            "canonical name": "Castelijn, Job", 
+            "name": "Job Castelijn", 
+            "long imdb name": "Job Castelijn", 
+            "long imdb canonical name": "Castelijn, Job"
+        }, 
+        {
+            "canonical name": "Gosschalk, Janusz", 
+            "name": "Janusz Gosschalk", 
+            "long imdb name": "Janusz Gosschalk", 
+            "long imdb canonical name": "Gosschalk, Janusz"
+        }
+    ], 
+    "special effects companies": [
+        {
+            "name": "Planet X FX", 
+            "long imdb name": "Planet X FX"
+        }
+    ], 
+    "sound mix": [
+        "Dolby", 
+        "Dolby Digital"
+    ], 
+    "location management": [
+        {
+            "canonical name": "van Wijck, Tjarco", 
+            "name": "Tjarco van Wijck", 
+            "long imdb name": "Tjarco van Wijck", 
+            "long imdb canonical name": "van Wijck, Tjarco"
+        }
+    ], 
+    "genres": [
+        "Drama", 
+        "Thriller"
+    ], 
+    "director": [
+        {
+            "canonical name": "van Warmerdam, Alex", 
+            "name": "Alex van Warmerdam", 
+            "long imdb name": "Alex van Warmerdam", 
+            "long imdb canonical name": "van Warmerdam, Alex"
+        }
+    ], 
+    "stunt performer": [
+        {
+            "canonical name": "de Beukelaer, Willem", 
+            "name": "Willem de Beukelaer", 
+            "long imdb name": "Willem de Beukelaer", 
+            "long imdb canonical name": "de Beukelaer, Willem"
+        }, 
+        {
+            "canonical name": "de Pruyssenaere, Nicolas", 
+            "name": "Nicolas de Pruyssenaere", 
+            "long imdb name": "Nicolas de Pruyssenaere", 
+            "long imdb canonical name": "de Pruyssenaere, Nicolas"
+        }, 
+        {
+            "canonical name": "Maas, Marco", 
+            "name": "Marco Maas", 
+            "long imdb name": "Marco Maas", 
+            "long imdb canonical name": "Maas, Marco"
+        }
+    ], 
+    "miscellaneous companies": [
+        {
+            "name": "Nederlands Fonds voor de Film", 
+            "long imdb name": "Nederlands Fonds voor de Film"
+        }, 
+        {
+            "name": "CoBo Fonds", 
+            "long imdb name": "CoBo Fonds"
+        }, 
+        {
+            "name": "Johannes Vermeer Prijs", 
+            "long imdb name": "Johannes Vermeer Prijs"
+        }, 
+        {
+            "name": "Eurimages", 
+            "long imdb name": "Eurimages"
+        }, 
+        {
+            "name": "Vlaams Audiovisueel Fonds", 
+            "long imdb name": "Vlaams Audiovisueel Fonds"
+        }, 
+        {
+            "name": "Mollywood", 
+            "long imdb name": "Mollywood"
+        }, 
+        {
+            "name": "Danish Film Institute", 
+            "long imdb name": "Danish Film Institute"
+        }, 
+        {
+            "name": "Cinenumerique", 
+            "long imdb name": "Cinenumerique"
+        }, 
+        {
+            "name": "Dolby Laboratories", 
+            "long imdb name": "Dolby Laboratories"
+        }, 
+        {
+            "name": "European Film Bonds", 
+            "long imdb name": "European Film Bonds"
+        }, 
+        {
+            "name": "European Film Bonds", 
+            "long imdb name": "European Film Bonds"
+        }, 
+        {
+            "name": "Fintage CAM", 
+            "long imdb name": "Fintage CAM"
+        }, 
+        {
+            "name": "Galaxy Studios", 
+            "long imdb name": "Galaxy Studios"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Erisman, Tom", 
+            "name": "Tom Erisman", 
+            "long imdb name": "Tom Erisman", 
+            "long imdb canonical name": "Erisman, Tom"
+        }
+    ], 
+    "akas": [
+        "\u0412\u043e\u0437\u043c\u0443\u0442\u0438\u0442\u0435\u043b\u044c \u0441\u043f\u043e\u043a\u043e\u0439\u0441\u0442\u0432\u0438\u044f::Russia", 
+        "Bela::Turkey (Turkish title) (imdb display title)", 
+        "Borgman::Greece (festival title)", 
+        "Borgman::Hungary (imdb display title)", 
+        "Borgman::Argentina (imdb display title)", 
+        "Borgman::Poland (imdb display title)", 
+        "Borgman: O Mal-Intencionado::Portugal (imdb display title)", 
+        "Borhman::Serbia (imdb display title)"
+    ], 
+    "aspect ratio": "2.35 : 1", 
+    "production companies": [
+        {
+            "name": "Graniet Film BV", 
+            "long imdb name": "Graniet Film BV"
+        }, 
+        {
+            "name": "NTR", 
+            "long imdb name": "NTR"
+        }, 
+        {
+            "name": "Epidemic", 
+            "long imdb name": "Epidemic"
+        }, 
+        {
+            "name": "Mollywood", 
+            "long imdb name": "Mollywood"
+        }, 
+        {
+            "name": "Dansk Filmfotograf Forbund (DFF)", 
+            "long imdb name": "Dansk Filmfotograf Forbund (DFF)"
+        }, 
+        {
+            "name": "Angel Films", 
+            "long imdb name": "Angel Films"
+        }
+    ], 
+    "kind": "movie", 
+    "art department": [
+        {
+            "canonical name": "Esajas, Ivna", 
+            "name": "Ivna Esajas", 
+            "long imdb name": "Ivna Esajas", 
+            "long imdb canonical name": "Esajas, Ivna"
+        }, 
+        {
+            "canonical name": "Lans, Quinten", 
+            "name": "Quinten Lans", 
+            "long imdb name": "Quinten Lans", 
+            "long imdb canonical name": "Lans, Quinten"
+        }, 
+        {
+            "canonical name": "Meijer, Thessa", 
+            "name": "Thessa Meijer", 
+            "long imdb name": "Thessa Meijer", 
+            "long imdb canonical name": "Meijer, Thessa"
+        }, 
+        {
+            "canonical name": "Prinsmel, Geert", 
+            "name": "Geert Prinsmel", 
+            "long imdb name": "Geert Prinsmel", 
+            "long imdb canonical name": "Prinsmel, Geert"
+        }, 
+        {
+            "canonical name": "Verstraeten, Peggy", 
+            "name": "Peggy Verstraeten", 
+            "long imdb name": "Peggy Verstraeten", 
+            "long imdb canonical name": "Verstraeten, Peggy"
+        }, 
+        {
+            "canonical name": "Verstraeten, Peggy", 
+            "name": "Peggy Verstraeten", 
+            "long imdb name": "Peggy Verstraeten", 
+            "long imdb canonical name": "Verstraeten, Peggy"
+        }
+    ], 
+    "countries": [
+        "Netherlands", 
+        "Belgium", 
+        "Denmark"
+    ], 
+    "plot outline": "A vagrant enters the lives of an arrogant upper-class family, turning their lives into a psychological nightmare in the process.", 
+    "plot": [
+        "A vagrant enters the lives of an arrogant upper-class family, turning their lives into a psychological nightmare in the process."
+    ], 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BNDg5OTk0OTI3MF5BMl5BanBnXkFtZTgwMjYxMDM1MTE@.jpg", 
+    "canonical title": "Borgman", 
+    "cast": [
+        {
+            "canonical name": "Bijvoet, Jan", 
+            "name": "Jan Bijvoet", 
+            "long imdb name": "Jan Bijvoet", 
+            "long imdb canonical name": "Bijvoet, Jan"
+        }, 
+        {
+            "canonical name": "Minis, Hadewych", 
+            "name": "Hadewych Minis", 
+            "long imdb name": "Hadewych Minis", 
+            "long imdb canonical name": "Minis, Hadewych"
+        }, 
+        {
+            "canonical name": "Perceval, Jeroen", 
+            "name": "Jeroen Perceval", 
+            "long imdb name": "Jeroen Perceval", 
+            "long imdb canonical name": "Perceval, Jeroen"
+        }, 
+        {
+            "canonical name": "van Warmerdam, Alex", 
+            "name": "Alex van Warmerdam", 
+            "long imdb name": "Alex van Warmerdam", 
+            "long imdb canonical name": "van Warmerdam, Alex"
+        }, 
+        {
+            "canonical name": "Dewispelaere, Tom", 
+            "name": "Tom Dewispelaere", 
+            "long imdb name": "Tom Dewispelaere", 
+            "long imdb canonical name": "Dewispelaere, Tom"
+        }, 
+        {
+            "canonical name": "Ditlevsen, Sara Hjort", 
+            "name": "Sara Hjort Ditlevsen", 
+            "long imdb name": "Sara Hjort Ditlevsen", 
+            "long imdb canonical name": "Ditlevsen, Sara Hjort"
+        }, 
+        {
+            "canonical name": "Lijbaart, Elve", 
+            "name": "Elve Lijbaart", 
+            "long imdb name": "Elve Lijbaart", 
+            "long imdb canonical name": "Lijbaart, Elve"
+        }, 
+        {
+            "canonical name": "der Pijl, Dirkje van", 
+            "name": "Dirkje van der Pijl", 
+            "long imdb name": "Dirkje van der Pijl", 
+            "long imdb canonical name": "der Pijl, Dirkje van"
+        }, 
+        {
+            "canonical name": "de Waard, Pieter-Bas", 
+            "name": "Pieter-Bas de Waard", 
+            "long imdb name": "Pieter-Bas de Waard", 
+            "long imdb canonical name": "de Waard, Pieter-Bas"
+        }, 
+        {
+            "canonical name": "de Wijdeven, Eva van", 
+            "name": "Eva van de Wijdeven", 
+            "long imdb name": "Eva van de Wijdeven", 
+            "long imdb canonical name": "de Wijdeven, Eva van"
+        }, 
+        {
+            "canonical name": "Malherbe, Annet", 
+            "name": "Annet Malherbe", 
+            "long imdb name": "Annet Malherbe", 
+            "long imdb canonical name": "Malherbe, Annet"
+        }, 
+        {
+            "canonical name": "Bervoets, Gene", 
+            "name": "Gene Bervoets", 
+            "long imdb name": "Gene Bervoets", 
+            "long imdb canonical name": "Bervoets, Gene"
+        }, 
+        {
+            "canonical name": "Weerts, Mike", 
+            "name": "Mike Weerts", 
+            "long imdb name": "Mike Weerts", 
+            "long imdb canonical name": "Weerts, Mike"
+        }, 
+        {
+            "canonical name": "Bokma, Pierre", 
+            "name": "Pierre Bokma", 
+            "long imdb name": "Pierre Bokma", 
+            "long imdb canonical name": "Bokma, Pierre"
+        }, 
+        {
+            "canonical name": "Rasmussen, Benjamin Boe", 
+            "name": "Benjamin Boe Rasmussen", 
+            "long imdb name": "Benjamin Boe Rasmussen", 
+            "long imdb canonical name": "Rasmussen, Benjamin Boe"
+        }, 
+        {
+            "canonical name": "van Aschat, Reinout Scholten", 
+            "name": "Reinout Scholten van Aschat", 
+            "long imdb name": "Reinout Scholten van Aschat", 
+            "long imdb canonical name": "van Aschat, Reinout Scholten"
+        }, 
+        {
+            "canonical name": "Schluter, Ariane", 
+            "name": "Ariane Schluter", 
+            "long imdb name": "Ariane Schluter", 
+            "long imdb canonical name": "Schluter, Ariane"
+        }, 
+        {
+            "canonical name": "Azzaoui, Abdenbi", 
+            "name": "Abdenbi Azzaoui", 
+            "long imdb name": "Abdenbi Azzaoui", 
+            "long imdb canonical name": "Azzaoui, Abdenbi"
+        }, 
+        {
+            "canonical name": "Bulder, Reinier", 
+            "name": "Reinier Bulder", 
+            "long imdb name": "Reinier Bulder", 
+            "long imdb canonical name": "Bulder, Reinier"
+        }, 
+        {
+            "canonical name": "Bunschoten, Bert", 
+            "name": "Bert Bunschoten", 
+            "long imdb name": "Bert Bunschoten", 
+            "long imdb canonical name": "Bunschoten, Bert"
+        }, 
+        {
+            "canonical name": "Eimers, Ria", 
+            "name": "Ria Eimers", 
+            "long imdb name": "Ria Eimers", 
+            "long imdb canonical name": "Eimers, Ria"
+        }, 
+        {
+            "canonical name": "El Tarhabi, Ismael", 
+            "name": "Ismael El Tarhabi", 
+            "long imdb name": "Ismael El Tarhabi", 
+            "long imdb canonical name": "El Tarhabi, Ismael"
+        }, 
+        {
+            "canonical name": "Meerzorg, John", 
+            "name": "John Meerzorg", 
+            "long imdb name": "John Meerzorg", 
+            "long imdb canonical name": "Meerzorg, John"
+        }, 
+        {
+            "canonical name": "van Warmerdam, Marc", 
+            "name": "Marc van Warmerdam", 
+            "long imdb name": "Marc van Warmerdam", 
+            "long imdb canonical name": "van Warmerdam, Marc"
+        }, 
+        {
+            "canonical name": "van Warmerdam, Mees", 
+            "name": "Mees van Warmerdam", 
+            "long imdb name": "Mees van Warmerdam", 
+            "long imdb canonical name": "van Warmerdam, Mees"
+        }
+    ], 
+    "smart long imdb canonical title": "Borgman (2013)", 
+    "original music": [
+        {
+            "canonical name": "van Warmerdam, Vincent", 
+            "name": "Vincent van Warmerdam", 
+            "long imdb name": "Vincent van Warmerdam", 
+            "long imdb canonical name": "van Warmerdam, Vincent"
+        }
+    ], 
+    "editorial department": [
+        {
+            "canonical name": "Dickens, Wim", 
+            "name": "Wim Dickens", 
+            "long imdb name": "Wim Dickens", 
+            "long imdb canonical name": "Dickens, Wim"
+        }, 
+        {
+            "canonical name": "Koopman, Niels", 
+            "name": "Niels Koopman", 
+            "long imdb name": "Niels Koopman", 
+            "long imdb canonical name": "Koopman, Niels"
+        }, 
+        {
+            "canonical name": "van Leeuwen, Petro", 
+            "name": "Petro van Leeuwen", 
+            "long imdb name": "Petro van Leeuwen", 
+            "long imdb canonical name": "van Leeuwen, Petro"
+        }
+    ], 
+    "smart canonical title": "Borgman"
+}

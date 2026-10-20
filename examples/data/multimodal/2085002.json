@@ -1,0 +1,912 @@
+{
+    "rating": 6.6, 
+    "sound crew": [
+        {
+            "canonical name": "Bohlin, Max", 
+            "name": "Max Bohlin", 
+            "long imdb name": "Max Bohlin", 
+            "long imdb canonical name": "Bohlin, Max"
+        }, 
+        {
+            "canonical name": "Hennel, Martin", 
+            "name": "Martin Hennel", 
+            "long imdb name": "Martin Hennel", 
+            "long imdb canonical name": "Hennel, Martin"
+        }, 
+        {
+            "canonical name": "Hennel, Martin", 
+            "name": "Martin Hennel", 
+            "long imdb name": "Martin Hennel", 
+            "long imdb canonical name": "Hennel, Martin"
+        }, 
+        {
+            "canonical name": "K\u00f6rner, Mikael", 
+            "name": "Mikael K\u00f6rner", 
+            "long imdb name": "Mikael K\u00f6rner", 
+            "long imdb canonical name": "K\u00f6rner, Mikael"
+        }, 
+        {
+            "canonical name": "Langenbach, Martin", 
+            "name": "Martin Langenbach", 
+            "long imdb name": "Martin Langenbach", 
+            "long imdb canonical name": "Langenbach, Martin"
+        }, 
+        {
+            "canonical name": "Lynge, Claus", 
+            "name": "Claus Lynge", 
+            "long imdb name": "Claus Lynge", 
+            "long imdb canonical name": "Lynge, Claus"
+        }
+    ], 
+    "camera and electrical department": [
+        {
+            "canonical name": "Bergenstr\u00f6m, Martin", 
+            "name": "Martin Bergenstr\u00f6m", 
+            "long imdb name": "Martin Bergenstr\u00f6m", 
+            "long imdb canonical name": "Bergenstr\u00f6m, Martin"
+        }, 
+        {
+            "canonical name": "Dahlstr\u00f6m, Alexander", 
+            "name": "Alexander Dahlstr\u00f6m", 
+            "long imdb name": "Alexander Dahlstr\u00f6m", 
+            "long imdb canonical name": "Dahlstr\u00f6m, Alexander"
+        }, 
+        {
+            "canonical name": "Gerstr\u00f6m, Ewa", 
+            "name": "Ewa Gerstr\u00f6m", 
+            "long imdb name": "Ewa Gerstr\u00f6m", 
+            "long imdb canonical name": "Gerstr\u00f6m, Ewa"
+        }, 
+        {
+            "canonical name": "Kuses, Faruk", 
+            "name": "Faruk Kuses", 
+            "long imdb name": "Faruk Kuses", 
+            "long imdb canonical name": "Kuses, Faruk"
+        }, 
+        {
+            "canonical name": "Watts, Bill", 
+            "name": "Bill Watts", 
+            "long imdb name": "Bill Watts", 
+            "long imdb canonical name": "Watts, Bill"
+        }, 
+        {
+            "canonical name": "Wilthorn, Bj\u00f6rn", 
+            "name": "Bj\u00f6rn Wilthorn", 
+            "long imdb name": "Bj\u00f6rn Wilthorn", 
+            "long imdb canonical name": "Wilthorn, Bj\u00f6rn"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "ABC Distribution", 
+            "long imdb name": "ABC Distribution"
+        }, 
+        {
+            "name": "ASC Distribution", 
+            "long imdb name": "ASC Distribution"
+        }, 
+        {
+            "name": "Cinemien", 
+            "long imdb name": "Cinemien"
+        }, 
+        {
+            "name": "Eclipse Filmverleih", 
+            "long imdb name": "Eclipse Filmverleih"
+        }, 
+        {
+            "name": "Tri Art Film", 
+            "long imdb name": "Tri Art Film"
+        }, 
+        {
+            "name": "Vertigo M\u00e9dia Kft.", 
+            "long imdb name": "Vertigo M\u00e9dia Kft."
+        }, 
+        {
+            "name": "Homescreen", 
+            "long imdb name": "Homescreen"
+        }, 
+        {
+            "name": "Legendmain Filmes", 
+            "long imdb name": "Legendmain Filmes"
+        }, 
+        {
+            "name": "Reel Pictures", 
+            "long imdb name": "Reel Pictures"
+        }
+    ], 
+    "runtimes": [
+        "104"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "Woltersdorf, Sandra", 
+            "name": "Sandra Woltersdorf", 
+            "long imdb name": "Sandra Woltersdorf", 
+            "long imdb canonical name": "Woltersdorf, Sandra"
+        }
+    ], 
+    "thanks": [
+        {
+            "canonical name": "Svensson, Mikael", 
+            "name": "Mikael Svensson", 
+            "long imdb name": "Mikael Svensson", 
+            "long imdb canonical name": "Svensson, Mikael"
+        }
+    ], 
+    "make up": [
+        {
+            "canonical name": "Gr\u00f6nberg, Kaj", 
+            "name": "Kaj Gr\u00f6nberg", 
+            "long imdb name": "Kaj Gr\u00f6nberg", 
+            "long imdb canonical name": "Gr\u00f6nberg, Kaj"
+        }
+    ], 
+    "year": 2012, 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Andgren, Lotta", 
+            "name": "Lotta Andgren", 
+            "long imdb name": "Lotta Andgren", 
+            "long imdb canonical name": "Andgren, Lotta"
+        }, 
+        {
+            "canonical name": "Boklund, Fredrik", 
+            "name": "Fredrik Boklund", 
+            "long imdb name": "Fredrik Boklund", 
+            "long imdb canonical name": "Boklund, Fredrik"
+        }, 
+        {
+            "canonical name": "Eklund, Johan", 
+            "name": "Johan Eklund", 
+            "long imdb name": "Johan Eklund", 
+            "long imdb canonical name": "Eklund, Johan"
+        }, 
+        {
+            "canonical name": "Eriksson, Caroline", 
+            "name": "Caroline Eriksson", 
+            "long imdb name": "Caroline Eriksson", 
+            "long imdb canonical name": "Eriksson, Caroline"
+        }, 
+        {
+            "canonical name": "Johansson, Magnus", 
+            "name": "Magnus Johansson", 
+            "long imdb name": "Magnus Johansson", 
+            "long imdb canonical name": "Johansson, Magnus"
+        }, 
+        {
+            "canonical name": "Sahlstedt, Malin Jonasson", 
+            "name": "Malin Jonasson Sahlstedt", 
+            "long imdb name": "Malin Jonasson Sahlstedt", 
+            "long imdb canonical name": "Sahlstedt, Malin Jonasson"
+        }, 
+        {
+            "canonical name": "Magnusson, Erik", 
+            "name": "Erik Magnusson", 
+            "long imdb name": "Erik Magnusson", 
+            "long imdb canonical name": "Magnusson, Erik"
+        }, 
+        {
+            "canonical name": "Nilsson, Hanna", 
+            "name": "Hanna Nilsson", 
+            "long imdb name": "Hanna Nilsson", 
+            "long imdb canonical name": "Nilsson, Hanna"
+        }, 
+        {
+            "canonical name": "Nordell, Elisabeth", 
+            "name": "Elisabeth Nordell", 
+            "long imdb name": "Elisabeth Nordell", 
+            "long imdb canonical name": "Nordell, Elisabeth"
+        }, 
+        {
+            "canonical name": "Persson, Jane", 
+            "name": "Jane Persson", 
+            "long imdb name": "Jane Persson", 
+            "long imdb canonical name": "Persson, Jane"
+        }, 
+        {
+            "canonical name": "Renh\u00e4ll, Hans", 
+            "name": "Hans Renh\u00e4ll", 
+            "long imdb name": "Hans Renh\u00e4ll", 
+            "long imdb canonical name": "Renh\u00e4ll, Hans"
+        }, 
+        {
+            "canonical name": "Stern\u00f6, Linda", 
+            "name": "Linda Stern\u00f6", 
+            "long imdb name": "Linda Stern\u00f6", 
+            "long imdb canonical name": "Stern\u00f6, Linda"
+        }, 
+        {
+            "canonical name": "Thor, Knut", 
+            "name": "Knut Thor", 
+            "long imdb name": "Knut Thor", 
+            "long imdb canonical name": "Thor, Knut"
+        }, 
+        {
+            "canonical name": "\u00c5hlander, Anna", 
+            "name": "Anna \u00c5hlander", 
+            "long imdb name": "Anna \u00c5hlander", 
+            "long imdb canonical name": "\u00c5hlander, Anna"
+        }
+    ], 
+    "production companies": [
+        {
+            "name": "Anagram", 
+            "long imdb name": "Anagram"
+        }, 
+        {
+            "name": "Film V\u00e4st", 
+            "long imdb name": "Film V\u00e4st"
+        }, 
+        {
+            "name": "Solid Entertainment", 
+            "long imdb name": "Solid Entertainment"
+        }
+    ], 
+    "color info": [], 
+    "plot": [
+        "A young Eastern European immigrant, working in Sweden, is faced with a painful choice when she's laid off from her factory in the name of efficiencies."
+    ], 
+    "votes": 1608, 
+    "producer": [
+        {
+            "canonical name": "Persson, Martin", 
+            "name": "Martin Persson", 
+            "long imdb name": "Martin Persson", 
+            "long imdb canonical name": "Persson, Martin"
+        }, 
+        {
+            "canonical name": "\u00c5hlander, China", 
+            "name": "China \u00c5hlander", 
+            "long imdb name": "China \u00c5hlander", 
+            "long imdb canonical name": "\u00c5hlander, China"
+        }
+    ], 
+    "title": "\u00c4ta sova d\u00f6", 
+    "assistant director": [
+        {
+            "canonical name": "Forsblad, Lotta", 
+            "name": "Lotta Forsblad", 
+            "long imdb name": "Lotta Forsblad", 
+            "long imdb canonical name": "Forsblad, Lotta"
+        }, 
+        {
+            "canonical name": "\u00c5hlander, China", 
+            "name": "China \u00c5hlander", 
+            "long imdb name": "China \u00c5hlander", 
+            "long imdb canonical name": "\u00c5hlander, China"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "Pichler, Gabriela", 
+            "name": "Gabriela Pichler", 
+            "long imdb name": "Gabriela Pichler", 
+            "long imdb canonical name": "Pichler, Gabriela"
+        }
+    ], 
+    "long imdb canonical title": "\u00c4ta sova d\u00f6 (2012)", 
+    "languages": [
+        "Swedish", 
+        "Serbo-Croatian", 
+        "Serbian"
+    ], 
+    "production manager": [
+        {
+            "canonical name": "Kimay, Peter", 
+            "name": "Peter Kimay", 
+            "long imdb name": "Peter Kimay", 
+            "long imdb canonical name": "Kimay, Peter"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Lundborg, Johan", 
+            "name": "Johan Lundborg", 
+            "long imdb name": "Johan Lundborg", 
+            "long imdb canonical name": "Lundborg, Johan"
+        }, 
+        {
+            "canonical name": "Pichler, Gabriela", 
+            "name": "Gabriela Pichler", 
+            "long imdb name": "Gabriela Pichler", 
+            "long imdb canonical name": "Pichler, Gabriela"
+        }
+    ], 
+    "certificates": [
+        "Denmark:A", 
+        "Germany:0", 
+        "Netherlands:12", 
+        "Portugal:M/12", 
+        "Sweden:Btl"
+    ], 
+    "costume department": [
+        {
+            "canonical name": "Gr\u00f6nberg, Kaj", 
+            "name": "Kaj Gr\u00f6nberg", 
+            "long imdb name": "Kaj Gr\u00f6nberg", 
+            "long imdb canonical name": "Gr\u00f6nberg, Kaj"
+        }, 
+        {
+            "canonical name": "Kovacs, Katarina", 
+            "name": "Katarina Kovacs", 
+            "long imdb name": "Katarina Kovacs", 
+            "long imdb canonical name": "Kovacs, Katarina"
+        }
+    ], 
+    "long imdb title": "\u00c4ta sova d\u00f6 (2012)", 
+    "country codes": [
+        "se"
+    ], 
+    "language codes": [
+        "sv", 
+        "qbo", 
+        "sr"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BNWRiZDU3NTgtMjJmMC00MTIwLThmMjgtNGUyNzZlZWFkOTJhXkEyXkFqcGdeQXVyMjY0NjEwMDM@._V1._SX99_SY140_.jpg", 
+    "casting department": [
+        {
+            "canonical name": "Forsblad, Lotta", 
+            "name": "Lotta Forsblad", 
+            "long imdb name": "Lotta Forsblad", 
+            "long imdb canonical name": "Forsblad, Lotta"
+        }, 
+        {
+            "canonical name": "Skafar, Sanne", 
+            "name": "Sanne Skafar", 
+            "long imdb name": "Sanne Skafar", 
+            "long imdb canonical name": "Skafar, Sanne"
+        }
+    ], 
+    "editorial department": [
+        {
+            "canonical name": "Leszczylowski, Michal", 
+            "name": "Michal Leszczylowski", 
+            "long imdb name": "Michal Leszczylowski", 
+            "long imdb canonical name": "Leszczylowski, Michal"
+        }, 
+        {
+            "canonical name": "Mossberg, \u00c5sa", 
+            "name": "\u00c5sa Mossberg", 
+            "long imdb name": "\u00c5sa Mossberg", 
+            "long imdb canonical name": "Mossberg, \u00c5sa"
+        }, 
+        {
+            "canonical name": "Sevholt, Michael", 
+            "name": "Michael Sevholt", 
+            "long imdb name": "Michael Sevholt", 
+            "long imdb canonical name": "Sevholt, Michael"
+        }, 
+        {
+            "canonical name": "Shams, Fateh", 
+            "name": "Fateh Shams", 
+            "long imdb name": "Fateh Shams", 
+            "long imdb canonical name": "Shams, Fateh"
+        }, 
+        {
+            "canonical name": "Taylor, Vanessa", 
+            "name": "Vanessa Taylor", 
+            "long imdb name": "Vanessa Taylor", 
+            "long imdb canonical name": "Taylor, Vanessa"
+        }
+    ], 
+    "genres": [
+        "Drama"
+    ], 
+    "director": [
+        {
+            "canonical name": "Pichler, Gabriela", 
+            "name": "Gabriela Pichler", 
+            "long imdb name": "Gabriela Pichler", 
+            "long imdb canonical name": "Pichler, Gabriela"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Lundborg, Johan", 
+            "name": "Johan Lundborg", 
+            "long imdb name": "Johan Lundborg", 
+            "long imdb canonical name": "Lundborg, Johan"
+        }
+    ], 
+    "akas": [
+        "Eat Sleep Die::UK (festival title), USA (imdb display title)", 
+        "\u0415\u0448\u044c \u0421\u043f\u0438 \u0423\u043c\u0440\u0438::Russia", 
+        "\u042f\u0436, \u0441\u043f\u0438, \u0443\u043c\u0440\u0438::Bulgaria (Bulgarian title)", 
+        "Come, duerme, muere::Spain (imdb display title)", 
+        "Comer Dormir Morrer::Portugal (imdb display title)", 
+        "Eat Sleep Die::France (imdb display title)", 
+        "Enni, inni, meghalni::Hungary (imdb display title)", 
+        "Essen Schlafen Sterben::Germany (imdb display title)", 
+        "Jedi, spavaj, umri::Croatia (imdb display title)", 
+        "Jedz, spij, umieraj::Poland (imdb display title)", 
+        "Spise Sove D\u00f8::Norway (alternative transliteration)", 
+        "Spise sove d\u00f8::Denmark (informal literal title)", 
+        "Sy\u00f6d\u00e4, nukkua, kuolla::Finland (imdb display title)"
+    ], 
+    "aspect ratio": "1.78 : 1", 
+    "location management": [
+        {
+            "canonical name": "Linfeldt, Sofia", 
+            "name": "Sofia Linfeldt", 
+            "long imdb name": "Sofia Linfeldt", 
+            "long imdb canonical name": "Linfeldt, Sofia"
+        }, 
+        {
+            "canonical name": "Madsen, Christian", 
+            "name": "Christian Madsen", 
+            "long imdb name": "Christian Madsen", 
+            "long imdb canonical name": "Madsen, Christian"
+        }
+    ], 
+    "kind": "movie", 
+    "art department": [
+        {
+            "canonical name": "Appelros, Erik", 
+            "name": "Erik Appelros", 
+            "long imdb name": "Erik Appelros", 
+            "long imdb canonical name": "Appelros, Erik"
+        }, 
+        {
+            "canonical name": "Jankert, Jessica", 
+            "name": "Jessica Jankert", 
+            "long imdb name": "Jessica Jankert", 
+            "long imdb canonical name": "Jankert, Jessica"
+        }, 
+        {
+            "canonical name": "Jankert, Jessika", 
+            "name": "Jessika Jankert", 
+            "long imdb name": "Jessika Jankert", 
+            "long imdb canonical name": "Jankert, Jessika"
+        }, 
+        {
+            "canonical name": "Rizzo, Frank", 
+            "name": "Frank Rizzo", 
+            "long imdb name": "Frank Rizzo", 
+            "long imdb canonical name": "Rizzo, Frank"
+        }, 
+        {
+            "canonical name": "Tarland, Jessica", 
+            "name": "Jessica Tarland", 
+            "long imdb name": "Jessica Tarland", 
+            "long imdb canonical name": "Tarland, Jessica"
+        }, 
+        {
+            "canonical name": "Tarland, Jessica", 
+            "name": "Jessica Tarland", 
+            "long imdb name": "Jessica Tarland", 
+            "long imdb canonical name": "Tarland, Jessica"
+        }, 
+        {
+            "canonical name": "\u00c5kesson, Tobias", 
+            "name": "Tobias \u00c5kesson", 
+            "long imdb name": "Tobias \u00c5kesson", 
+            "long imdb canonical name": "\u00c5kesson, Tobias"
+        }, 
+        {
+            "canonical name": "\u00c5kesson, Tobias", 
+            "name": "Tobias \u00c5kesson", 
+            "long imdb name": "Tobias \u00c5kesson", 
+            "long imdb canonical name": "\u00c5kesson, Tobias"
+        }
+    ], 
+    "countries": [
+        "Sweden"
+    ], 
+    "transportation department": [
+        {
+            "canonical name": "Thuresson, Sebastian", 
+            "name": "Sebastian Thuresson", 
+            "long imdb name": "Sebastian Thuresson", 
+            "long imdb canonical name": "Thuresson, Sebastian"
+        }
+    ], 
+    "plot outline": "A young Eastern European immigrant, working in Sweden, is faced with a painful choice when she's laid off from her factory in the name of efficiencies.", 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BNWRiZDU3NTgtMjJmMC00MTIwLThmMjgtNGUyNzZlZWFkOTJhXkEyXkFqcGdeQXVyMjY0NjEwMDM@.jpg", 
+    "canonical title": "\u00c4ta sova d\u00f6", 
+    "cast": [
+        {
+            "canonical name": "Lukac, Nermina", 
+            "name": "Nermina Lukac", 
+            "long imdb name": "Nermina Lukac", 
+            "long imdb canonical name": "Lukac, Nermina"
+        }, 
+        {
+            "canonical name": "Dragisic, Milan", 
+            "name": "Milan Dragisic", 
+            "long imdb name": "Milan Dragisic", 
+            "long imdb canonical name": "Dragisic, Milan"
+        }, 
+        {
+            "canonical name": "Lampinen, Jonathan", 
+            "name": "Jonathan Lampinen", 
+            "long imdb name": "Jonathan Lampinen", 
+            "long imdb canonical name": "Lampinen, Jonathan"
+        }, 
+        {
+            "canonical name": "F\u00e4lt, Peter", 
+            "name": "Peter F\u00e4lt", 
+            "long imdb name": "Peter F\u00e4lt", 
+            "long imdb canonical name": "F\u00e4lt, Peter"
+        }, 
+        {
+            "canonical name": "Pichler, Ruzica", 
+            "name": "Ruzica Pichler", 
+            "long imdb name": "Ruzica Pichler", 
+            "long imdb canonical name": "Pichler, Ruzica"
+        }, 
+        {
+            "canonical name": "Addo, Nils", 
+            "name": "Nils Addo", 
+            "long imdb name": "Nils Addo", 
+            "long imdb canonical name": "Addo, Nils"
+        }, 
+        {
+            "canonical name": "Ahlberg, Britt", 
+            "name": "Britt Ahlberg", 
+            "long imdb name": "Britt Ahlberg", 
+            "long imdb canonical name": "Ahlberg, Britt"
+        }, 
+        {
+            "canonical name": "Andersson, Mikael", 
+            "name": "Mikael Andersson", 
+            "long imdb name": "Mikael Andersson", 
+            "long imdb canonical name": "Andersson, Mikael"
+        }, 
+        {
+            "canonical name": "Bala, Bujar", 
+            "name": "Bujar Bala", 
+            "long imdb name": "Bujar Bala", 
+            "long imdb canonical name": "Bala, Bujar"
+        }, 
+        {
+            "canonical name": "Berg, Elin", 
+            "name": "Elin Berg", 
+            "long imdb name": "Elin Berg", 
+            "long imdb canonical name": "Berg, Elin"
+        }, 
+        {
+            "canonical name": "Berggren, Urban", 
+            "name": "Urban Berggren", 
+            "long imdb name": "Urban Berggren", 
+            "long imdb canonical name": "Berggren, Urban"
+        }, 
+        {
+            "canonical name": "Kovacevic, Julia Biserka", 
+            "name": "Julia Biserka Kovacevic", 
+            "long imdb name": "Julia Biserka Kovacevic", 
+            "long imdb canonical name": "Kovacevic, Julia Biserka"
+        }, 
+        {
+            "canonical name": "Blomberg, Per", 
+            "name": "Per Blomberg", 
+            "long imdb name": "Per Blomberg", 
+            "long imdb canonical name": "Blomberg, Per"
+        }, 
+        {
+            "canonical name": "Dahl, Kent", 
+            "name": "Kent Dahl", 
+            "long imdb name": "Kent Dahl", 
+            "long imdb canonical name": "Dahl, Kent"
+        }, 
+        {
+            "canonical name": "Dordevic, Ronald", 
+            "name": "Ronald Dordevic", 
+            "long imdb name": "Ronald Dordevic", 
+            "long imdb canonical name": "Dordevic, Ronald"
+        }, 
+        {
+            "canonical name": "Duvsund, Andreas", 
+            "name": "Andreas Duvsund", 
+            "long imdb name": "Andreas Duvsund", 
+            "long imdb canonical name": "Duvsund, Andreas"
+        }, 
+        {
+            "canonical name": "Forsblad, Lotta", 
+            "name": "Lotta Forsblad", 
+            "long imdb name": "Lotta Forsblad", 
+            "long imdb canonical name": "Forsblad, Lotta"
+        }, 
+        {
+            "canonical name": "Fridh, Patrik", 
+            "name": "Patrik Fridh", 
+            "long imdb name": "Patrik Fridh", 
+            "long imdb canonical name": "Fridh, Patrik"
+        }, 
+        {
+            "canonical name": "Gr\u00e4gg, Lisbeth", 
+            "name": "Lisbeth Gr\u00e4gg", 
+            "long imdb name": "Lisbeth Gr\u00e4gg", 
+            "long imdb canonical name": "Gr\u00e4gg, Lisbeth"
+        }, 
+        {
+            "canonical name": "Gustavsson", 
+            "name": "Gustavsson", 
+            "long imdb name": "Gustavsson", 
+            "long imdb canonical name": "Gustavsson"
+        }, 
+        {
+            "canonical name": "G\u00f6l, Lisbeth", 
+            "name": "Lisbeth G\u00f6l", 
+            "long imdb name": "Lisbeth G\u00f6l", 
+            "long imdb canonical name": "G\u00f6l, Lisbeth"
+        }, 
+        {
+            "canonical name": "G\u00f6ransson, Eivhon", 
+            "name": "Eivhon G\u00f6ransson", 
+            "long imdb name": "Eivhon G\u00f6ransson", 
+            "long imdb canonical name": "G\u00f6ransson, Eivhon"
+        }, 
+        {
+            "canonical name": "Hamid, Haidar", 
+            "name": "Haidar Hamid", 
+            "long imdb name": "Haidar Hamid", 
+            "long imdb canonical name": "Hamid, Haidar"
+        }, 
+        {
+            "canonical name": "Hansen, Isa", 
+            "name": "Isa Hansen", 
+            "long imdb name": "Isa Hansen", 
+            "long imdb canonical name": "Hansen, Isa"
+        }, 
+        {
+            "canonical name": "Herold, Johan", 
+            "name": "Johan Herold", 
+            "long imdb name": "Johan Herold", 
+            "long imdb canonical name": "Herold, Johan"
+        }, 
+        {
+            "canonical name": "Hofvendal, Stefan", 
+            "name": "Stefan Hofvendal", 
+            "long imdb name": "Stefan Hofvendal", 
+            "long imdb canonical name": "Hofvendal, Stefan"
+        }, 
+        {
+            "canonical name": "Johansson, Kerst", 
+            "name": "Kerst Johansson", 
+            "long imdb name": "Kerst Johansson", 
+            "long imdb canonical name": "Johansson, Kerst"
+        }, 
+        {
+            "canonical name": "Johansson, Magnus", 
+            "name": "Magnus Johansson", 
+            "long imdb name": "Magnus Johansson", 
+            "long imdb canonical name": "Johansson, Magnus"
+        }, 
+        {
+            "canonical name": "Johansson, Sven", 
+            "name": "Sven Johansson", 
+            "long imdb name": "Sven Johansson", 
+            "long imdb canonical name": "Johansson, Sven"
+        }, 
+        {
+            "canonical name": "J\u00f6nsson, Christer", 
+            "name": "Christer J\u00f6nsson", 
+            "long imdb name": "Christer J\u00f6nsson", 
+            "long imdb canonical name": "J\u00f6nsson, Christer"
+        }, 
+        {
+            "canonical name": "J\u00f6nsson, Rolf", 
+            "name": "Rolf J\u00f6nsson", 
+            "long imdb name": "Rolf J\u00f6nsson", 
+            "long imdb canonical name": "J\u00f6nsson, Rolf"
+        }, 
+        {
+            "canonical name": "Karlsson, Lars", 
+            "name": "Lars Karlsson", 
+            "long imdb name": "Lars Karlsson", 
+            "long imdb canonical name": "Karlsson, Lars"
+        }, 
+        {
+            "canonical name": "Kimay, Peter", 
+            "name": "Peter Kimay", 
+            "long imdb name": "Peter Kimay", 
+            "long imdb canonical name": "Kimay, Peter"
+        }, 
+        {
+            "canonical name": "K\u00e4llstr\u00f6m, Torbj\u00f6rn", 
+            "name": "Torbj\u00f6rn K\u00e4llstr\u00f6m", 
+            "long imdb name": "Torbj\u00f6rn K\u00e4llstr\u00f6m", 
+            "long imdb canonical name": "K\u00e4llstr\u00f6m, Torbj\u00f6rn"
+        }, 
+        {
+            "canonical name": "Larsmon, Dave", 
+            "name": "Dave Larsmon", 
+            "long imdb name": "Dave Larsmon", 
+            "long imdb canonical name": "Larsmon, Dave"
+        }, 
+        {
+            "canonical name": "Lau, Wah", 
+            "name": "Wah Lau", 
+            "long imdb name": "Wah Lau", 
+            "long imdb canonical name": "Lau, Wah"
+        }, 
+        {
+            "canonical name": "Lindberg, Maria", 
+            "name": "Maria Lindberg", 
+            "long imdb name": "Maria Lindberg", 
+            "long imdb canonical name": "Lindberg, Maria"
+        }, 
+        {
+            "canonical name": "Ljungkvist, Jonny", 
+            "name": "Jonny Ljungkvist", 
+            "long imdb name": "Jonny Ljungkvist", 
+            "long imdb canonical name": "Ljungkvist, Jonny"
+        }, 
+        {
+            "canonical name": "Lopez, Liza", 
+            "name": "Liza Lopez", 
+            "long imdb name": "Liza Lopez", 
+            "long imdb canonical name": "Lopez, Liza"
+        }, 
+        {
+            "canonical name": "Milojevic, Zarko", 
+            "name": "Zarko Milojevic", 
+            "long imdb name": "Zarko Milojevic", 
+            "long imdb canonical name": "Milojevic, Zarko"
+        }, 
+        {
+            "canonical name": "Minus", 
+            "name": "Minus", 
+            "long imdb name": "Minus", 
+            "long imdb canonical name": "Minus"
+        }, 
+        {
+            "canonical name": "Mui, Feng Day", 
+            "name": "Feng Day Mui", 
+            "long imdb name": "Feng Day Mui", 
+            "long imdb canonical name": "Mui, Feng Day"
+        }, 
+        {
+            "canonical name": "Nellhag, Annelie", 
+            "name": "Annelie Nellhag", 
+            "long imdb name": "Annelie Nellhag", 
+            "long imdb canonical name": "Nellhag, Annelie"
+        }, 
+        {
+            "canonical name": "Nilsson, Irina", 
+            "name": "Irina Nilsson", 
+            "long imdb name": "Irina Nilsson", 
+            "long imdb canonical name": "Nilsson, Irina"
+        }, 
+        {
+            "canonical name": "Nilsson, Martzy", 
+            "name": "Martzy Nilsson", 
+            "long imdb name": "Martzy Nilsson", 
+            "long imdb canonical name": "Nilsson, Martzy"
+        }, 
+        {
+            "canonical name": "Nymberg, Daniel", 
+            "name": "Daniel Nymberg", 
+            "long imdb name": "Daniel Nymberg", 
+            "long imdb canonical name": "Nymberg, Daniel"
+        }, 
+        {
+            "canonical name": "Olsen, Marianne", 
+            "name": "Marianne Olsen", 
+            "long imdb name": "Marianne Olsen", 
+            "long imdb canonical name": "Olsen, Marianne"
+        }, 
+        {
+            "canonical name": "Ottosson, Roland", 
+            "name": "Roland Ottosson", 
+            "long imdb name": "Roland Ottosson", 
+            "long imdb canonical name": "Ottosson, Roland"
+        }, 
+        {
+            "canonical name": "Phiaksoda, Nina", 
+            "name": "Nina Phiaksoda", 
+            "long imdb name": "Nina Phiaksoda", 
+            "long imdb canonical name": "Phiaksoda, Nina"
+        }, 
+        {
+            "canonical name": "Rankovic, Suzana", 
+            "name": "Suzana Rankovic", 
+            "long imdb name": "Suzana Rankovic", 
+            "long imdb canonical name": "Rankovic, Suzana"
+        }, 
+        {
+            "canonical name": "Rauf, Ako", 
+            "name": "Ako Rauf", 
+            "long imdb name": "Ako Rauf", 
+            "long imdb canonical name": "Rauf, Ako"
+        }, 
+        {
+            "canonical name": "Roos, Bengt", 
+            "name": "Bengt Roos", 
+            "long imdb name": "Bengt Roos", 
+            "long imdb canonical name": "Roos, Bengt"
+        }, 
+        {
+            "canonical name": "Roos, Pia", 
+            "name": "Pia Roos", 
+            "long imdb name": "Pia Roos", 
+            "long imdb canonical name": "Roos, Pia"
+        }, 
+        {
+            "canonical name": "Scharff, Maria", 
+            "name": "Maria Scharff", 
+            "long imdb name": "Maria Scharff", 
+            "long imdb canonical name": "Scharff, Maria"
+        }, 
+        {
+            "canonical name": "Schr\u00f6der, Nicolaj", 
+            "name": "Nicolaj Schr\u00f6der", 
+            "long imdb name": "Nicolaj Schr\u00f6der", 
+            "long imdb canonical name": "Schr\u00f6der, Nicolaj"
+        }, 
+        {
+            "canonical name": "Skafar, Dennis", 
+            "name": "Dennis Skafar", 
+            "long imdb name": "Dennis Skafar", 
+            "long imdb canonical name": "Skafar, Dennis"
+        }, 
+        {
+            "canonical name": "Skafar, Gunilla", 
+            "name": "Gunilla Skafar", 
+            "long imdb name": "Gunilla Skafar", 
+            "long imdb canonical name": "Skafar, Gunilla"
+        }, 
+        {
+            "canonical name": "Svensson, Jesper", 
+            "name": "Jesper Svensson", 
+            "long imdb name": "Jesper Svensson", 
+            "long imdb canonical name": "Svensson, Jesper"
+        }, 
+        {
+            "canonical name": "Svensson, Maja", 
+            "name": "Maja Svensson", 
+            "long imdb name": "Maja Svensson", 
+            "long imdb canonical name": "Svensson, Maja"
+        }, 
+        {
+            "canonical name": "Tapani, Kalle", 
+            "name": "Kalle Tapani", 
+            "long imdb name": "Kalle Tapani", 
+            "long imdb canonical name": "Tapani, Kalle"
+        }, 
+        {
+            "canonical name": "Thi, Hien Bui", 
+            "name": "Hien Bui Thi", 
+            "long imdb name": "Hien Bui Thi", 
+            "long imdb canonical name": "Thi, Hien Bui"
+        }, 
+        {
+            "canonical name": "Torkar, Isidor", 
+            "name": "Isidor Torkar", 
+            "long imdb name": "Isidor Torkar", 
+            "long imdb canonical name": "Torkar, Isidor"
+        }, 
+        {
+            "canonical name": "Tushi, Eugen", 
+            "name": "Eugen Tushi", 
+            "long imdb name": "Eugen Tushi", 
+            "long imdb canonical name": "Tushi, Eugen"
+        }, 
+        {
+            "canonical name": "Vilonius, Roger", 
+            "name": "Roger Vilonius", 
+            "long imdb name": "Roger Vilonius", 
+            "long imdb canonical name": "Vilonius, Roger"
+        }, 
+        {
+            "canonical name": "Vukadinovic, Goran", 
+            "name": "Goran Vukadinovic", 
+            "long imdb name": "Goran Vukadinovic", 
+            "long imdb canonical name": "Vukadinovic, Goran"
+        }, 
+        {
+            "canonical name": "Vukovic, Ljubisa", 
+            "name": "Ljubisa Vukovic", 
+            "long imdb name": "Ljubisa Vukovic", 
+            "long imdb canonical name": "Vukovic, Ljubisa"
+        }, 
+        {
+            "canonical name": "Wennberg, Dennis", 
+            "name": "Dennis Wennberg", 
+            "long imdb name": "Dennis Wennberg", 
+            "long imdb canonical name": "Wennberg, Dennis"
+        }
+    ], 
+    "smart long imdb canonical title": "\u00c4ta sova d\u00f6 (2012)", 
+    "smart canonical title": "\u00c4ta sova d\u00f6"
+}

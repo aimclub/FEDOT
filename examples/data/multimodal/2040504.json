@@ -1,0 +1,799 @@
+{
+    "music department": [
+        {
+            "canonical name": "Arshadi, Behrooz", 
+            "name": "Behrooz Arshadi", 
+            "long imdb name": "Behrooz Arshadi", 
+            "long imdb canonical name": "Arshadi, Behrooz"
+        }, 
+        {
+            "canonical name": "Bergsma, Miles", 
+            "name": "Miles Bergsma", 
+            "long imdb name": "Miles Bergsma", 
+            "long imdb canonical name": "Bergsma, Miles"
+        }, 
+        {
+            "canonical name": "Hanke, P.J.", 
+            "name": "P.J. Hanke", 
+            "long imdb name": "P.J. Hanke", 
+            "long imdb canonical name": "Hanke, P.J."
+        }, 
+        {
+            "canonical name": "Khosravi, Homayoun", 
+            "name": "Homayoun Khosravi", 
+            "long imdb name": "Homayoun Khosravi", 
+            "long imdb canonical name": "Khosravi, Homayoun"
+        }, 
+        {
+            "canonical name": "Kovacs, Alex", 
+            "name": "Alex Kovacs", 
+            "long imdb name": "Alex Kovacs", 
+            "long imdb canonical name": "Kovacs, Alex"
+        }, 
+        {
+            "canonical name": "Niami, Ramin", 
+            "name": "Ramin Niami", 
+            "long imdb name": "Ramin Niami", 
+            "long imdb canonical name": "Niami, Ramin"
+        }, 
+        {
+            "canonical name": "Ward, Matthew J.", 
+            "name": "Matthew J. Ward", 
+            "long imdb name": "Matthew J. Ward", 
+            "long imdb canonical name": "Ward, Matthew J."
+        }
+    ], 
+    "camera and electrical department": [
+        {
+            "canonical name": "Crighton, Andrew", 
+            "name": "Andrew Crighton", 
+            "long imdb name": "Andrew Crighton", 
+            "long imdb canonical name": "Crighton, Andrew"
+        }, 
+        {
+            "canonical name": "DiBartolomeo, Joseph", 
+            "name": "Joseph DiBartolomeo", 
+            "long imdb name": "Joseph DiBartolomeo", 
+            "long imdb canonical name": "DiBartolomeo, Joseph"
+        }, 
+        {
+            "canonical name": "Evans, Eric R.", 
+            "name": "Eric R. Evans", 
+            "long imdb name": "Eric R. Evans", 
+            "long imdb canonical name": "Evans, Eric R."
+        }, 
+        {
+            "canonical name": "Hart, Tyler", 
+            "name": "Tyler Hart", 
+            "long imdb name": "Tyler Hart", 
+            "long imdb canonical name": "Hart, Tyler"
+        }, 
+        {
+            "canonical name": "Lee, Andrew Stephen", 
+            "name": "Andrew Stephen Lee", 
+            "long imdb name": "Andrew Stephen Lee", 
+            "long imdb canonical name": "Lee, Andrew Stephen"
+        }, 
+        {
+            "canonical name": "Patin, Vincent", 
+            "name": "Vincent Patin", 
+            "long imdb name": "Vincent Patin", 
+            "long imdb canonical name": "Patin, Vincent"
+        }, 
+        {
+            "canonical name": "Pena, Thomas", 
+            "name": "Thomas Pena", 
+            "long imdb name": "Thomas Pena", 
+            "long imdb canonical name": "Pena, Thomas"
+        }, 
+        {
+            "canonical name": "Steiner, Marlena", 
+            "name": "Marlena Steiner", 
+            "long imdb name": "Marlena Steiner", 
+            "long imdb canonical name": "Steiner, Marlena"
+        }, 
+        {
+            "canonical name": "Violet, Tara", 
+            "name": "Tara Violet", 
+            "long imdb name": "Tara Violet", 
+            "long imdb canonical name": "Violet, Tara"
+        }, 
+        {
+            "canonical name": "Yancey, Joe", 
+            "name": "Joe Yancey", 
+            "long imdb name": "Joe Yancey", 
+            "long imdb canonical name": "Yancey, Joe"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "Sideshow Releasing", 
+            "long imdb name": "Sideshow Releasing"
+        }, 
+        {
+            "name": "BigStar.TV", 
+            "long imdb name": "BigStar.TV"
+        }, 
+        {
+            "name": "Vision Films", 
+            "long imdb name": "Vision Films"
+        }
+    ], 
+    "rating": 5.2, 
+    "runtimes": [
+        "104"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "Norcia, Lisa", 
+            "name": "Lisa Norcia", 
+            "long imdb name": "Lisa Norcia", 
+            "long imdb canonical name": "Norcia, Lisa"
+        }
+    ], 
+    "thanks": [
+        {
+            "canonical name": "Butterworth, Evans", 
+            "name": "Evans Butterworth", 
+            "long imdb name": "Evans Butterworth", 
+            "long imdb canonical name": "Butterworth, Evans"
+        }, 
+        {
+            "canonical name": "Negahban, Navid", 
+            "name": "Navid Negahban", 
+            "long imdb name": "Navid Negahban", 
+            "long imdb canonical name": "Negahban, Navid"
+        }, 
+        {
+            "canonical name": "Saveliev, Alex", 
+            "name": "Alex Saveliev", 
+            "long imdb name": "Alex Saveliev", 
+            "long imdb canonical name": "Saveliev, Alex"
+        }
+    ], 
+    "make up": [
+        {
+            "canonical name": "Olson, Rachel Lund", 
+            "name": "Rachel Lund Olson", 
+            "long imdb name": "Rachel Lund Olson", 
+            "long imdb canonical name": "Olson, Rachel Lund"
+        }, 
+        {
+            "canonical name": "Moss, Aliana", 
+            "name": "Aliana Moss", 
+            "long imdb name": "Aliana Moss", 
+            "long imdb canonical name": "Moss, Aliana"
+        }, 
+        {
+            "canonical name": "Panek, Stephanie Kae", 
+            "name": "Stephanie Kae Panek", 
+            "long imdb name": "Stephanie Kae Panek", 
+            "long imdb canonical name": "Panek, Stephanie Kae"
+        }
+    ], 
+    "year": 2014, 
+    "production design": [
+        {
+            "canonical name": "Clark, Lisa", 
+            "name": "Lisa Clark", 
+            "long imdb name": "Lisa Clark", 
+            "long imdb canonical name": "Clark, Lisa"
+        }
+    ], 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Acre, Edwin", 
+            "name": "Edwin Acre", 
+            "long imdb name": "Edwin Acre", 
+            "long imdb canonical name": "Acre, Edwin"
+        }, 
+        {
+            "canonical name": "Esteghamat, Nahall", 
+            "name": "Nahall Esteghamat", 
+            "long imdb name": "Nahall Esteghamat", 
+            "long imdb canonical name": "Esteghamat, Nahall"
+        }, 
+        {
+            "canonical name": "Gallegos, Kristina Monet", 
+            "name": "Kristina Monet Gallegos", 
+            "long imdb name": "Kristina Monet Gallegos", 
+            "long imdb canonical name": "Gallegos, Kristina Monet"
+        }, 
+        {
+            "canonical name": "Karnan, Kalyn", 
+            "name": "Kalyn Karnan", 
+            "long imdb name": "Kalyn Karnan", 
+            "long imdb canonical name": "Karnan, Kalyn"
+        }, 
+        {
+            "canonical name": "Meehan, John", 
+            "name": "John Meehan", 
+            "long imdb name": "John Meehan", 
+            "long imdb canonical name": "Meehan, John"
+        }, 
+        {
+            "canonical name": "Romanoff, Lise", 
+            "name": "Lise Romanoff", 
+            "long imdb name": "Lise Romanoff", 
+            "long imdb canonical name": "Romanoff, Lise"
+        }, 
+        {
+            "canonical name": "Rosenfeld, Adam", 
+            "name": "Adam Rosenfeld", 
+            "long imdb name": "Adam Rosenfeld", 
+            "long imdb canonical name": "Rosenfeld, Adam"
+        }, 
+        {
+            "canonical name": "Saveliev, Alex", 
+            "name": "Alex Saveliev", 
+            "long imdb name": "Alex Saveliev", 
+            "long imdb canonical name": "Saveliev, Alex"
+        }, 
+        {
+            "canonical name": "Sepehrnia, Shadia", 
+            "name": "Shadia Sepehrnia", 
+            "long imdb name": "Shadia Sepehrnia", 
+            "long imdb canonical name": "Sepehrnia, Shadia"
+        }, 
+        {
+            "canonical name": "Wright, Adam D.", 
+            "name": "Adam D. Wright", 
+            "long imdb name": "Adam D. Wright", 
+            "long imdb canonical name": "Wright, Adam D."
+        }
+    ], 
+    "long imdb canonical title": "Shirin in Love (2014)", 
+    "color info": [], 
+    "visual effects": [
+        {
+            "canonical name": "Cardone, Heather", 
+            "name": "Heather Cardone", 
+            "long imdb name": "Heather Cardone", 
+            "long imdb canonical name": "Cardone, Heather"
+        }
+    ], 
+    "votes": 399, 
+    "producer": [
+        {
+            "canonical name": "Arshadi, Behrooz", 
+            "name": "Behrooz Arshadi", 
+            "long imdb name": "Behrooz Arshadi", 
+            "long imdb canonical name": "Arshadi, Behrooz"
+        }, 
+        {
+            "canonical name": "Attaripour, Nina", 
+            "name": "Nina Attaripour", 
+            "long imdb name": "Nina Attaripour", 
+            "long imdb canonical name": "Attaripour, Nina"
+        }, 
+        {
+            "canonical name": "Gousheh, Arghavan", 
+            "name": "Arghavan Gousheh", 
+            "long imdb name": "Arghavan Gousheh", 
+            "long imdb canonical name": "Gousheh, Arghavan"
+        }, 
+        {
+            "canonical name": "Jobrani, Maz", 
+            "name": "Maz Jobrani", 
+            "long imdb name": "Maz Jobrani", 
+            "long imdb canonical name": "Jobrani, Maz"
+        }, 
+        {
+            "canonical name": "Mandujano, Jesse", 
+            "name": "Jesse Mandujano", 
+            "long imdb name": "Jesse Mandujano", 
+            "long imdb canonical name": "Mandujano, Jesse"
+        }, 
+        {
+            "canonical name": "Moheet, Ray", 
+            "name": "Ray Moheet", 
+            "long imdb name": "Ray Moheet", 
+            "long imdb canonical name": "Moheet, Ray"
+        }, 
+        {
+            "canonical name": "Niami, Ramin", 
+            "name": "Ramin Niami", 
+            "long imdb name": "Ramin Niami", 
+            "long imdb canonical name": "Niami, Ramin"
+        }, 
+        {
+            "canonical name": "Robson, Karen", 
+            "name": "Karen Robson", 
+            "long imdb name": "Karen Robson", 
+            "long imdb canonical name": "Robson, Karen"
+        }, 
+        {
+            "canonical name": "Soper, Nick", 
+            "name": "Nick Soper", 
+            "long imdb name": "Nick Soper", 
+            "long imdb canonical name": "Soper, Nick"
+        }, 
+        {
+            "canonical name": "Zampino, Michael J.", 
+            "name": "Michael J. Zampino", 
+            "long imdb name": "Michael J. Zampino", 
+            "long imdb canonical name": "Zampino, Michael J."
+        }
+    ], 
+    "title": "Shirin in Love", 
+    "assistant director": [
+        {
+            "canonical name": "Lohf, Christian", 
+            "name": "Christian Lohf", 
+            "long imdb name": "Christian Lohf", 
+            "long imdb canonical name": "Lohf, Christian"
+        }, 
+        {
+            "canonical name": "Yoo, Rob R.", 
+            "name": "Rob R. Yoo", 
+            "long imdb name": "Rob R. Yoo", 
+            "long imdb canonical name": "Yoo, Rob R."
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "Niami, Ramin", 
+            "name": "Ramin Niami", 
+            "long imdb name": "Ramin Niami", 
+            "long imdb canonical name": "Niami, Ramin"
+        }
+    ], 
+    "casting director": [
+        {
+            "canonical name": "Rock, Kerry", 
+            "name": "Kerry Rock", 
+            "long imdb name": "Kerry Rock", 
+            "long imdb canonical name": "Rock, Kerry"
+        }
+    ], 
+    "languages": [
+        "English"
+    ], 
+    "editor": [
+        {
+            "canonical name": "Feick, Fritz", 
+            "name": "Fritz Feick", 
+            "long imdb name": "Fritz Feick", 
+            "long imdb canonical name": "Feick, Fritz"
+        }, 
+        {
+            "canonical name": "Niami, Ramin", 
+            "name": "Ramin Niami", 
+            "long imdb name": "Ramin Niami", 
+            "long imdb canonical name": "Niami, Ramin"
+        }
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "Barnaby, David", 
+            "name": "David Barnaby", 
+            "long imdb name": "David Barnaby", 
+            "long imdb canonical name": "Barnaby, David"
+        }, 
+        {
+            "canonical name": "Barnaby, David", 
+            "name": "David Barnaby", 
+            "long imdb name": "David Barnaby", 
+            "long imdb canonical name": "Barnaby, David"
+        }, 
+        {
+            "canonical name": "Day, Gary", 
+            "name": "Gary Day", 
+            "long imdb name": "Gary Day", 
+            "long imdb canonical name": "Day, Gary"
+        }, 
+        {
+            "canonical name": "Narimizadeh, Reza", 
+            "name": "Reza Narimizadeh", 
+            "long imdb name": "Reza Narimizadeh", 
+            "long imdb canonical name": "Narimizadeh, Reza"
+        }, 
+        {
+            "canonical name": "Narimizadeh, Reza", 
+            "name": "Reza Narimizadeh", 
+            "long imdb name": "Reza Narimizadeh", 
+            "long imdb canonical name": "Narimizadeh, Reza"
+        }, 
+        {
+            "canonical name": "Pagan, Daniel", 
+            "name": "Daniel Pagan", 
+            "long imdb name": "Daniel Pagan", 
+            "long imdb canonical name": "Pagan, Daniel"
+        }, 
+        {
+            "canonical name": "Pape, James", 
+            "name": "James Pape", 
+            "long imdb name": "James Pape", 
+            "long imdb canonical name": "Pape, James"
+        }, 
+        {
+            "canonical name": "Ridgley, James", 
+            "name": "James Ridgley", 
+            "long imdb name": "James Ridgley", 
+            "long imdb canonical name": "Ridgley, James"
+        }
+    ], 
+    "long imdb title": "Shirin in Love (2014)", 
+    "country codes": [
+        "us"
+    ], 
+    "language codes": [
+        "en"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BNTUwODkxNzUyM15BMl5BanBnXkFtZTgwMjQwNzkwMTE@._V1._SX95_SY140_.jpg", 
+    "editorial department": [
+        {
+            "canonical name": "Brooks, Shaley", 
+            "name": "Shaley Brooks", 
+            "long imdb name": "Shaley Brooks", 
+            "long imdb canonical name": "Brooks, Shaley"
+        }, 
+        {
+            "canonical name": "Liebert, Jonathan", 
+            "name": "Jonathan Liebert", 
+            "long imdb name": "Jonathan Liebert", 
+            "long imdb canonical name": "Liebert, Jonathan"
+        }, 
+        {
+            "canonical name": "Miller, August", 
+            "name": "August Miller", 
+            "long imdb name": "August Miller", 
+            "long imdb canonical name": "Miller, August"
+        }
+    ], 
+    "genres": [
+        "Comedy", 
+        "Romance"
+    ], 
+    "director": [
+        {
+            "canonical name": "Niami, Ramin", 
+            "name": "Ramin Niami", 
+            "long imdb name": "Ramin Niami", 
+            "long imdb canonical name": "Niami, Ramin"
+        }
+    ], 
+    "miscellaneous companies": [
+        {
+            "name": "ABS Payroll & Production Accounting Services", 
+            "long imdb name": "ABS Payroll & Production Accounting Services"
+        }, 
+        {
+            "name": "Bebe Goal", 
+            "long imdb name": "Bebe Goal"
+        }, 
+        {
+            "name": "Cherokee Music Group", 
+            "long imdb name": "Cherokee Music Group"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Shannon, Garrett", 
+            "name": "Garrett Shannon", 
+            "long imdb name": "Garrett Shannon", 
+            "long imdb canonical name": "Shannon, Garrett"
+        }
+    ], 
+    "aspect ratio": "1.85 : 1", 
+    "production companies": [
+        {
+            "name": "Sideshow", 
+            "long imdb name": "Sideshow"
+        }
+    ], 
+    "kind": "movie", 
+    "art department": [
+        {
+            "canonical name": "Ancieta, Yoel", 
+            "name": "Yoel Ancieta", 
+            "long imdb name": "Yoel Ancieta", 
+            "long imdb canonical name": "Ancieta, Yoel"
+        }, 
+        {
+            "canonical name": "DeCarlo, Adea", 
+            "name": "Adea DeCarlo", 
+            "long imdb name": "Adea DeCarlo", 
+            "long imdb canonical name": "DeCarlo, Adea"
+        }, 
+        {
+            "canonical name": "Kim, Andrew", 
+            "name": "Andrew Kim", 
+            "long imdb name": "Andrew Kim", 
+            "long imdb canonical name": "Kim, Andrew"
+        }, 
+        {
+            "canonical name": "Schultz, Andrew David", 
+            "name": "Andrew David Schultz", 
+            "long imdb name": "Andrew David Schultz", 
+            "long imdb canonical name": "Schultz, Andrew David"
+        }
+    ], 
+    "countries": [
+        "USA"
+    ], 
+    "plot outline": "Love has no borders and therein lies the premise of the charming, new Iranian-American romantic comedy \"Shirin in Love.\" Nazanin Boniadi plays Shirin...", 
+    "plot": [
+        "Love has no borders and therein lies the premise of the charming, new Iranian-American romantic comedy \"Shirin in Love.\" Nazanin Boniadi plays Shirin, an absent-minded, young Iranian-American living in \"Tehrangeles\" (the large Iranian community in Los Angeles) with her overbearing mother and empathetic father. Despite being engaged for years to a successful Iranian plastic surgeon in Beverly Hills, Shirin finds herself breaking loyalty and tradition when she falls in love with a mysterious young man who lives in a lighthouse in northern California. As her secret unravels and cultures clash, Shirin discovers what it ultimately means to be true to herself."
+    ], 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BNTUwODkxNzUyM15BMl5BanBnXkFtZTgwMjQwNzkwMTE@.jpg", 
+    "canonical title": "Shirin in Love", 
+    "cast": [
+        {
+            "canonical name": "Boniadi, Nazanin", 
+            "name": "Nazanin Boniadi", 
+            "long imdb name": "Nazanin Boniadi", 
+            "long imdb canonical name": "Boniadi, Nazanin"
+        }, 
+        {
+            "canonical name": "Smith, Riley", 
+            "name": "Riley Smith", 
+            "long imdb name": "Riley Smith", 
+            "long imdb canonical name": "Smith, Riley"
+        }, 
+        {
+            "canonical name": "Madigan, Amy", 
+            "name": "Amy Madigan", 
+            "long imdb name": "Amy Madigan", 
+            "long imdb canonical name": "Madigan, Amy"
+        }, 
+        {
+            "canonical name": "Manesh, Marshall", 
+            "name": "Marshall Manesh", 
+            "long imdb name": "Marshall Manesh", 
+            "long imdb canonical name": "Manesh, Marshall"
+        }, 
+        {
+            "canonical name": "Jobrani, Maz", 
+            "name": "Maz Jobrani", 
+            "long imdb name": "Maz Jobrani", 
+            "long imdb canonical name": "Jobrani, Maz"
+        }, 
+        {
+            "canonical name": "Khalatbari, Anita", 
+            "name": "Anita Khalatbari", 
+            "long imdb name": "Anita Khalatbari", 
+            "long imdb canonical name": "Khalatbari, Anita"
+        }, 
+        {
+            "canonical name": "Amini, Max", 
+            "name": "Max Amini", 
+            "long imdb name": "Max Amini", 
+            "long imdb canonical name": "Amini, Max"
+        }, 
+        {
+            "canonical name": "Wallace, George", 
+            "name": "George Wallace", 
+            "long imdb name": "George Wallace", 
+            "long imdb canonical name": "Wallace, George"
+        }, 
+        {
+            "canonical name": "Little, Annie", 
+            "name": "Annie Little", 
+            "long imdb name": "Annie Little", 
+            "long imdb canonical name": "Little, Annie"
+        }, 
+        {
+            "canonical name": "Colburn, Samantha", 
+            "name": "Samantha Colburn", 
+            "long imdb name": "Samantha Colburn", 
+            "long imdb canonical name": "Colburn, Samantha"
+        }, 
+        {
+            "canonical name": "Schub, Steven", 
+            "name": "Steven Schub", 
+            "long imdb name": "Steven Schub", 
+            "long imdb canonical name": "Schub, Steven"
+        }, 
+        {
+            "canonical name": "Golzari, Sam", 
+            "name": "Sam Golzari", 
+            "long imdb name": "Sam Golzari", 
+            "long imdb canonical name": "Golzari, Sam"
+        }, 
+        {
+            "canonical name": "Soper, Nick", 
+            "name": "Nick Soper", 
+            "long imdb name": "Nick Soper", 
+            "long imdb canonical name": "Soper, Nick"
+        }, 
+        {
+            "canonical name": "Madadian, Andy", 
+            "name": "Andy Madadian", 
+            "long imdb name": "Andy Madadian", 
+            "long imdb canonical name": "Madadian, Andy"
+        }, 
+        {
+            "canonical name": "Gilbert, Mervin", 
+            "name": "Mervin Gilbert", 
+            "long imdb name": "Mervin Gilbert", 
+            "long imdb canonical name": "Gilbert, Mervin"
+        }, 
+        {
+            "canonical name": "Yeltan, Aycil", 
+            "name": "Aycil Yeltan", 
+            "long imdb name": "Aycil Yeltan", 
+            "long imdb canonical name": "Yeltan, Aycil"
+        }, 
+        {
+            "canonical name": "Lynn, Carryl", 
+            "name": "Carryl Lynn", 
+            "long imdb name": "Carryl Lynn", 
+            "long imdb canonical name": "Lynn, Carryl"
+        }, 
+        {
+            "canonical name": "Waldo, Doug", 
+            "name": "Doug Waldo", 
+            "long imdb name": "Doug Waldo", 
+            "long imdb canonical name": "Waldo, Doug"
+        }, 
+        {
+            "canonical name": "Li, Rosemarie", 
+            "name": "Rosemarie Li", 
+            "long imdb name": "Rosemarie Li", 
+            "long imdb canonical name": "Li, Rosemarie"
+        }, 
+        {
+            "canonical name": "Abbassi, Puya", 
+            "name": "Puya Abbassi", 
+            "long imdb name": "Puya Abbassi", 
+            "long imdb canonical name": "Abbassi, Puya"
+        }, 
+        {
+            "canonical name": "Arshadi, Reza", 
+            "name": "Reza Arshadi", 
+            "long imdb name": "Reza Arshadi", 
+            "long imdb canonical name": "Arshadi, Reza"
+        }, 
+        {
+            "canonical name": "Cohen, Bob", 
+            "name": "Bob Cohen", 
+            "long imdb name": "Bob Cohen", 
+            "long imdb canonical name": "Cohen, Bob"
+        }, 
+        {
+            "canonical name": "Pegah, Sheda", 
+            "name": "Sheda Pegah", 
+            "long imdb name": "Sheda Pegah", 
+            "long imdb canonical name": "Pegah, Sheda"
+        }, 
+        {
+            "canonical name": "Ghaffari, Vida", 
+            "name": "Vida Ghaffari", 
+            "long imdb name": "Vida Ghaffari", 
+            "long imdb canonical name": "Ghaffari, Vida"
+        }, 
+        {
+            "canonical name": "Porcelli, Nicolas", 
+            "name": "Nicolas Porcelli", 
+            "long imdb name": "Nicolas Porcelli", 
+            "long imdb canonical name": "Porcelli, Nicolas"
+        }, 
+        {
+            "canonical name": "Mizban, Janet", 
+            "name": "Janet Mizban", 
+            "long imdb name": "Janet Mizban", 
+            "long imdb canonical name": "Mizban, Janet"
+        }, 
+        {
+            "canonical name": "Meehan, John", 
+            "name": "John Meehan", 
+            "long imdb name": "John Meehan", 
+            "long imdb canonical name": "Meehan, John"
+        }, 
+        {
+            "canonical name": "Hardy, Adriana", 
+            "name": "Adriana Hardy", 
+            "long imdb name": "Adriana Hardy", 
+            "long imdb canonical name": "Hardy, Adriana"
+        }, 
+        {
+            "canonical name": "Vega, Danielle", 
+            "name": "Danielle Vega", 
+            "long imdb name": "Danielle Vega", 
+            "long imdb canonical name": "Vega, Danielle"
+        }, 
+        {
+            "canonical name": "Rowe, Donna", 
+            "name": "Donna Rowe", 
+            "long imdb name": "Donna Rowe", 
+            "long imdb canonical name": "Rowe, Donna"
+        }, 
+        {
+            "canonical name": "Moore, Elizabeth G.", 
+            "name": "Elizabeth G. Moore", 
+            "long imdb name": "Elizabeth G. Moore", 
+            "long imdb canonical name": "Moore, Elizabeth G."
+        }, 
+        {
+            "canonical name": "Leonard, Adriana", 
+            "name": "Adriana Leonard", 
+            "long imdb name": "Adriana Leonard", 
+            "long imdb canonical name": "Leonard, Adriana"
+        }, 
+        {
+            "canonical name": "Giorgione, Elice", 
+            "name": "Elice Giorgione", 
+            "long imdb name": "Elice Giorgione", 
+            "long imdb canonical name": "Giorgione, Elice"
+        }, 
+        {
+            "canonical name": "Renee, Milah", 
+            "name": "Milah Renee", 
+            "long imdb name": "Milah Renee", 
+            "long imdb canonical name": "Renee, Milah"
+        }, 
+        {
+            "canonical name": "Estakhrian, Alireza", 
+            "name": "Alireza Estakhrian", 
+            "long imdb name": "Alireza Estakhrian", 
+            "long imdb canonical name": "Estakhrian, Alireza"
+        }, 
+        {
+            "canonical name": "Sandberg, Malin", 
+            "name": "Malin Sandberg", 
+            "long imdb name": "Malin Sandberg", 
+            "long imdb canonical name": "Sandberg, Malin"
+        }, 
+        {
+            "canonical name": "Del Bosque, Maria", 
+            "name": "Maria Del Bosque", 
+            "long imdb name": "Maria Del Bosque", 
+            "long imdb canonical name": "Del Bosque, Maria"
+        }, 
+        {
+            "canonical name": "Namani, Chervine", 
+            "name": "Chervine Namani", 
+            "long imdb name": "Chervine Namani", 
+            "long imdb canonical name": "Namani, Chervine"
+        }, 
+        {
+            "canonical name": "Asadifar, Sara", 
+            "name": "Sara Asadifar", 
+            "long imdb name": "Sara Asadifar", 
+            "long imdb canonical name": "Asadifar, Sara"
+        }, 
+        {
+            "canonical name": "Montrone, Selena", 
+            "name": "Selena Montrone", 
+            "long imdb name": "Selena Montrone", 
+            "long imdb canonical name": "Montrone, Selena"
+        }, 
+        {
+            "canonical name": "Nadery, Nassim", 
+            "name": "Nassim Nadery", 
+            "long imdb name": "Nassim Nadery", 
+            "long imdb canonical name": "Nadery, Nassim"
+        }, 
+        {
+            "canonical name": "Nilsen, Ida", 
+            "name": "Ida Nilsen", 
+            "long imdb name": "Ida Nilsen", 
+            "long imdb canonical name": "Nilsen, Ida"
+        }, 
+        {
+            "canonical name": "Rigsbee, Shani", 
+            "name": "Shani Rigsbee", 
+            "long imdb name": "Shani Rigsbee", 
+            "long imdb canonical name": "Rigsbee, Shani"
+        }
+    ], 
+    "smart long imdb canonical title": "Shirin in Love (2014)", 
+    "costume department": [
+        {
+            "canonical name": "Hartley, Angie", 
+            "name": "Angie Hartley", 
+            "long imdb name": "Angie Hartley", 
+            "long imdb canonical name": "Hartley, Angie"
+        }
+    ], 
+    "original music": [
+        {
+            "canonical name": "Kovacs, Alex", 
+            "name": "Alex Kovacs", 
+            "long imdb name": "Alex Kovacs", 
+            "long imdb canonical name": "Kovacs, Alex"
+        }
+    ], 
+    "smart canonical title": "Shirin in Love"
+}

@@ -1,0 +1,20 @@
+dataset,column
+news_channel, n_tokens_content
+news_channel, n_unique_tokens
+news_channel, n_non_stop_words
+news_channel, n_non_stop_unique_tokens
+news_channel, num_hrefs
+news_channel, num_self_hrefs
+news_channel, num_imgs
+news_channel, num_videos
+news_channel, average_token_length
+news_channel, num_keywords
+news_channel, global_subjectivity
+news_channel, global_sentiment_polarity
+news_channel, global_rate_positive_words
+news_channel, global_rate_negative_words
+news_channel, rate_positive_words
+news_channel, rate_negative_words
+news_popularity2, n_tokens_content
+news_popularity2, average_token_length
+news_popularity2, num_keywords

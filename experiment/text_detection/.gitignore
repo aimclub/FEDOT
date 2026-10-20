@@ -1,0 +1,6 @@
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+labels/label_review.csv
+labels/label_changes.csv
+labels/benchmark_columns_to_label_revised.csv

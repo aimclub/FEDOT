@@ -1,0 +1,973 @@
+{
+    "music department": [
+        {
+            "canonical name": "Lynch, Kieran", 
+            "name": "Kieran Lynch", 
+            "long imdb name": "Kieran Lynch", 
+            "long imdb canonical name": "Lynch, Kieran"
+        }, 
+        {
+            "canonical name": "Lynch, Kieran", 
+            "name": "Kieran Lynch", 
+            "long imdb name": "Kieran Lynch", 
+            "long imdb canonical name": "Lynch, Kieran"
+        }, 
+        {
+            "canonical name": "Lynch, Kieran", 
+            "name": "Kieran Lynch", 
+            "long imdb name": "Kieran Lynch", 
+            "long imdb canonical name": "Lynch, Kieran"
+        }
+    ], 
+    "camera and electrical department": [
+        {
+            "canonical name": "Andersson, Erik", 
+            "name": "Erik Andersson", 
+            "long imdb name": "Erik Andersson", 
+            "long imdb canonical name": "Andersson, Erik"
+        }, 
+        {
+            "canonical name": "Ayoub, Christine", 
+            "name": "Christine Ayoub", 
+            "long imdb name": "Christine Ayoub", 
+            "long imdb canonical name": "Ayoub, Christine"
+        }, 
+        {
+            "canonical name": "Boyle, David", 
+            "name": "David Boyle", 
+            "long imdb name": "David Boyle", 
+            "long imdb canonical name": "Boyle, David"
+        }, 
+        {
+            "canonical name": "Coe, Ron", 
+            "name": "Ron Coe", 
+            "long imdb name": "Ron Coe", 
+            "long imdb canonical name": "Coe, Ron"
+        }, 
+        {
+            "canonical name": "Comerford, Fionn", 
+            "name": "Fionn Comerford", 
+            "long imdb name": "Fionn Comerford", 
+            "long imdb canonical name": "Comerford, Fionn"
+        }, 
+        {
+            "canonical name": "Fletcher, Tim", 
+            "name": "Tim Fletcher", 
+            "long imdb name": "Tim Fletcher", 
+            "long imdb canonical name": "Fletcher, Tim"
+        }, 
+        {
+            "canonical name": "Flood, Robert", 
+            "name": "Robert Flood", 
+            "long imdb name": "Robert Flood", 
+            "long imdb canonical name": "Flood, Robert"
+        }, 
+        {
+            "canonical name": "Gallagher, Addo", 
+            "name": "Addo Gallagher", 
+            "long imdb name": "Addo Gallagher", 
+            "long imdb canonical name": "Gallagher, Addo"
+        }, 
+        {
+            "canonical name": "Gilligan, Luke Murphy", 
+            "name": "Luke Murphy Gilligan", 
+            "long imdb name": "Luke Murphy Gilligan", 
+            "long imdb canonical name": "Gilligan, Luke Murphy"
+        }, 
+        {
+            "canonical name": "Hartland, Martin", 
+            "name": "Martin Hartland", 
+            "long imdb name": "Martin Hartland", 
+            "long imdb canonical name": "Hartland, Martin"
+        }, 
+        {
+            "canonical name": "Jernqvist, Arvid", 
+            "name": "Arvid Jernqvist", 
+            "long imdb name": "Arvid Jernqvist", 
+            "long imdb canonical name": "Jernqvist, Arvid"
+        }, 
+        {
+            "canonical name": "Kokki, Janne", 
+            "name": "Janne Kokki", 
+            "long imdb name": "Janne Kokki", 
+            "long imdb canonical name": "Kokki, Janne"
+        }, 
+        {
+            "canonical name": "McDonnell, Ross", 
+            "name": "Ross McDonnell", 
+            "long imdb name": "Ross McDonnell", 
+            "long imdb canonical name": "McDonnell, Ross"
+        }, 
+        {
+            "canonical name": "O'Brien, Stephen", 
+            "name": "Stephen O'Brien", 
+            "long imdb name": "Stephen O'Brien", 
+            "long imdb canonical name": "O'Brien, Stephen"
+        }, 
+        {
+            "canonical name": "Olsson, Robin", 
+            "name": "Robin Olsson", 
+            "long imdb name": "Robin Olsson", 
+            "long imdb canonical name": "Olsson, Robin"
+        }, 
+        {
+            "canonical name": "Scully, Graham", 
+            "name": "Graham Scully", 
+            "long imdb name": "Graham Scully", 
+            "long imdb canonical name": "Scully, Graham"
+        }, 
+        {
+            "canonical name": "Tsan, Paul", 
+            "name": "Paul Tsan", 
+            "long imdb name": "Paul Tsan", 
+            "long imdb canonical name": "Tsan, Paul"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "Magnolia Pictures", 
+            "long imdb name": "Magnolia Pictures"
+        }, 
+        {
+            "name": "EuroVideo", 
+            "long imdb name": "EuroVideo"
+        }, 
+        {
+            "name": "NFP Distribution", 
+            "long imdb name": "NFP Distribution"
+        }, 
+        {
+            "name": "Netflix", 
+            "long imdb name": "Netflix"
+        }, 
+        {
+            "name": "Wildcard Distribution", 
+            "long imdb name": "Wildcard Distribution"
+        }
+    ], 
+    "rating": 6.3, 
+    "runtimes": [
+        "83"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "\u00c5gren, Anna", 
+            "name": "Anna \u00c5gren", 
+            "long imdb name": "Anna \u00c5gren", 
+            "long imdb canonical name": "\u00c5gren, Anna"
+        }
+    ], 
+    "thanks": [
+        {
+            "canonical name": "Bushe, Morgan", 
+            "name": "Morgan Bushe", 
+            "long imdb name": "Morgan Bushe", 
+            "long imdb canonical name": "Bushe, Morgan"
+        }, 
+        {
+            "canonical name": "Loughran, Jonathan", 
+            "name": "Jonathan Loughran", 
+            "long imdb name": "Jonathan Loughran", 
+            "long imdb canonical name": "Loughran, Jonathan"
+        }
+    ], 
+    "make up": [
+        {
+            "canonical name": "Ayoub, Nina", 
+            "name": "Nina Ayoub", 
+            "long imdb name": "Nina Ayoub", 
+            "long imdb canonical name": "Ayoub, Nina"
+        }, 
+        {
+            "canonical name": "Byrne, Liz", 
+            "name": "Liz Byrne", 
+            "long imdb name": "Liz Byrne", 
+            "long imdb canonical name": "Byrne, Liz"
+        }, 
+        {
+            "canonical name": "Gronerus, Anna", 
+            "name": "Anna Gronerus", 
+            "long imdb name": "Anna Gronerus", 
+            "long imdb canonical name": "Gronerus, Anna"
+        }, 
+        {
+            "canonical name": "Kelly, Edwina", 
+            "name": "Edwina Kelly", 
+            "long imdb name": "Edwina Kelly", 
+            "long imdb canonical name": "Kelly, Edwina"
+        }
+    ], 
+    "year": 2013, 
+    "production design": [
+        {
+            "canonical name": "Kalinowski, Waldemar", 
+            "name": "Waldemar Kalinowski", 
+            "long imdb name": "Waldemar Kalinowski", 
+            "long imdb canonical name": "Kalinowski, Waldemar"
+        }
+    ], 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Broadbery, Aine", 
+            "name": "Aine Broadbery", 
+            "long imdb name": "Aine Broadbery", 
+            "long imdb canonical name": "Broadbery, Aine"
+        }, 
+        {
+            "canonical name": "Carlford, Denise", 
+            "name": "Denise Carlford", 
+            "long imdb name": "Denise Carlford", 
+            "long imdb canonical name": "Carlford, Denise"
+        }, 
+        {
+            "canonical name": "Collins, Maria", 
+            "name": "Maria Collins", 
+            "long imdb name": "Maria Collins", 
+            "long imdb canonical name": "Collins, Maria"
+        }, 
+        {
+            "canonical name": "Dolan, Susan", 
+            "name": "Susan Dolan", 
+            "long imdb name": "Susan Dolan", 
+            "long imdb canonical name": "Dolan, Susan"
+        }, 
+        {
+            "canonical name": "Dolan, Susan", 
+            "name": "Susan Dolan", 
+            "long imdb name": "Susan Dolan", 
+            "long imdb canonical name": "Dolan, Susan"
+        }, 
+        {
+            "canonical name": "Dorney, Sile", 
+            "name": "Sile Dorney", 
+            "long imdb name": "Sile Dorney", 
+            "long imdb canonical name": "Dorney, Sile"
+        }, 
+        {
+            "canonical name": "Gleeson, John P", 
+            "name": "John P Gleeson", 
+            "long imdb name": "John P Gleeson", 
+            "long imdb canonical name": "Gleeson, John P"
+        }, 
+        {
+            "canonical name": "Gleeson, John P", 
+            "name": "John P Gleeson", 
+            "long imdb name": "John P Gleeson", 
+            "long imdb canonical name": "Gleeson, John P"
+        }, 
+        {
+            "canonical name": "Hammar, Stina", 
+            "name": "Stina Hammar", 
+            "long imdb name": "Stina Hammar", 
+            "long imdb canonical name": "Hammar, Stina"
+        }, 
+        {
+            "canonical name": "Henehan, Roisin", 
+            "name": "Roisin Henehan", 
+            "long imdb name": "Roisin Henehan", 
+            "long imdb canonical name": "Henehan, Roisin"
+        }, 
+        {
+            "canonical name": "Jackson, Ian", 
+            "name": "Ian Jackson", 
+            "long imdb name": "Ian Jackson", 
+            "long imdb canonical name": "Jackson, Ian"
+        }, 
+        {
+            "canonical name": "Malmgren, Erika", 
+            "name": "Erika Malmgren", 
+            "long imdb name": "Erika Malmgren", 
+            "long imdb canonical name": "Malmgren, Erika"
+        }, 
+        {
+            "canonical name": "McDonnell, Dorothy", 
+            "name": "Dorothy McDonnell", 
+            "long imdb name": "Dorothy McDonnell", 
+            "long imdb canonical name": "McDonnell, Dorothy"
+        }, 
+        {
+            "canonical name": "McGonigal, Aoife", 
+            "name": "Aoife McGonigal", 
+            "long imdb name": "Aoife McGonigal", 
+            "long imdb canonical name": "McGonigal, Aoife"
+        }, 
+        {
+            "canonical name": "McGuirk, Laura", 
+            "name": "Laura McGuirk", 
+            "long imdb name": "Laura McGuirk", 
+            "long imdb canonical name": "McGuirk, Laura"
+        }, 
+        {
+            "canonical name": "Murphy, Eamonn", 
+            "name": "Eamonn Murphy", 
+            "long imdb name": "Eamonn Murphy", 
+            "long imdb canonical name": "Murphy, Eamonn"
+        }, 
+        {
+            "canonical name": "Chiarain, Ally Ni", 
+            "name": "Ally Ni Chiarain", 
+            "long imdb name": "Ally Ni Chiarain", 
+            "long imdb canonical name": "Chiarain, Ally Ni"
+        }, 
+        {
+            "canonical name": "Schmitt, Barbara", 
+            "name": "Barbara Schmitt", 
+            "long imdb name": "Barbara Schmitt", 
+            "long imdb canonical name": "Schmitt, Barbara"
+        }, 
+        {
+            "canonical name": "Webster, Billie", 
+            "name": "Billie Webster", 
+            "long imdb name": "Billie Webster", 
+            "long imdb canonical name": "Webster, Billie"
+        }, 
+        {
+            "canonical name": "Webster, Billie", 
+            "name": "Billie Webster", 
+            "long imdb name": "Billie Webster", 
+            "long imdb canonical name": "Webster, Billie"
+        }
+    ], 
+    "long imdb canonical title": "Life's a Breeze (2013)", 
+    "color info": [], 
+    "languages": [
+        "English"
+    ], 
+    "votes": 741, 
+    "producer": [
+        {
+            "canonical name": "Ask, Jessica", 
+            "name": "Jessica Ask", 
+            "long imdb name": "Jessica Ask", 
+            "long imdb canonical name": "Ask, Jessica"
+        }, 
+        {
+            "canonical name": "Daly, Lance", 
+            "name": "Lance Daly", 
+            "long imdb name": "Lance Daly", 
+            "long imdb canonical name": "Daly, Lance"
+        }, 
+        {
+            "canonical name": "Kelleher, Macdara", 
+            "name": "Macdara Kelleher", 
+            "long imdb name": "Macdara Kelleher", 
+            "long imdb canonical name": "Kelleher, Macdara"
+        }, 
+        {
+            "canonical name": "McInerney, Seamus", 
+            "name": "Seamus McInerney", 
+            "long imdb name": "Seamus McInerney", 
+            "long imdb canonical name": "McInerney, Seamus"
+        }, 
+        {
+            "canonical name": "Persson, Martin", 
+            "name": "Martin Persson", 
+            "long imdb name": "Martin Persson", 
+            "long imdb canonical name": "Persson, Martin"
+        }
+    ], 
+    "title": "Life's a Breeze", 
+    "mpaa": "Rated R for language", 
+    "assistant director": [
+        {
+            "canonical name": "Doherty, Enda", 
+            "name": "Enda Doherty", 
+            "long imdb name": "Enda Doherty", 
+            "long imdb canonical name": "Doherty, Enda"
+        }, 
+        {
+            "canonical name": "Fortune, Sarah-Jane", 
+            "name": "Sarah-Jane Fortune", 
+            "long imdb name": "Sarah-Jane Fortune", 
+            "long imdb canonical name": "Fortune, Sarah-Jane"
+        }, 
+        {
+            "canonical name": "Quinlan, Jonathan", 
+            "name": "Jonathan Quinlan", 
+            "long imdb name": "Jonathan Quinlan", 
+            "long imdb canonical name": "Quinlan, Jonathan"
+        }, 
+        {
+            "canonical name": "Thomas, Nick", 
+            "name": "Nick Thomas", 
+            "long imdb name": "Nick Thomas", 
+            "long imdb canonical name": "Thomas, Nick"
+        }, 
+        {
+            "canonical name": "Thomas, Nick", 
+            "name": "Nick Thomas", 
+            "long imdb name": "Nick Thomas", 
+            "long imdb canonical name": "Thomas, Nick"
+        }, 
+        {
+            "canonical name": "Velasquez, James", 
+            "name": "James Velasquez", 
+            "long imdb name": "James Velasquez", 
+            "long imdb canonical name": "Velasquez, James"
+        }, 
+        {
+            "canonical name": "Walshe, Kieron", 
+            "name": "Kieron Walshe", 
+            "long imdb name": "Kieron Walshe", 
+            "long imdb canonical name": "Walshe, Kieron"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "Daly, Lance", 
+            "name": "Lance Daly", 
+            "long imdb name": "Lance Daly", 
+            "long imdb canonical name": "Daly, Lance"
+        }
+    ], 
+    "casting director": [
+        {
+            "canonical name": "McGinley, Nick", 
+            "name": "Nick McGinley", 
+            "long imdb name": "Nick McGinley", 
+            "long imdb canonical name": "McGinley, Nick"
+        }
+    ], 
+    "visual effects": [
+        {
+            "canonical name": "Walters, John", 
+            "name": "John Walters", 
+            "long imdb name": "John Walters", 
+            "long imdb canonical name": "Walters, John"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Marcus, Shimmy", 
+            "name": "Shimmy Marcus", 
+            "long imdb name": "Shimmy Marcus", 
+            "long imdb canonical name": "Marcus, Shimmy"
+        }, 
+        {
+            "canonical name": "Daly, Lance", 
+            "name": "Lance Daly", 
+            "long imdb name": "Lance Daly", 
+            "long imdb canonical name": "Daly, Lance"
+        }
+    ], 
+    "certificates": [
+        "da:PG::(British Columbia)", 
+        "Germany:6", 
+        "Ireland:12A", 
+        "UK:15", 
+        "USA:R"
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "Andersson, Emil", 
+            "name": "Emil Andersson", 
+            "long imdb name": "Emil Andersson", 
+            "long imdb canonical name": "Andersson, Emil"
+        }, 
+        {
+            "canonical name": "Flanagan, Robert", 
+            "name": "Robert Flanagan", 
+            "long imdb name": "Robert Flanagan", 
+            "long imdb canonical name": "Flanagan, Robert"
+        }, 
+        {
+            "canonical name": "Hadriz, Marcus", 
+            "name": "Marcus Hadriz", 
+            "long imdb name": "Marcus Hadriz", 
+            "long imdb canonical name": "Hadriz, Marcus"
+        }, 
+        {
+            "canonical name": "Lynch, Kieran", 
+            "name": "Kieran Lynch", 
+            "long imdb name": "Kieran Lynch", 
+            "long imdb canonical name": "Lynch, Kieran"
+        }, 
+        {
+            "canonical name": "Lynch, Kieran", 
+            "name": "Kieran Lynch", 
+            "long imdb name": "Kieran Lynch", 
+            "long imdb canonical name": "Lynch, Kieran"
+        }, 
+        {
+            "canonical name": "Mendez, Adam", 
+            "name": "Adam Mendez", 
+            "long imdb name": "Adam Mendez", 
+            "long imdb canonical name": "Mendez, Adam"
+        }, 
+        {
+            "canonical name": "Naughton, Paul", 
+            "name": "Paul Naughton", 
+            "long imdb name": "Paul Naughton", 
+            "long imdb canonical name": "Naughton, Paul"
+        }, 
+        {
+            "canonical name": "O'Neill, Leon", 
+            "name": "Leon O'Neill", 
+            "long imdb name": "Leon O'Neill", 
+            "long imdb canonical name": "O'Neill, Leon"
+        }
+    ], 
+    "long imdb title": "Life's a Breeze (2013)", 
+    "country codes": [
+        "ie", 
+        "se"
+    ], 
+    "language codes": [
+        "en"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BMjMwNjMxMTYxMl5BMl5BanBnXkFtZTcwMTIyODkwOQ@@._V1._SX100_SY67_.jpg", 
+    "editorial department": [
+        {
+            "canonical name": "Corkery, Donal", 
+            "name": "Donal Corkery", 
+            "long imdb name": "Donal Corkery", 
+            "long imdb canonical name": "Corkery, Donal"
+        }, 
+        {
+            "canonical name": "de Br\u00ed, Ian", 
+            "name": "Ian de Br\u00ed", 
+            "long imdb name": "Ian de Br\u00ed", 
+            "long imdb canonical name": "de Br\u00ed, Ian"
+        }, 
+        {
+            "canonical name": "Walters, John", 
+            "name": "John Walters", 
+            "long imdb name": "John Walters", 
+            "long imdb canonical name": "Walters, John"
+        }
+    ], 
+    "sound mix": [
+        "Dolby Digital"
+    ], 
+    "location management": [
+        {
+            "canonical name": "Nangle, Pat", 
+            "name": "Pat Nangle", 
+            "long imdb name": "Pat Nangle", 
+            "long imdb canonical name": "Nangle, Pat"
+        }, 
+        {
+            "canonical name": "Nangle, Stan", 
+            "name": "Stan Nangle", 
+            "long imdb name": "Stan Nangle", 
+            "long imdb canonical name": "Nangle, Stan"
+        }, 
+        {
+            "canonical name": "Payne, Emma", 
+            "name": "Emma Payne", 
+            "long imdb name": "Emma Payne", 
+            "long imdb canonical name": "Payne, Emma"
+        }, 
+        {
+            "canonical name": "Tj\u00e4llman, Jonas", 
+            "name": "Jonas Tj\u00e4llman", 
+            "long imdb name": "Jonas Tj\u00e4llman", 
+            "long imdb canonical name": "Tj\u00e4llman, Jonas"
+        }
+    ], 
+    "genres": [
+        "Comedy", 
+        "Drama"
+    ], 
+    "director": [
+        {
+            "canonical name": "Daly, Lance", 
+            "name": "Lance Daly", 
+            "long imdb name": "Lance Daly", 
+            "long imdb canonical name": "Daly, Lance"
+        }
+    ], 
+    "stunt performer": [
+        {
+            "canonical name": "Nagys, Giedrius", 
+            "name": "Giedrius Nagys", 
+            "long imdb name": "Giedrius Nagys", 
+            "long imdb canonical name": "Nagys, Giedrius"
+        }, 
+        {
+            "canonical name": "O'Grady, Eimear", 
+            "name": "Eimear O'Grady", 
+            "long imdb name": "Eimear O'Grady", 
+            "long imdb canonical name": "O'Grady, Eimear"
+        }
+    ], 
+    "miscellaneous companies": [
+        {
+            "name": "Anvil Post Production", 
+            "long imdb name": "Anvil Post Production"
+        }, 
+        {
+            "name": "Optical Sandwich", 
+            "long imdb name": "Optical Sandwich"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Daly, Lance", 
+            "name": "Lance Daly", 
+            "long imdb name": "Lance Daly", 
+            "long imdb canonical name": "Daly, Lance"
+        }
+    ], 
+    "art direction": [
+        {
+            "canonical name": "Kelly, Mark", 
+            "name": "Mark Kelly", 
+            "long imdb name": "Mark Kelly", 
+            "long imdb canonical name": "Kelly, Mark"
+        }, 
+        {
+            "canonical name": "Lowney, Emma", 
+            "name": "Emma Lowney", 
+            "long imdb name": "Emma Lowney", 
+            "long imdb canonical name": "Lowney, Emma"
+        }, 
+        {
+            "canonical name": "Olander, Christian", 
+            "name": "Christian Olander", 
+            "long imdb name": "Christian Olander", 
+            "long imdb canonical name": "Olander, Christian"
+        }
+    ], 
+    "akas": [
+        "\u039c\u03b1\u03bc\u03ac, \u03c0\u03b5\u03c4\u03ac\u03be\u03b1\u03bc\u03b5 \u03c4\u03b1 \u03bb\u03b5\u03c6\u03c4\u03ac::Greece", 
+        "A matrac::Hungary", 
+        "Das Leben ist ein Kinderspiel::Germany (DVD title)"
+    ], 
+    "aspect ratio": "2.35 : 1", 
+    "production companies": [
+        {
+            "name": "Fastnet Films", 
+            "long imdb name": "Fastnet Films"
+        }, 
+        {
+            "name": "Anagram", 
+            "long imdb name": "Anagram"
+        }, 
+        {
+            "name": "Film V\u00e4st", 
+            "long imdb name": "Film V\u00e4st"
+        }, 
+        {
+            "name": "Irish Film Board", 
+            "long imdb name": "Irish Film Board"
+        }
+    ], 
+    "kind": "movie", 
+    "art department": [
+        {
+            "canonical name": "Davis, Deborah", 
+            "name": "Deborah Davis", 
+            "long imdb name": "Deborah Davis", 
+            "long imdb canonical name": "Davis, Deborah"
+        }, 
+        {
+            "canonical name": "Gr\u00f6nvall, Rickard", 
+            "name": "Rickard Gr\u00f6nvall", 
+            "long imdb name": "Rickard Gr\u00f6nvall", 
+            "long imdb canonical name": "Gr\u00f6nvall, Rickard"
+        }, 
+        {
+            "canonical name": "Herning, Dorte", 
+            "name": "Dorte Herning", 
+            "long imdb name": "Dorte Herning", 
+            "long imdb canonical name": "Herning, Dorte"
+        }, 
+        {
+            "canonical name": "Hult, Lars", 
+            "name": "Lars Hult", 
+            "long imdb name": "Lars Hult", 
+            "long imdb canonical name": "Hult, Lars"
+        }, 
+        {
+            "canonical name": "Jansson, Klas", 
+            "name": "Klas Jansson", 
+            "long imdb name": "Klas Jansson", 
+            "long imdb canonical name": "Jansson, Klas"
+        }, 
+        {
+            "canonical name": "Jansson, Sebastian", 
+            "name": "Sebastian Jansson", 
+            "long imdb name": "Sebastian Jansson", 
+            "long imdb canonical name": "Jansson, Sebastian"
+        }, 
+        {
+            "canonical name": "Kavanagh, Dave", 
+            "name": "Dave Kavanagh", 
+            "long imdb name": "Dave Kavanagh", 
+            "long imdb canonical name": "Kavanagh, Dave"
+        }, 
+        {
+            "canonical name": "Larsson, Rasmus", 
+            "name": "Rasmus Larsson", 
+            "long imdb name": "Rasmus Larsson", 
+            "long imdb canonical name": "Larsson, Rasmus"
+        }, 
+        {
+            "canonical name": "Lilja, Brahma", 
+            "name": "Brahma Lilja", 
+            "long imdb name": "Brahma Lilja", 
+            "long imdb canonical name": "Lilja, Brahma"
+        }, 
+        {
+            "canonical name": "Liljegren, Martin", 
+            "name": "Martin Liljegren", 
+            "long imdb name": "Martin Liljegren", 
+            "long imdb canonical name": "Liljegren, Martin"
+        }, 
+        {
+            "canonical name": "Logan, William", 
+            "name": "William Logan", 
+            "long imdb name": "William Logan", 
+            "long imdb canonical name": "Logan, William"
+        }, 
+        {
+            "canonical name": "Peters, Dave", 
+            "name": "Dave Peters", 
+            "long imdb name": "Dave Peters", 
+            "long imdb canonical name": "Peters, Dave"
+        }
+    ], 
+    "countries": [
+        "Ireland", 
+        "Sweden"
+    ], 
+    "transportation department": [
+        {
+            "canonical name": "Carolyn, Thomas", 
+            "name": "Thomas Carolyn", 
+            "long imdb name": "Thomas Carolyn", 
+            "long imdb canonical name": "Carolyn, Thomas"
+        }, 
+        {
+            "canonical name": "Greenberg, Gary", 
+            "name": "Gary Greenberg", 
+            "long imdb name": "Gary Greenberg", 
+            "long imdb canonical name": "Greenberg, Gary"
+        }, 
+        {
+            "canonical name": "King, Brendan", 
+            "name": "Brendan King", 
+            "long imdb name": "Brendan King", 
+            "long imdb canonical name": "King, Brendan"
+        }, 
+        {
+            "canonical name": "Murphy, Eamonn", 
+            "name": "Eamonn Murphy", 
+            "long imdb name": "Eamonn Murphy", 
+            "long imdb canonical name": "Murphy, Eamonn"
+        }, 
+        {
+            "canonical name": "Quinn, Kenneth", 
+            "name": "Kenneth Quinn", 
+            "long imdb name": "Kenneth Quinn", 
+            "long imdb canonical name": "Quinn, Kenneth"
+        }, 
+        {
+            "canonical name": "Smith, Derick", 
+            "name": "Derick Smith", 
+            "long imdb name": "Derick Smith", 
+            "long imdb canonical name": "Smith, Derick"
+        }
+    ], 
+    "plot outline": "Tells the story of a family as they search for a lost fortune around the streets of Dublin.", 
+    "plot": [
+        "Tells the story of a family as they search for a lost fortune around the streets of Dublin."
+    ], 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BMjMwNjMxMTYxMl5BMl5BanBnXkFtZTcwMTIyODkwOQ@@.jpg", 
+    "canonical title": "Life's a Breeze", 
+    "cast": [
+        {
+            "canonical name": "Thornton, Kelly", 
+            "name": "Kelly Thornton", 
+            "long imdb name": "Kelly Thornton", 
+            "long imdb canonical name": "Thornton, Kelly"
+        }, 
+        {
+            "canonical name": "Flanagan, Fionnula", 
+            "name": "Fionnula Flanagan", 
+            "long imdb name": "Fionnula Flanagan", 
+            "long imdb canonical name": "Flanagan, Fionnula"
+        }, 
+        {
+            "canonical name": "Shortt, Pat", 
+            "name": "Pat Shortt", 
+            "long imdb name": "Pat Shortt", 
+            "long imdb canonical name": "Shortt, Pat"
+        }, 
+        {
+            "canonical name": "Birthistle, Eva", 
+            "name": "Eva Birthistle", 
+            "long imdb name": "Eva Birthistle", 
+            "long imdb canonical name": "Birthistle, Eva"
+        }, 
+        {
+            "canonical name": "Bendito, David", 
+            "name": "David Bendito", 
+            "long imdb name": "David Bendito", 
+            "long imdb canonical name": "Bendito, David"
+        }, 
+        {
+            "canonical name": "C., Una", 
+            "name": "Una C.", 
+            "long imdb name": "Una C.", 
+            "long imdb canonical name": "C., Una"
+        }, 
+        {
+            "canonical name": "Carey, Ger", 
+            "name": "Ger Carey", 
+            "long imdb name": "Ger Carey", 
+            "long imdb canonical name": "Carey, Ger"
+        }, 
+        {
+            "canonical name": "Chaal, Paul", 
+            "name": "Paul Chaal", 
+            "long imdb name": "Paul Chaal", 
+            "long imdb canonical name": "Chaal, Paul"
+        }, 
+        {
+            "canonical name": "Conlon, Wuzza", 
+            "name": "Wuzza Conlon", 
+            "long imdb name": "Wuzza Conlon", 
+            "long imdb canonical name": "Conlon, Wuzza"
+        }, 
+        {
+            "canonical name": "Conroy, Lesley", 
+            "name": "Lesley Conroy", 
+            "long imdb name": "Lesley Conroy", 
+            "long imdb canonical name": "Conroy, Lesley"
+        }, 
+        {
+            "canonical name": "Gleeson, Brian", 
+            "name": "Brian Gleeson", 
+            "long imdb name": "Brian Gleeson", 
+            "long imdb canonical name": "Gleeson, Brian"
+        }, 
+        {
+            "canonical name": "Griffith, Shauna", 
+            "name": "Shauna Griffith", 
+            "long imdb name": "Shauna Griffith", 
+            "long imdb canonical name": "Griffith, Shauna"
+        }, 
+        {
+            "canonical name": "Higgins, Willie", 
+            "name": "Willie Higgins", 
+            "long imdb name": "Willie Higgins", 
+            "long imdb canonical name": "Higgins, Willie"
+        }, 
+        {
+            "canonical name": "Judge, Philip", 
+            "name": "Philip Judge", 
+            "long imdb name": "Philip Judge", 
+            "long imdb canonical name": "Judge, Philip"
+        }, 
+        {
+            "canonical name": "Kelly, Rachel", 
+            "name": "Rachel Kelly", 
+            "long imdb name": "Rachel Kelly", 
+            "long imdb canonical name": "Kelly, Rachel"
+        }, 
+        {
+            "canonical name": "Keoghan, Barry", 
+            "name": "Barry Keoghan", 
+            "long imdb name": "Barry Keoghan", 
+            "long imdb canonical name": "Keoghan, Barry"
+        }, 
+        {
+            "canonical name": "Kerslake, Se\u00e1na", 
+            "name": "Se\u00e1na Kerslake", 
+            "long imdb name": "Se\u00e1na Kerslake", 
+            "long imdb canonical name": "Kerslake, Se\u00e1na"
+        }, 
+        {
+            "canonical name": "Kostrzewa, Natalia", 
+            "name": "Natalia Kostrzewa", 
+            "long imdb name": "Natalia Kostrzewa", 
+            "long imdb canonical name": "Kostrzewa, Natalia"
+        }, 
+        {
+            "canonical name": "Lamb, Marcus", 
+            "name": "Marcus Lamb", 
+            "long imdb name": "Marcus Lamb", 
+            "long imdb canonical name": "Lamb, Marcus"
+        }, 
+        {
+            "canonical name": "Marcus, Shimmy", 
+            "name": "Shimmy Marcus", 
+            "long imdb name": "Shimmy Marcus", 
+            "long imdb canonical name": "Marcus, Shimmy"
+        }, 
+        {
+            "canonical name": "Markey, Sean", 
+            "name": "Sean Markey", 
+            "long imdb name": "Sean Markey", 
+            "long imdb canonical name": "Markey, Sean"
+        }, 
+        {
+            "canonical name": "McCann, Gerry", 
+            "name": "Gerry McCann", 
+            "long imdb name": "Gerry McCann", 
+            "long imdb canonical name": "McCann, Gerry"
+        }, 
+        {
+            "canonical name": "Minogue, Geoff", 
+            "name": "Geoff Minogue", 
+            "long imdb name": "Geoff Minogue", 
+            "long imdb canonical name": "Minogue, Geoff"
+        }, 
+        {
+            "canonical name": "O'Hare, Aidan", 
+            "name": "Aidan O'Hare", 
+            "long imdb name": "Aidan O'Hare", 
+            "long imdb canonical name": "O'Hare, Aidan"
+        }, 
+        {
+            "canonical name": "Ronan, Paul", 
+            "name": "Paul Ronan", 
+            "long imdb name": "Paul Ronan", 
+            "long imdb canonical name": "Ronan, Paul"
+        }, 
+        {
+            "canonical name": "Hickey, Lisa", 
+            "name": "Lisa Hickey", 
+            "long imdb name": "Lisa Hickey", 
+            "long imdb canonical name": "Hickey, Lisa"
+        }
+    ], 
+    "smart long imdb canonical title": "Life's a Breeze (2013)", 
+    "costume department": [
+        {
+            "canonical name": "Carolan, Delia", 
+            "name": "Delia Carolan", 
+            "long imdb name": "Delia Carolan", 
+            "long imdb canonical name": "Carolan, Delia"
+        }, 
+        {
+            "canonical name": "Sandstr\u00f6m, Pernilla", 
+            "name": "Pernilla Sandstr\u00f6m", 
+            "long imdb name": "Pernilla Sandstr\u00f6m", 
+            "long imdb canonical name": "Sandstr\u00f6m, Pernilla"
+        }
+    ], 
+    "original music": [
+        {
+            "canonical name": "Daly, Lance", 
+            "name": "Lance Daly", 
+            "long imdb name": "Lance Daly", 
+            "long imdb canonical name": "Daly, Lance"
+        }, 
+        {
+            "canonical name": "Quinn, Declan", 
+            "name": "Declan Quinn", 
+            "long imdb name": "Declan Quinn", 
+            "long imdb canonical name": "Quinn, Declan"
+        }, 
+        {
+            "canonical name": "Quinn, Eugene", 
+            "name": "Eugene Quinn", 
+            "long imdb name": "Eugene Quinn", 
+            "long imdb canonical name": "Quinn, Eugene"
+        }
+    ], 
+    "smart canonical title": "Life's a Breeze"
+}

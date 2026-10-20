@@ -1,0 +1,723 @@
+{
+    "music department": [
+        {
+            "canonical name": "Bousie, Mark", 
+            "name": "Mark Bousie", 
+            "long imdb name": "Mark Bousie", 
+            "long imdb canonical name": "Bousie, Mark"
+        }, 
+        {
+            "canonical name": "Dunnell, Hannah", 
+            "name": "Hannah Dunnell", 
+            "long imdb name": "Hannah Dunnell", 
+            "long imdb canonical name": "Dunnell, Hannah"
+        }, 
+        {
+            "canonical name": "Griffiths, Isobel", 
+            "name": "Isobel Griffiths", 
+            "long imdb name": "Isobel Griffiths", 
+            "long imdb canonical name": "Griffiths, Isobel"
+        }, 
+        {
+            "canonical name": "Mehta, Magnus", 
+            "name": "Magnus Mehta", 
+            "long imdb name": "Magnus Mehta", 
+            "long imdb canonical name": "Mehta, Magnus"
+        }, 
+        {
+            "canonical name": "Bonell, Dario Rossetti", 
+            "name": "Dario Rossetti Bonell", 
+            "long imdb name": "Dario Rossetti Bonell", 
+            "long imdb canonical name": "Bonell, Dario Rossetti"
+        }, 
+        {
+            "canonical name": "Wollage, Nick", 
+            "name": "Nick Wollage", 
+            "long imdb name": "Nick Wollage", 
+            "long imdb canonical name": "Wollage, Nick"
+        }
+    ], 
+    "camera and electrical department": [
+        {
+            "canonical name": "Bishop, Daniel", 
+            "name": "Daniel Bishop", 
+            "long imdb name": "Daniel Bishop", 
+            "long imdb canonical name": "Bishop, Daniel"
+        }, 
+        {
+            "canonical name": "Bishop, Daniel", 
+            "name": "Daniel Bishop", 
+            "long imdb name": "Daniel Bishop", 
+            "long imdb canonical name": "Bishop, Daniel"
+        }, 
+        {
+            "canonical name": "Drury, Kilian", 
+            "name": "Kilian Drury", 
+            "long imdb name": "Kilian Drury", 
+            "long imdb canonical name": "Drury, Kilian"
+        }, 
+        {
+            "canonical name": "Drury, Kilian", 
+            "name": "Kilian Drury", 
+            "long imdb name": "Kilian Drury", 
+            "long imdb canonical name": "Drury, Kilian"
+        }, 
+        {
+            "canonical name": "Euesden, Jon", 
+            "name": "Jon Euesden", 
+            "long imdb name": "Jon Euesden", 
+            "long imdb canonical name": "Euesden, Jon"
+        }, 
+        {
+            "canonical name": "Goddard, Billy", 
+            "name": "Billy Goddard", 
+            "long imdb name": "Billy Goddard", 
+            "long imdb canonical name": "Goddard, Billy"
+        }, 
+        {
+            "canonical name": "Hale, Rafael", 
+            "name": "Rafael Hale", 
+            "long imdb name": "Rafael Hale", 
+            "long imdb canonical name": "Hale, Rafael"
+        }, 
+        {
+            "canonical name": "Iqbal, Jason", 
+            "name": "Jason Iqbal", 
+            "long imdb name": "Jason Iqbal", 
+            "long imdb canonical name": "Iqbal, Jason"
+        }, 
+        {
+            "canonical name": "Kemp, Paul", 
+            "name": "Paul Kemp", 
+            "long imdb name": "Paul Kemp", 
+            "long imdb canonical name": "Kemp, Paul"
+        }, 
+        {
+            "canonical name": "Lobb, Mary", 
+            "name": "Mary Lobb", 
+            "long imdb name": "Mary Lobb", 
+            "long imdb canonical name": "Lobb, Mary"
+        }, 
+        {
+            "canonical name": "Slater, Adam", 
+            "name": "Adam Slater", 
+            "long imdb name": "Adam Slater", 
+            "long imdb canonical name": "Slater, Adam"
+        }, 
+        {
+            "canonical name": "Thomson, Iain", 
+            "name": "Iain Thomson", 
+            "long imdb name": "Iain Thomson", 
+            "long imdb canonical name": "Thomson, Iain"
+        }, 
+        {
+            "canonical name": "Vosper, Abigail", 
+            "name": "Abigail Vosper", 
+            "long imdb name": "Abigail Vosper", 
+            "long imdb canonical name": "Vosper, Abigail"
+        }, 
+        {
+            "canonical name": "Walden, Tom", 
+            "name": "Tom Walden", 
+            "long imdb name": "Tom Walden", 
+            "long imdb canonical name": "Walden, Tom"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "Hollywood Entertainment", 
+            "long imdb name": "Hollywood Entertainment"
+        }, 
+        {
+            "name": "Miracle Communications Ltd.", 
+            "long imdb name": "Miracle Communications Ltd."
+        }, 
+        {
+            "name": "Neue Visionen Filmverleih", 
+            "long imdb name": "Neue Visionen Filmverleih"
+        }, 
+        {
+            "name": "101 Films", 
+            "long imdb name": "101 Films"
+        }, 
+        {
+            "name": "Audio Visual Entertainment", 
+            "long imdb name": "Audio Visual Entertainment"
+        }, 
+        {
+            "name": "Seven & Seven Producer's Sales Service (7&7)", 
+            "long imdb name": "Seven & Seven Producer's Sales Service (7&7)"
+        }, 
+        {
+            "name": "good movies!", 
+            "long imdb name": "good movies!"
+        }, 
+        {
+            "name": "good movies!", 
+            "long imdb name": "good movies!"
+        }
+    ], 
+    "rating": 6.1, 
+    "runtimes": [
+        "109"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "Lever, Robert", 
+            "name": "Robert Lever", 
+            "long imdb name": "Robert Lever", 
+            "long imdb canonical name": "Lever, Robert"
+        }
+    ], 
+    "thanks": [
+        {
+            "canonical name": "Kastner, Elliott", 
+            "name": "Elliott Kastner", 
+            "long imdb name": "Elliott Kastner", 
+            "long imdb canonical name": "Kastner, Elliott"
+        }
+    ], 
+    "make up": [
+        {
+            "canonical name": "McInnes, Donald", 
+            "name": "Donald McInnes", 
+            "long imdb name": "Donald McInnes", 
+            "long imdb canonical name": "McInnes, Donald"
+        }
+    ], 
+    "year": 2012, 
+    "production design": [
+        {
+            "canonical name": "Fullalove, Julian", 
+            "name": "Julian Fullalove", 
+            "long imdb name": "Julian Fullalove", 
+            "long imdb canonical name": "Fullalove, Julian"
+        }
+    ], 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Alen-Buckley, Nuala", 
+            "name": "Nuala Alen-Buckley", 
+            "long imdb name": "Nuala Alen-Buckley", 
+            "long imdb canonical name": "Alen-Buckley, Nuala"
+        }, 
+        {
+            "canonical name": "Chau, Chan", 
+            "name": "Chan Chau", 
+            "long imdb name": "Chan Chau", 
+            "long imdb canonical name": "Chau, Chan"
+        }, 
+        {
+            "canonical name": "Graham, Jacqueline", 
+            "name": "Jacqueline Graham", 
+            "long imdb name": "Jacqueline Graham", 
+            "long imdb canonical name": "Graham, Jacqueline"
+        }, 
+        {
+            "canonical name": "Harris, Jamie", 
+            "name": "Jamie Harris", 
+            "long imdb name": "Jamie Harris", 
+            "long imdb canonical name": "Harris, Jamie"
+        }, 
+        {
+            "canonical name": "Lewis, Sam", 
+            "name": "Sam Lewis", 
+            "long imdb name": "Sam Lewis", 
+            "long imdb canonical name": "Lewis, Sam"
+        }, 
+        {
+            "canonical name": "McKenzie, Hayley", 
+            "name": "Hayley McKenzie", 
+            "long imdb name": "Hayley McKenzie", 
+            "long imdb canonical name": "McKenzie, Hayley"
+        }, 
+        {
+            "canonical name": "Murphy, Jack", 
+            "name": "Jack Murphy", 
+            "long imdb name": "Jack Murphy", 
+            "long imdb canonical name": "Murphy, Jack"
+        }, 
+        {
+            "canonical name": "West, Liz", 
+            "name": "Liz West", 
+            "long imdb name": "Liz West", 
+            "long imdb canonical name": "West, Liz"
+        }
+    ], 
+    "production companies": [
+        {
+            "name": "Double M Films", 
+            "long imdb name": "Double M Films"
+        }
+    ], 
+    "color info": [], 
+    "visual effects": [
+        {
+            "canonical name": "Walton, Tim", 
+            "name": "Tim Walton", 
+            "long imdb name": "Tim Walton", 
+            "long imdb canonical name": "Walton, Tim"
+        }
+    ], 
+    "votes": 1830, 
+    "producer": [
+        {
+            "canonical name": "Butler, Sara", 
+            "name": "Sara Butler", 
+            "long imdb name": "Sara Butler", 
+            "long imdb canonical name": "Butler, Sara"
+        }, 
+        {
+            "canonical name": "Hillier, Tom", 
+            "name": "Tom Hillier", 
+            "long imdb name": "Tom Hillier", 
+            "long imdb canonical name": "Hillier, Tom"
+        }, 
+        {
+            "canonical name": "Kastner, Milica", 
+            "name": "Milica Kastner", 
+            "long imdb name": "Milica Kastner", 
+            "long imdb canonical name": "Kastner, Milica"
+        }, 
+        {
+            "canonical name": "Markou, Andrew", 
+            "name": "Andrew Markou", 
+            "long imdb name": "Andrew Markou", 
+            "long imdb canonical name": "Markou, Andrew"
+        }, 
+        {
+            "canonical name": "Markou, Marcus", 
+            "name": "Marcus Markou", 
+            "long imdb name": "Marcus Markou", 
+            "long imdb canonical name": "Markou, Marcus"
+        }, 
+        {
+            "canonical name": "Wilks, Henry", 
+            "name": "Henry Wilks", 
+            "long imdb name": "Henry Wilks", 
+            "long imdb canonical name": "Wilks, Henry"
+        }
+    ], 
+    "title": "Papadopoulos & Sons", 
+    "assistant director": [
+        {
+            "canonical name": "Brabbins, Anna", 
+            "name": "Anna Brabbins", 
+            "long imdb name": "Anna Brabbins", 
+            "long imdb canonical name": "Brabbins, Anna"
+        }, 
+        {
+            "canonical name": "Daintree, Paul", 
+            "name": "Paul Daintree", 
+            "long imdb name": "Paul Daintree", 
+            "long imdb canonical name": "Daintree, Paul"
+        }, 
+        {
+            "canonical name": "Morrison, Sebastian", 
+            "name": "Sebastian Morrison", 
+            "long imdb name": "Sebastian Morrison", 
+            "long imdb canonical name": "Morrison, Sebastian"
+        }, 
+        {
+            "canonical name": "Prodromou, Andreas", 
+            "name": "Andreas Prodromou", 
+            "long imdb name": "Andreas Prodromou", 
+            "long imdb canonical name": "Prodromou, Andreas"
+        }, 
+        {
+            "canonical name": "Reeves, Phill", 
+            "name": "Phill Reeves", 
+            "long imdb name": "Phill Reeves", 
+            "long imdb canonical name": "Reeves, Phill"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "Markou, Marcus", 
+            "name": "Marcus Markou", 
+            "long imdb name": "Marcus Markou", 
+            "long imdb canonical name": "Markou, Marcus"
+        }
+    ], 
+    "long imdb canonical title": "Papadopoulos & Sons (2012)", 
+    "languages": [
+        "English", 
+        "Greek"
+    ], 
+    "production manager": [
+        {
+            "canonical name": "Kent, Veronica", 
+            "name": "Veronica Kent", 
+            "long imdb name": "Veronica Kent", 
+            "long imdb canonical name": "Kent, Veronica"
+        }
+    ], 
+    "casting director": [
+        {
+            "canonical name": "Carroll, Anji", 
+            "name": "Anji Carroll", 
+            "long imdb name": "Anji Carroll", 
+            "long imdb canonical name": "Carroll, Anji"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Morrison, Sebastian", 
+            "name": "Sebastian Morrison", 
+            "long imdb name": "Sebastian Morrison", 
+            "long imdb canonical name": "Morrison, Sebastian"
+        }
+    ], 
+    "certificates": [
+        "Germany:0", 
+        "UK:15"
+    ], 
+    "costume department": [
+        {
+            "canonical name": "Gillieron, Lorna", 
+            "name": "Lorna Gillieron", 
+            "long imdb name": "Lorna Gillieron", 
+            "long imdb canonical name": "Gillieron, Lorna"
+        }, 
+        {
+            "canonical name": "Lever, Robert", 
+            "name": "Robert Lever", 
+            "long imdb name": "Robert Lever", 
+            "long imdb canonical name": "Lever, Robert"
+        }, 
+        {
+            "canonical name": "Miles, Jacqui", 
+            "name": "Jacqui Miles", 
+            "long imdb name": "Jacqui Miles", 
+            "long imdb canonical name": "Miles, Jacqui"
+        }, 
+        {
+            "canonical name": "Stone, Kieron", 
+            "name": "Kieron Stone", 
+            "long imdb name": "Kieron Stone", 
+            "long imdb canonical name": "Stone, Kieron"
+        }
+    ], 
+    "long imdb title": "Papadopoulos & Sons (2012)", 
+    "country codes": [
+        "gb"
+    ], 
+    "language codes": [
+        "en", 
+        "el"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BMTY0NDIxOTQzMl5BMl5BanBnXkFtZTgwNDQyODUwMDE@._V1._SX94_SY140_.jpg", 
+    "editorial department": [
+        {
+            "canonical name": "Antoniou, Paulyne", 
+            "name": "Paulyne Antoniou", 
+            "long imdb name": "Paulyne Antoniou", 
+            "long imdb canonical name": "Antoniou, Paulyne"
+        }
+    ], 
+    "genres": [
+        "Comedy", 
+        "Drama"
+    ], 
+    "director": [
+        {
+            "canonical name": "Markou, Marcus", 
+            "name": "Marcus Markou", 
+            "long imdb name": "Marcus Markou", 
+            "long imdb canonical name": "Markou, Marcus"
+        }
+    ], 
+    "miscellaneous companies": [
+        {
+            "name": "Audio Network", 
+            "long imdb name": "Audio Network"
+        }, 
+        {
+            "name": "Panalux", 
+            "long imdb name": "Panalux"
+        }, 
+        {
+            "name": "Sapex Scripts", 
+            "long imdb name": "Sapex Scripts"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Friend, James", 
+            "name": "James Friend", 
+            "long imdb name": "James Friend", 
+            "long imdb canonical name": "Friend, James"
+        }
+    ], 
+    "art direction": [
+        {
+            "canonical name": "Christopher, Martin", 
+            "name": "Martin Christopher", 
+            "long imdb name": "Martin Christopher", 
+            "long imdb canonical name": "Christopher, Martin"
+        }, 
+        {
+            "canonical name": "Makin, Adam A.", 
+            "name": "Adam A. Makin", 
+            "long imdb name": "Adam A. Makin", 
+            "long imdb canonical name": "Makin, Adam A."
+        }
+    ], 
+    "akas": [
+        "\u03a0\u03b1\u03c0\u03b1\u03b4\u03cc\u03c0\u03bf\u03c5\u03bb\u03bf\u03c2 & \u03a3\u0399\u0391::Greece", 
+        "\u041f\u0430\u043f\u0430\u0434\u043e\u043f\u043e\u043b\u0443\u0441 \u0438 \u0441\u044b\u043d\u043e\u0432\u044c\u044f::Russia", 
+        "Papadopoulos & S\u00f6hne::Germany (imdb display title)", 
+        "Papadopoulos & Sia::Greece (transliterated ISO-LATIN-1 title)"
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "Koelmeyer, Simon", 
+            "name": "Simon Koelmeyer", 
+            "long imdb name": "Simon Koelmeyer", 
+            "long imdb canonical name": "Koelmeyer, Simon"
+        }, 
+        {
+            "canonical name": "Norton, Pip", 
+            "name": "Pip Norton", 
+            "long imdb name": "Pip Norton", 
+            "long imdb canonical name": "Norton, Pip"
+        }, 
+        {
+            "canonical name": "Sulley, Anna", 
+            "name": "Anna Sulley", 
+            "long imdb name": "Anna Sulley", 
+            "long imdb canonical name": "Sulley, Anna"
+        }, 
+        {
+            "canonical name": "Whale, Will", 
+            "name": "Will Whale", 
+            "long imdb name": "Will Whale", 
+            "long imdb canonical name": "Whale, Will"
+        }, 
+        {
+            "canonical name": "White, Johnny", 
+            "name": "Johnny White", 
+            "long imdb name": "Johnny White", 
+            "long imdb canonical name": "White, Johnny"
+        }
+    ], 
+    "location management": [
+        {
+            "canonical name": "McLeod, Darin", 
+            "name": "Darin McLeod", 
+            "long imdb name": "Darin McLeod", 
+            "long imdb canonical name": "McLeod, Darin"
+        }, 
+        {
+            "canonical name": "Verdon-Smith, George", 
+            "name": "George Verdon-Smith", 
+            "long imdb name": "George Verdon-Smith", 
+            "long imdb canonical name": "Verdon-Smith, George"
+        }
+    ], 
+    "kind": "movie", 
+    "art department": [
+        {
+            "canonical name": "Carrillo, Renata", 
+            "name": "Renata Carrillo", 
+            "long imdb name": "Renata Carrillo", 
+            "long imdb canonical name": "Carrillo, Renata"
+        }, 
+        {
+            "canonical name": "Copus, Dave", 
+            "name": "Dave Copus", 
+            "long imdb name": "Dave Copus", 
+            "long imdb canonical name": "Copus, Dave"
+        }, 
+        {
+            "canonical name": "Fullalove, Julian", 
+            "name": "Julian Fullalove", 
+            "long imdb name": "Julian Fullalove", 
+            "long imdb canonical name": "Fullalove, Julian"
+        }, 
+        {
+            "canonical name": "Greenwood, Adrian", 
+            "name": "Adrian Greenwood", 
+            "long imdb name": "Adrian Greenwood", 
+            "long imdb canonical name": "Greenwood, Adrian"
+        }, 
+        {
+            "canonical name": "Mason, Carly", 
+            "name": "Carly Mason", 
+            "long imdb name": "Carly Mason", 
+            "long imdb canonical name": "Mason, Carly"
+        }, 
+        {
+            "canonical name": "Royston, Tara", 
+            "name": "Tara Royston", 
+            "long imdb name": "Tara Royston", 
+            "long imdb canonical name": "Royston, Tara"
+        }
+    ], 
+    "countries": [
+        "UK"
+    ], 
+    "plot outline": "Following his ruin in the latest banking crisis, a self-made millionaire reluctantly re-unites with his estranged freewheeling brother to re-open the abandoned fish and chip shop they shared in their youth.", 
+    "plot": [
+        "Self-made businessman Harry Papadopoulos has got it all; a mansion house; awards and a super rich lifestyle. However, on the eve of a property deal of a lifetime, a financial crisis hits and the banks call in their huge loans. Harry and his family lose everything in an instant. Everything, except the dormant and forgotten Three Brothers Fish & Chip Shop half owned by Harry's larger than life brother Spiros who's been estranged from the family for years. With no alternative, Harry and his family, plant enthusiast James; fashion victim Katie; nerdy Theo and their loyal nanny Mrs. Parrington, are forced to pack their bags, leave their millionaire lifestyle and join 'Uncle Spiros' to live above the neglected Three Brothers chippie. Together they set about bringing the chip shop back to life under the suspicious gaze of the their old rival, Hassan, from the neighbouring Turkish kebab shop whose son has his own eyes on Katie. Each family member must come to terms with their new life in their own way and make the most of their reduced circumstances. Harry struggles with the banks to regain his lost business empire, but as the chip shop comes to life and old memories are stirred Harry and his family gradually discover that only when you lose everything are you free to discover it all.", 
+        "Following his ruin in the latest banking crisis, a self-made millionaire reluctantly re-unites with his estranged freewheeling brother to re-open the abandoned fish and chip shop they shared in their youth."
+    ], 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BMTY0NDIxOTQzMl5BMl5BanBnXkFtZTgwNDQyODUwMDE@.jpg", 
+    "canonical title": "Papadopoulos & Sons", 
+    "cast": [
+        {
+            "canonical name": "Rice, Carl", 
+            "name": "Carl Rice", 
+            "long imdb name": "Carl Rice", 
+            "long imdb canonical name": "Rice, Carl"
+        }, 
+        {
+            "canonical name": "Dillane, Stephen", 
+            "name": "Stephen Dillane", 
+            "long imdb name": "Stephen Dillane", 
+            "long imdb canonical name": "Dillane, Stephen"
+        }, 
+        {
+            "canonical name": "Cadell, Selina", 
+            "name": "Selina Cadell", 
+            "long imdb name": "Selina Cadell", 
+            "long imdb canonical name": "Cadell, Selina"
+        }, 
+        {
+            "canonical name": "Dillane, Frank", 
+            "name": "Frank Dillane", 
+            "long imdb name": "Frank Dillane", 
+            "long imdb canonical name": "Dillane, Frank"
+        }, 
+        {
+            "canonical name": "Groome, Georgia", 
+            "name": "Georgia Groome", 
+            "long imdb name": "Georgia Groome", 
+            "long imdb canonical name": "Groome, Georgia"
+        }, 
+        {
+            "canonical name": "Underhill, Thomas", 
+            "name": "Thomas Underhill", 
+            "long imdb name": "Thomas Underhill", 
+            "long imdb canonical name": "Underhill, Thomas"
+        }, 
+        {
+            "canonical name": "Ball, Martin", 
+            "name": "Martin Ball", 
+            "long imdb name": "Martin Ball", 
+            "long imdb canonical name": "Ball, Martin"
+        }, 
+        {
+            "canonical name": "Simmons, Chris", 
+            "name": "Chris Simmons", 
+            "long imdb name": "Chris Simmons", 
+            "long imdb canonical name": "Simmons, Chris"
+        }, 
+        {
+            "canonical name": "Jeremiah, Ivanno", 
+            "name": "Ivanno Jeremiah", 
+            "long imdb name": "Ivanno Jeremiah", 
+            "long imdb canonical name": "Jeremiah, Ivanno"
+        }, 
+        {
+            "canonical name": "Markou, Marcus", 
+            "name": "Marcus Markou", 
+            "long imdb name": "Marcus Markou", 
+            "long imdb canonical name": "Markou, Marcus"
+        }, 
+        {
+            "canonical name": "Roussounis, Jimmy", 
+            "name": "Jimmy Roussounis", 
+            "long imdb name": "Jimmy Roussounis", 
+            "long imdb canonical name": "Roussounis, Jimmy"
+        }, 
+        {
+            "canonical name": "Herzberg, Paul", 
+            "name": "Paul Herzberg", 
+            "long imdb name": "Paul Herzberg", 
+            "long imdb canonical name": "Herzberg, Paul"
+        }, 
+        {
+            "canonical name": "Stoppard, Ed", 
+            "name": "Ed Stoppard", 
+            "long imdb name": "Ed Stoppard", 
+            "long imdb canonical name": "Stoppard, Ed"
+        }, 
+        {
+            "canonical name": "Shaw, Cosima", 
+            "name": "Cosima Shaw", 
+            "long imdb name": "Cosima Shaw", 
+            "long imdb canonical name": "Shaw, Cosima"
+        }, 
+        {
+            "canonical name": "Potts, George", 
+            "name": "George Potts", 
+            "long imdb name": "George Potts", 
+            "long imdb canonical name": "Potts, George"
+        }, 
+        {
+            "canonical name": "Douglas, Matthew", 
+            "name": "Matthew Douglas", 
+            "long imdb name": "Matthew Douglas", 
+            "long imdb canonical name": "Douglas, Matthew"
+        }, 
+        {
+            "canonical name": "Corraface, Georges", 
+            "name": "Georges Corraface", 
+            "long imdb name": "Georges Corraface", 
+            "long imdb canonical name": "Corraface, Georges"
+        }, 
+        {
+            "canonical name": "Savvides, George", 
+            "name": "George Savvides", 
+            "long imdb name": "George Savvides", 
+            "long imdb canonical name": "Savvides, George"
+        }, 
+        {
+            "canonical name": "Taurasi, Cesare", 
+            "name": "Cesare Taurasi", 
+            "long imdb name": "Cesare Taurasi", 
+            "long imdb canonical name": "Taurasi, Cesare"
+        }, 
+        {
+            "canonical name": "Christodoulou, Vangelis", 
+            "name": "Vangelis Christodoulou", 
+            "long imdb name": "Vangelis Christodoulou", 
+            "long imdb canonical name": "Christodoulou, Vangelis"
+        }, 
+        {
+            "canonical name": "Panayi, Vasilis", 
+            "name": "Vasilis Panayi", 
+            "long imdb name": "Vasilis Panayi", 
+            "long imdb canonical name": "Panayi, Vasilis"
+        }, 
+        {
+            "canonical name": "Durden, Richard", 
+            "name": "Richard Durden", 
+            "long imdb name": "Richard Durden", 
+            "long imdb canonical name": "Durden, Richard"
+        }, 
+        {
+            "canonical name": "Hanson, Alexander", 
+            "name": "Alexander Hanson", 
+            "long imdb name": "Alexander Hanson", 
+            "long imdb canonical name": "Hanson, Alexander"
+        }, 
+        {
+            "canonical name": "Leonidas, Georgina", 
+            "name": "Georgina Leonidas", 
+            "long imdb name": "Georgina Leonidas", 
+            "long imdb canonical name": "Leonidas, Georgina"
+        }
+    ], 
+    "smart long imdb canonical title": "Papadopoulos & Sons (2012)", 
+    "original music": [
+        {
+            "canonical name": "Warbeck, Stephen", 
+            "name": "Stephen Warbeck", 
+            "long imdb name": "Stephen Warbeck", 
+            "long imdb canonical name": "Warbeck, Stephen"
+        }
+    ], 
+    "smart canonical title": "Papadopoulos & Sons"
+}

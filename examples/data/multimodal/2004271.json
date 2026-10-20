@@ -1,0 +1,671 @@
+{
+    "rating": 6.4, 
+    "camera and electrical department": [
+        {
+            "canonical name": "Arnold, Emily", 
+            "name": "Emily Arnold", 
+            "long imdb name": "Emily Arnold", 
+            "long imdb canonical name": "Arnold, Emily"
+        }, 
+        {
+            "canonical name": "Baldino, Robert", 
+            "name": "Robert Baldino", 
+            "long imdb name": "Robert Baldino", 
+            "long imdb canonical name": "Baldino, Robert"
+        }, 
+        {
+            "canonical name": "Baldino, Robert", 
+            "name": "Robert Baldino", 
+            "long imdb name": "Robert Baldino", 
+            "long imdb canonical name": "Baldino, Robert"
+        }, 
+        {
+            "canonical name": "Begy, Bruce", 
+            "name": "Bruce Begy", 
+            "long imdb name": "Bruce Begy", 
+            "long imdb canonical name": "Begy, Bruce"
+        }, 
+        {
+            "canonical name": "Davies, Guy", 
+            "name": "Guy Davies", 
+            "long imdb name": "Guy Davies", 
+            "long imdb canonical name": "Davies, Guy"
+        }, 
+        {
+            "canonical name": "Durkin, Bart", 
+            "name": "Bart Durkin", 
+            "long imdb name": "Bart Durkin", 
+            "long imdb canonical name": "Durkin, Bart"
+        }, 
+        {
+            "canonical name": "Durkin, Bart", 
+            "name": "Bart Durkin", 
+            "long imdb name": "Bart Durkin", 
+            "long imdb canonical name": "Durkin, Bart"
+        }, 
+        {
+            "canonical name": "Durkin, Bart", 
+            "name": "Bart Durkin", 
+            "long imdb name": "Bart Durkin", 
+            "long imdb canonical name": "Durkin, Bart"
+        }, 
+        {
+            "canonical name": "Limner, Timothy", 
+            "name": "Timothy Limner", 
+            "long imdb name": "Timothy Limner", 
+            "long imdb canonical name": "Limner, Timothy"
+        }, 
+        {
+            "canonical name": "Moran, Chuck", 
+            "name": "Chuck Moran", 
+            "long imdb name": "Chuck Moran", 
+            "long imdb canonical name": "Moran, Chuck"
+        }, 
+        {
+            "canonical name": "Shoup, Jim", 
+            "name": "Jim Shoup", 
+            "long imdb name": "Jim Shoup", 
+            "long imdb canonical name": "Shoup, Jim"
+        }, 
+        {
+            "canonical name": "Spindler, Maureen", 
+            "name": "Maureen Spindler", 
+            "long imdb name": "Maureen Spindler", 
+            "long imdb canonical name": "Spindler, Maureen"
+        }, 
+        {
+            "canonical name": "Strom, Ginger", 
+            "name": "Ginger Strom", 
+            "long imdb name": "Ginger Strom", 
+            "long imdb canonical name": "Strom, Ginger"
+        }, 
+        {
+            "canonical name": "Sullivan, Kelly L.", 
+            "name": "Kelly L. Sullivan", 
+            "long imdb name": "Kelly L. Sullivan", 
+            "long imdb canonical name": "Sullivan, Kelly L."
+        }, 
+        {
+            "canonical name": "Sullivan, Kelly L.", 
+            "name": "Kelly L. Sullivan", 
+            "long imdb name": "Kelly L. Sullivan", 
+            "long imdb canonical name": "Sullivan, Kelly L."
+        }, 
+        {
+            "canonical name": "Tracy, Paul J.", 
+            "name": "Paul J. Tracy", 
+            "long imdb name": "Paul J. Tracy", 
+            "long imdb canonical name": "Tracy, Paul J."
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "Faith Street Film Partners", 
+            "long imdb name": "Faith Street Film Partners"
+        }, 
+        {
+            "name": "Waking Giants Entertainment", 
+            "long imdb name": "Waking Giants Entertainment"
+        }, 
+        {
+            "name": "ArtAffects Entertainment", 
+            "long imdb name": "ArtAffects Entertainment"
+        }, 
+        {
+            "name": "Provident Films", 
+            "long imdb name": "Provident Films"
+        }, 
+        {
+            "name": "SCM H\u00e4nssler", 
+            "long imdb name": "SCM H\u00e4nssler"
+        }
+    ], 
+    "runtimes": [
+        "108"
+    ], 
+    "make up": [
+        {
+            "canonical name": "Brickley, London", 
+            "name": "London Brickley", 
+            "long imdb name": "London Brickley", 
+            "long imdb canonical name": "Brickley, London"
+        }, 
+        {
+            "canonical name": "Cooper, David", 
+            "name": "David Cooper", 
+            "long imdb name": "David Cooper", 
+            "long imdb canonical name": "Cooper, David"
+        }, 
+        {
+            "canonical name": "Knoblauch, Christine", 
+            "name": "Christine Knoblauch", 
+            "long imdb name": "Christine Knoblauch", 
+            "long imdb canonical name": "Knoblauch, Christine"
+        }, 
+        {
+            "canonical name": "Patterson, Suzanne", 
+            "name": "Suzanne Patterson", 
+            "long imdb name": "Suzanne Patterson", 
+            "long imdb canonical name": "Patterson, Suzanne"
+        }
+    ], 
+    "year": 2013, 
+    "production design": [
+        {
+            "canonical name": "Hookway, Shannon", 
+            "name": "Shannon Hookway", 
+            "long imdb name": "Shannon Hookway", 
+            "long imdb canonical name": "Hookway, Shannon"
+        }
+    ], 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Bellanti, Lisa", 
+            "name": "Lisa Bellanti", 
+            "long imdb name": "Lisa Bellanti", 
+            "long imdb canonical name": "Bellanti, Lisa"
+        }, 
+        {
+            "canonical name": "Champlin, Mike", 
+            "name": "Mike Champlin", 
+            "long imdb name": "Mike Champlin", 
+            "long imdb canonical name": "Champlin, Mike"
+        }, 
+        {
+            "canonical name": "DiBella, Amy", 
+            "name": "Amy DiBella", 
+            "long imdb name": "Amy DiBella", 
+            "long imdb canonical name": "DiBella, Amy"
+        }, 
+        {
+            "canonical name": "Laurro, Ben", 
+            "name": "Ben Laurro", 
+            "long imdb name": "Ben Laurro", 
+            "long imdb canonical name": "Laurro, Ben"
+        }, 
+        {
+            "canonical name": "Matte, Sarah", 
+            "name": "Sarah Matte", 
+            "long imdb name": "Sarah Matte", 
+            "long imdb canonical name": "Matte, Sarah"
+        }, 
+        {
+            "canonical name": "Shoup, Jim", 
+            "name": "Jim Shoup", 
+            "long imdb name": "Jim Shoup", 
+            "long imdb canonical name": "Shoup, Jim"
+        }, 
+        {
+            "canonical name": "Sullivan, Kelly L.", 
+            "name": "Kelly L. Sullivan", 
+            "long imdb name": "Kelly L. Sullivan", 
+            "long imdb canonical name": "Sullivan, Kelly L."
+        }, 
+        {
+            "canonical name": "Tracy, Paul J.", 
+            "name": "Paul J. Tracy", 
+            "long imdb name": "Paul J. Tracy", 
+            "long imdb canonical name": "Tracy, Paul J."
+        }
+    ], 
+    "color info": [], 
+    "plot": [
+        "When eighteen-year-old Brendan King attempts to leave his turbulent gang life behind him, his past continues to threaten his new-found faith, family, and future."
+    ], 
+    "votes": 430, 
+    "producer": [
+        {
+            "canonical name": "Brown, Nathaniel", 
+            "name": "Nathaniel Brown", 
+            "long imdb name": "Nathaniel Brown", 
+            "long imdb canonical name": "Brown, Nathaniel"
+        }, 
+        {
+            "canonical name": "Costello, Mark", 
+            "name": "Mark Costello", 
+            "long imdb name": "Mark Costello", 
+            "long imdb canonical name": "Costello, Mark"
+        }, 
+        {
+            "canonical name": "Coughlin, Brian", 
+            "name": "Brian Coughlin", 
+            "long imdb name": "Brian Coughlin", 
+            "long imdb canonical name": "Coughlin, Brian"
+        }, 
+        {
+            "canonical name": "DiBella, Nicholas", 
+            "name": "Nicholas DiBella", 
+            "long imdb name": "Nicholas DiBella", 
+            "long imdb canonical name": "DiBella, Nicholas"
+        }, 
+        {
+            "canonical name": "Dueker, Pastor Kirk", 
+            "name": "Pastor Kirk Dueker", 
+            "long imdb name": "Pastor Kirk Dueker", 
+            "long imdb canonical name": "Dueker, Pastor Kirk"
+        }, 
+        {
+            "canonical name": "Eisenhart, Josh", 
+            "name": "Josh Eisenhart", 
+            "long imdb name": "Josh Eisenhart", 
+            "long imdb canonical name": "Eisenhart, Josh"
+        }, 
+        {
+            "canonical name": "Pavone, James", 
+            "name": "James Pavone", 
+            "long imdb name": "James Pavone", 
+            "long imdb canonical name": "Pavone, James"
+        }, 
+        {
+            "canonical name": "Powell, Billy", 
+            "name": "Billy Powell", 
+            "long imdb name": "Billy Powell", 
+            "long imdb canonical name": "Powell, Billy"
+        }, 
+        {
+            "canonical name": "Riggio, Taine Ann", 
+            "name": "Taine Ann Riggio", 
+            "long imdb name": "Taine Ann Riggio", 
+            "long imdb canonical name": "Riggio, Taine Ann"
+        }, 
+        {
+            "canonical name": "Ryckaert, Andy", 
+            "name": "Andy Ryckaert", 
+            "long imdb name": "Andy Ryckaert", 
+            "long imdb canonical name": "Ryckaert, Andy"
+        }, 
+        {
+            "canonical name": "Wax, Marc", 
+            "name": "Marc Wax", 
+            "long imdb name": "Marc Wax", 
+            "long imdb canonical name": "Wax, Marc"
+        }
+    ], 
+    "title": "King's Faith", 
+    "mpaa": "Rated PG-13 for violence, some drug content and thematic elements", 
+    "assistant director": [
+        {
+            "canonical name": "Coughlin, Brian", 
+            "name": "Brian Coughlin", 
+            "long imdb name": "Brian Coughlin", 
+            "long imdb canonical name": "Coughlin, Brian"
+        }, 
+        {
+            "canonical name": "Coughlin, Brian", 
+            "name": "Brian Coughlin", 
+            "long imdb name": "Brian Coughlin", 
+            "long imdb canonical name": "Coughlin, Brian"
+        }, 
+        {
+            "canonical name": "Lugo, Daniel", 
+            "name": "Daniel Lugo", 
+            "long imdb name": "Daniel Lugo", 
+            "long imdb canonical name": "Lugo, Daniel"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "DiBella, Nicholas", 
+            "name": "Nicholas DiBella", 
+            "long imdb name": "Nicholas DiBella", 
+            "long imdb canonical name": "DiBella, Nicholas"
+        }, 
+        {
+            "canonical name": "Root, Paul", 
+            "name": "Paul Root", 
+            "long imdb name": "Paul Root", 
+            "long imdb canonical name": "Root, Paul"
+        }
+    ], 
+    "long imdb canonical title": "King's Faith (2013)", 
+    "languages": [
+        "English"
+    ], 
+    "production manager": [
+        {
+            "canonical name": "Kristich, Kathy", 
+            "name": "Kathy Kristich", 
+            "long imdb name": "Kathy Kristich", 
+            "long imdb canonical name": "Kristich, Kathy"
+        }
+    ], 
+    "casting director": [
+        {
+            "canonical name": "Margiotta, Karen", 
+            "name": "Karen Margiotta", 
+            "long imdb name": "Karen Margiotta", 
+            "long imdb canonical name": "Margiotta, Karen"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "De Luca, Anthony", 
+            "name": "Anthony De Luca", 
+            "long imdb name": "Anthony De Luca", 
+            "long imdb canonical name": "De Luca, Anthony"
+        }
+    ], 
+    "certificates": [
+        "Germany:12", 
+        "Singapore:PG13", 
+        "USA:PG-13"
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "LaVaque, Rob", 
+            "name": "Rob LaVaque", 
+            "long imdb name": "Rob LaVaque", 
+            "long imdb canonical name": "LaVaque, Rob"
+        }, 
+        {
+            "canonical name": "Pheilshifter, Dave", 
+            "name": "Dave Pheilshifter", 
+            "long imdb name": "Dave Pheilshifter", 
+            "long imdb canonical name": "Pheilshifter, Dave"
+        }, 
+        {
+            "canonical name": "Ryckaert, Andy", 
+            "name": "Andy Ryckaert", 
+            "long imdb name": "Andy Ryckaert", 
+            "long imdb canonical name": "Ryckaert, Andy"
+        }, 
+        {
+            "canonical name": "Ryckaert, Andy", 
+            "name": "Andy Ryckaert", 
+            "long imdb name": "Andy Ryckaert", 
+            "long imdb canonical name": "Ryckaert, Andy"
+        }, 
+        {
+            "canonical name": "Ryckaert, Andy", 
+            "name": "Andy Ryckaert", 
+            "long imdb name": "Andy Ryckaert", 
+            "long imdb canonical name": "Ryckaert, Andy"
+        }, 
+        {
+            "canonical name": "Sparrazza, Randy", 
+            "name": "Randy Sparrazza", 
+            "long imdb name": "Randy Sparrazza", 
+            "long imdb canonical name": "Sparrazza, Randy"
+        }
+    ], 
+    "long imdb title": "King's Faith (2013)", 
+    "country codes": [
+        "us"
+    ], 
+    "language codes": [
+        "en"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BMjEyNzIyNDc0NF5BMl5BanBnXkFtZTcwNDYxNjUyOQ@@._V1._SX95_SY140_.jpg", 
+    "editorial department": [
+        {
+            "canonical name": "Baldino, Robert", 
+            "name": "Robert Baldino", 
+            "long imdb name": "Robert Baldino", 
+            "long imdb canonical name": "Baldino, Robert"
+        }, 
+        {
+            "canonical name": "Kosters, Donovan", 
+            "name": "Donovan Kosters", 
+            "long imdb name": "Donovan Kosters", 
+            "long imdb canonical name": "Kosters, Donovan"
+        }
+    ], 
+    "sound mix": [
+        "Dolby"
+    ], 
+    "location management": [
+        {
+            "canonical name": "Marsaw, Bill", 
+            "name": "Bill Marsaw", 
+            "long imdb name": "Bill Marsaw", 
+            "long imdb canonical name": "Marsaw, Bill"
+        }
+    ], 
+    "genres": [
+        "Drama"
+    ], 
+    "director": [
+        {
+            "canonical name": "DiBella, Nicholas", 
+            "name": "Nicholas DiBella", 
+            "long imdb name": "Nicholas DiBella", 
+            "long imdb canonical name": "DiBella, Nicholas"
+        }
+    ], 
+    "stunt performer": [
+        {
+            "canonical name": "Racki, Branko", 
+            "name": "Branko Racki", 
+            "long imdb name": "Branko Racki", 
+            "long imdb canonical name": "Racki, Branko"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Hart, Chris", 
+            "name": "Chris Hart", 
+            "long imdb name": "Chris Hart", 
+            "long imdb canonical name": "Hart, Chris"
+        }
+    ], 
+    "art direction": [
+        {
+            "canonical name": "Sloane, Andrew", 
+            "name": "Andrew Sloane", 
+            "long imdb name": "Andrew Sloane", 
+            "long imdb canonical name": "Sloane, Andrew"
+        }
+    ], 
+    "akas": [
+        "Der Preis des Glaubens::Germany (DVD title)"
+    ], 
+    "production companies": [
+        {
+            "name": "Faith Street Film Partners", 
+            "long imdb name": "Faith Street Film Partners"
+        }
+    ], 
+    "kind": "movie", 
+    "art department": [
+        {
+            "canonical name": "Funk, Denyse", 
+            "name": "Denyse Funk", 
+            "long imdb name": "Denyse Funk", 
+            "long imdb canonical name": "Funk, Denyse"
+        }
+    ], 
+    "countries": [
+        "USA"
+    ], 
+    "transportation department": [
+        {
+            "canonical name": "DiBella, James", 
+            "name": "James DiBella", 
+            "long imdb name": "James DiBella", 
+            "long imdb canonical name": "DiBella, James"
+        }, 
+        {
+            "canonical name": "Tufano, Louis", 
+            "name": "Louis Tufano", 
+            "long imdb name": "Louis Tufano", 
+            "long imdb canonical name": "Tufano, Louis"
+        }
+    ], 
+    "plot outline": "When eighteen-year-old Brendan King attempts to leave his turbulent gang life behind him, his past continues to threaten his new-found faith, family, and future.", 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BMjEyNzIyNDc0NF5BMl5BanBnXkFtZTcwNDYxNjUyOQ@@.jpg", 
+    "canonical title": "King's Faith", 
+    "cast": [
+        {
+            "canonical name": "Whitfield, Lynn", 
+            "name": "Lynn Whitfield", 
+            "long imdb name": "Lynn Whitfield", 
+            "long imdb canonical name": "Whitfield, Lynn"
+        }, 
+        {
+            "canonical name": "Wilson, Crawford", 
+            "name": "Crawford Wilson", 
+            "long imdb name": "Crawford Wilson", 
+            "long imdb canonical name": "Wilson, Crawford"
+        }, 
+        {
+            "canonical name": "McDaniel, James", 
+            "name": "James McDaniel", 
+            "long imdb name": "James McDaniel", 
+            "long imdb canonical name": "McDaniel, James"
+        }, 
+        {
+            "canonical name": "Compton, Kayla", 
+            "name": "Kayla Compton", 
+            "long imdb name": "Kayla Compton", 
+            "long imdb canonical name": "Compton, Kayla"
+        }, 
+        {
+            "canonical name": "Correa, Brandon", 
+            "name": "Brandon Correa", 
+            "long imdb name": "Brandon Correa", 
+            "long imdb canonical name": "Correa, Brandon"
+        }, 
+        {
+            "canonical name": "Americus, Nicholas", 
+            "name": "Nicholas Americus", 
+            "long imdb name": "Nicholas Americus", 
+            "long imdb canonical name": "Americus, Nicholas"
+        }, 
+        {
+            "canonical name": "Leadbetter, Michael", 
+            "name": "Michael Leadbetter", 
+            "long imdb name": "Michael Leadbetter", 
+            "long imdb canonical name": "Leadbetter, Michael"
+        }, 
+        {
+            "canonical name": "Patterson, Edsel Q.", 
+            "name": "Edsel Q. Patterson", 
+            "long imdb name": "Edsel Q. Patterson", 
+            "long imdb canonical name": "Patterson, Edsel Q."
+        }, 
+        {
+            "canonical name": "Brownyard, Mike", 
+            "name": "Mike Brownyard", 
+            "long imdb name": "Mike Brownyard", 
+            "long imdb canonical name": "Brownyard, Mike"
+        }, 
+        {
+            "canonical name": "Martin, Christopher Jon", 
+            "name": "Christopher Jon Martin", 
+            "long imdb name": "Christopher Jon Martin", 
+            "long imdb canonical name": "Martin, Christopher Jon"
+        }, 
+        {
+            "canonical name": "Bartucca, Andrew", 
+            "name": "Andrew Bartucca", 
+            "long imdb name": "Andrew Bartucca", 
+            "long imdb canonical name": "Bartucca, Andrew"
+        }, 
+        {
+            "canonical name": "Bartucca, Anthony", 
+            "name": "Anthony Bartucca", 
+            "long imdb name": "Anthony Bartucca", 
+            "long imdb canonical name": "Bartucca, Anthony"
+        }, 
+        {
+            "canonical name": "Criddle, Fiona", 
+            "name": "Fiona Criddle", 
+            "long imdb name": "Fiona Criddle", 
+            "long imdb canonical name": "Criddle, Fiona"
+        }, 
+        {
+            "canonical name": "Dodd, Stephen", 
+            "name": "Stephen Dodd", 
+            "long imdb name": "Stephen Dodd", 
+            "long imdb canonical name": "Dodd, Stephen"
+        }, 
+        {
+            "canonical name": "Dodge, Patrick", 
+            "name": "Patrick Dodge", 
+            "long imdb name": "Patrick Dodge", 
+            "long imdb canonical name": "Dodge, Patrick"
+        }, 
+        {
+            "canonical name": "Hylton, B.J.", 
+            "name": "B.J. Hylton", 
+            "long imdb name": "B.J. Hylton", 
+            "long imdb canonical name": "Hylton, B.J."
+        }, 
+        {
+            "canonical name": "Mancarella, Eva", 
+            "name": "Eva Mancarella", 
+            "long imdb name": "Eva Mancarella", 
+            "long imdb canonical name": "Mancarella, Eva"
+        }, 
+        {
+            "canonical name": "Mancarella, Peter", 
+            "name": "Peter Mancarella", 
+            "long imdb name": "Peter Mancarella", 
+            "long imdb canonical name": "Mancarella, Peter"
+        }, 
+        {
+            "canonical name": "Martin, Garfield", 
+            "name": "Garfield Martin", 
+            "long imdb name": "Garfield Martin", 
+            "long imdb canonical name": "Martin, Garfield"
+        }, 
+        {
+            "canonical name": "Paige, Julie", 
+            "name": "Julie Paige", 
+            "long imdb name": "Julie Paige", 
+            "long imdb canonical name": "Paige, Julie"
+        }, 
+        {
+            "canonical name": "Rosso, Tyler", 
+            "name": "Tyler Rosso", 
+            "long imdb name": "Tyler Rosso", 
+            "long imdb canonical name": "Rosso, Tyler"
+        }, 
+        {
+            "canonical name": "Royal, Kristen", 
+            "name": "Kristen Royal", 
+            "long imdb name": "Kristen Royal", 
+            "long imdb canonical name": "Royal, Kristen"
+        }, 
+        {
+            "canonical name": "Sheak, Stephanie", 
+            "name": "Stephanie Sheak", 
+            "long imdb name": "Stephanie Sheak", 
+            "long imdb canonical name": "Sheak, Stephanie"
+        }, 
+        {
+            "canonical name": "Southwell, Jon T.", 
+            "name": "Jon T. Southwell", 
+            "long imdb name": "Jon T. Southwell", 
+            "long imdb canonical name": "Southwell, Jon T."
+        }, 
+        {
+            "canonical name": "Wade, Zachary", 
+            "name": "Zachary Wade", 
+            "long imdb name": "Zachary Wade", 
+            "long imdb canonical name": "Wade, Zachary"
+        }, 
+        {
+            "canonical name": "Walker, Ruth", 
+            "name": "Ruth Walker", 
+            "long imdb name": "Ruth Walker", 
+            "long imdb canonical name": "Walker, Ruth"
+        }
+    ], 
+    "smart long imdb canonical title": "King's Faith (2013)", 
+    "original music": [
+        {
+            "canonical name": "Bartolotta, Steve", 
+            "name": "Steve Bartolotta", 
+            "long imdb name": "Steve Bartolotta", 
+            "long imdb canonical name": "Bartolotta, Steve"
+        }, 
+        {
+            "canonical name": "Ryckaert, Andy", 
+            "name": "Andy Ryckaert", 
+            "long imdb name": "Andy Ryckaert", 
+            "long imdb canonical name": "Ryckaert, Andy"
+        }
+    ], 
+    "smart canonical title": "King's Faith"
+}
