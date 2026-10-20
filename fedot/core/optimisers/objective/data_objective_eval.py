@@ -71,6 +71,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             except Exception as ex:
                 self._log.warning(f'Unsuccessful pipeline fit during fitness evaluation. '
                                   f'Skipping the pipeline. Exception <{ex}> on {graph_id}')
+                folds_metrics.clear()
                 expected_fit_errors = (TimeoutError, DataMergeError, np.linalg.LinAlgError)
                 if is_test_session() and not isinstance(ex, expected_fit_errors):
                     stack_trace = traceback.format_exc()

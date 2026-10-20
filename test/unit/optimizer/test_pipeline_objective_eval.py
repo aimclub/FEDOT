@@ -176,15 +176,21 @@ def test_pipeline_objective_evaluate_skips_pipeline_with_incompatible_branch_ind
     assert not fitness.valid
 
 
-def test_pipeline_objective_evaluate_skips_pipeline_with_numerical_fit_error(classification_dataset,
-                                                                             monkeypatch):
+def test_pipeline_objective_evaluate_skips_pipeline_with_numerical_fit_error_after_successful_fold(
+        classification_dataset, monkeypatch):
     pipeline = sample_pipeline()
-    data_producer = DataSourceSplitter(cv_folds=None).build(classification_dataset)
+    data_producer = DataSourceSplitter(cv_folds=2).build(classification_dataset)
     objective_eval = PipelineObjectiveEvaluate(MetricsObjective(ClassificationMetricsEnum.ROCAUC_penalty),
                                                data_producer=data_producer)
+    original_prepare_graph = objective_eval.prepare_graph
+    prepare_calls = 0
 
     def raise_numerical_error(*args, **kwargs):
-        raise np.linalg.LinAlgError('SVD did not converge')
+        nonlocal prepare_calls
+        prepare_calls += 1
+        if prepare_calls == 2:
+            raise np.linalg.LinAlgError('SVD did not converge')
+        return original_prepare_graph(*args, **kwargs)
 
     monkeypatch.setattr(objective_eval, 'prepare_graph', raise_numerical_error)
 
