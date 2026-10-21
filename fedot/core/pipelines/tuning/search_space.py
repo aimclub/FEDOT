@@ -1,4 +1,3 @@
-from functools import partial
 from typing import Optional
 
 from golem.core.tuning.search_space import SearchSpace, OperationParametersMapping
@@ -805,11 +804,6 @@ class PipelineSearchSpace(SearchSpace):
                     'sampling-scope': [4, 10],
                     'type': 'discrete'
                 },
-                'min_data_in_leaf': {
-                    'hyperopt-dist': partial(hp.qloguniform, q=1),
-                    'sampling-scope': [0, 25],
-                    'type': 'discrete'
-                },
                 'max_bin': {
                     'hyperopt-dist': hp.uniformint,
                     'sampling-scope': [1, 65535],
@@ -840,11 +834,6 @@ class PipelineSearchSpace(SearchSpace):
                 'max_depth': {
                     'hyperopt-dist': hp.uniformint,
                     'sampling-scope': [4, 10],
-                    'type': 'discrete'
-                },
-                'min_data_in_leaf': {
-                    'hyperopt-dist': partial(hp.qloguniform, q=1),
-                    'sampling-scope': [0, 25],
                     'type': 'discrete'
                 },
                 'max_bin': {
