@@ -1,0 +1,536 @@
+{
+    "music department": [
+        {
+            "canonical name": "Shaver, Billy Joe", 
+            "name": "Billy Joe Shaver", 
+            "long imdb name": "Billy Joe Shaver", 
+            "long imdb canonical name": "Shaver, Billy Joe"
+        }
+    ], 
+    "camera and electrical department": [
+        {
+            "canonical name": "Adams, Albert", 
+            "name": "Albert Adams", 
+            "long imdb name": "Albert Adams", 
+            "long imdb canonical name": "Adams, Albert"
+        }, 
+        {
+            "canonical name": "Andresen, Dan", 
+            "name": "Dan Andresen", 
+            "long imdb name": "Dan Andresen", 
+            "long imdb canonical name": "Andresen, Dan"
+        }, 
+        {
+            "canonical name": "Barcelona, Robert", 
+            "name": "Robert Barcelona", 
+            "long imdb name": "Robert Barcelona", 
+            "long imdb canonical name": "Barcelona, Robert"
+        }, 
+        {
+            "canonical name": "Dooling, George", 
+            "name": "George Dooling", 
+            "long imdb name": "George Dooling", 
+            "long imdb canonical name": "Dooling, George"
+        }, 
+        {
+            "canonical name": "Dupleasis, Maurice", 
+            "name": "Maurice Dupleasis", 
+            "long imdb name": "Maurice Dupleasis", 
+            "long imdb canonical name": "Dupleasis, Maurice"
+        }, 
+        {
+            "canonical name": "Jury, David", 
+            "name": "David Jury", 
+            "long imdb name": "David Jury", 
+            "long imdb canonical name": "Jury, David"
+        }, 
+        {
+            "canonical name": "Maley, Michael", 
+            "name": "Michael Maley", 
+            "long imdb name": "Michael Maley", 
+            "long imdb canonical name": "Maley, Michael"
+        }, 
+        {
+            "canonical name": "Miles, Simon", 
+            "name": "Simon Miles", 
+            "long imdb name": "Simon Miles", 
+            "long imdb canonical name": "Miles, Simon"
+        }, 
+        {
+            "canonical name": "Mitchell, James", 
+            "name": "James Mitchell", 
+            "long imdb name": "James Mitchell", 
+            "long imdb canonical name": "Mitchell, James"
+        }, 
+        {
+            "canonical name": "Moore, Dan", 
+            "name": "Dan Moore", 
+            "long imdb name": "Dan Moore", 
+            "long imdb canonical name": "Moore, Dan"
+        }, 
+        {
+            "canonical name": "Jr., John Palacio", 
+            "name": "John Palacio Jr.", 
+            "long imdb name": "John Palacio Jr.", 
+            "long imdb canonical name": "Jr., John Palacio"
+        }, 
+        {
+            "canonical name": "Peralta, Paul", 
+            "name": "Paul Peralta", 
+            "long imdb name": "Paul Peralta", 
+            "long imdb canonical name": "Peralta, Paul"
+        }, 
+        {
+            "canonical name": "Reed, Larry", 
+            "name": "Larry Reed", 
+            "long imdb name": "Larry Reed", 
+            "long imdb canonical name": "Reed, Larry"
+        }, 
+        {
+            "canonical name": "Rickenbach, Josh", 
+            "name": "Josh Rickenbach", 
+            "long imdb name": "Josh Rickenbach", 
+            "long imdb canonical name": "Rickenbach, Josh"
+        }, 
+        {
+            "canonical name": "Rovello, Craig", 
+            "name": "Craig Rovello", 
+            "long imdb name": "Craig Rovello", 
+            "long imdb canonical name": "Rovello, Craig"
+        }, 
+        {
+            "canonical name": "Shields, Ski", 
+            "name": "Ski Shields", 
+            "long imdb name": "Ski Shields", 
+            "long imdb canonical name": "Shields, Ski"
+        }, 
+        {
+            "canonical name": "Tuffereau, Damien", 
+            "name": "Damien Tuffereau", 
+            "long imdb name": "Damien Tuffereau", 
+            "long imdb canonical name": "Tuffereau, Damien"
+        }, 
+        {
+            "canonical name": "Vandersteen, Lynton", 
+            "name": "Lynton Vandersteen", 
+            "long imdb name": "Lynton Vandersteen", 
+            "long imdb canonical name": "Vandersteen, Lynton"
+        }, 
+        {
+            "canonical name": "Villa, Danny", 
+            "name": "Danny Villa", 
+            "long imdb name": "Danny Villa", 
+            "long imdb canonical name": "Villa, Danny"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "Beyond Home Entertainment", 
+            "long imdb name": "Beyond Home Entertainment"
+        }, 
+        {
+            "name": "Comedy Central", 
+            "long imdb name": "Comedy Central"
+        }
+    ], 
+    "rating": 7.7, 
+    "runtimes": [
+        "USA:61"
+    ], 
+    "make up": [
+        {
+            "canonical name": "Zielon, Jenny", 
+            "name": "Jenny Zielon", 
+            "long imdb name": "Jenny Zielon", 
+            "long imdb canonical name": "Zielon, Jenny"
+        }
+    ], 
+    "year": 2011, 
+    "production design": [
+        {
+            "canonical name": "Yeck, John", 
+            "name": "John Yeck", 
+            "long imdb name": "John Yeck", 
+            "long imdb canonical name": "Yeck, John"
+        }
+    ], 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Albright, Tiffany", 
+            "name": "Tiffany Albright", 
+            "long imdb name": "Tiffany Albright", 
+            "long imdb canonical name": "Albright, Tiffany"
+        }, 
+        {
+            "canonical name": "Barr, Charles", 
+            "name": "Charles Barr", 
+            "long imdb name": "Charles Barr", 
+            "long imdb canonical name": "Barr, Charles"
+        }, 
+        {
+            "canonical name": "Berger, Drew", 
+            "name": "Drew Berger", 
+            "long imdb name": "Drew Berger", 
+            "long imdb canonical name": "Berger, Drew"
+        }, 
+        {
+            "canonical name": "Black, Samantha", 
+            "name": "Samantha Black", 
+            "long imdb name": "Samantha Black", 
+            "long imdb canonical name": "Black, Samantha"
+        }, 
+        {
+            "canonical name": "Bradford, Roberto", 
+            "name": "Roberto Bradford", 
+            "long imdb name": "Roberto Bradford", 
+            "long imdb canonical name": "Bradford, Roberto"
+        }, 
+        {
+            "canonical name": "Cambareri, Antonio", 
+            "name": "Antonio Cambareri", 
+            "long imdb name": "Antonio Cambareri", 
+            "long imdb canonical name": "Cambareri, Antonio"
+        }, 
+        {
+            "canonical name": "Carmine, Jerry", 
+            "name": "Jerry Carmine", 
+            "long imdb name": "Jerry Carmine", 
+            "long imdb canonical name": "Carmine, Jerry"
+        }, 
+        {
+            "canonical name": "Cassidy, Seam", 
+            "name": "Seam Cassidy", 
+            "long imdb name": "Seam Cassidy", 
+            "long imdb canonical name": "Cassidy, Seam"
+        }, 
+        {
+            "canonical name": "Cauteruccio, Vincent", 
+            "name": "Vincent Cauteruccio", 
+            "long imdb name": "Vincent Cauteruccio", 
+            "long imdb canonical name": "Cauteruccio, Vincent"
+        }, 
+        {
+            "canonical name": "Cosentino, Peter", 
+            "name": "Peter Cosentino", 
+            "long imdb name": "Peter Cosentino", 
+            "long imdb canonical name": "Cosentino, Peter"
+        }, 
+        {
+            "canonical name": "Cox, Bob", 
+            "name": "Bob Cox", 
+            "long imdb name": "Bob Cox", 
+            "long imdb canonical name": "Cox, Bob"
+        }, 
+        {
+            "canonical name": "Cronin, Corinne", 
+            "name": "Corinne Cronin", 
+            "long imdb name": "Corinne Cronin", 
+            "long imdb canonical name": "Cronin, Corinne"
+        }, 
+        {
+            "canonical name": "Kennedy, Marc", 
+            "name": "Marc Kennedy", 
+            "long imdb name": "Marc Kennedy", 
+            "long imdb canonical name": "Kennedy, Marc"
+        }, 
+        {
+            "canonical name": "Kenrick, Patrick", 
+            "name": "Patrick Kenrick", 
+            "long imdb name": "Patrick Kenrick", 
+            "long imdb canonical name": "Kenrick, Patrick"
+        }, 
+        {
+            "canonical name": "Knoles, Leon", 
+            "name": "Leon Knoles", 
+            "long imdb name": "Leon Knoles", 
+            "long imdb canonical name": "Knoles, Leon"
+        }, 
+        {
+            "canonical name": "Kreibich, Justin", 
+            "name": "Justin Kreibich", 
+            "long imdb name": "Justin Kreibich", 
+            "long imdb canonical name": "Kreibich, Justin"
+        }, 
+        {
+            "canonical name": "Lee, Sandra", 
+            "name": "Sandra Lee", 
+            "long imdb name": "Sandra Lee", 
+            "long imdb canonical name": "Lee, Sandra"
+        }, 
+        {
+            "canonical name": "Leshne, Leslie", 
+            "name": "Leslie Leshne", 
+            "long imdb name": "Leslie Leshne", 
+            "long imdb canonical name": "Leshne, Leslie"
+        }, 
+        {
+            "canonical name": "Maler, Jennifer", 
+            "name": "Jennifer Maler", 
+            "long imdb name": "Jennifer Maler", 
+            "long imdb canonical name": "Maler, Jennifer"
+        }, 
+        {
+            "canonical name": "Maron, Chrissy", 
+            "name": "Chrissy Maron", 
+            "long imdb name": "Chrissy Maron", 
+            "long imdb canonical name": "Maron, Chrissy"
+        }, 
+        {
+            "canonical name": "Oschack, Bob", 
+            "name": "Bob Oschack", 
+            "long imdb name": "Bob Oschack", 
+            "long imdb canonical name": "Oschack, Bob"
+        }, 
+        {
+            "canonical name": "Peter, Michael", 
+            "name": "Michael Peter", 
+            "long imdb name": "Michael Peter", 
+            "long imdb canonical name": "Peter, Michael"
+        }, 
+        {
+            "canonical name": "Regan, Dave", 
+            "name": "Dave Regan", 
+            "long imdb name": "Dave Regan", 
+            "long imdb canonical name": "Regan, Dave"
+        }, 
+        {
+            "canonical name": "Rowan, Tom", 
+            "name": "Tom Rowan", 
+            "long imdb name": "Tom Rowan", 
+            "long imdb canonical name": "Rowan, Tom"
+        }, 
+        {
+            "canonical name": "Sikiv, Jennifer", 
+            "name": "Jennifer Sikiv", 
+            "long imdb name": "Jennifer Sikiv", 
+            "long imdb canonical name": "Sikiv, Jennifer"
+        }, 
+        {
+            "canonical name": "Staub, Stan", 
+            "name": "Stan Staub", 
+            "long imdb name": "Stan Staub", 
+            "long imdb canonical name": "Staub, Stan"
+        }, 
+        {
+            "canonical name": "Tetzner, Alfred", 
+            "name": "Alfred Tetzner", 
+            "long imdb name": "Alfred Tetzner", 
+            "long imdb canonical name": "Tetzner, Alfred"
+        }, 
+        {
+            "canonical name": "Voluntine, Katherine", 
+            "name": "Katherine Voluntine", 
+            "long imdb name": "Katherine Voluntine", 
+            "long imdb canonical name": "Voluntine, Katherine"
+        }
+    ], 
+    "color info": [], 
+    "plot": [
+        "Norm MacDonald, the iconic anchor of SNL's \"Weekend Update\" and star of the cult classic Dirty Work, is back with a vengeance."
+    ], 
+    "votes": 363, 
+    "producer": [
+        {
+            "canonical name": "Gurvitz, Marc", 
+            "name": "Marc Gurvitz", 
+            "long imdb name": "Marc Gurvitz", 
+            "long imdb canonical name": "Gurvitz, Marc"
+        }, 
+        {
+            "canonical name": "Hoekstra, Lori Jo", 
+            "name": "Lori Jo Hoekstra", 
+            "long imdb name": "Lori Jo Hoekstra", 
+            "long imdb canonical name": "Hoekstra, Lori Jo"
+        }, 
+        {
+            "canonical name": "Irwin, John", 
+            "name": "John Irwin", 
+            "long imdb name": "John Irwin", 
+            "long imdb canonical name": "Irwin, John"
+        }, 
+        {
+            "canonical name": "MacDonald, Norm", 
+            "name": "Norm MacDonald", 
+            "long imdb name": "Norm MacDonald", 
+            "long imdb canonical name": "MacDonald, Norm"
+        }, 
+        {
+            "canonical name": "Spira, Casey", 
+            "name": "Casey Spira", 
+            "long imdb name": "Casey Spira", 
+            "long imdb canonical name": "Spira, Casey"
+        }
+    ], 
+    "title": "Norm Macdonald: Me Doing Standup", 
+    "assistant director": [
+        {
+            "canonical name": "Santos, Steven", 
+            "name": "Steven Santos", 
+            "long imdb name": "Steven Santos", 
+            "long imdb canonical name": "Santos, Steven"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "MacDonald, Norm", 
+            "name": "Norm MacDonald", 
+            "long imdb name": "Norm MacDonald", 
+            "long imdb canonical name": "MacDonald, Norm"
+        }
+    ], 
+    "long imdb canonical title": "Norm Macdonald: Me Doing Standup (2011)", 
+    "languages": [
+        "English"
+    ], 
+    "production manager": [
+        {
+            "canonical name": "Larsen, Jonas", 
+            "name": "Jonas Larsen", 
+            "long imdb name": "Jonas Larsen", 
+            "long imdb canonical name": "Larsen, Jonas"
+        }, 
+        {
+            "canonical name": "Simmons, Michael J.", 
+            "name": "Michael J. Simmons", 
+            "long imdb name": "Michael J. Simmons", 
+            "long imdb canonical name": "Simmons, Michael J."
+        }
+    ], 
+    "certificates": [
+        "Australia:MA15+::(2013)", 
+        "USA:Not Rated"
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "Bass, Bob", 
+            "name": "Bob Bass", 
+            "long imdb name": "Bob Bass", 
+            "long imdb canonical name": "Bass, Bob"
+        }, 
+        {
+            "canonical name": "Bass, Bob", 
+            "name": "Bob Bass", 
+            "long imdb name": "Bob Bass", 
+            "long imdb canonical name": "Bass, Bob"
+        }, 
+        {
+            "canonical name": "Franklin, Deanne", 
+            "name": "Deanne Franklin", 
+            "long imdb name": "Deanne Franklin", 
+            "long imdb canonical name": "Franklin, Deanne"
+        }, 
+        {
+            "canonical name": "Schmidt, William", 
+            "name": "William Schmidt", 
+            "long imdb name": "William Schmidt", 
+            "long imdb canonical name": "Schmidt, William"
+        }
+    ], 
+    "long imdb title": "Norm Macdonald: Me Doing Standup (2011)", 
+    "country codes": [
+        "us"
+    ], 
+    "language codes": [
+        "en"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BMTYzNjY1NTcxN15BMl5BanBnXkFtZTgwNjgwNjA2MDE@._V1._SX96_SY140_.jpg", 
+    "editorial department": [
+        {
+            "canonical name": "Dickerson, A.J.", 
+            "name": "A.J. Dickerson", 
+            "long imdb name": "A.J. Dickerson", 
+            "long imdb canonical name": "Dickerson, A.J."
+        }, 
+        {
+            "canonical name": "Moore, John", 
+            "name": "John Moore", 
+            "long imdb name": "John Moore", 
+            "long imdb canonical name": "Moore, John"
+        }, 
+        {
+            "canonical name": "Murdock, Matt", 
+            "name": "Matt Murdock", 
+            "long imdb name": "Matt Murdock", 
+            "long imdb canonical name": "Murdock, Matt"
+        }, 
+        {
+            "canonical name": "Oh, David", 
+            "name": "David Oh", 
+            "long imdb name": "David Oh", 
+            "long imdb canonical name": "Oh, David"
+        }, 
+        {
+            "canonical name": "Rogan, John", 
+            "name": "John Rogan", 
+            "long imdb name": "John Rogan", 
+            "long imdb canonical name": "Rogan, John"
+        }, 
+        {
+            "canonical name": "Wheeler, Boyd", 
+            "name": "Boyd Wheeler", 
+            "long imdb name": "Boyd Wheeler", 
+            "long imdb canonical name": "Wheeler, Boyd"
+        }
+    ], 
+    "genres": [
+        "Comedy"
+    ], 
+    "director": [
+        {
+            "canonical name": "Steinberg, David", 
+            "name": "David Steinberg", 
+            "long imdb name": "David Steinberg", 
+            "long imdb canonical name": "Steinberg, David"
+        }
+    ], 
+    "aspect ratio": "1.85 : 1", 
+    "production companies": [
+        {
+            "name": "Brillstein Entertainment Partners", 
+            "long imdb name": "Brillstein Entertainment Partners"
+        }, 
+        {
+            "name": "Comedy Central", 
+            "long imdb name": "Comedy Central"
+        }, 
+        {
+            "name": "Irwin Entertainment", 
+            "long imdb name": "Irwin Entertainment"
+        }, 
+        {
+            "name": "Norm Macdonald Productions", 
+            "long imdb name": "Norm Macdonald Productions"
+        }
+    ], 
+    "kind": "movie", 
+    "countries": [
+        "USA"
+    ], 
+    "transportation department": [
+        {
+            "canonical name": "Millman, Wendy S.", 
+            "name": "Wendy S. Millman", 
+            "long imdb name": "Wendy S. Millman", 
+            "long imdb canonical name": "Millman, Wendy S."
+        }, 
+        {
+            "canonical name": "Pyatte, Justin", 
+            "name": "Justin Pyatte", 
+            "long imdb name": "Justin Pyatte", 
+            "long imdb canonical name": "Pyatte, Justin"
+        }
+    ], 
+    "plot outline": "Norm MacDonald, the iconic anchor of SNL's \"Weekend Update\" and star of the cult classic Dirty Work, is back with a vengeance.", 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BMTYzNjY1NTcxN15BMl5BanBnXkFtZTgwNjgwNjA2MDE@.jpg", 
+    "canonical title": "Norm Macdonald: Me Doing Standup", 
+    "cast": [
+        {
+            "canonical name": "MacDonald, Norm", 
+            "name": "Norm MacDonald", 
+            "long imdb name": "Norm MacDonald", 
+            "long imdb canonical name": "MacDonald, Norm"
+        }
+    ], 
+    "smart long imdb canonical title": "Norm Macdonald: Me Doing Standup (2011)", 
+    "smart canonical title": "Norm Macdonald: Me Doing Standup"
+}

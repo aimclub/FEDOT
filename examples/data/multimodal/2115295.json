@@ -1,0 +1,1894 @@
+{
+    "music department": [
+        {
+            "canonical name": "Ashworth, Amy", 
+            "name": "Amy Ashworth", 
+            "long imdb name": "Amy Ashworth", 
+            "long imdb canonical name": "Ashworth, Amy"
+        }, 
+        {
+            "canonical name": "Hwang, Der-Shin", 
+            "name": "Der-Shin Hwang", 
+            "long imdb name": "Der-Shin Hwang", 
+            "long imdb canonical name": "Hwang, Der-Shin"
+        }, 
+        {
+            "canonical name": "Lewens, Alan", 
+            "name": "Alan Lewens", 
+            "long imdb name": "Alan Lewens", 
+            "long imdb canonical name": "Lewens, Alan"
+        }, 
+        {
+            "canonical name": "Street, Karen", 
+            "name": "Karen Street", 
+            "long imdb name": "Karen Street", 
+            "long imdb canonical name": "Street, Karen"
+        }
+    ], 
+    "color info": [], 
+    "camera and electrical department": [
+        {
+            "canonical name": "Barry, Niall", 
+            "name": "Niall Barry", 
+            "long imdb name": "Niall Barry", 
+            "long imdb canonical name": "Barry, Niall"
+        }, 
+        {
+            "canonical name": "Clark, Rachel", 
+            "name": "Rachel Clark", 
+            "long imdb name": "Rachel Clark", 
+            "long imdb canonical name": "Clark, Rachel"
+        }, 
+        {
+            "canonical name": "Cole, Andy", 
+            "name": "Andy Cole", 
+            "long imdb name": "Andy Cole", 
+            "long imdb canonical name": "Cole, Andy"
+        }, 
+        {
+            "canonical name": "Cronin, Paul", 
+            "name": "Paul Cronin", 
+            "long imdb name": "Paul Cronin", 
+            "long imdb canonical name": "Cronin, Paul"
+        }, 
+        {
+            "canonical name": "Dove, Nicola", 
+            "name": "Nicola Dove", 
+            "long imdb name": "Nicola Dove", 
+            "long imdb canonical name": "Dove, Nicola"
+        }, 
+        {
+            "canonical name": "Garvie, Rob", 
+            "name": "Rob Garvie", 
+            "long imdb name": "Rob Garvie", 
+            "long imdb canonical name": "Garvie, Rob"
+        }, 
+        {
+            "canonical name": "Kelly, Tony", 
+            "name": "Tony Kelly", 
+            "long imdb name": "Tony Kelly", 
+            "long imdb canonical name": "Kelly, Tony"
+        }, 
+        {
+            "canonical name": "Leonard, Sean", 
+            "name": "Sean Leonard", 
+            "long imdb name": "Sean Leonard", 
+            "long imdb canonical name": "Leonard, Sean"
+        }, 
+        {
+            "canonical name": "Mackay, Adrian", 
+            "name": "Adrian Mackay", 
+            "long imdb name": "Adrian Mackay", 
+            "long imdb canonical name": "Mackay, Adrian"
+        }, 
+        {
+            "canonical name": "Muir, Simon", 
+            "name": "Simon Muir", 
+            "long imdb name": "Simon Muir", 
+            "long imdb canonical name": "Muir, Simon"
+        }, 
+        {
+            "canonical name": "O'Reilly, Andrew", 
+            "name": "Andrew O'Reilly", 
+            "long imdb name": "Andrew O'Reilly", 
+            "long imdb canonical name": "O'Reilly, Andrew"
+        }, 
+        {
+            "canonical name": "Thomas, James Paul", 
+            "name": "James Paul Thomas", 
+            "long imdb name": "James Paul Thomas", 
+            "long imdb canonical name": "Thomas, James Paul"
+        }, 
+        {
+            "canonical name": "Tann, Chris", 
+            "name": "Chris Tann", 
+            "long imdb name": "Chris Tann", 
+            "long imdb canonical name": "Tann, Chris"
+        }, 
+        {
+            "canonical name": "Thompson, Laura", 
+            "name": "Laura Thompson", 
+            "long imdb name": "Laura Thompson", 
+            "long imdb canonical name": "Thompson, Laura"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "A24", 
+            "long imdb name": "A24"
+        }, 
+        {
+            "name": "Alfa Films", 
+            "long imdb name": "Alfa Films"
+        }, 
+        {
+            "name": "Artificial Eye", 
+            "long imdb name": "Artificial Eye"
+        }, 
+        {
+            "name": "Cinematogr\u00e1fica Blancica (CB)", 
+            "long imdb name": "Cinematogr\u00e1fica Blancica (CB)"
+        }, 
+        {
+            "name": "Concorde Filmverleih", 
+            "long imdb name": "Concorde Filmverleih"
+        }, 
+        {
+            "name": "Distribuye Movie", 
+            "long imdb name": "Distribuye Movie"
+        }, 
+        {
+            "name": "Eurozoom", 
+            "long imdb name": "Eurozoom"
+        }, 
+        {
+            "name": "Filmcoopi Z\u00fcrich", 
+            "long imdb name": "Filmcoopi Z\u00fcrich"
+        }, 
+        {
+            "name": "Filmfreak Distributie", 
+            "long imdb name": "Filmfreak Distributie"
+        }, 
+        {
+            "name": "Future Film", 
+            "long imdb name": "Future Film"
+        }, 
+        {
+            "name": "Playtime", 
+            "long imdb name": "Playtime"
+        }, 
+        {
+            "name": "Calinos Films", 
+            "long imdb name": "Calinos Films"
+        }, 
+        {
+            "name": "Concorde Home Entertainment", 
+            "long imdb name": "Concorde Home Entertainment"
+        }, 
+        {
+            "name": "Concorde Home Entertainment", 
+            "long imdb name": "Concorde Home Entertainment"
+        }, 
+        {
+            "name": "EuroVideo", 
+            "long imdb name": "EuroVideo"
+        }, 
+        {
+            "name": "EuroVideo", 
+            "long imdb name": "EuroVideo"
+        }, 
+        {
+            "name": "Film1", 
+            "long imdb name": "Film1"
+        }, 
+        {
+            "name": "Filmfreak Distributie", 
+            "long imdb name": "Filmfreak Distributie"
+        }, 
+        {
+            "name": "Filmfreak Distributie", 
+            "long imdb name": "Filmfreak Distributie"
+        }, 
+        {
+            "name": "Paris Filmes", 
+            "long imdb name": "Paris Filmes"
+        }, 
+        {
+            "name": "Remain In Light", 
+            "long imdb name": "Remain In Light"
+        }, 
+        {
+            "name": "Remain In Light", 
+            "long imdb name": "Remain In Light"
+        }, 
+        {
+            "name": "Sky Cinema", 
+            "long imdb name": "Sky Cinema"
+        }, 
+        {
+            "name": "Transmission", 
+            "long imdb name": "Transmission"
+        }, 
+        {
+            "name": "Union Pictures", 
+            "long imdb name": "Union Pictures"
+        }
+    ], 
+    "rating": 6.3, 
+    "runtimes": [
+        "90"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "Waddington, Holly", 
+            "name": "Holly Waddington", 
+            "long imdb name": "Holly Waddington", 
+            "long imdb canonical name": "Waddington, Holly"
+        }
+    ], 
+    "thanks": [
+        {
+            "canonical name": "Arrington, Mary Jane", 
+            "name": "Mary Jane Arrington", 
+            "long imdb name": "Mary Jane Arrington", 
+            "long imdb canonical name": "Arrington, Mary Jane"
+        }, 
+        {
+            "canonical name": "Bielski, Nella", 
+            "name": "Nella Bielski", 
+            "long imdb name": "Nella Bielski", 
+            "long imdb canonical name": "Bielski, Nella"
+        }, 
+        {
+            "canonical name": "Brundig, Reinhard", 
+            "name": "Reinhard Brundig", 
+            "long imdb name": "Reinhard Brundig", 
+            "long imdb canonical name": "Brundig, Reinhard"
+        }, 
+        {
+            "canonical name": "Collin, Xavier", 
+            "name": "Xavier Collin", 
+            "long imdb name": "Xavier Collin", 
+            "long imdb canonical name": "Collin, Xavier"
+        }, 
+        {
+            "canonical name": "Fanning, Joy", 
+            "name": "Joy Fanning", 
+            "long imdb name": "Joy Fanning", 
+            "long imdb canonical name": "Fanning, Joy"
+        }, 
+        {
+            "canonical name": "Kahan, Brittany", 
+            "name": "Brittany Kahan", 
+            "long imdb name": "Brittany Kahan", 
+            "long imdb canonical name": "Kahan, Brittany"
+        }, 
+        {
+            "canonical name": "Langan, Christine", 
+            "name": "Christine Langan", 
+            "long imdb name": "Christine Langan", 
+            "long imdb canonical name": "Langan, Christine"
+        }, 
+        {
+            "canonical name": "Linder, Dixie", 
+            "name": "Dixie Linder", 
+            "long imdb name": "Dixie Linder", 
+            "long imdb canonical name": "Linder, Dixie"
+        }, 
+        {
+            "canonical name": "Potter, Caroline", 
+            "name": "Caroline Potter", 
+            "long imdb name": "Caroline Potter", 
+            "long imdb canonical name": "Potter, Caroline"
+        }, 
+        {
+            "canonical name": "Radclyffe, Sarah", 
+            "name": "Sarah Radclyffe", 
+            "long imdb name": "Sarah Radclyffe", 
+            "long imdb canonical name": "Radclyffe, Sarah"
+        }, 
+        {
+            "canonical name": "Routh, Christian", 
+            "name": "Christian Routh", 
+            "long imdb name": "Christian Routh", 
+            "long imdb canonical name": "Routh, Christian"
+        }, 
+        {
+            "canonical name": "Walker, Bart", 
+            "name": "Bart Walker", 
+            "long imdb name": "Bart Walker", 
+            "long imdb canonical name": "Walker, Bart"
+        }
+    ], 
+    "make up": [
+        {
+            "canonical name": "Alberico, Francesco", 
+            "name": "Francesco Alberico", 
+            "long imdb name": "Francesco Alberico", 
+            "long imdb canonical name": "Alberico, Francesco"
+        }, 
+        {
+            "canonical name": "McDonald, Tara", 
+            "name": "Tara McDonald", 
+            "long imdb name": "Tara McDonald", 
+            "long imdb canonical name": "McDonald, Tara"
+        }, 
+        {
+            "canonical name": "McDonald, Tara", 
+            "name": "Tara McDonald", 
+            "long imdb name": "Tara McDonald", 
+            "long imdb canonical name": "McDonald, Tara"
+        }, 
+        {
+            "canonical name": "Roberts, Sophie", 
+            "name": "Sophie Roberts", 
+            "long imdb name": "Sophie Roberts", 
+            "long imdb canonical name": "Roberts, Sophie"
+        }, 
+        {
+            "canonical name": "Roberts, Sophie", 
+            "name": "Sophie Roberts", 
+            "long imdb name": "Sophie Roberts", 
+            "long imdb canonical name": "Roberts, Sophie"
+        }, 
+        {
+            "canonical name": "Yoshihara, Wakana", 
+            "name": "Wakana Yoshihara", 
+            "long imdb name": "Wakana Yoshihara", 
+            "long imdb canonical name": "Yoshihara, Wakana"
+        }, 
+        {
+            "canonical name": "Yoshihara, Wakana", 
+            "name": "Wakana Yoshihara", 
+            "long imdb name": "Wakana Yoshihara", 
+            "long imdb canonical name": "Yoshihara, Wakana"
+        }, 
+        {
+            "canonical name": "Mustafa, Lisa", 
+            "name": "Lisa Mustafa", 
+            "long imdb name": "Lisa Mustafa", 
+            "long imdb canonical name": "Mustafa, Lisa"
+        }, 
+        {
+            "canonical name": "Rathore, Jacqui", 
+            "name": "Jacqui Rathore", 
+            "long imdb name": "Jacqui Rathore", 
+            "long imdb canonical name": "Rathore, Jacqui"
+        }
+    ], 
+    "year": 2012, 
+    "production design": [
+        {
+            "canonical name": "Conti, Carlos", 
+            "name": "Carlos Conti", 
+            "long imdb name": "Carlos Conti", 
+            "long imdb canonical name": "Conti, Carlos"
+        }
+    ], 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Banbury-Morley, Debbie", 
+            "name": "Debbie Banbury-Morley", 
+            "long imdb name": "Debbie Banbury-Morley", 
+            "long imdb canonical name": "Banbury-Morley, Debbie"
+        }, 
+        {
+            "canonical name": "Barnett, Jimmy", 
+            "name": "Jimmy Barnett", 
+            "long imdb name": "Jimmy Barnett", 
+            "long imdb canonical name": "Barnett, Jimmy"
+        }, 
+        {
+            "canonical name": "Barnett, Nigel", 
+            "name": "Nigel Barnett", 
+            "long imdb name": "Nigel Barnett", 
+            "long imdb canonical name": "Barnett, Nigel"
+        }, 
+        {
+            "canonical name": "Bensley, Matt", 
+            "name": "Matt Bensley", 
+            "long imdb name": "Matt Bensley", 
+            "long imdb canonical name": "Bensley, Matt"
+        }, 
+        {
+            "canonical name": "Bliss, Daniel", 
+            "name": "Daniel Bliss", 
+            "long imdb name": "Daniel Bliss", 
+            "long imdb canonical name": "Bliss, Daniel"
+        }, 
+        {
+            "canonical name": "Borfecchia, Valentina", 
+            "name": "Valentina Borfecchia", 
+            "long imdb name": "Valentina Borfecchia", 
+            "long imdb canonical name": "Borfecchia, Valentina"
+        }, 
+        {
+            "canonical name": "Boswell, Russell", 
+            "name": "Russell Boswell", 
+            "long imdb name": "Russell Boswell", 
+            "long imdb canonical name": "Boswell, Russell"
+        }, 
+        {
+            "canonical name": "Branch, Diana", 
+            "name": "Diana Branch", 
+            "long imdb name": "Diana Branch", 
+            "long imdb canonical name": "Branch, Diana"
+        }, 
+        {
+            "canonical name": "Brown, Zoe", 
+            "name": "Zoe Brown", 
+            "long imdb name": "Zoe Brown", 
+            "long imdb canonical name": "Brown, Zoe"
+        }, 
+        {
+            "canonical name": "Carp, Jessica", 
+            "name": "Jessica Carp", 
+            "long imdb name": "Jessica Carp", 
+            "long imdb canonical name": "Carp, Jessica"
+        }, 
+        {
+            "canonical name": "Clack, Dean", 
+            "name": "Dean Clack", 
+            "long imdb name": "Dean Clack", 
+            "long imdb canonical name": "Clack, Dean"
+        }, 
+        {
+            "canonical name": "Corradi, Stella", 
+            "name": "Stella Corradi", 
+            "long imdb name": "Stella Corradi", 
+            "long imdb canonical name": "Corradi, Stella"
+        }, 
+        {
+            "canonical name": "Crowley, Laura", 
+            "name": "Laura Crowley", 
+            "long imdb name": "Laura Crowley", 
+            "long imdb canonical name": "Crowley, Laura"
+        }, 
+        {
+            "canonical name": "Donohue, Walter", 
+            "name": "Walter Donohue", 
+            "long imdb name": "Walter Donohue", 
+            "long imdb canonical name": "Donohue, Walter"
+        }, 
+        {
+            "canonical name": "Evans, Will", 
+            "name": "Will Evans", 
+            "long imdb name": "Will Evans", 
+            "long imdb canonical name": "Evans, Will"
+        }, 
+        {
+            "canonical name": "Eyles, Penny", 
+            "name": "Penny Eyles", 
+            "long imdb name": "Penny Eyles", 
+            "long imdb canonical name": "Eyles, Penny"
+        }, 
+        {
+            "canonical name": "Francke, Lizzie", 
+            "name": "Lizzie Francke", 
+            "long imdb name": "Lizzie Francke", 
+            "long imdb canonical name": "Francke, Lizzie"
+        }, 
+        {
+            "canonical name": "Frieze, Sandra", 
+            "name": "Sandra Frieze", 
+            "long imdb name": "Sandra Frieze", 
+            "long imdb canonical name": "Frieze, Sandra"
+        }, 
+        {
+            "canonical name": "Gary, Laura", 
+            "name": "Laura Gary", 
+            "long imdb name": "Laura Gary", 
+            "long imdb canonical name": "Gary, Laura"
+        }, 
+        {
+            "canonical name": "Gillis, Simon", 
+            "name": "Simon Gillis", 
+            "long imdb name": "Simon Gillis", 
+            "long imdb canonical name": "Gillis, Simon"
+        }, 
+        {
+            "canonical name": "Gradwell, Charmian", 
+            "name": "Charmian Gradwell", 
+            "long imdb name": "Charmian Gradwell", 
+            "long imdb canonical name": "Gradwell, Charmian"
+        }, 
+        {
+            "canonical name": "Griffiths, Anwen", 
+            "name": "Anwen Griffiths", 
+            "long imdb name": "Anwen Griffiths", 
+            "long imdb canonical name": "Griffiths, Anwen"
+        }, 
+        {
+            "canonical name": "Hurrell, Mick", 
+            "name": "Mick Hurrell", 
+            "long imdb name": "Mick Hurrell", 
+            "long imdb canonical name": "Hurrell, Mick"
+        }, 
+        {
+            "canonical name": "Joberns, Steve", 
+            "name": "Steve Joberns", 
+            "long imdb name": "Steve Joberns", 
+            "long imdb canonical name": "Joberns, Steve"
+        }, 
+        {
+            "canonical name": "Kirk, Ian", 
+            "name": "Ian Kirk", 
+            "long imdb name": "Ian Kirk", 
+            "long imdb canonical name": "Kirk, Ian"
+        }, 
+        {
+            "canonical name": "Madison, David", 
+            "name": "David Madison", 
+            "long imdb name": "David Madison", 
+            "long imdb canonical name": "Madison, David"
+        }, 
+        {
+            "canonical name": "Madsen, Martin", 
+            "name": "Martin Madsen", 
+            "long imdb name": "Martin Madsen", 
+            "long imdb canonical name": "Madsen, Martin"
+        }, 
+        {
+            "canonical name": "Manzi, Michael", 
+            "name": "Michael Manzi", 
+            "long imdb name": "Michael Manzi", 
+            "long imdb canonical name": "Manzi, Michael"
+        }, 
+        {
+            "canonical name": "Martin, Rachel", 
+            "name": "Rachel Martin", 
+            "long imdb name": "Rachel Martin", 
+            "long imdb canonical name": "Martin, Rachel"
+        }, 
+        {
+            "canonical name": "Masters, Stephen", 
+            "name": "Stephen Masters", 
+            "long imdb name": "Stephen Masters", 
+            "long imdb canonical name": "Masters, Stephen"
+        }, 
+        {
+            "canonical name": "Matthews, Joseph", 
+            "name": "Joseph Matthews", 
+            "long imdb name": "Joseph Matthews", 
+            "long imdb canonical name": "Matthews, Joseph"
+        }, 
+        {
+            "canonical name": "Maudsley, Meagan", 
+            "name": "Meagan Maudsley", 
+            "long imdb name": "Meagan Maudsley", 
+            "long imdb canonical name": "Maudsley, Meagan"
+        }, 
+        {
+            "canonical name": "McDonald, Charles", 
+            "name": "Charles McDonald", 
+            "long imdb name": "Charles McDonald", 
+            "long imdb canonical name": "McDonald, Charles"
+        }, 
+        {
+            "canonical name": "Milne, Sheila Fraser", 
+            "name": "Sheila Fraser Milne", 
+            "long imdb name": "Sheila Fraser Milne", 
+            "long imdb canonical name": "Milne, Sheila Fraser"
+        }, 
+        {
+            "canonical name": "O'Shea, Kevin", 
+            "name": "Kevin O'Shea", 
+            "long imdb name": "Kevin O'Shea", 
+            "long imdb canonical name": "O'Shea, Kevin"
+        }, 
+        {
+            "canonical name": "Pattinson, Beth", 
+            "name": "Beth Pattinson", 
+            "long imdb name": "Beth Pattinson", 
+            "long imdb canonical name": "Pattinson, Beth"
+        }, 
+        {
+            "canonical name": "Phillips, Richard", 
+            "name": "Richard Phillips", 
+            "long imdb name": "Richard Phillips", 
+            "long imdb canonical name": "Phillips, Richard"
+        }, 
+        {
+            "canonical name": "Pinsent, Charlie", 
+            "name": "Charlie Pinsent", 
+            "long imdb name": "Charlie Pinsent", 
+            "long imdb canonical name": "Pinsent, Charlie"
+        }, 
+        {
+            "canonical name": "Pinsent, Freya", 
+            "name": "Freya Pinsent", 
+            "long imdb name": "Freya Pinsent", 
+            "long imdb canonical name": "Pinsent, Freya"
+        }, 
+        {
+            "canonical name": "Price, Amelia", 
+            "name": "Amelia Price", 
+            "long imdb name": "Amelia Price", 
+            "long imdb canonical name": "Price, Amelia"
+        }, 
+        {
+            "canonical name": "Rundle, Jane", 
+            "name": "Jane Rundle", 
+            "long imdb name": "Jane Rundle", 
+            "long imdb canonical name": "Rundle, Jane"
+        }, 
+        {
+            "canonical name": "Sanders, Matthew", 
+            "name": "Matthew Sanders", 
+            "long imdb name": "Matthew Sanders", 
+            "long imdb canonical name": "Sanders, Matthew"
+        }, 
+        {
+            "canonical name": "Schlein, Thomas", 
+            "name": "Thomas Schlein", 
+            "long imdb name": "Thomas Schlein", 
+            "long imdb canonical name": "Schlein, Thomas"
+        }, 
+        {
+            "canonical name": "Schurrah, Angela", 
+            "name": "Angela Schurrah", 
+            "long imdb name": "Angela Schurrah", 
+            "long imdb canonical name": "Schurrah, Angela"
+        }, 
+        {
+            "canonical name": "Seghatchian, Tanya", 
+            "name": "Tanya Seghatchian", 
+            "long imdb name": "Tanya Seghatchian", 
+            "long imdb canonical name": "Seghatchian, Tanya"
+        }, 
+        {
+            "canonical name": "Seymour, Kate", 
+            "name": "Kate Seymour", 
+            "long imdb name": "Kate Seymour", 
+            "long imdb canonical name": "Seymour, Kate"
+        }, 
+        {
+            "canonical name": "Stone, Lee", 
+            "name": "Lee Stone", 
+            "long imdb name": "Lee Stone", 
+            "long imdb canonical name": "Stone, Lee"
+        }, 
+        {
+            "canonical name": "Talwar, Shiva", 
+            "name": "Shiva Talwar", 
+            "long imdb name": "Shiva Talwar", 
+            "long imdb canonical name": "Talwar, Shiva"
+        }, 
+        {
+            "canonical name": "Thornton, Liam", 
+            "name": "Liam Thornton", 
+            "long imdb name": "Liam Thornton", 
+            "long imdb canonical name": "Thornton, Liam"
+        }, 
+        {
+            "canonical name": "Varley, Philip", 
+            "name": "Philip Varley", 
+            "long imdb name": "Philip Varley", 
+            "long imdb canonical name": "Varley, Philip"
+        }, 
+        {
+            "canonical name": "Wood, Michael", 
+            "name": "Michael Wood", 
+            "long imdb name": "Michael Wood", 
+            "long imdb canonical name": "Wood, Michael"
+        }, 
+        {
+            "canonical name": "Boden, Helenka", 
+            "name": "Helenka Boden", 
+            "long imdb name": "Helenka Boden", 
+            "long imdb canonical name": "Boden, Helenka"
+        }, 
+        {
+            "canonical name": "Devil, Jason", 
+            "name": "Jason Devil", 
+            "long imdb name": "Jason Devil", 
+            "long imdb canonical name": "Devil, Jason"
+        }, 
+        {
+            "canonical name": "Routh, Christian", 
+            "name": "Christian Routh", 
+            "long imdb name": "Christian Routh", 
+            "long imdb canonical name": "Routh, Christian"
+        }, 
+        {
+            "canonical name": "Rowan, Mark", 
+            "name": "Mark Rowan", 
+            "long imdb name": "Mark Rowan", 
+            "long imdb canonical name": "Rowan, Mark"
+        }, 
+        {
+            "canonical name": "Tron, Azia", 
+            "name": "Azia Tron", 
+            "long imdb name": "Azia Tron", 
+            "long imdb canonical name": "Tron, Azia"
+        }, 
+        {
+            "canonical name": "Alvarado, Chrissie Vides", 
+            "name": "Chrissie Vides Alvarado", 
+            "long imdb name": "Chrissie Vides Alvarado", 
+            "long imdb canonical name": "Alvarado, Chrissie Vides"
+        }, 
+        {
+            "canonical name": "Warman, Derek", 
+            "name": "Derek Warman", 
+            "long imdb name": "Derek Warman", 
+            "long imdb canonical name": "Warman, Derek"
+        }
+    ], 
+    "casting director": [
+        {
+            "canonical name": "Lamb, Irene", 
+            "name": "Irene Lamb", 
+            "long imdb name": "Irene Lamb", 
+            "long imdb canonical name": "Lamb, Irene"
+        }, 
+        {
+            "canonical name": "Levitt, Heidi", 
+            "name": "Heidi Levitt", 
+            "long imdb name": "Heidi Levitt", 
+            "long imdb canonical name": "Levitt, Heidi"
+        }
+    ], 
+    "casting department": [
+        {
+            "canonical name": "Artistes, Solomon", 
+            "name": "Solomon Artistes", 
+            "long imdb name": "Solomon Artistes", 
+            "long imdb canonical name": "Artistes, Solomon"
+        }, 
+        {
+            "canonical name": "Essary, Lisa", 
+            "name": "Lisa Essary", 
+            "long imdb name": "Lisa Essary", 
+            "long imdb canonical name": "Essary, Lisa"
+        }, 
+        {
+            "canonical name": "Fernandes, Lauren", 
+            "name": "Lauren Fernandes", 
+            "long imdb name": "Lauren Fernandes", 
+            "long imdb canonical name": "Fernandes, Lauren"
+        }, 
+        {
+            "canonical name": "Lowe, David", 
+            "name": "David Lowe", 
+            "long imdb name": "David Lowe", 
+            "long imdb canonical name": "Lowe, David"
+        }
+    ], 
+    "languages": [
+        "English"
+    ], 
+    "votes": 7760, 
+    "producer": [
+        {
+            "canonical name": "Allen, Jonas", 
+            "name": "Jonas Allen", 
+            "long imdb name": "Jonas Allen", 
+            "long imdb canonical name": "Allen, Jonas"
+        }, 
+        {
+            "canonical name": "Antoniades, Reno", 
+            "name": "Reno Antoniades", 
+            "long imdb name": "Reno Antoniades", 
+            "long imdb canonical name": "Antoniades, Reno"
+        }, 
+        {
+            "canonical name": "Bausager, Lene", 
+            "name": "Lene Bausager", 
+            "long imdb name": "Lene Bausager", 
+            "long imdb canonical name": "Bausager, Lene"
+        }, 
+        {
+            "canonical name": "Blanco, Caroline", 
+            "name": "Caroline Blanco", 
+            "long imdb name": "Caroline Blanco", 
+            "long imdb canonical name": "Blanco, Caroline"
+        }, 
+        {
+            "canonical name": "Bose, Peter", 
+            "name": "Peter Bose", 
+            "long imdb name": "Peter Bose", 
+            "long imdb canonical name": "Bose, Peter"
+        }, 
+        {
+            "canonical name": "Gilbert, Aaron L.", 
+            "name": "Aaron L. Gilbert", 
+            "long imdb name": "Aaron L. Gilbert", 
+            "long imdb canonical name": "Gilbert, Aaron L."
+        }, 
+        {
+            "canonical name": "Grossmann, Goetz", 
+            "name": "Goetz Grossmann", 
+            "long imdb name": "Goetz Grossmann", 
+            "long imdb canonical name": "Grossmann, Goetz"
+        }, 
+        {
+            "canonical name": "Hand, Margot", 
+            "name": "Margot Hand", 
+            "long imdb name": "Margot Hand", 
+            "long imdb canonical name": "Hand, Margot"
+        }, 
+        {
+            "canonical name": "Kassam, Kurban", 
+            "name": "Kurban Kassam", 
+            "long imdb name": "Kurban Kassam", 
+            "long imdb canonical name": "Kassam, Kurban"
+        }, 
+        {
+            "canonical name": "Leviten, Marshall", 
+            "name": "Marshall Leviten", 
+            "long imdb name": "Marshall Leviten", 
+            "long imdb canonical name": "Leviten, Marshall"
+        }, 
+        {
+            "canonical name": "Levitt, Heidi", 
+            "name": "Heidi Levitt", 
+            "long imdb name": "Heidi Levitt", 
+            "long imdb canonical name": "Levitt, Heidi"
+        }, 
+        {
+            "canonical name": "Litvin, Andrew", 
+            "name": "Andrew Litvin", 
+            "long imdb name": "Andrew Litvin", 
+            "long imdb canonical name": "Litvin, Andrew"
+        }, 
+        {
+            "canonical name": "Murray, Patrick", 
+            "name": "Patrick Murray", 
+            "long imdb name": "Patrick Murray", 
+            "long imdb canonical name": "Murray, Patrick"
+        }, 
+        {
+            "canonical name": "Oppenheimer, Joe", 
+            "name": "Joe Oppenheimer", 
+            "long imdb name": "Joe Oppenheimer", 
+            "long imdb canonical name": "Oppenheimer, Joe"
+        }, 
+        {
+            "canonical name": "Sheppard, Christopher", 
+            "name": "Christopher Sheppard", 
+            "long imdb name": "Christopher Sheppard", 
+            "long imdb canonical name": "Sheppard, Christopher"
+        }, 
+        {
+            "canonical name": "Vaccaro, Paula", 
+            "name": "Paula Vaccaro", 
+            "long imdb name": "Paula Vaccaro", 
+            "long imdb canonical name": "Vaccaro, Paula"
+        }, 
+        {
+            "canonical name": "Weber, Michael", 
+            "name": "Michael Weber", 
+            "long imdb name": "Michael Weber", 
+            "long imdb canonical name": "Weber, Michael"
+        }
+    ], 
+    "title": "Ginger & Rosa", 
+    "mpaa": "Rated PG-13 for mature disturbing thematic material involving teen choices - sexuality, drinking, smoking, and for language", 
+    "assistant director": [
+        {
+            "canonical name": "Hanson, Matthew", 
+            "name": "Matthew Hanson", 
+            "long imdb name": "Matthew Hanson", 
+            "long imdb canonical name": "Hanson, Matthew"
+        }, 
+        {
+            "canonical name": "Mannion, Andrew", 
+            "name": "Andrew Mannion", 
+            "long imdb name": "Andrew Mannion", 
+            "long imdb canonical name": "Mannion, Andrew"
+        }, 
+        {
+            "canonical name": "Price, Darren", 
+            "name": "Darren Price", 
+            "long imdb name": "Darren Price", 
+            "long imdb canonical name": "Price, Darren"
+        }, 
+        {
+            "canonical name": "Rigg, Christian", 
+            "name": "Christian Rigg", 
+            "long imdb name": "Christian Rigg", 
+            "long imdb canonical name": "Rigg, Christian"
+        }, 
+        {
+            "canonical name": "Spanton, Toby", 
+            "name": "Toby Spanton", 
+            "long imdb name": "Toby Spanton", 
+            "long imdb canonical name": "Spanton, Toby"
+        }, 
+        {
+            "canonical name": "Vanneck, Andrew", 
+            "name": "Andrew Vanneck", 
+            "long imdb name": "Andrew Vanneck", 
+            "long imdb canonical name": "Vanneck, Andrew"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "Potter, Sally", 
+            "name": "Sally Potter", 
+            "long imdb name": "Sally Potter", 
+            "long imdb canonical name": "Potter, Sally"
+        }
+    ], 
+    "long imdb canonical title": "Ginger & Rosa (2012)", 
+    "visual effects": [
+        {
+            "canonical name": "Holm, Michael", 
+            "name": "Michael Holm", 
+            "long imdb name": "Michael Holm", 
+            "long imdb canonical name": "Holm, Michael"
+        }, 
+        {
+            "canonical name": "Madsen, Martin", 
+            "name": "Martin Madsen", 
+            "long imdb name": "Martin Madsen", 
+            "long imdb canonical name": "Madsen, Martin"
+        }, 
+        {
+            "canonical name": "Sandgreen, Dann Damgaard", 
+            "name": "Dann Damgaard Sandgreen", 
+            "long imdb name": "Dann Damgaard Sandgreen", 
+            "long imdb canonical name": "Sandgreen, Dann Damgaard"
+        }, 
+        {
+            "canonical name": "Skytte, Morten", 
+            "name": "Morten Skytte", 
+            "long imdb name": "Morten Skytte", 
+            "long imdb canonical name": "Skytte, Morten"
+        }, 
+        {
+            "canonical name": "Stenberg, Mia Bang", 
+            "name": "Mia Bang Stenberg", 
+            "long imdb name": "Mia Bang Stenberg", 
+            "long imdb canonical name": "Stenberg, Mia Bang"
+        }, 
+        {
+            "canonical name": "Str\u00f8m, Lasse", 
+            "name": "Lasse Str\u00f8m", 
+            "long imdb name": "Lasse Str\u00f8m", 
+            "long imdb canonical name": "Str\u00f8m, Lasse"
+        }
+    ], 
+    "production manager": [
+        {
+            "canonical name": "Bailey, Benjamin", 
+            "name": "Benjamin Bailey", 
+            "long imdb name": "Benjamin Bailey", 
+            "long imdb canonical name": "Bailey, Benjamin"
+        }, 
+        {
+            "canonical name": "Hopkins, Alistair", 
+            "name": "Alistair Hopkins", 
+            "long imdb name": "Alistair Hopkins", 
+            "long imdb canonical name": "Hopkins, Alistair"
+        }, 
+        {
+            "canonical name": "Morham, Fiona", 
+            "name": "Fiona Morham", 
+            "long imdb name": "Fiona Morham", 
+            "long imdb canonical name": "Morham, Fiona"
+        }
+    ], 
+    "set decoration": [
+        {
+            "canonical name": "Griffiths, Liz", 
+            "name": "Liz Griffiths", 
+            "long imdb name": "Liz Griffiths", 
+            "long imdb canonical name": "Griffiths, Liz"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Refn, Anders", 
+            "name": "Anders Refn", 
+            "long imdb name": "Anders Refn", 
+            "long imdb canonical name": "Refn, Anders"
+        }
+    ], 
+    "certificates": [
+        "Argentina:13", 
+        "Australia:M", 
+        "Canada:14A::(Alberta/Manitoba)", 
+        "Canada:PG::(British Columbia/Ontario)", 
+        "Canada:G::(Quebec)", 
+        "Denmark:11", 
+        "France:Tous publics", 
+        "Germany:12", 
+        "Hong Kong:IIA", 
+        "Ireland:15A", 
+        "Japan:PG12", 
+        "Mexico:B", 
+        "Netherlands:6", 
+        "Peru:14", 
+        "South Korea:15", 
+        "Switzerland:14", 
+        "UK:12A::(theatrical rating)", 
+        "USA:PG-13"
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "Acbard, Jonathan", 
+            "name": "Jonathan Acbard", 
+            "long imdb name": "Jonathan Acbard", 
+            "long imdb canonical name": "Acbard, Jonathan"
+        }, 
+        {
+            "canonical name": "Bryce, Alex", 
+            "name": "Alex Bryce", 
+            "long imdb name": "Alex Bryce", 
+            "long imdb canonical name": "Bryce, Alex"
+        }, 
+        {
+            "canonical name": "Chase, Simon", 
+            "name": "Simon Chase", 
+            "long imdb name": "Simon Chase", 
+            "long imdb canonical name": "Chase, Simon"
+        }, 
+        {
+            "canonical name": "Jensen, Anne", 
+            "name": "Anne Jensen", 
+            "long imdb name": "Anne Jensen", 
+            "long imdb canonical name": "Jensen, Anne"
+        }, 
+        {
+            "canonical name": "King, Andrea", 
+            "name": "Andrea King", 
+            "long imdb name": "Andrea King", 
+            "long imdb canonical name": "King, Andrea"
+        }, 
+        {
+            "canonical name": "Mugel, Jean-Paul", 
+            "name": "Jean-Paul Mugel", 
+            "long imdb name": "Jean-Paul Mugel", 
+            "long imdb canonical name": "Mugel, Jean-Paul"
+        }, 
+        {
+            "canonical name": "Pickford, Kyle", 
+            "name": "Kyle Pickford", 
+            "long imdb name": "Kyle Pickford", 
+            "long imdb canonical name": "Pickford, Kyle"
+        }, 
+        {
+            "canonical name": "Rasmussen, Lars", 
+            "name": "Lars Rasmussen", 
+            "long imdb name": "Lars Rasmussen", 
+            "long imdb canonical name": "Rasmussen, Lars"
+        }, 
+        {
+            "canonical name": "Simonsen, Eddie", 
+            "name": "Eddie Simonsen", 
+            "long imdb name": "Eddie Simonsen", 
+            "long imdb canonical name": "Simonsen, Eddie"
+        }, 
+        {
+            "canonical name": "Bormann, Katharina", 
+            "name": "Katharina Bormann", 
+            "long imdb name": "Katharina Bormann", 
+            "long imdb canonical name": "Bormann, Katharina"
+        }, 
+        {
+            "canonical name": "Swaine, Christopher", 
+            "name": "Christopher Swaine", 
+            "long imdb name": "Christopher Swaine", 
+            "long imdb canonical name": "Swaine, Christopher"
+        }
+    ], 
+    "long imdb title": "Ginger & Rosa (2012)", 
+    "country codes": [
+        "gb", 
+        "dk", 
+        "ca", 
+        "hr"
+    ], 
+    "language codes": [
+        "en"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BMTk4NjcwMzU3OV5BMl5BanBnXkFtZTcwNTUwOTQ3OA@@._V1._SX100_SY135_.jpg", 
+    "special effects department": [
+        {
+            "canonical name": "Povey, Graham", 
+            "name": "Graham Povey", 
+            "long imdb name": "Graham Povey", 
+            "long imdb canonical name": "Povey, Graham"
+        }, 
+        {
+            "canonical name": "Ryan, Andrew", 
+            "name": "Andrew Ryan", 
+            "long imdb name": "Andrew Ryan", 
+            "long imdb canonical name": "Ryan, Andrew"
+        }
+    ], 
+    "special effects companies": [
+        {
+            "name": "Nordisk Film ShortCut", 
+            "long imdb name": "Nordisk Film ShortCut"
+        }
+    ], 
+    "location management": [
+        {
+            "canonical name": "Hughes, Tobin", 
+            "name": "Tobin Hughes", 
+            "long imdb name": "Tobin Hughes", 
+            "long imdb canonical name": "Hughes, Tobin"
+        }, 
+        {
+            "canonical name": "Lewis, Sarah Kate", 
+            "name": "Sarah Kate Lewis", 
+            "long imdb name": "Sarah Kate Lewis", 
+            "long imdb canonical name": "Lewis, Sarah Kate"
+        }, 
+        {
+            "canonical name": "Oliver, Nick", 
+            "name": "Nick Oliver", 
+            "long imdb name": "Nick Oliver", 
+            "long imdb canonical name": "Oliver, Nick"
+        }, 
+        {
+            "canonical name": "Soans, Jane", 
+            "name": "Jane Soans", 
+            "long imdb name": "Jane Soans", 
+            "long imdb canonical name": "Soans, Jane"
+        }, 
+        {
+            "canonical name": "Turner, Georgette", 
+            "name": "Georgette Turner", 
+            "long imdb name": "Georgette Turner", 
+            "long imdb canonical name": "Turner, Georgette"
+        }, 
+        {
+            "canonical name": "Darby, Alex", 
+            "name": "Alex Darby", 
+            "long imdb name": "Alex Darby", 
+            "long imdb canonical name": "Darby, Alex"
+        }
+    ], 
+    "genres": [
+        "Drama"
+    ], 
+    "director": [
+        {
+            "canonical name": "Potter, Sally", 
+            "name": "Sally Potter", 
+            "long imdb name": "Sally Potter", 
+            "long imdb canonical name": "Potter, Sally"
+        }
+    ], 
+    "stunt performer": [
+        {
+            "canonical name": "Arthurs, Gary", 
+            "name": "Gary Arthurs", 
+            "long imdb name": "Gary Arthurs", 
+            "long imdb canonical name": "Arthurs, Gary"
+        }, 
+        {
+            "canonical name": "Dallas, Zarene", 
+            "name": "Zarene Dallas", 
+            "long imdb name": "Zarene Dallas", 
+            "long imdb canonical name": "Dallas, Zarene"
+        }, 
+        {
+            "canonical name": "Franzl, Sarah", 
+            "name": "Sarah Franzl", 
+            "long imdb name": "Sarah Franzl", 
+            "long imdb canonical name": "Franzl, Sarah"
+        }, 
+        {
+            "canonical name": "Hoptrough, Gary", 
+            "name": "Gary Hoptrough", 
+            "long imdb name": "Gary Hoptrough", 
+            "long imdb canonical name": "Hoptrough, Gary"
+        }, 
+        {
+            "canonical name": "Knight, Cristian", 
+            "name": "Cristian Knight", 
+            "long imdb name": "Cristian Knight", 
+            "long imdb canonical name": "Knight, Cristian"
+        }, 
+        {
+            "canonical name": "Lea, Derek", 
+            "name": "Derek Lea", 
+            "long imdb name": "Derek Lea", 
+            "long imdb canonical name": "Lea, Derek"
+        }, 
+        {
+            "canonical name": "McGinley, Belinda", 
+            "name": "Belinda McGinley", 
+            "long imdb name": "Belinda McGinley", 
+            "long imdb canonical name": "McGinley, Belinda"
+        }, 
+        {
+            "canonical name": "Nicholas, Ray", 
+            "name": "Ray Nicholas", 
+            "long imdb name": "Ray Nicholas", 
+            "long imdb canonical name": "Nicholas, Ray"
+        }, 
+        {
+            "canonical name": "O'Donnell, James", 
+            "name": "James O'Donnell", 
+            "long imdb name": "James O'Donnell", 
+            "long imdb canonical name": "O'Donnell, James"
+        }, 
+        {
+            "canonical name": "Topham, Arran", 
+            "name": "Arran Topham", 
+            "long imdb name": "Arran Topham", 
+            "long imdb canonical name": "Topham, Arran"
+        }, 
+        {
+            "canonical name": "Van Silva, Tony", 
+            "name": "Tony Van Silva", 
+            "long imdb name": "Tony Van Silva", 
+            "long imdb canonical name": "Van Silva, Tony"
+        }, 
+        {
+            "canonical name": "Wilde, Martin", 
+            "name": "Martin Wilde", 
+            "long imdb name": "Martin Wilde", 
+            "long imdb canonical name": "Wilde, Martin"
+        }
+    ], 
+    "miscellaneous companies": [
+        {
+            "name": "ARRI Lighting Rental", 
+            "long imdb name": "ARRI Lighting Rental"
+        }, 
+        {
+            "name": "Academy Costumes", 
+            "long imdb name": "Academy Costumes"
+        }, 
+        {
+            "name": "Ace Film Catering", 
+            "long imdb name": "Ace Film Catering"
+        }, 
+        {
+            "name": "Angels the Costumiers", 
+            "long imdb name": "Angels the Costumiers"
+        }, 
+        {
+            "name": "Audiolink Radio Communications", 
+            "long imdb name": "Audiolink Radio Communications"
+        }, 
+        {
+            "name": "Audiolink Radio Communications", 
+            "long imdb name": "Audiolink Radio Communications"
+        }, 
+        {
+            "name": "Bickers Action Vehicles", 
+            "long imdb name": "Bickers Action Vehicles"
+        }, 
+        {
+            "name": "Carlo Manzi Rentals", 
+            "long imdb name": "Carlo Manzi Rentals"
+        }, 
+        {
+            "name": "Casting Collective", 
+            "long imdb name": "Casting Collective"
+        }, 
+        {
+            "name": "DFG Deutsche FilmversicherungsGemeinschaft", 
+            "long imdb name": "DFG Deutsche FilmversicherungsGemeinschaft"
+        }, 
+        {
+            "name": "Davoli Davids", 
+            "long imdb name": "Davoli Davids"
+        }, 
+        {
+            "name": "De Lane Lea", 
+            "long imdb name": "De Lane Lea"
+        }, 
+        {
+            "name": "ET Travel", 
+            "long imdb name": "ET Travel"
+        }, 
+        {
+            "name": "European Film Bonds", 
+            "long imdb name": "European Film Bonds"
+        }, 
+        {
+            "name": "GPT Groundwork Services", 
+            "long imdb name": "GPT Groundwork Services"
+        }, 
+        {
+            "name": "Gallager Entertainment", 
+            "long imdb name": "Gallager Entertainment"
+        }, 
+        {
+            "name": "Hyperactive Broadcast", 
+            "long imdb name": "Hyperactive Broadcast"
+        }, 
+        {
+            "name": "JHA Film Safety Partnership", 
+            "long imdb name": "JHA Film Safety Partnership"
+        }, 
+        {
+            "name": "Law Office Diane Gelon", 
+            "long imdb name": "Law Office Diane Gelon"
+        }, 
+        {
+            "name": "Lee & Thompson", 
+            "long imdb name": "Lee & Thompson"
+        }, 
+        {
+            "name": "Lil & Kate London", 
+            "long imdb name": "Lil & Kate London"
+        }, 
+        {
+            "name": "Mainstream", 
+            "long imdb name": "Mainstream"
+        }, 
+        {
+            "name": "Mediacom 24-7", 
+            "long imdb name": "Mediacom 24-7"
+        }, 
+        {
+            "name": "Mediacom 24-7", 
+            "long imdb name": "Mediacom 24-7"
+        }, 
+        {
+            "name": "Movie Lot, The", 
+            "long imdb name": "Movie Lot, The"
+        }, 
+        {
+            "name": "Movie Lot, The", 
+            "long imdb name": "Movie Lot, The"
+        }, 
+        {
+            "name": "MovieTone", 
+            "long imdb name": "MovieTone"
+        }, 
+        {
+            "name": "Nordisk Film ShortCut", 
+            "long imdb name": "Nordisk Film ShortCut"
+        }, 
+        {
+            "name": "On Set Facilities", 
+            "long imdb name": "On Set Facilities"
+        }, 
+        {
+            "name": "Panavision Grips", 
+            "long imdb name": "Panavision Grips"
+        }, 
+        {
+            "name": "Panavision", 
+            "long imdb name": "Panavision"
+        }, 
+        {
+            "name": "Peek and Boo", 
+            "long imdb name": "Peek and Boo"
+        }, 
+        {
+            "name": "Rawse Varley and Co", 
+            "long imdb name": "Rawse Varley and Co"
+        }, 
+        {
+            "name": "Shipleys", 
+            "long imdb name": "Shipleys"
+        }, 
+        {
+            "name": "TLO Film Services", 
+            "long imdb name": "TLO Film Services"
+        }, 
+        {
+            "name": "Team Services", 
+            "long imdb name": "Team Services"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Ryan, Robbie", 
+            "name": "Robbie Ryan", 
+            "long imdb name": "Robbie Ryan", 
+            "long imdb canonical name": "Ryan, Robbie"
+        }
+    ], 
+    "art direction": [
+        {
+            "canonical name": "Matheson, Andrea", 
+            "name": "Andrea Matheson", 
+            "long imdb name": "Andrea Matheson", 
+            "long imdb canonical name": "Matheson, Andrea"
+        }
+    ], 
+    "akas": [
+        "Ginger y Rosa::Chile (imdb display title), Peru (imdb display title), Venezuela (imdb display title)", 
+        "Ginger & Rosa::Argentina (imdb display title), Mexico (imdb display title)", 
+        "\u0411\u043e\u043c\u0431\u0430::Russia", 
+        "\u0414\u0436\u0438\u043d\u0434\u0436\u044a\u0440 \u0438 \u0420\u043e\u0437\u0430::Bulgaria (Bulgarian title)", 
+        "Bir Hayalimiz Vardi::Turkey (Turkish title) (imdb display title)", 
+        "D\u017eind\u017eer i Roza::Serbia", 
+        "Ginger \u00e9s Rosa::Hungary", 
+        "Ginger i Rosa::Poland (imdb display title)"
+    ], 
+    "aspect ratio": "2.35 : 1", 
+    "production companies": [
+        {
+            "name": "Adventure Pictures", 
+            "long imdb name": "Adventure Pictures"
+        }, 
+        {
+            "name": "BBC Films", 
+            "long imdb name": "BBC Films"
+        }, 
+        {
+            "name": "British Film Institute", 
+            "long imdb name": "British Film Institute"
+        }, 
+        {
+            "name": "Det Danske Filminstitut", 
+            "long imdb name": "Det Danske Filminstitut"
+        }, 
+        {
+            "name": "Media House Capital", 
+            "long imdb name": "Media House Capital"
+        }, 
+        {
+            "name": "Miso Films", 
+            "long imdb name": "Miso Films"
+        }
+    ], 
+    "kind": "movie", 
+    "art department": [
+        {
+            "canonical name": "Alvarez, Yasmin", 
+            "name": "Yasmin Alvarez", 
+            "long imdb name": "Yasmin Alvarez", 
+            "long imdb canonical name": "Alvarez, Yasmin"
+        }, 
+        {
+            "canonical name": "Anderson, Rob", 
+            "name": "Rob Anderson", 
+            "long imdb name": "Rob Anderson", 
+            "long imdb canonical name": "Anderson, Rob"
+        }, 
+        {
+            "canonical name": "Dolan, Roddy", 
+            "name": "Roddy Dolan", 
+            "long imdb name": "Roddy Dolan", 
+            "long imdb canonical name": "Dolan, Roddy"
+        }, 
+        {
+            "canonical name": "Gibbs, Antonia", 
+            "name": "Antonia Gibbs", 
+            "long imdb name": "Antonia Gibbs", 
+            "long imdb canonical name": "Gibbs, Antonia"
+        }, 
+        {
+            "canonical name": "Gircourt, Maud", 
+            "name": "Maud Gircourt", 
+            "long imdb name": "Maud Gircourt", 
+            "long imdb canonical name": "Gircourt, Maud"
+        }, 
+        {
+            "canonical name": "Griffiths, Neil", 
+            "name": "Neil Griffiths", 
+            "long imdb name": "Neil Griffiths", 
+            "long imdb canonical name": "Griffiths, Neil"
+        }, 
+        {
+            "canonical name": "Knight, Tom", 
+            "name": "Tom Knight", 
+            "long imdb name": "Tom Knight", 
+            "long imdb canonical name": "Knight, Tom"
+        }, 
+        {
+            "canonical name": "Norris, Emily", 
+            "name": "Emily Norris", 
+            "long imdb name": "Emily Norris", 
+            "long imdb canonical name": "Norris, Emily"
+        }, 
+        {
+            "canonical name": "Price, Craig", 
+            "name": "Craig Price", 
+            "long imdb name": "Craig Price", 
+            "long imdb canonical name": "Price, Craig"
+        }, 
+        {
+            "canonical name": "Sindall, Mark", 
+            "name": "Mark Sindall", 
+            "long imdb name": "Mark Sindall", 
+            "long imdb canonical name": "Sindall, Mark"
+        }, 
+        {
+            "canonical name": "Str\u00f8m, Lasse", 
+            "name": "Lasse Str\u00f8m", 
+            "long imdb name": "Lasse Str\u00f8m", 
+            "long imdb canonical name": "Str\u00f8m, Lasse"
+        }, 
+        {
+            "canonical name": "der Vijver, Oli van", 
+            "name": "Oli van der Vijver", 
+            "long imdb name": "Oli van der Vijver", 
+            "long imdb canonical name": "der Vijver, Oli van"
+        }, 
+        {
+            "canonical name": "Bagley, Ben", 
+            "name": "Ben Bagley", 
+            "long imdb name": "Ben Bagley", 
+            "long imdb canonical name": "Bagley, Ben"
+        }, 
+        {
+            "canonical name": "Dixon, Anthea", 
+            "name": "Anthea Dixon", 
+            "long imdb name": "Anthea Dixon", 
+            "long imdb canonical name": "Dixon, Anthea"
+        }, 
+        {
+            "canonical name": "Field, Jai", 
+            "name": "Jai Field", 
+            "long imdb name": "Jai Field", 
+            "long imdb canonical name": "Field, Jai"
+        }, 
+        {
+            "canonical name": "Line, Jason", 
+            "name": "Jason Line", 
+            "long imdb name": "Jason Line", 
+            "long imdb canonical name": "Line, Jason"
+        }, 
+        {
+            "canonical name": "Palmer, Seb", 
+            "name": "Seb Palmer", 
+            "long imdb name": "Seb Palmer", 
+            "long imdb canonical name": "Palmer, Seb"
+        }
+    ], 
+    "countries": [
+        "UK", 
+        "Denmark", 
+        "Canada", 
+        "Croatia"
+    ], 
+    "transportation department": [
+        {
+            "canonical name": "Ackroyd, Justin", 
+            "name": "Justin Ackroyd", 
+            "long imdb name": "Justin Ackroyd", 
+            "long imdb canonical name": "Ackroyd, Justin"
+        }, 
+        {
+            "canonical name": "Barton, Andy", 
+            "name": "Andy Barton", 
+            "long imdb name": "Andy Barton", 
+            "long imdb canonical name": "Barton, Andy"
+        }, 
+        {
+            "canonical name": "Blal, Hassan", 
+            "name": "Hassan Blal", 
+            "long imdb name": "Hassan Blal", 
+            "long imdb canonical name": "Blal, Hassan"
+        }, 
+        {
+            "canonical name": "Cherry, Mark", 
+            "name": "Mark Cherry", 
+            "long imdb name": "Mark Cherry", 
+            "long imdb canonical name": "Cherry, Mark"
+        }, 
+        {
+            "canonical name": "Watts, Micky", 
+            "name": "Micky Watts", 
+            "long imdb name": "Micky Watts", 
+            "long imdb canonical name": "Watts, Micky"
+        }
+    ], 
+    "plot outline": "A look at the lives of two teenage girls - inseparable friends Ginger and Rosa -- growing up in 1960s London as the Cuban Missile Crisis looms, and the pivotal event that comes to redefine their relationship.", 
+    "plot": [
+        "London, 1962. Two teenage girls - Ginger and Rosa -- are inseparable; they play truant together, discuss religion, politics and hairstyles, and dream of lives bigger than their mothers' frustrated domesticity. But, as the Cold War meets the sexual revolution, and the threat of nuclear holocaust escalates, the lifelong friendship of the two girls is shattered - by the clash of desire and the determination to survive.", 
+        "A look at the lives of two teenage girls - inseparable friends Ginger and Rosa -- growing up in 1960s London as the Cuban Missile Crisis looms, and the pivotal event that comes to redefine their relationship."
+    ], 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BMTk4NjcwMzU3OV5BMl5BanBnXkFtZTcwNTUwOTQ3OA@@.jpg", 
+    "canonical title": "Ginger & Rosa", 
+    "cast": [
+        {
+            "canonical name": "Hendricks, Christina", 
+            "name": "Christina Hendricks", 
+            "long imdb name": "Christina Hendricks", 
+            "long imdb canonical name": "Hendricks, Christina"
+        }, 
+        {
+            "canonical name": "May, Jodhi", 
+            "name": "Jodhi May", 
+            "long imdb name": "Jodhi May", 
+            "long imdb canonical name": "May, Jodhi"
+        }, 
+        {
+            "canonical name": "Nivola, Alessandro", 
+            "name": "Alessandro Nivola", 
+            "long imdb name": "Alessandro Nivola", 
+            "long imdb canonical name": "Nivola, Alessandro"
+        }, 
+        {
+            "canonical name": "Cloud, Luke", 
+            "name": "Luke Cloud", 
+            "long imdb name": "Luke Cloud", 
+            "long imdb canonical name": "Cloud, Luke"
+        }, 
+        {
+            "canonical name": "Bloor, Poppy", 
+            "name": "Poppy Bloor", 
+            "long imdb name": "Poppy Bloor", 
+            "long imdb canonical name": "Bloor, Poppy"
+        }, 
+        {
+            "canonical name": "Mountford, Magdalene", 
+            "name": "Magdalene Mountford", 
+            "long imdb name": "Magdalene Mountford", 
+            "long imdb canonical name": "Mountford, Magdalene"
+        }, 
+        {
+            "canonical name": "Fanning, Elle", 
+            "name": "Elle Fanning", 
+            "long imdb name": "Elle Fanning", 
+            "long imdb canonical name": "Fanning, Elle"
+        }, 
+        {
+            "canonical name": "Lonnen, Ray", 
+            "name": "Ray Lonnen", 
+            "long imdb name": "Ray Lonnen", 
+            "long imdb canonical name": "Lonnen, Ray"
+        }, 
+        {
+            "canonical name": "Englert, Alice", 
+            "name": "Alice Englert", 
+            "long imdb name": "Alice Englert", 
+            "long imdb canonical name": "Englert, Alice"
+        }, 
+        {
+            "canonical name": "Everitt-Elwick, Brock", 
+            "name": "Brock Everitt-Elwick", 
+            "long imdb name": "Brock Everitt-Elwick", 
+            "long imdb canonical name": "Everitt-Elwick, Brock"
+        }, 
+        {
+            "canonical name": "Scully, Max", 
+            "name": "Max Scully", 
+            "long imdb name": "Max Scully", 
+            "long imdb canonical name": "Scully, Max"
+        }, 
+        {
+            "canonical name": "Shakesheff, Marcus", 
+            "name": "Marcus Shakesheff", 
+            "long imdb name": "Marcus Shakesheff", 
+            "long imdb canonical name": "Shakesheff, Marcus"
+        }, 
+        {
+            "canonical name": "Smith, Charlie", 
+            "name": "Charlie Smith", 
+            "long imdb name": "Charlie Smith", 
+            "long imdb canonical name": "Smith, Charlie"
+        }, 
+        {
+            "canonical name": "Rixon, Rupert", 
+            "name": "Rupert Rixon", 
+            "long imdb name": "Rupert Rixon", 
+            "long imdb canonical name": "Rixon, Rupert"
+        }, 
+        {
+            "canonical name": "Spall, Timothy", 
+            "name": "Timothy Spall", 
+            "long imdb name": "Timothy Spall", 
+            "long imdb canonical name": "Spall, Timothy"
+        }, 
+        {
+            "canonical name": "Hawley, Andrew", 
+            "name": "Andrew Hawley", 
+            "long imdb name": "Andrew Hawley", 
+            "long imdb canonical name": "Hawley, Andrew"
+        }, 
+        {
+            "canonical name": "Wimsett, Ben", 
+            "name": "Ben Wimsett", 
+            "long imdb name": "Ben Wimsett", 
+            "long imdb canonical name": "Wimsett, Ben"
+        }, 
+        {
+            "canonical name": "Platt, Oliver", 
+            "name": "Oliver Platt", 
+            "long imdb name": "Oliver Platt", 
+            "long imdb canonical name": "Platt, Oliver"
+        }, 
+        {
+            "canonical name": "Bening, Annette", 
+            "name": "Annette Bening", 
+            "long imdb name": "Annette Bening", 
+            "long imdb canonical name": "Bening, Annette"
+        }, 
+        {
+            "canonical name": "Garvey, Aine", 
+            "name": "Aine Garvey", 
+            "long imdb name": "Aine Garvey", 
+            "long imdb canonical name": "Garvey, Aine"
+        }, 
+        {
+            "canonical name": "Deluca-Perry, Madison", 
+            "name": "Madison Deluca-Perry", 
+            "long imdb name": "Madison Deluca-Perry", 
+            "long imdb canonical name": "Deluca-Perry, Madison"
+        }, 
+        {
+            "canonical name": "Deluca-Perry, Amelie", 
+            "name": "Amelie Deluca-Perry", 
+            "long imdb name": "Amelie Deluca-Perry", 
+            "long imdb canonical name": "Deluca-Perry, Amelie"
+        }, 
+        {
+            "canonical name": "Finn, Rory", 
+            "name": "Rory Finn", 
+            "long imdb name": "Rory Finn", 
+            "long imdb canonical name": "Finn, Rory"
+        }, 
+        {
+            "canonical name": "Milburn, Oliver", 
+            "name": "Oliver Milburn", 
+            "long imdb name": "Oliver Milburn", 
+            "long imdb canonical name": "Milburn, Oliver"
+        }, 
+        {
+            "canonical name": "Strange, Richard", 
+            "name": "Richard Strange", 
+            "long imdb name": "Richard Strange", 
+            "long imdb canonical name": "Strange, Richard"
+        }, 
+        {
+            "canonical name": "Boxer, Stephen", 
+            "name": "Stephen Boxer", 
+            "long imdb name": "Stephen Boxer", 
+            "long imdb canonical name": "Boxer, Stephen"
+        }, 
+        {
+            "canonical name": "Bennett, Francesca", 
+            "name": "Francesca Bennett", 
+            "long imdb name": "Francesca Bennett", 
+            "long imdb canonical name": "Bennett, Francesca"
+        }, 
+        {
+            "canonical name": "Bennett, Greg", 
+            "name": "Greg Bennett", 
+            "long imdb name": "Greg Bennett", 
+            "long imdb canonical name": "Bennett, Greg"
+        }, 
+        {
+            "canonical name": "Comerford, Gary", 
+            "name": "Gary Comerford", 
+            "long imdb name": "Gary Comerford", 
+            "long imdb canonical name": "Comerford, Gary"
+        }, 
+        {
+            "canonical name": "Harvey, Philip", 
+            "name": "Philip Harvey", 
+            "long imdb name": "Philip Harvey", 
+            "long imdb canonical name": "Harvey, Philip"
+        }, 
+        {
+            "canonical name": "Harvey, Robin", 
+            "name": "Robin Harvey", 
+            "long imdb name": "Robin Harvey", 
+            "long imdb canonical name": "Harvey, Robin"
+        }, 
+        {
+            "canonical name": "Joy, Andy", 
+            "name": "Andy Joy", 
+            "long imdb name": "Andy Joy", 
+            "long imdb canonical name": "Joy, Andy"
+        }, 
+        {
+            "canonical name": "Moran, Kayti", 
+            "name": "Kayti Moran", 
+            "long imdb name": "Kayti Moran", 
+            "long imdb canonical name": "Moran, Kayti"
+        }
+    ], 
+    "smart long imdb canonical title": "Ginger & Rosa (2012)", 
+    "costume department": [
+        {
+            "canonical name": "Cariss, Bartholomew", 
+            "name": "Bartholomew Cariss", 
+            "long imdb name": "Bartholomew Cariss", 
+            "long imdb canonical name": "Cariss, Bartholomew"
+        }, 
+        {
+            "canonical name": "Donowho, Lucy", 
+            "name": "Lucy Donowho", 
+            "long imdb name": "Lucy Donowho", 
+            "long imdb canonical name": "Donowho, Lucy"
+        }, 
+        {
+            "canonical name": "Grace, Alex", 
+            "name": "Alex Grace", 
+            "long imdb name": "Alex Grace", 
+            "long imdb canonical name": "Grace, Alex"
+        }, 
+        {
+            "canonical name": "Harding, Emma", 
+            "name": "Emma Harding", 
+            "long imdb name": "Emma Harding", 
+            "long imdb canonical name": "Harding, Emma"
+        }, 
+        {
+            "canonical name": "Hawkes, Dougie", 
+            "name": "Dougie Hawkes", 
+            "long imdb name": "Dougie Hawkes", 
+            "long imdb canonical name": "Hawkes, Dougie"
+        }, 
+        {
+            "canonical name": "Kulkarni, Susan", 
+            "name": "Susan Kulkarni", 
+            "long imdb name": "Susan Kulkarni", 
+            "long imdb canonical name": "Kulkarni, Susan"
+        }, 
+        {
+            "canonical name": "Reichert, Sarah Jane", 
+            "name": "Sarah Jane Reichert", 
+            "long imdb name": "Sarah Jane Reichert", 
+            "long imdb canonical name": "Reichert, Sarah Jane"
+        }, 
+        {
+            "canonical name": "Walter, Hannah", 
+            "name": "Hannah Walter", 
+            "long imdb name": "Hannah Walter", 
+            "long imdb canonical name": "Walter, Hannah"
+        }, 
+        {
+            "canonical name": "Steigerwald, Madison", 
+            "name": "Madison Steigerwald", 
+            "long imdb name": "Madison Steigerwald", 
+            "long imdb canonical name": "Steigerwald, Madison"
+        }
+    ], 
+    "editorial department": [
+        {
+            "canonical name": "Aaglund, Michael", 
+            "name": "Michael Aaglund", 
+            "long imdb name": "Michael Aaglund", 
+            "long imdb canonical name": "Aaglund, Michael"
+        }, 
+        {
+            "canonical name": "Arnoldus, Morten", 
+            "name": "Morten Arnoldus", 
+            "long imdb name": "Morten Arnoldus", 
+            "long imdb canonical name": "Arnoldus, Morten"
+        }, 
+        {
+            "canonical name": "Bording, Ejvind", 
+            "name": "Ejvind Bording", 
+            "long imdb name": "Ejvind Bording", 
+            "long imdb canonical name": "Bording, Ejvind"
+        }, 
+        {
+            "canonical name": "Caspersen, Thomas", 
+            "name": "Thomas Caspersen", 
+            "long imdb name": "Thomas Caspersen", 
+            "long imdb canonical name": "Caspersen, Thomas"
+        }, 
+        {
+            "canonical name": "Sidor, Per", 
+            "name": "Per Sidor", 
+            "long imdb name": "Per Sidor", 
+            "long imdb canonical name": "Sidor, Per"
+        }, 
+        {
+            "canonical name": "S\u00f8rensen, Jens Lilledal", 
+            "name": "Jens Lilledal S\u00f8rensen", 
+            "long imdb name": "Jens Lilledal S\u00f8rensen", 
+            "long imdb canonical name": "S\u00f8rensen, Jens Lilledal"
+        }, 
+        {
+            "canonical name": "Therchilsen, Thomas", 
+            "name": "Thomas Therchilsen", 
+            "long imdb name": "Thomas Therchilsen", 
+            "long imdb canonical name": "Therchilsen, Thomas"
+        }, 
+        {
+            "canonical name": "Toft, Rasmus", 
+            "name": "Rasmus Toft", 
+            "long imdb name": "Rasmus Toft", 
+            "long imdb canonical name": "Toft, Rasmus"
+        }, 
+        {
+            "canonical name": "von Schwerin, Beatrice", 
+            "name": "Beatrice von Schwerin", 
+            "long imdb name": "Beatrice von Schwerin", 
+            "long imdb canonical name": "von Schwerin, Beatrice"
+        }
+    ], 
+    "smart canonical title": "Ginger & Rosa"
+}

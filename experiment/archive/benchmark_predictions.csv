@@ -1,0 +1,793 @@
+dataset,column,detector,expected,predicted,correct
+product_sentiment_machine_hack,Product_Description,current_fedot,1,1,1
+product_sentiment_machine_hack,Product_Type,current_fedot,0,0,1
+product_sentiment_machine_hack,Product_Description,pr903,1,1,1
+product_sentiment_machine_hack,Product_Type,pr903,0,0,1
+product_sentiment_machine_hack,Product_Description,improved,1,1,1
+product_sentiment_machine_hack,Product_Type,improved,0,0,1
+melbourne_airbnb,access,current_fedot,1,0,0
+melbourne_airbnb,accommodates,current_fedot,0,0,1
+melbourne_airbnb,amenities,current_fedot,0,1,0
+melbourne_airbnb,availability_30,current_fedot,0,0,1
+melbourne_airbnb,availability_365,current_fedot,0,0,1
+melbourne_airbnb,availability_60,current_fedot,0,0,1
+melbourne_airbnb,availability_90,current_fedot,0,0,1
+melbourne_airbnb,bathrooms,current_fedot,0,0,1
+melbourne_airbnb,bed_type,current_fedot,0,0,1
+melbourne_airbnb,bedrooms,current_fedot,0,0,1
+melbourne_airbnb,beds,current_fedot,0,0,1
+melbourne_airbnb,calculated_host_listings_count,current_fedot,0,0,1
+melbourne_airbnb,calendar_updated,current_fedot,0,0,1
+melbourne_airbnb,cancellation_policy,current_fedot,0,0,1
+melbourne_airbnb,city,current_fedot,0,0,1
+melbourne_airbnb,cleaning_fee,current_fedot,0,0,1
+melbourne_airbnb,country,current_fedot,0,0,1
+melbourne_airbnb,country_code,current_fedot,0,0,1
+melbourne_airbnb,description,current_fedot,1,1,1
+melbourne_airbnb,extra_people,current_fedot,0,0,1
+melbourne_airbnb,first_review,current_fedot,0,0,1
+melbourne_airbnb,guests_included,current_fedot,0,0,1
+melbourne_airbnb,has_availability,current_fedot,0,0,1
+melbourne_airbnb,host_about,current_fedot,1,0,0
+melbourne_airbnb,host_has_profile_pic,current_fedot,0,0,1
+melbourne_airbnb,host_identity_verified,current_fedot,0,0,1
+melbourne_airbnb,host_is_superhost,current_fedot,0,0,1
+melbourne_airbnb,host_location,current_fedot,0,0,1
+melbourne_airbnb,host_neighborhood,current_fedot,0,0,1
+melbourne_airbnb,host_response_rate,current_fedot,0,0,1
+melbourne_airbnb,host_response_time,current_fedot,0,0,1
+melbourne_airbnb,host_since,current_fedot,0,0,1
+melbourne_airbnb,host_verifications,current_fedot,0,0,1
+melbourne_airbnb,host_verifications_email,current_fedot,0,0,1
+melbourne_airbnb,host_verifications_facebook,current_fedot,0,0,1
+melbourne_airbnb,host_verifications_google,current_fedot,0,0,1
+melbourne_airbnb,host_verifications_government_id,current_fedot,0,0,1
+melbourne_airbnb,host_verifications_identity_manual,current_fedot,0,0,1
+melbourne_airbnb,host_verifications_jumio,current_fedot,0,0,1
+melbourne_airbnb,host_verifications_kba,current_fedot,0,0,1
+melbourne_airbnb,host_verifications_manual_offline,current_fedot,0,0,1
+melbourne_airbnb,host_verifications_manual_online,current_fedot,0,0,1
+melbourne_airbnb,host_verifications_offline_government_id,current_fedot,0,0,1
+melbourne_airbnb,host_verifications_phone,current_fedot,0,0,1
+melbourne_airbnb,host_verifications_reviews,current_fedot,0,0,1
+melbourne_airbnb,host_verifications_selfie,current_fedot,0,0,1
+melbourne_airbnb,host_verifications_sent_id,current_fedot,0,0,1
+melbourne_airbnb,host_verifications_sesame,current_fedot,0,0,1
+melbourne_airbnb,host_verifications_sesame_offline,current_fedot,0,0,1
+melbourne_airbnb,host_verifications_weibo,current_fedot,0,0,1
+melbourne_airbnb,host_verifications_work_email,current_fedot,0,0,1
+melbourne_airbnb,host_verifications_zhima_selfie,current_fedot,0,0,1
+melbourne_airbnb,house_rules,current_fedot,1,0,0
+melbourne_airbnb,instant_bookable,current_fedot,0,0,1
+melbourne_airbnb,interaction,current_fedot,1,0,0
+melbourne_airbnb,is_location_exact,current_fedot,0,0,1
+melbourne_airbnb,last_review,current_fedot,0,0,1
+melbourne_airbnb,latitude,current_fedot,0,0,1
+melbourne_airbnb,license,current_fedot,0,0,1
+melbourne_airbnb,longitude,current_fedot,0,0,1
+melbourne_airbnb,maximum_nights,current_fedot,0,0,1
+melbourne_airbnb,minimum_nights,current_fedot,0,0,1
+melbourne_airbnb,name,current_fedot,1,1,1
+melbourne_airbnb,neighborhood,current_fedot,0,0,1
+melbourne_airbnb,neighborhood_overview,current_fedot,1,0,0
+melbourne_airbnb,notes,current_fedot,1,0,0
+melbourne_airbnb,number_of_reviews,current_fedot,0,0,1
+melbourne_airbnb,property_type,current_fedot,0,0,1
+melbourne_airbnb,require_guest_phone_verification,current_fedot,0,0,1
+melbourne_airbnb,require_guest_profile_picture,current_fedot,0,0,1
+melbourne_airbnb,requires_license,current_fedot,0,0,1
+melbourne_airbnb,review_scores_accuracy,current_fedot,0,0,1
+melbourne_airbnb,review_scores_checkin,current_fedot,0,0,1
+melbourne_airbnb,review_scores_cleanliness,current_fedot,0,0,1
+melbourne_airbnb,review_scores_communication,current_fedot,0,0,1
+melbourne_airbnb,review_scores_location,current_fedot,0,0,1
+melbourne_airbnb,review_scores_rating,current_fedot,0,0,1
+melbourne_airbnb,review_scores_value,current_fedot,0,0,1
+melbourne_airbnb,reviews_per_month,current_fedot,0,0,1
+melbourne_airbnb,room_type,current_fedot,0,0,1
+melbourne_airbnb,security_deposit,current_fedot,0,0,1
+melbourne_airbnb,smart_location,current_fedot,0,0,1
+melbourne_airbnb,space,current_fedot,1,0,0
+melbourne_airbnb,state,current_fedot,0,0,1
+melbourne_airbnb,street,current_fedot,0,0,1
+melbourne_airbnb,suburb,current_fedot,0,0,1
+melbourne_airbnb,summary,current_fedot,1,0,0
+melbourne_airbnb,transit,current_fedot,1,0,0
+melbourne_airbnb,zipcode,current_fedot,0,0,1
+melbourne_airbnb,access,pr903,1,1,1
+melbourne_airbnb,accommodates,pr903,0,0,1
+melbourne_airbnb,amenities,pr903,0,1,0
+melbourne_airbnb,availability_30,pr903,0,0,1
+melbourne_airbnb,availability_365,pr903,0,0,1
+melbourne_airbnb,availability_60,pr903,0,0,1
+melbourne_airbnb,availability_90,pr903,0,0,1
+melbourne_airbnb,bathrooms,pr903,0,0,1
+melbourne_airbnb,bed_type,pr903,0,0,1
+melbourne_airbnb,bedrooms,pr903,0,0,1
+melbourne_airbnb,beds,pr903,0,0,1
+melbourne_airbnb,calculated_host_listings_count,pr903,0,0,1
+melbourne_airbnb,calendar_updated,pr903,0,0,1
+melbourne_airbnb,cancellation_policy,pr903,0,0,1
+melbourne_airbnb,city,pr903,0,0,1
+melbourne_airbnb,cleaning_fee,pr903,0,0,1
+melbourne_airbnb,country,pr903,0,0,1
+melbourne_airbnb,country_code,pr903,0,0,1
+melbourne_airbnb,description,pr903,1,1,1
+melbourne_airbnb,extra_people,pr903,0,0,1
+melbourne_airbnb,first_review,pr903,0,0,1
+melbourne_airbnb,guests_included,pr903,0,0,1
+melbourne_airbnb,has_availability,pr903,0,0,1
+melbourne_airbnb,host_about,pr903,1,1,1
+melbourne_airbnb,host_has_profile_pic,pr903,0,0,1
+melbourne_airbnb,host_identity_verified,pr903,0,0,1
+melbourne_airbnb,host_is_superhost,pr903,0,0,1
+melbourne_airbnb,host_location,pr903,0,0,1
+melbourne_airbnb,host_neighborhood,pr903,0,0,1
+melbourne_airbnb,host_response_rate,pr903,0,0,1
+melbourne_airbnb,host_response_time,pr903,0,0,1
+melbourne_airbnb,host_since,pr903,0,0,1
+melbourne_airbnb,host_verifications,pr903,0,0,1
+melbourne_airbnb,host_verifications_email,pr903,0,0,1
+melbourne_airbnb,host_verifications_facebook,pr903,0,0,1
+melbourne_airbnb,host_verifications_google,pr903,0,0,1
+melbourne_airbnb,host_verifications_government_id,pr903,0,0,1
+melbourne_airbnb,host_verifications_identity_manual,pr903,0,0,1
+melbourne_airbnb,host_verifications_jumio,pr903,0,0,1
+melbourne_airbnb,host_verifications_kba,pr903,0,0,1
+melbourne_airbnb,host_verifications_manual_offline,pr903,0,0,1
+melbourne_airbnb,host_verifications_manual_online,pr903,0,0,1
+melbourne_airbnb,host_verifications_offline_government_id,pr903,0,0,1
+melbourne_airbnb,host_verifications_phone,pr903,0,0,1
+melbourne_airbnb,host_verifications_reviews,pr903,0,0,1
+melbourne_airbnb,host_verifications_selfie,pr903,0,0,1
+melbourne_airbnb,host_verifications_sent_id,pr903,0,0,1
+melbourne_airbnb,host_verifications_sesame,pr903,0,0,1
+melbourne_airbnb,host_verifications_sesame_offline,pr903,0,0,1
+melbourne_airbnb,host_verifications_weibo,pr903,0,0,1
+melbourne_airbnb,host_verifications_work_email,pr903,0,0,1
+melbourne_airbnb,host_verifications_zhima_selfie,pr903,0,0,1
+melbourne_airbnb,house_rules,pr903,1,1,1
+melbourne_airbnb,instant_bookable,pr903,0,0,1
+melbourne_airbnb,interaction,pr903,1,1,1
+melbourne_airbnb,is_location_exact,pr903,0,0,1
+melbourne_airbnb,last_review,pr903,0,0,1
+melbourne_airbnb,latitude,pr903,0,0,1
+melbourne_airbnb,license,pr903,0,0,1
+melbourne_airbnb,longitude,pr903,0,0,1
+melbourne_airbnb,maximum_nights,pr903,0,0,1
+melbourne_airbnb,minimum_nights,pr903,0,0,1
+melbourne_airbnb,name,pr903,1,1,1
+melbourne_airbnb,neighborhood,pr903,0,0,1
+melbourne_airbnb,neighborhood_overview,pr903,1,1,1
+melbourne_airbnb,notes,pr903,1,1,1
+melbourne_airbnb,number_of_reviews,pr903,0,0,1
+melbourne_airbnb,property_type,pr903,0,0,1
+melbourne_airbnb,require_guest_phone_verification,pr903,0,0,1
+melbourne_airbnb,require_guest_profile_picture,pr903,0,0,1
+melbourne_airbnb,requires_license,pr903,0,0,1
+melbourne_airbnb,review_scores_accuracy,pr903,0,0,1
+melbourne_airbnb,review_scores_checkin,pr903,0,0,1
+melbourne_airbnb,review_scores_cleanliness,pr903,0,0,1
+melbourne_airbnb,review_scores_communication,pr903,0,0,1
+melbourne_airbnb,review_scores_location,pr903,0,0,1
+melbourne_airbnb,review_scores_rating,pr903,0,0,1
+melbourne_airbnb,review_scores_value,pr903,0,0,1
+melbourne_airbnb,reviews_per_month,pr903,0,0,1
+melbourne_airbnb,room_type,pr903,0,0,1
+melbourne_airbnb,security_deposit,pr903,0,0,1
+melbourne_airbnb,smart_location,pr903,0,0,1
+melbourne_airbnb,space,pr903,1,1,1
+melbourne_airbnb,state,pr903,0,0,1
+melbourne_airbnb,street,pr903,0,0,1
+melbourne_airbnb,suburb,pr903,0,0,1
+melbourne_airbnb,summary,pr903,1,1,1
+melbourne_airbnb,transit,pr903,1,1,1
+melbourne_airbnb,zipcode,pr903,0,0,1
+melbourne_airbnb,access,improved,1,1,1
+melbourne_airbnb,accommodates,improved,0,0,1
+melbourne_airbnb,amenities,improved,0,1,0
+melbourne_airbnb,availability_30,improved,0,0,1
+melbourne_airbnb,availability_365,improved,0,0,1
+melbourne_airbnb,availability_60,improved,0,0,1
+melbourne_airbnb,availability_90,improved,0,0,1
+melbourne_airbnb,bathrooms,improved,0,0,1
+melbourne_airbnb,bed_type,improved,0,0,1
+melbourne_airbnb,bedrooms,improved,0,0,1
+melbourne_airbnb,beds,improved,0,0,1
+melbourne_airbnb,calculated_host_listings_count,improved,0,0,1
+melbourne_airbnb,calendar_updated,improved,0,0,1
+melbourne_airbnb,cancellation_policy,improved,0,0,1
+melbourne_airbnb,city,improved,0,0,1
+melbourne_airbnb,cleaning_fee,improved,0,0,1
+melbourne_airbnb,country,improved,0,0,1
+melbourne_airbnb,country_code,improved,0,0,1
+melbourne_airbnb,description,improved,1,1,1
+melbourne_airbnb,extra_people,improved,0,0,1
+melbourne_airbnb,first_review,improved,0,0,1
+melbourne_airbnb,guests_included,improved,0,0,1
+melbourne_airbnb,has_availability,improved,0,0,1
+melbourne_airbnb,host_about,improved,1,1,1
+melbourne_airbnb,host_has_profile_pic,improved,0,0,1
+melbourne_airbnb,host_identity_verified,improved,0,0,1
+melbourne_airbnb,host_is_superhost,improved,0,0,1
+melbourne_airbnb,host_location,improved,0,0,1
+melbourne_airbnb,host_neighborhood,improved,0,0,1
+melbourne_airbnb,host_response_rate,improved,0,0,1
+melbourne_airbnb,host_response_time,improved,0,0,1
+melbourne_airbnb,host_since,improved,0,0,1
+melbourne_airbnb,host_verifications,improved,0,0,1
+melbourne_airbnb,host_verifications_email,improved,0,0,1
+melbourne_airbnb,host_verifications_facebook,improved,0,0,1
+melbourne_airbnb,host_verifications_google,improved,0,0,1
+melbourne_airbnb,host_verifications_government_id,improved,0,0,1
+melbourne_airbnb,host_verifications_identity_manual,improved,0,0,1
+melbourne_airbnb,host_verifications_jumio,improved,0,0,1
+melbourne_airbnb,host_verifications_kba,improved,0,0,1
+melbourne_airbnb,host_verifications_manual_offline,improved,0,0,1
+melbourne_airbnb,host_verifications_manual_online,improved,0,0,1
+melbourne_airbnb,host_verifications_offline_government_id,improved,0,0,1
+melbourne_airbnb,host_verifications_phone,improved,0,0,1
+melbourne_airbnb,host_verifications_reviews,improved,0,0,1
+melbourne_airbnb,host_verifications_selfie,improved,0,0,1
+melbourne_airbnb,host_verifications_sent_id,improved,0,0,1
+melbourne_airbnb,host_verifications_sesame,improved,0,0,1
+melbourne_airbnb,host_verifications_sesame_offline,improved,0,0,1
+melbourne_airbnb,host_verifications_weibo,improved,0,0,1
+melbourne_airbnb,host_verifications_work_email,improved,0,0,1
+melbourne_airbnb,host_verifications_zhima_selfie,improved,0,0,1
+melbourne_airbnb,house_rules,improved,1,1,1
+melbourne_airbnb,instant_bookable,improved,0,0,1
+melbourne_airbnb,interaction,improved,1,1,1
+melbourne_airbnb,is_location_exact,improved,0,0,1
+melbourne_airbnb,last_review,improved,0,0,1
+melbourne_airbnb,latitude,improved,0,0,1
+melbourne_airbnb,license,improved,0,0,1
+melbourne_airbnb,longitude,improved,0,0,1
+melbourne_airbnb,maximum_nights,improved,0,0,1
+melbourne_airbnb,minimum_nights,improved,0,0,1
+melbourne_airbnb,name,improved,1,1,1
+melbourne_airbnb,neighborhood,improved,0,0,1
+melbourne_airbnb,neighborhood_overview,improved,1,1,1
+melbourne_airbnb,notes,improved,1,1,1
+melbourne_airbnb,number_of_reviews,improved,0,0,1
+melbourne_airbnb,property_type,improved,0,0,1
+melbourne_airbnb,require_guest_phone_verification,improved,0,0,1
+melbourne_airbnb,require_guest_profile_picture,improved,0,0,1
+melbourne_airbnb,requires_license,improved,0,0,1
+melbourne_airbnb,review_scores_accuracy,improved,0,0,1
+melbourne_airbnb,review_scores_checkin,improved,0,0,1
+melbourne_airbnb,review_scores_cleanliness,improved,0,0,1
+melbourne_airbnb,review_scores_communication,improved,0,0,1
+melbourne_airbnb,review_scores_location,improved,0,0,1
+melbourne_airbnb,review_scores_rating,improved,0,0,1
+melbourne_airbnb,review_scores_value,improved,0,0,1
+melbourne_airbnb,reviews_per_month,improved,0,0,1
+melbourne_airbnb,room_type,improved,0,0,1
+melbourne_airbnb,security_deposit,improved,0,0,1
+melbourne_airbnb,smart_location,improved,0,0,1
+melbourne_airbnb,space,improved,1,1,1
+melbourne_airbnb,state,improved,0,0,1
+melbourne_airbnb,street,improved,0,0,1
+melbourne_airbnb,suburb,improved,0,0,1
+melbourne_airbnb,summary,improved,1,1,1
+melbourne_airbnb,transit,improved,1,1,1
+melbourne_airbnb,zipcode,improved,0,0,1
+news_channel, n_tokens_content,current_fedot,0,0,1
+news_channel, n_unique_tokens,current_fedot,0,0,1
+news_channel, n_non_stop_words,current_fedot,0,0,1
+news_channel, n_non_stop_unique_tokens,current_fedot,0,0,1
+news_channel, num_hrefs,current_fedot,0,0,1
+news_channel, num_self_hrefs,current_fedot,0,0,1
+news_channel, num_imgs,current_fedot,0,0,1
+news_channel, num_videos,current_fedot,0,0,1
+news_channel, average_token_length,current_fedot,0,0,1
+news_channel, num_keywords,current_fedot,0,0,1
+news_channel, global_subjectivity,current_fedot,0,0,1
+news_channel, global_sentiment_polarity,current_fedot,0,0,1
+news_channel, global_rate_positive_words,current_fedot,0,0,1
+news_channel, global_rate_negative_words,current_fedot,0,0,1
+news_channel, rate_positive_words,current_fedot,0,0,1
+news_channel, rate_negative_words,current_fedot,0,0,1
+news_channel,article_title,current_fedot,1,1,1
+news_channel, n_tokens_content,pr903,0,0,1
+news_channel, n_unique_tokens,pr903,0,0,1
+news_channel, n_non_stop_words,pr903,0,0,1
+news_channel, n_non_stop_unique_tokens,pr903,0,0,1
+news_channel, num_hrefs,pr903,0,0,1
+news_channel, num_self_hrefs,pr903,0,0,1
+news_channel, num_imgs,pr903,0,0,1
+news_channel, num_videos,pr903,0,0,1
+news_channel, average_token_length,pr903,0,0,1
+news_channel, num_keywords,pr903,0,0,1
+news_channel, global_subjectivity,pr903,0,0,1
+news_channel, global_sentiment_polarity,pr903,0,0,1
+news_channel, global_rate_positive_words,pr903,0,0,1
+news_channel, global_rate_negative_words,pr903,0,0,1
+news_channel, rate_positive_words,pr903,0,0,1
+news_channel, rate_negative_words,pr903,0,0,1
+news_channel,article_title,pr903,1,1,1
+news_channel, n_tokens_content,improved,0,0,1
+news_channel, n_unique_tokens,improved,0,0,1
+news_channel, n_non_stop_words,improved,0,0,1
+news_channel, n_non_stop_unique_tokens,improved,0,0,1
+news_channel, num_hrefs,improved,0,0,1
+news_channel, num_self_hrefs,improved,0,0,1
+news_channel, num_imgs,improved,0,0,1
+news_channel, num_videos,improved,0,0,1
+news_channel, average_token_length,improved,0,0,1
+news_channel, num_keywords,improved,0,0,1
+news_channel, global_subjectivity,improved,0,0,1
+news_channel, global_sentiment_polarity,improved,0,0,1
+news_channel, global_rate_positive_words,improved,0,0,1
+news_channel, global_rate_negative_words,improved,0,0,1
+news_channel, rate_positive_words,improved,0,0,1
+news_channel, rate_negative_words,improved,0,0,1
+news_channel,article_title,improved,1,1,1
+wine_reviews,country,current_fedot,0,0,1
+wine_reviews,description,current_fedot,1,0,0
+wine_reviews,points,current_fedot,0,0,1
+wine_reviews,price,current_fedot,0,0,1
+wine_reviews,province,current_fedot,0,0,1
+wine_reviews,country,pr903,0,0,1
+wine_reviews,description,pr903,1,1,1
+wine_reviews,points,pr903,0,0,1
+wine_reviews,price,pr903,0,0,1
+wine_reviews,province,pr903,0,0,1
+wine_reviews,country,improved,0,0,1
+wine_reviews,description,improved,1,1,1
+wine_reviews,points,improved,0,0,1
+wine_reviews,price,improved,0,0,1
+wine_reviews,province,improved,0,0,1
+imdb_genre_prediction,Rank,current_fedot,0,0,1
+imdb_genre_prediction,Title,current_fedot,1,1,1
+imdb_genre_prediction,Description,current_fedot,1,1,1
+imdb_genre_prediction,Director,current_fedot,0,0,1
+imdb_genre_prediction,Actors,current_fedot,0,1,0
+imdb_genre_prediction,Year,current_fedot,0,0,1
+imdb_genre_prediction,Runtime (Minutes),current_fedot,0,0,1
+imdb_genre_prediction,Rating,current_fedot,0,0,1
+imdb_genre_prediction,Votes,current_fedot,0,0,1
+imdb_genre_prediction,Revenue (Millions),current_fedot,0,0,1
+imdb_genre_prediction,Metascore,current_fedot,0,0,1
+imdb_genre_prediction,Rank,pr903,0,0,1
+imdb_genre_prediction,Title,pr903,1,1,1
+imdb_genre_prediction,Description,pr903,1,1,1
+imdb_genre_prediction,Director,pr903,0,1,0
+imdb_genre_prediction,Actors,pr903,0,1,0
+imdb_genre_prediction,Year,pr903,0,0,1
+imdb_genre_prediction,Runtime (Minutes),pr903,0,0,1
+imdb_genre_prediction,Rating,pr903,0,0,1
+imdb_genre_prediction,Votes,pr903,0,0,1
+imdb_genre_prediction,Revenue (Millions),pr903,0,0,1
+imdb_genre_prediction,Metascore,pr903,0,0,1
+imdb_genre_prediction,Rank,improved,0,0,1
+imdb_genre_prediction,Title,improved,1,0,0
+imdb_genre_prediction,Description,improved,1,1,1
+imdb_genre_prediction,Director,improved,0,0,1
+imdb_genre_prediction,Actors,improved,0,1,0
+imdb_genre_prediction,Year,improved,0,0,1
+imdb_genre_prediction,Runtime (Minutes),improved,0,0,1
+imdb_genre_prediction,Rating,improved,0,0,1
+imdb_genre_prediction,Votes,improved,0,0,1
+imdb_genre_prediction,Revenue (Millions),improved,0,0,1
+imdb_genre_prediction,Metascore,improved,0,0,1
+jigsaw_unintended_bias100K,comment_text,current_fedot,1,1,1
+jigsaw_unintended_bias100K,asian,current_fedot,0,0,1
+jigsaw_unintended_bias100K,atheist,current_fedot,0,0,1
+jigsaw_unintended_bias100K,bisexual,current_fedot,0,0,1
+jigsaw_unintended_bias100K,black,current_fedot,0,0,1
+jigsaw_unintended_bias100K,buddhist,current_fedot,0,0,1
+jigsaw_unintended_bias100K,christian,current_fedot,0,0,1
+jigsaw_unintended_bias100K,female,current_fedot,0,0,1
+jigsaw_unintended_bias100K,heterosexual,current_fedot,0,0,1
+jigsaw_unintended_bias100K,hindu,current_fedot,0,0,1
+jigsaw_unintended_bias100K,homosexual_gay_or_lesbian,current_fedot,0,0,1
+jigsaw_unintended_bias100K,intellectual_or_learning_disability,current_fedot,0,0,1
+jigsaw_unintended_bias100K,jewish,current_fedot,0,0,1
+jigsaw_unintended_bias100K,latino,current_fedot,0,0,1
+jigsaw_unintended_bias100K,male,current_fedot,0,0,1
+jigsaw_unintended_bias100K,muslim,current_fedot,0,0,1
+jigsaw_unintended_bias100K,other_disability,current_fedot,0,0,1
+jigsaw_unintended_bias100K,other_gender,current_fedot,0,0,1
+jigsaw_unintended_bias100K,other_race_or_ethnicity,current_fedot,0,0,1
+jigsaw_unintended_bias100K,other_religion,current_fedot,0,0,1
+jigsaw_unintended_bias100K,other_sexual_orientation,current_fedot,0,0,1
+jigsaw_unintended_bias100K,physical_disability,current_fedot,0,0,1
+jigsaw_unintended_bias100K,psychiatric_or_mental_illness,current_fedot,0,0,1
+jigsaw_unintended_bias100K,transgender,current_fedot,0,0,1
+jigsaw_unintended_bias100K,white,current_fedot,0,0,1
+jigsaw_unintended_bias100K,funny,current_fedot,0,0,1
+jigsaw_unintended_bias100K,wow,current_fedot,0,0,1
+jigsaw_unintended_bias100K,sad,current_fedot,0,0,1
+jigsaw_unintended_bias100K,likes,current_fedot,0,0,1
+jigsaw_unintended_bias100K,disagree,current_fedot,0,0,1
+jigsaw_unintended_bias100K,comment_text,pr903,1,1,1
+jigsaw_unintended_bias100K,asian,pr903,0,0,1
+jigsaw_unintended_bias100K,atheist,pr903,0,0,1
+jigsaw_unintended_bias100K,bisexual,pr903,0,0,1
+jigsaw_unintended_bias100K,black,pr903,0,0,1
+jigsaw_unintended_bias100K,buddhist,pr903,0,0,1
+jigsaw_unintended_bias100K,christian,pr903,0,0,1
+jigsaw_unintended_bias100K,female,pr903,0,0,1
+jigsaw_unintended_bias100K,heterosexual,pr903,0,0,1
+jigsaw_unintended_bias100K,hindu,pr903,0,0,1
+jigsaw_unintended_bias100K,homosexual_gay_or_lesbian,pr903,0,0,1
+jigsaw_unintended_bias100K,intellectual_or_learning_disability,pr903,0,0,1
+jigsaw_unintended_bias100K,jewish,pr903,0,0,1
+jigsaw_unintended_bias100K,latino,pr903,0,0,1
+jigsaw_unintended_bias100K,male,pr903,0,0,1
+jigsaw_unintended_bias100K,muslim,pr903,0,0,1
+jigsaw_unintended_bias100K,other_disability,pr903,0,0,1
+jigsaw_unintended_bias100K,other_gender,pr903,0,0,1
+jigsaw_unintended_bias100K,other_race_or_ethnicity,pr903,0,0,1
+jigsaw_unintended_bias100K,other_religion,pr903,0,0,1
+jigsaw_unintended_bias100K,other_sexual_orientation,pr903,0,0,1
+jigsaw_unintended_bias100K,physical_disability,pr903,0,0,1
+jigsaw_unintended_bias100K,psychiatric_or_mental_illness,pr903,0,0,1
+jigsaw_unintended_bias100K,transgender,pr903,0,0,1
+jigsaw_unintended_bias100K,white,pr903,0,0,1
+jigsaw_unintended_bias100K,funny,pr903,0,0,1
+jigsaw_unintended_bias100K,wow,pr903,0,0,1
+jigsaw_unintended_bias100K,sad,pr903,0,0,1
+jigsaw_unintended_bias100K,likes,pr903,0,0,1
+jigsaw_unintended_bias100K,disagree,pr903,0,0,1
+jigsaw_unintended_bias100K,comment_text,improved,1,1,1
+jigsaw_unintended_bias100K,asian,improved,0,0,1
+jigsaw_unintended_bias100K,atheist,improved,0,0,1
+jigsaw_unintended_bias100K,bisexual,improved,0,0,1
+jigsaw_unintended_bias100K,black,improved,0,0,1
+jigsaw_unintended_bias100K,buddhist,improved,0,0,1
+jigsaw_unintended_bias100K,christian,improved,0,0,1
+jigsaw_unintended_bias100K,female,improved,0,0,1
+jigsaw_unintended_bias100K,heterosexual,improved,0,0,1
+jigsaw_unintended_bias100K,hindu,improved,0,0,1
+jigsaw_unintended_bias100K,homosexual_gay_or_lesbian,improved,0,0,1
+jigsaw_unintended_bias100K,intellectual_or_learning_disability,improved,0,0,1
+jigsaw_unintended_bias100K,jewish,improved,0,0,1
+jigsaw_unintended_bias100K,latino,improved,0,0,1
+jigsaw_unintended_bias100K,male,improved,0,0,1
+jigsaw_unintended_bias100K,muslim,improved,0,0,1
+jigsaw_unintended_bias100K,other_disability,improved,0,0,1
+jigsaw_unintended_bias100K,other_gender,improved,0,0,1
+jigsaw_unintended_bias100K,other_race_or_ethnicity,improved,0,0,1
+jigsaw_unintended_bias100K,other_religion,improved,0,0,1
+jigsaw_unintended_bias100K,other_sexual_orientation,improved,0,0,1
+jigsaw_unintended_bias100K,physical_disability,improved,0,0,1
+jigsaw_unintended_bias100K,psychiatric_or_mental_illness,improved,0,0,1
+jigsaw_unintended_bias100K,transgender,improved,0,0,1
+jigsaw_unintended_bias100K,white,improved,0,0,1
+jigsaw_unintended_bias100K,funny,improved,0,0,1
+jigsaw_unintended_bias100K,wow,improved,0,0,1
+jigsaw_unintended_bias100K,sad,improved,0,0,1
+jigsaw_unintended_bias100K,likes,improved,0,0,1
+jigsaw_unintended_bias100K,disagree,improved,0,0,1
+fake_job_postings2,title,current_fedot,1,0,0
+fake_job_postings2,salary_range,current_fedot,0,0,1
+fake_job_postings2,description,current_fedot,1,0,0
+fake_job_postings2,required_experience,current_fedot,0,0,1
+fake_job_postings2,required_education,current_fedot,0,0,1
+fake_job_postings2,title,pr903,1,1,1
+fake_job_postings2,salary_range,pr903,0,0,1
+fake_job_postings2,description,pr903,1,1,1
+fake_job_postings2,required_experience,pr903,0,0,1
+fake_job_postings2,required_education,pr903,0,0,1
+fake_job_postings2,title,improved,1,0,0
+fake_job_postings2,salary_range,improved,0,0,1
+fake_job_postings2,description,improved,1,1,1
+fake_job_postings2,required_experience,improved,0,0,1
+fake_job_postings2,required_education,improved,0,0,1
+kick_starter_funding,name,current_fedot,1,1,1
+kick_starter_funding,desc,current_fedot,1,1,1
+kick_starter_funding,goal,current_fedot,0,0,1
+kick_starter_funding,keywords,current_fedot,0,1,0
+kick_starter_funding,disable_communication,current_fedot,0,0,1
+kick_starter_funding,country,current_fedot,0,0,1
+kick_starter_funding,currency,current_fedot,0,0,1
+kick_starter_funding,deadline,current_fedot,0,0,1
+kick_starter_funding,created_at,current_fedot,0,0,1
+kick_starter_funding,name,pr903,1,1,1
+kick_starter_funding,desc,pr903,1,1,1
+kick_starter_funding,goal,pr903,0,0,1
+kick_starter_funding,keywords,pr903,0,1,0
+kick_starter_funding,disable_communication,pr903,0,0,1
+kick_starter_funding,country,pr903,0,0,1
+kick_starter_funding,currency,pr903,0,0,1
+kick_starter_funding,deadline,pr903,0,0,1
+kick_starter_funding,created_at,pr903,0,0,1
+kick_starter_funding,name,improved,1,0,0
+kick_starter_funding,desc,improved,1,1,1
+kick_starter_funding,goal,improved,0,0,1
+kick_starter_funding,keywords,improved,0,1,0
+kick_starter_funding,disable_communication,improved,0,0,1
+kick_starter_funding,country,improved,0,0,1
+kick_starter_funding,currency,improved,0,0,1
+kick_starter_funding,deadline,improved,0,0,1
+kick_starter_funding,created_at,improved,0,0,1
+ae_price_prediction,product_name,current_fedot,1,0,0
+ae_price_prediction,brand_name,current_fedot,0,0,1
+ae_price_prediction,product_category,current_fedot,0,0,1
+ae_price_prediction,retailer,current_fedot,0,0,1
+ae_price_prediction,description,current_fedot,1,0,0
+ae_price_prediction,rating,current_fedot,0,0,1
+ae_price_prediction,review_count,current_fedot,0,0,1
+ae_price_prediction,style_attributes,current_fedot,0,0,1
+ae_price_prediction,total_sizes,current_fedot,0,0,1
+ae_price_prediction,available_size,current_fedot,0,0,1
+ae_price_prediction,color,current_fedot,0,0,1
+ae_price_prediction,product_name,pr903,1,0,0
+ae_price_prediction,brand_name,pr903,0,0,1
+ae_price_prediction,product_category,pr903,0,0,1
+ae_price_prediction,retailer,pr903,0,0,1
+ae_price_prediction,description,pr903,1,0,0
+ae_price_prediction,rating,pr903,0,0,1
+ae_price_prediction,review_count,pr903,0,0,1
+ae_price_prediction,style_attributes,pr903,0,0,1
+ae_price_prediction,total_sizes,pr903,0,0,1
+ae_price_prediction,available_size,pr903,0,0,1
+ae_price_prediction,color,pr903,0,0,1
+ae_price_prediction,product_name,improved,1,0,0
+ae_price_prediction,brand_name,improved,0,0,1
+ae_price_prediction,product_category,improved,0,0,1
+ae_price_prediction,retailer,improved,0,0,1
+ae_price_prediction,description,improved,1,0,0
+ae_price_prediction,rating,improved,0,0,1
+ae_price_prediction,review_count,improved,0,0,1
+ae_price_prediction,style_attributes,improved,0,0,1
+ae_price_prediction,total_sizes,improved,0,0,1
+ae_price_prediction,available_size,improved,0,0,1
+ae_price_prediction,color,improved,0,0,1
+google_qa_answer_type_reason_explanation,question_title,current_fedot,1,0,0
+google_qa_answer_type_reason_explanation,question_body,current_fedot,1,0,0
+google_qa_answer_type_reason_explanation,answer,current_fedot,1,1,1
+google_qa_answer_type_reason_explanation,category,current_fedot,0,0,1
+google_qa_answer_type_reason_explanation,question_title,pr903,1,1,1
+google_qa_answer_type_reason_explanation,question_body,pr903,1,1,1
+google_qa_answer_type_reason_explanation,answer,pr903,1,1,1
+google_qa_answer_type_reason_explanation,category,pr903,0,0,1
+google_qa_answer_type_reason_explanation,question_title,improved,1,1,1
+google_qa_answer_type_reason_explanation,question_body,improved,1,1,1
+google_qa_answer_type_reason_explanation,answer,improved,1,1,1
+google_qa_answer_type_reason_explanation,category,improved,0,0,1
+google_qa_question_type_reason_explanation,question_title,current_fedot,1,0,0
+google_qa_question_type_reason_explanation,question_body,current_fedot,1,0,0
+google_qa_question_type_reason_explanation,answer,current_fedot,1,1,1
+google_qa_question_type_reason_explanation,category,current_fedot,0,0,1
+google_qa_question_type_reason_explanation,question_title,pr903,1,1,1
+google_qa_question_type_reason_explanation,question_body,pr903,1,1,1
+google_qa_question_type_reason_explanation,answer,pr903,1,1,1
+google_qa_question_type_reason_explanation,category,pr903,0,0,1
+google_qa_question_type_reason_explanation,question_title,improved,1,1,1
+google_qa_question_type_reason_explanation,question_body,improved,1,1,1
+google_qa_question_type_reason_explanation,answer,improved,1,1,1
+google_qa_question_type_reason_explanation,category,improved,0,0,1
+women_clothing_review,Title,current_fedot,1,0,0
+women_clothing_review,Review Text,current_fedot,1,1,1
+women_clothing_review,Age,current_fedot,0,0,1
+women_clothing_review,Division Name,current_fedot,0,0,1
+women_clothing_review,Department Name,current_fedot,0,0,1
+women_clothing_review,Class Name,current_fedot,0,0,1
+women_clothing_review,Title,pr903,1,1,1
+women_clothing_review,Review Text,pr903,1,1,1
+women_clothing_review,Age,pr903,0,0,1
+women_clothing_review,Division Name,pr903,0,0,1
+women_clothing_review,Department Name,pr903,0,0,1
+women_clothing_review,Class Name,pr903,0,0,1
+women_clothing_review,Title,improved,1,0,0
+women_clothing_review,Review Text,improved,1,1,1
+women_clothing_review,Age,improved,0,0,1
+women_clothing_review,Division Name,improved,0,0,1
+women_clothing_review,Department Name,improved,0,0,1
+women_clothing_review,Class Name,improved,0,0,1
+mercari_price_suggestion100K,brand_name,current_fedot,0,0,1
+mercari_price_suggestion100K,cat1,current_fedot,0,0,1
+mercari_price_suggestion100K,cat2,current_fedot,0,0,1
+mercari_price_suggestion100K,cat3,current_fedot,0,0,1
+mercari_price_suggestion100K,category_name,current_fedot,0,0,1
+mercari_price_suggestion100K,item_condition_id,current_fedot,0,0,1
+mercari_price_suggestion100K,item_description,current_fedot,1,0,0
+mercari_price_suggestion100K,name,current_fedot,1,0,0
+mercari_price_suggestion100K,shipping,current_fedot,0,0,1
+mercari_price_suggestion100K,brand_name,pr903,0,0,1
+mercari_price_suggestion100K,cat1,pr903,0,0,1
+mercari_price_suggestion100K,cat2,pr903,0,0,1
+mercari_price_suggestion100K,cat3,pr903,0,0,1
+mercari_price_suggestion100K,category_name,pr903,0,0,1
+mercari_price_suggestion100K,item_condition_id,pr903,0,0,1
+mercari_price_suggestion100K,item_description,pr903,1,1,1
+mercari_price_suggestion100K,name,pr903,1,1,1
+mercari_price_suggestion100K,shipping,pr903,0,0,1
+mercari_price_suggestion100K,brand_name,improved,0,0,1
+mercari_price_suggestion100K,cat1,improved,0,0,1
+mercari_price_suggestion100K,cat2,improved,0,0,1
+mercari_price_suggestion100K,cat3,improved,0,0,1
+mercari_price_suggestion100K,category_name,improved,0,0,1
+mercari_price_suggestion100K,item_condition_id,improved,0,0,1
+mercari_price_suggestion100K,item_description,improved,1,1,1
+mercari_price_suggestion100K,name,improved,1,0,0
+mercari_price_suggestion100K,shipping,improved,0,0,1
+jc_penney_products,name_title,current_fedot,1,0,0
+jc_penney_products,description,current_fedot,1,0,0
+jc_penney_products,average_product_rating,current_fedot,0,0,1
+jc_penney_products,brand,current_fedot,0,0,1
+jc_penney_products,total_number_reviews,current_fedot,0,0,1
+jc_penney_products,name_title,pr903,1,1,1
+jc_penney_products,description,pr903,1,1,1
+jc_penney_products,average_product_rating,pr903,0,0,1
+jc_penney_products,brand,pr903,0,0,1
+jc_penney_products,total_number_reviews,pr903,0,0,1
+jc_penney_products,name_title,improved,1,1,1
+jc_penney_products,description,improved,1,1,1
+jc_penney_products,average_product_rating,improved,0,0,1
+jc_penney_products,brand,improved,0,0,1
+jc_penney_products,total_number_reviews,improved,0,0,1
+news_popularity2, n_tokens_content,current_fedot,0,0,1
+news_popularity2, average_token_length,current_fedot,0,0,1
+news_popularity2, num_keywords,current_fedot,0,0,1
+news_popularity2,article_title,current_fedot,1,1,1
+news_popularity2, n_tokens_content,pr903,0,0,1
+news_popularity2, average_token_length,pr903,0,0,1
+news_popularity2, num_keywords,pr903,0,0,1
+news_popularity2,article_title,pr903,1,1,1
+news_popularity2, n_tokens_content,improved,0,0,1
+news_popularity2, average_token_length,improved,0,0,1
+news_popularity2, num_keywords,improved,0,0,1
+news_popularity2,article_title,improved,1,1,1
+bookprice_prediction,Title,current_fedot,1,0,0
+bookprice_prediction,Author,current_fedot,0,0,1
+bookprice_prediction,Edition,current_fedot,0,0,1
+bookprice_prediction,Reviews,current_fedot,0,0,1
+bookprice_prediction,Ratings,current_fedot,0,0,1
+bookprice_prediction,Synopsis,current_fedot,1,0,0
+bookprice_prediction,Genre,current_fedot,0,0,1
+bookprice_prediction,BookCategory,current_fedot,0,0,1
+bookprice_prediction,Title,pr903,1,1,1
+bookprice_prediction,Author,pr903,0,1,0
+bookprice_prediction,Edition,pr903,0,0,1
+bookprice_prediction,Reviews,pr903,0,0,1
+bookprice_prediction,Ratings,pr903,0,0,1
+bookprice_prediction,Synopsis,pr903,1,1,1
+bookprice_prediction,Genre,pr903,0,0,1
+bookprice_prediction,BookCategory,pr903,0,0,1
+bookprice_prediction,Title,improved,1,1,1
+bookprice_prediction,Author,improved,0,0,1
+bookprice_prediction,Edition,improved,0,0,1
+bookprice_prediction,Reviews,improved,0,0,1
+bookprice_prediction,Ratings,improved,0,0,1
+bookprice_prediction,Synopsis,improved,1,1,1
+bookprice_prediction,Genre,improved,0,0,1
+bookprice_prediction,BookCategory,improved,0,0,1
+data_scientist_salary,experience,current_fedot,0,0,1
+data_scientist_salary,job_description,current_fedot,1,0,0
+data_scientist_salary,job_desig,current_fedot,1,0,0
+data_scientist_salary,job_type,current_fedot,0,0,1
+data_scientist_salary,key_skills,current_fedot,1,0,0
+data_scientist_salary,location,current_fedot,0,0,1
+data_scientist_salary,experience,pr903,0,0,1
+data_scientist_salary,job_description,pr903,1,1,1
+data_scientist_salary,job_desig,pr903,1,1,1
+data_scientist_salary,job_type,pr903,0,0,1
+data_scientist_salary,key_skills,pr903,1,1,1
+data_scientist_salary,location,pr903,0,0,1
+data_scientist_salary,experience,improved,0,0,1
+data_scientist_salary,job_description,improved,1,1,1
+data_scientist_salary,job_desig,improved,1,1,1
+data_scientist_salary,job_type,improved,0,0,1
+data_scientist_salary,key_skills,improved,1,1,1
+data_scientist_salary,location,improved,0,0,1
+california_house_price,Address,current_fedot,0,1,0
+california_house_price,Summary,current_fedot,1,1,1
+california_house_price,Type,current_fedot,0,0,1
+california_house_price,Year built,current_fedot,0,0,1
+california_house_price,Heating,current_fedot,0,0,1
+california_house_price,Cooling,current_fedot,0,0,1
+california_house_price,Parking,current_fedot,0,0,1
+california_house_price,Lot,current_fedot,0,0,1
+california_house_price,Bedrooms,current_fedot,0,0,1
+california_house_price,Bathrooms,current_fedot,0,0,1
+california_house_price,Full bathrooms,current_fedot,0,0,1
+california_house_price,Total interior livable area,current_fedot,0,0,1
+california_house_price,Total spaces,current_fedot,0,0,1
+california_house_price,Garage spaces,current_fedot,0,0,1
+california_house_price,Region,current_fedot,0,0,1
+california_house_price,Elementary School,current_fedot,0,0,1
+california_house_price,Elementary School Score,current_fedot,0,0,1
+california_house_price,Elementary School Distance,current_fedot,0,0,1
+california_house_price,Middle School,current_fedot,0,0,1
+california_house_price,Middle School Score,current_fedot,0,0,1
+california_house_price,Middle School Distance,current_fedot,0,0,1
+california_house_price,High School,current_fedot,0,0,1
+california_house_price,High School Score,current_fedot,0,0,1
+california_house_price,High School Distance,current_fedot,0,0,1
+california_house_price,Flooring,current_fedot,0,0,1
+california_house_price,Heating features,current_fedot,0,0,1
+california_house_price,Cooling features,current_fedot,0,0,1
+california_house_price,Appliances included,current_fedot,0,0,1
+california_house_price,Laundry features,current_fedot,0,0,1
+california_house_price,Parking features,current_fedot,0,0,1
+california_house_price,Tax assessed value,current_fedot,0,0,1
+california_house_price,Annual tax amount,current_fedot,0,0,1
+california_house_price,Listed On,current_fedot,0,0,1
+california_house_price,Listed Price,current_fedot,0,0,1
+california_house_price,Last Sold On,current_fedot,0,0,1
+california_house_price,Last Sold Price,current_fedot,0,0,1
+california_house_price,City,current_fedot,0,0,1
+california_house_price,Zip,current_fedot,0,0,1
+california_house_price,State,current_fedot,0,0,1
+california_house_price,Address,pr903,0,1,0
+california_house_price,Summary,pr903,1,1,1
+california_house_price,Type,pr903,0,0,1
+california_house_price,Year built,pr903,0,0,1
+california_house_price,Heating,pr903,0,0,1
+california_house_price,Cooling,pr903,0,0,1
+california_house_price,Parking,pr903,0,0,1
+california_house_price,Lot,pr903,0,0,1
+california_house_price,Bedrooms,pr903,0,0,1
+california_house_price,Bathrooms,pr903,0,0,1
+california_house_price,Full bathrooms,pr903,0,0,1
+california_house_price,Total interior livable area,pr903,0,0,1
+california_house_price,Total spaces,pr903,0,0,1
+california_house_price,Garage spaces,pr903,0,0,1
+california_house_price,Region,pr903,0,0,1
+california_house_price,Elementary School,pr903,0,0,1
+california_house_price,Elementary School Score,pr903,0,0,1
+california_house_price,Elementary School Distance,pr903,0,0,1
+california_house_price,Middle School,pr903,0,0,1
+california_house_price,Middle School Score,pr903,0,0,1
+california_house_price,Middle School Distance,pr903,0,0,1
+california_house_price,High School,pr903,0,0,1
+california_house_price,High School Score,pr903,0,0,1
+california_house_price,High School Distance,pr903,0,0,1
+california_house_price,Flooring,pr903,0,0,1
+california_house_price,Heating features,pr903,0,0,1
+california_house_price,Cooling features,pr903,0,0,1
+california_house_price,Appliances included,pr903,0,0,1
+california_house_price,Laundry features,pr903,0,0,1
+california_house_price,Parking features,pr903,0,0,1
+california_house_price,Tax assessed value,pr903,0,0,1
+california_house_price,Annual tax amount,pr903,0,0,1
+california_house_price,Listed On,pr903,0,0,1
+california_house_price,Listed Price,pr903,0,0,1
+california_house_price,Last Sold On,pr903,0,0,1
+california_house_price,Last Sold Price,pr903,0,0,1
+california_house_price,City,pr903,0,0,1
+california_house_price,Zip,pr903,0,0,1
+california_house_price,State,pr903,0,0,1
+california_house_price,Address,improved,0,0,1
+california_house_price,Summary,improved,1,1,1
+california_house_price,Type,improved,0,0,1
+california_house_price,Year built,improved,0,0,1
+california_house_price,Heating,improved,0,0,1
+california_house_price,Cooling,improved,0,0,1
+california_house_price,Parking,improved,0,0,1
+california_house_price,Lot,improved,0,0,1
+california_house_price,Bedrooms,improved,0,0,1
+california_house_price,Bathrooms,improved,0,0,1
+california_house_price,Full bathrooms,improved,0,0,1
+california_house_price,Total interior livable area,improved,0,0,1
+california_house_price,Total spaces,improved,0,0,1
+california_house_price,Garage spaces,improved,0,0,1
+california_house_price,Region,improved,0,0,1
+california_house_price,Elementary School,improved,0,0,1
+california_house_price,Elementary School Score,improved,0,0,1
+california_house_price,Elementary School Distance,improved,0,0,1
+california_house_price,Middle School,improved,0,0,1
+california_house_price,Middle School Score,improved,0,0,1
+california_house_price,Middle School Distance,improved,0,0,1
+california_house_price,High School,improved,0,0,1
+california_house_price,High School Score,improved,0,0,1
+california_house_price,High School Distance,improved,0,0,1
+california_house_price,Flooring,improved,0,0,1
+california_house_price,Heating features,improved,0,0,1
+california_house_price,Cooling features,improved,0,0,1
+california_house_price,Appliances included,improved,0,0,1
+california_house_price,Laundry features,improved,0,0,1
+california_house_price,Parking features,improved,0,0,1
+california_house_price,Tax assessed value,improved,0,0,1
+california_house_price,Annual tax amount,improved,0,0,1
+california_house_price,Listed On,improved,0,0,1
+california_house_price,Listed Price,improved,0,0,1
+california_house_price,Last Sold On,improved,0,0,1
+california_house_price,Last Sold Price,improved,0,0,1
+california_house_price,City,improved,0,0,1
+california_house_price,Zip,improved,0,0,1
+california_house_price,State,improved,0,0,1

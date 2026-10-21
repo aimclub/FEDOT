@@ -1,0 +1,225 @@
+﻿dataset,column,dtype,current_target,reviewed_target,priority,reason,example_1,example_2,example_3
+ae_price_prediction,brand_name,object,0,,high,Ambiguous: check whether NLP processing is useful,AERIE,AERIE,AERIE
+ae_price_prediction,product_category,object,0,,high,Ambiguous: check whether NLP processing is useful,Strapless Bras,Thongs,Katie
+ae_price_prediction,product_name,object,1,,high,Ambiguous: check whether NLP processing is useful,Happy Unlined Bandeau Bra,Aerie Thong,Katie Lightly Lined Bra
+ae_price_prediction,style_attributes,object,1,,high,Possibly structured list or dictionary,"[""Happiness from the inside out: light, comfy interior"", ""Underwire support"", ""Classic coverage"", ""Strapless"", ""No slip lining"", ""Back hook closure"", ""93% Nylon, 7% Spandex"", ""Hand Wash"", ""Imported""]","[""Comfy, stretchy cotton"", ""Aerie undies: Your panty drawer just got REAL."", ""V-back detail"", ""Low rise"", ""Total cheek!"", ""95% Cotton, 5% Elastane"", ""Machine Wash"", ""Imported""]","[""Lightly lined"", ""Full coverage"", ""Underwire"", ""Fully adjustable straps"", ""Back hook closure"", ""73% Nylon, 27% Spandex"", ""Hand Wash"", ""Imported""]"
+bookprice_prediction,Author,object,0,,high,Ambiguous: check whether NLP processing is useful,Tom Clancy,"Judy Balan, Kishore Manohar",Carol Vorderman
+bookprice_prediction,BookCategory,object,0,,high,Ambiguous: check whether NLP processing is useful,Action & Adventure,Romance,Action & Adventure
+bookprice_prediction,Genre,object,0,,high,Ambiguous: check whether NLP processing is useful,Action & Adventure (Books),Indian Writing (Books),Action & Adventure (Books)
+bookprice_prediction,Title,object,1,,high,Ambiguous: check whether NLP processing is useful,The Hunt for Red October (A Jack Ryan Novel),Half Boyfriend,Handwriting Made Easy Ages 5-7 Key Stage 1 Printed Writing (Made Easy Workbooks)
+california_house_price,Address,object,0,,high,Ambiguous: check whether NLP processing is useful,5355 Monterey Rd,612 Mission Ridge Rd,551 Chiquita Ave
+california_house_price,Summary,object,1,,high,Ambiguous: check whether NLP processing is useful,Take advantage of this great opportunity of owning 3 lots with spectacular views right next to each other in the city of Hermon/Highland Park! All three lots must be sold together APN#5302-007-029 (th,"Mountain View Sanctuary in the Heart of Santa Barbara. The indoor-outdoor lifestyle is yours in this renovated 4 bed, 2bath home. Remodeled for comfort & style, the spacious home features oak hardwood","downtown mountain view cottage. big lot. Hardwood floors, updated kitchen + bathroom, electric car charger + solar panels, 
+
+downtown mountain view. Open feel. Apartment style living."
+data_scientist_salary,job_desig,object,1,,high,Ambiguous: check whether NLP processing is useful,Oracle EBS Technical Consultant,Staff Software Engineer - Object Oriented Analysis & Design,Servicenow Developer
+data_scientist_salary,key_skills,object,1,,high,Ambiguous: check whether NLP processing is useful,"Oracle SQL, PLSQL, PL, Oracle Forms, Oracle Reports, Oracle Workflow...","Javascript, HTML, JQuery, Web Development, Play Framework, MVC, Rest...","SNOW, Servicenow, Servicenow Developer"
+data_scientist_salary,location,object,0,,high,Ambiguous: check whether NLP processing is useful,"Bengaluru, Chennai",Bengaluru,"Hyderabad, Pune"
+fake_job_postings2,title,object,1,,high,Ambiguous: check whether NLP processing is useful,"Senior Cognos Developer - IBM Cognos Framework - Baltimore, MD",Sales Reps (EMEA),Junior Product Support Engineer - Funnelback 
+imdb_genre_prediction,Actors,object,0,,high,Ambiguous: check whether NLP processing is useful,"Armie Hammer, Annabelle Wallis,Tom Cullen, Clint Dyer","Jake Gyllenhaal, Rene Russo, Bill Paxton, Riz Ahmed","Gerard Butler, Aaron Eckhart, Morgan Freeman,Angela Bassett"
+imdb_genre_prediction,Director,object,0,,high,Ambiguous: check whether NLP processing is useful,Fabio Guaglione,Dan Gilroy,Babak Najafi
+imdb_genre_prediction,Title,object,1,,high,Ambiguous: check whether NLP processing is useful,Mine,Nightcrawler,London Has Fallen
+jc_penney_products,average_product_rating,float64,0,,high,Ambiguous: check whether NLP processing is useful,4.0,5.0,4.0
+jc_penney_products,name_title,object,1,,high,Ambiguous: check whether NLP processing is useful,Vans® Milton High-Top Mens Skate Shoes,Worthington® Embroidered Tank Top - Tall,Vieste® Black Simulated Pearl and Crystal Silver-Tone Drop Earrings
+kick_starter_funding,keywords,object,0,,high,Ambiguous: check whether NLP processing is useful,cross-eyed-chicks,getting-boys-to-read-quick-tips-for-parents-and-te,the-next-page-feature-film
+kick_starter_funding,name,object,1,,high,Ambiguous: check whether NLP processing is useful,Cross Eyed Chicks,GETTING BOYS TO READ: Quick Tips for Parents & Teachers,'The Next Page' - Feature Film
+melbourne_airbnb,amenities,object,0,,high,Ambiguous: check whether NLP processing is useful,"{TV,Wifi,Kitchen,""Smoking allowed"",""Pets allowed"",""Free street parking"",Heating,Washer,""Smoke detector"",""Fire extinguisher"",Essentials,Shampoo,Hangers,Iron,""Laptop friendly workspace"",""Private entranc","{TV,Internet,Wifi,""Air conditioning"",Kitchen,""Pets allowed"",""Pets live on this property"",Cat(s),""Free street parking"",Heating,""Family/kid friendly"",Washer,""Smoke detector"",Essentials,Shampoo,Hangers,""","{TV,""Cable TV"",Wifi,Kitchen,""Smoking allowed"",Heating,""Suitable for events"",Washer,""Smoke detector"",Essentials,Hangers,""Hair dryer"",Iron,""Private living room"",""Hot water"",""Bed linens"",""Extra pillows a"
+melbourne_airbnb,host_location,object,0,,high,Ambiguous: check whether NLP processing is useful,"Melbourne, Victoria, Australia","Victoria, Australia","Prahran, Victoria, Australia"
+melbourne_airbnb,is_location_exact,object,0,,high,Ambiguous: check whether NLP processing is useful,t,t,t
+melbourne_airbnb,name,object,1,,high,Ambiguous: check whether NLP processing is useful,"Beach side, art deco flat in heart of St Kilda",Modern Bayside Studio Apartment,Spacious Saint kilda home with a View
+melbourne_airbnb,review_scores_location,float64,0,,high,Ambiguous: check whether NLP processing is useful,10.0,10.0,10.0
+melbourne_airbnb,smart_location,object,0,,high,Ambiguous: check whether NLP processing is useful,"Saint Kilda, Australia","Mordialloc, Australia","Saint Kilda, Australia"
+melbourne_airbnb,summary,object,1,,high,Ambiguous: check whether NLP processing is useful,"A beautiful art deco flat right in the heart of st kilda. Just a 5 minute walk to the beach, Luna park and all the restaurants and bars. Sleeps 4 people with a spacious living room, kitchen and privat","Self contained modern apartment with its own entrance, own bathroom and own outdoor deck.  Includes microwave, kettle, toaster and fridge.  5 mins walk to shops, 12 mins walk to railway station, 15 mi",Short term Flatshare in the heart of St Kilda. 2 minutes walk to the tram or train towards CBD 10 minutes walk to st Kilda beach
+mercari_price_suggestion100K,brand_name,object,0,,high,Ambiguous: check whether NLP processing is useful,Tory Burch,Jeep,Hello Kitty
+mercari_price_suggestion100K,category_name,object,0,,high,Ambiguous: check whether NLP processing is useful,"Women/Athletic Apparel/Pants, Tights, Leggings",Home/Bedding/Blankets & Throws,Women/Women's Accessories/Wallets
+mercari_price_suggestion100K,name,object,1,,high,Ambiguous: check whether NLP processing is useful,Lularoe Woodland Creatures leggings TC,New last Pink leopard Sherpa,Tory Burch travel wallet orange
+news_channel, num_keywords,float64,0,,high,Ambiguous: check whether NLP processing is useful,9.0,5.0,8.0
+news_channel,article_title,object,1,,high,Ambiguous: check whether NLP processing is useful,19 celebrities who went all out for Halloween 2014,"Sayonara, Summer! 20 Stages of Your Seasonal Job",New Jersey Star-Ledger: We Regret Endorsing Chris Christie
+news_popularity2, num_keywords,float64,0,,high,Ambiguous: check whether NLP processing is useful,7.0,10.0,8.0
+news_popularity2,article_title,object,1,,high,Ambiguous: check whether NLP processing is useful,Any.DO Moment Pushes You to Actually Tackle Your To-Do List,iPad Activations on AT&T Jump 200%,This Simple Action Will Dramatically Grow Your LinkedIn Network
+ae_price_prediction,available_size,object,0,,medium,String column: verify text vs categorical,"[""32B"", ""32C"", ""34B"", ""34C"", ""36B"", ""36D""]","[""XS"", ""L"", ""XL"", ""XXL""]","[""30A"", ""30B"", ""30C"", ""30D"", ""32AA"", ""32A"", ""32B"", ""32C"", ""32D"", ""32DD"", ""34AA"", ""34A"", ""34B"", ""34C"", ""34D"", ""34DD"", ""36A"", ""36B"", ""36C"", ""36D"", ""36DD"", ""38B"", ""38C"", ""38D"", ""38DD"", ""40C"", ""40D"", ""40D"
+ae_price_prediction,color,object,0,,medium,String column: verify text vs categorical,Vanity Peach,Navy,White
+ae_price_prediction,description,object,1,,medium,String column: verify text vs categorical,"Hello, Happy Bras. Happiness is feeling like the real you. Welcome to your happy place. style: 2792-2308 | color: 808 Happiness from the inside out: light, comfy interior Underwire support Classic cov","Total cheek! The soft and comfy cotton you love in the fit you go to. style: 5442-5400 | color: 030 Comfy, stretchy cotton Aerie undies: Your panty drawer just got REAL. V-back detail Low rise Total c","The Girl Next Door The original t-shirt bra every girl is sure to love. style: 4441-7167 | color: 100 Lightly lined Full coverage Underwire Fully adjustable straps Back hook closure 73% Nylon, 27% Spa"
+ae_price_prediction,retailer,object,0,,medium,String column: verify text vs categorical,Ae US,Ae US,Ae US
+ae_price_prediction,total_sizes,object,0,,medium,String column: verify text vs categorical,"[""32A"", ""32B"", ""32C"", ""34A"", ""34B"", ""34C"", ""34D"", ""36B"", ""36C"", ""36D""]","[""XS"", ""S"", ""M"", ""L"", ""XL"", ""XXL""]","[""30A"", ""30B"", ""30C"", ""30D"", ""32AA"", ""32A"", ""32B"", ""32C"", ""32D"", ""32DD"", ""34AA"", ""34A"", ""34B"", ""34C"", ""34D"", ""34DD"", ""36A"", ""36B"", ""36C"", ""36D"", ""36DD"", ""38B"", ""38C"", ""38D"", ""38DD"", ""40C"", ""40D"", ""40D"
+bookprice_prediction,Edition,object,0,,medium,String column: verify text vs categorical,"Mass Market Paperback,– 7 Sep 2010","Paperback,– 18 Apr 2016","Paperback,– 1 Jul 2015"
+bookprice_prediction,Synopsis,object,1,,medium,String column: verify text vs categorical,"Don't Miss the Original Series Tom Clancy's Jack Ryan Starring John Krasinski!
+
+The #1 New York Times bestseller that launched the phenomenal career of Tom Clancy—a gripping military thriller that int","Village boy meets pretty girl in city college. Since we live in dramatic times, this can no longer go unnoticed. He decides to marry her. She runs away as fast as possible. He, however, has recently r","Help your child be top of the class with Handwriting Made Easy
+Help your child learn good handwriting skills with Made Easy Handwriting Printed Writing KS1. Packed with notes, tips and fact-boxes to m"
+california_house_price,Appliances included,object,0,,medium,String column: verify text vs categorical,"Dishwasher, Disposal, Gas Cooktop, Refrigerator","Dishwasher, Garbage disposal, Refrigerator",Refrigerator
+california_house_price,Bedrooms,object,0,,medium,String column: verify text vs categorical,4,2,3
+california_house_price,City,object,0,,medium,String column: verify text vs categorical,Los Angeles,Santa Barbara,Mountain View
+california_house_price,Cooling,object,0,,medium,String column: verify text vs categorical,"Central Air, Ceiling Fan(s)",Central AC,"Refrigerator, Central"
+california_house_price,Cooling features,object,0,,medium,String column: verify text vs categorical,"Central Air, Ceiling Fan(s)",Central,"Refrigerator, Central"
+california_house_price,Elementary School,object,0,,medium,String column: verify text vs categorical,Bushnell Way,Roosevelt,Benjamin Bubb
+california_house_price,Flooring,object,0,,medium,String column: verify text vs categorical,"Hardwood, Tile","Tile, Hardwood","Tile, Hardwood"
+california_house_price,Heating,object,0,,medium,String column: verify text vs categorical,Forced Air,"Forced air, Gas",Central Forced Air
+california_house_price,Heating features,object,0,,medium,String column: verify text vs categorical,Forced Air,"Forced air, Gas",Forced air
+california_house_price,High School,object,0,,medium,String column: verify text vs categorical,Benjamin Franklin Senior High School,Santa Barbara Senior High School,Los Altos High School
+california_house_price,Last Sold On,object,0,,medium,String column: verify text vs categorical,2019-08-22,2013-11-27,2007-04-20
+california_house_price,Laundry features,object,0,,medium,String column: verify text vs categorical,"In Garage, Gas Dryer Hookup","Inside, Utility Room, Electric Hook Up","Washer / Dryer, Inside"
+california_house_price,Listed On,object,0,,medium,String column: verify text vs categorical,2020-05-13,2020-11-12,2020-03-03
+california_house_price,Middle School,object,0,,medium,String column: verify text vs categorical,Isaac Newton Graham Middle School,Joaquin Miller Middle School,Price Charter Middle School
+california_house_price,Parking,object,0,,medium,String column: verify text vs categorical,0 spaces,"Attached, Gar #2, Inside Entrance","Garage, Off-street, Covered"
+california_house_price,Parking features,object,0,,medium,String column: verify text vs categorical,"Attached, Gar #2, Inside Entrance","Garage, Off-street, Covered","Garage, Garage - Attached, Covered"
+california_house_price,Region,object,0,,medium,String column: verify text vs categorical,Los Angeles,Santa Barbara,Mountain View
+california_house_price,State,object,0,,medium,String column: verify text vs categorical,CA,CA,CA
+california_house_price,Type,object,0,,medium,String column: verify text vs categorical,VacantLand,SingleFamily,SingleFamily
+data_scientist_salary,experience,object,0,,medium,String column: verify text vs categorical,6-10 yrs,8-12 yrs,3-8 yrs
+data_scientist_salary,job_description,object,1,,medium,String column: verify text vs categorical,"Must be knowledgeable and experienced in relational database concepts,Oracle Apps database architecture ...",- Experience in building scalable and highly available distributed systems;- Hands-on experience in web ...,     Our software engineers at Fiserv bring an open and creative mindset to a global team developing ...
+data_scientist_salary,job_type,object,0,,medium,String column: verify text vs categorical,Analytics,Analytics,Analytics
+fake_job_postings2,description,object,1,,medium,String column: verify text vs categorical,"Experienced Senior Cognos Developer is required having Seven (7) years experience as a SWE, in programs and contracts of similar scope, type, and complexity.",Apcera is completely re-imagining application infrastructure and deployment for large-scale systems and big data processing. Our vision is to bring the best features of the public cloud deployment mod,"Funnelback is an exciting and growing company headquartered in Canberra with offices in Sydney, Melbourne, Brisbane, London and Wellington with plans to expand into America and Asia. We provide innova"
+fake_job_postings2,required_education,object,0,,medium,String column: verify text vs categorical,Bachelor's Degree,Bachelor's Degree,Bachelor's Degree
+fake_job_postings2,required_experience,object,0,,medium,String column: verify text vs categorical,Associate,Associate,Mid-Senior level
+fake_job_postings2,salary_range,object,0,,medium,String column: verify text vs categorical,50000-65000,75000-100000,0-0
+imdb_genre_prediction,Description,object,1,,medium,String column: verify text vs categorical,"After a failed assassination attempt, a soldier finds himself stranded in the desert. Exposed to the elements, he must survive the dangers of the desert and battle the psychological and physical tolls","When Louis Bloom, a con man desperate for work, muscles into the world of L.A. crime journalism, he blurs the line between observer and participant to become the star of his own story.","In London for the Prime Minister's funeral, Mike Banning discovers a plot to assassinate all the attending world leaders."
+jc_penney_products,brand,object,0,,medium,String column: verify text vs categorical,Vans,WORTHINGTON,Vieste Rosa
+jc_penney_products,description,object,1,,medium,String column: verify text vs categorical,"Classic and comfortable, our canvas Milton skate shoes from Vans will take your casual look to an all-new level. canvas/cotton upper lace up vulcanized rubber sole","Our tank top features embroidered details on the chest and shoulders for an extra-girly finishing touch. roundneck embroidered details 31½"" front length polyester washable imported",Simulated black pearls and white crystals play off each other beautifully on our silver-tone drop earrings.  Metal: Silver-tone metal Stones: Black simulated pearls Other Stones: White crystals Back: 
+kick_starter_funding,country,object,0,,medium,String column: verify text vs categorical,US,US,US
+kick_starter_funding,currency,object,0,,medium,String column: verify text vs categorical,USD,USD,USD
+kick_starter_funding,desc,object,1,,medium,String column: verify text vs categorical,"We are trying to bring our music out to everyone who is looking for good rock music to jam to, to a world filled with electronics","Yippee! After 2 years of obstacles, I'm finally ready to self-publish my book! It's time to help parents & teachers with their boys!",A father and son battle pediatric cancer and their past traumas in order to reconcile their relationship and shape their futures.
+melbourne_airbnb,access,object,1,,medium,String column: verify text vs categorical,The apartment is fully self-contained and private for your exclusive use during your stay.  There is also a small outside deck with chairs and table.,Guests will have access to the entire property,2 Bedrooms 4 People maximum stay/ 3nights minimum stay. Own bathroom and toilet    Use of all living space.
+melbourne_airbnb,bed_type,object,0,,medium,String column: verify text vs categorical,Real Bed,Real Bed,Real Bed
+melbourne_airbnb,calendar_updated,object,0,,medium,String column: verify text vs categorical,3 days ago,2 months ago,6 months ago
+melbourne_airbnb,cancellation_policy,object,0,,medium,String column: verify text vs categorical,flexible,strict_14_with_grace_period,flexible
+melbourne_airbnb,city,object,0,,medium,String column: verify text vs categorical,Port Phillip,Kingston,Port Phillip
+melbourne_airbnb,country,object,0,,medium,String column: verify text vs categorical,Australia,Australia,Australia
+melbourne_airbnb,country_code,object,0,,medium,String column: verify text vs categorical,AU,AU,AU
+melbourne_airbnb,description,object,1,,medium,String column: verify text vs categorical,"A beautiful art deco flat right in the heart of st kilda. Just a 5 minute walk to the beach, Luna park and all the restaurants and bars. Sleeps 4 people with a spacious living room, kitchen and privat","Self contained modern apartment with its own entrance, own bathroom and own outdoor deck.  Includes microwave, kettle, toaster and fridge.  5 mins walk to shops, 12 mins walk to railway station, 15 mi",Short term Flatshare in the heart of St Kilda. 2 minutes walk to the tram or train towards CBD 10 minutes walk to st Kilda beach
+melbourne_airbnb,first_review,object,0,,medium,String column: verify text vs categorical,6/18/2018,7/31/2013,6/2/2018
+melbourne_airbnb,has_availability,object,0,,medium,String column: verify text vs categorical,t,t,t
+melbourne_airbnb,host_about,object,1,,medium,String column: verify text vs categorical,"My family love traveling and have explored many countries and enjoy camping and boating near to our home in Melbourne.
+We relish in meeting people from all cultures and try to make our guests feel ve","Single, work lots. Enjoy other people for short stays!","I'm an Australian guy who's on a trip around the world. I like board games, road trips, playing music and hiking :D"
+melbourne_airbnb,host_has_profile_pic,object,0,,medium,String column: verify text vs categorical,t,t,t
+melbourne_airbnb,host_identity_verified,object,0,,medium,String column: verify text vs categorical,t,f,t
+melbourne_airbnb,host_is_superhost,object,0,,medium,String column: verify text vs categorical,f,t,f
+melbourne_airbnb,host_neighborhood,object,0,,medium,String column: verify text vs categorical,St Kilda,St Kilda,Richmond
+melbourne_airbnb,host_response_rate,object,0,,medium,String column: verify text vs categorical,100%,0%,100%
+melbourne_airbnb,host_response_time,object,0,,medium,String column: verify text vs categorical,within an hour,a few days or more,within an hour
+melbourne_airbnb,host_since,object,0,,medium,String column: verify text vs categorical,7/5/2015,4/8/2013,2/24/2016
+melbourne_airbnb,host_verifications,object,0,,medium,String column: verify text vs categorical,"['email', 'phone', 'facebook', 'reviews', 'jumio', 'government_id']","['email', 'phone', 'reviews', 'jumio', 'offline_government_id', 'selfie', 'government_id', 'identity_manual']","['email', 'phone', 'facebook', 'reviews', 'jumio', 'government_id']"
+melbourne_airbnb,house_rules,object,1,,medium,String column: verify text vs categorical,"Please do not smoke in the flat or garden.  This is a studio flat, so the maximum number of persons that may be accommodated at the property is two adults, although we can squeeze a baby or toddler in",Guests should clean after themselves accordingly,Negotiations regarding time of stay encouraged. Cleaning can be readily organised for long stats.
+melbourne_airbnb,instant_bookable,object,0,,medium,String column: verify text vs categorical,f,f,t
+melbourne_airbnb,interaction,object,1,,medium,String column: verify text vs categorical,"We will leave you completely alone to enjoy your stay, you are welcome to ring our doorbell or call us on the phone any time during the day.","I am available to answer any questions, queries or issues as they arise during your stay.",Complete  privacy.
+melbourne_airbnb,last_review,object,0,,medium,String column: verify text vs categorical,6/18/2018,11/29/2018,6/2/2018
+melbourne_airbnb,license,object,0,,medium,String column: verify text vs categorical,62618882698,80613226814,35753401805
+melbourne_airbnb,neighborhood,object,0,,medium,String column: verify text vs categorical,St Kilda,St Kilda,Richmond
+melbourne_airbnb,neighborhood_overview,object,1,,medium,String column: verify text vs categorical,"The apartment is in a quiet residential neighbourhood, one block from local shops and cafes, a short walk to a swimming pool and gym, the beach is within walking distance.",Richmond is one of the most vibrant and diverse areas in Melbourne. It is the quintessential suburb for inner city living and has prime access to social and sporting activities.  Nestled between Colli,Double story townhouse. Host has own space upstairs but will be absent. Guests have 2 bedrooms and their own bathroom  upstairs.  Downstairs with an entertainment unit in one space and a sitting room 
+melbourne_airbnb,notes,object,1,,medium,String column: verify text vs categorical,"Please remove your shoes whilst inside, as there are floorboards and the noise travels directly below to the neighbours underneath. Thank you kindly.","If you are booking for 2 guests, our rates are based on ‘double share’ rather than ‘twin share’. If you would like to have 2 beds, our laundry charges us an extra $30 to cover the cost of washing, dry","Due to our central location, please note this room is located on the first floor with the window facing a main street - King Street, hence daily traffic noise is inevitable. Some guest may find this n"
+melbourne_airbnb,property_type,object,0,,medium,String column: verify text vs categorical,Apartment,Apartment,House
+melbourne_airbnb,require_guest_phone_verification,object,0,,medium,String column: verify text vs categorical,f,f,f
+melbourne_airbnb,require_guest_profile_picture,object,0,,medium,String column: verify text vs categorical,f,f,f
+melbourne_airbnb,requires_license,object,0,,medium,String column: verify text vs categorical,f,f,f
+melbourne_airbnb,room_type,object,0,,medium,String column: verify text vs categorical,Entire home/apt,Entire home/apt,Private room
+melbourne_airbnb,space,object,1,,medium,String column: verify text vs categorical,5 minutes walk to the beach.  1 minute walk to tram top (the 96 & 16). 1 minute walk to luna park. 15 minute tram ride to the city.,"We offer a self-contained modern apartment within the boundaries of our house. The apartment consists of a studio room with a double bed, table and two chairs, tv, a kitchenette (microwave, fridge, to",It will be a pleasure to host you in my fantastic state-of-the-art apartment on your next getaway to iconic Richmond. My home is located in a multi-award winning apartment complex located a couple of 
+melbourne_airbnb,state,object,0,,medium,String column: verify text vs categorical,VIC,VIC,VIC
+melbourne_airbnb,street,object,0,,medium,String column: verify text vs categorical,"Saint Kilda, VIC, Australia","Mordialloc, VIC, Australia","Saint Kilda, VIC, Australia"
+melbourne_airbnb,suburb,object,0,,medium,String column: verify text vs categorical,Saint Kilda,Mordialloc,Saint Kilda
+melbourne_airbnb,transit,object,1,,medium,String column: verify text vs categorical,"There is street parking available outside at no cost, there is a bus which goes to Mordialloc one way and Southland shopping mall the other 3 minutes walk away and a train station with trains to the c",To go directly into the CBD just walk 200 metres to Coppin Street – Stop 20.  From here take the # 75 Tram (Vermont South to Etihad Stadium Docklands) or the #48 (North Balwyn to Victoria Harbour Dock,"Easy public transport system, close by. - trams or bus. Can park safely on the street outside."
+melbourne_airbnb,zipcode,object,0,,medium,String column: verify text vs categorical,3182,3195,3182
+mercari_price_suggestion100K,cat1,object,0,,medium,String column: verify text vs categorical,Women,Home,Women
+mercari_price_suggestion100K,cat2,object,0,,medium,String column: verify text vs categorical,Athletic Apparel,Bedding,Women's Accessories
+mercari_price_suggestion100K,cat3,object,0,,medium,String column: verify text vs categorical,"Pants, Tights, Leggings",Blankets & Throws,Wallets
+mercari_price_suggestion100K,item_description,object,1,,medium,String column: verify text vs categorical,Brand new with tags. Lularoe size Tall and Curvy.,New in unopened online packaging Lowest price no offers please 60 X 72 Best blanket ever,"I bought this a while back on here thinking that I would attempt to dye it, but I haven't gotten around to trying. There are color transfer stains on the front and back outside. It would be a good ite"
+wine_reviews,country,object,0,,medium,String column: verify text vs categorical,US,US,Spain
+wine_reviews,description,object,1,,medium,String column: verify text vs categorical,"This is a tight, black-fruited wine, with generous flavors that include espresso and licorice. At first it's quite firm and a bit unyielding, it slowly peels open layer after layer, tossing out hints ","A nice starter Pinot for the price. Will introduce newcomers to the variety's light, silky texture and savory berry and spice flavors, touched with smoky oak.","Raw aromas of rhubarb and scratchy raspberry offer little to latch onto. The palate feels clipped and angular, while the flavors are a touch stalky and generic as far as red fruit goes. This finishes "
+wine_reviews,province,object,0,,medium,String column: verify text vs categorical,Washington,California,Northern Spain
+ae_price_prediction,rating,float64,0,,low,Numeric or other column,4.5,3.0,3.9
+ae_price_prediction,review_count,float64,0,,low,Numeric or other column,1.0,3.0,14.0
+bookprice_prediction,Ratings,float64,0,,low,Numeric or other column,16.0,13.0,2.0
+bookprice_prediction,Reviews,float64,0,,low,Numeric or other column,4.1,3.1,2.4
+california_house_price,Annual tax amount,float64,0,,low,Numeric or other column,2.252657638752787,2.355307444441454,2.34648016742308
+california_house_price,Bathrooms,float64,0,,low,Numeric or other column,2.0,1.0,3.0
+california_house_price,Elementary School Distance,float64,0,,low,Numeric or other column,0.2,1.1,1.1
+california_house_price,Elementary School Score,float64,0,,low,Numeric or other column,1.0,5.0,7.0
+california_house_price,Full bathrooms,float64,0,,low,Numeric or other column,2.0,1.0,2.0
+california_house_price,Garage spaces,float64,0,,low,Numeric or other column,2.0,1.0,2.0
+california_house_price,High School Distance,float64,0,,low,Numeric or other column,1.2,1.0,1.2
+california_house_price,High School Score,float64,0,,low,Numeric or other column,7.0,6.0,8.0
+california_house_price,Last Sold Price,float64,0,,low,Numeric or other column,950000.0,1170000.0,850000.0
+california_house_price,Listed Price,float64,0,,low,Numeric or other column,2.5854348402884493,2.6544832196220023,2.6633987757353257
+california_house_price,Lot,float64,0,,low,Numeric or other column,2.3830574225487395,2.2957433653915054,2.366527226623397
+california_house_price,Middle School Distance,float64,0,,low,Numeric or other column,0.8,1.0,0.2
+california_house_price,Middle School Score,float64,0,,low,Numeric or other column,6.0,9.0,7.0
+california_house_price,Tax assessed value,float64,0,,low,Numeric or other column,2.6318328908079858,2.7138095427538103,2.698402316880429
+california_house_price,Total interior livable area,float64,0,,low,Numeric or other column,1729.0,924.0,2520.0
+california_house_price,Total spaces,float64,0,,low,Numeric or other column,4.0,1.0,2.0
+california_house_price,Year built,float64,0,,low,Numeric or other column,1960.0,1947.0,1964.0
+california_house_price,Zip,int64,0,,low,Numeric or other column,90042,93103,94041
+imdb_genre_prediction,Metascore,float64,0,,low,Numeric or other column,40.0,76.0,28.0
+imdb_genre_prediction,Rank,int64,0,,low,Numeric or other column,161,171,425
+imdb_genre_prediction,Rating,float64,0,,low,Numeric or other column,6.0,7.9,5.9
+imdb_genre_prediction,Revenue (Millions),float64,0,,low,Numeric or other column,32.28,62.4,186.83
+imdb_genre_prediction,Runtime (Minutes),int64,0,,low,Numeric or other column,106,118,99
+imdb_genre_prediction,Votes,int64,0,,low,Numeric or other column,5926,332476,100702
+imdb_genre_prediction,Year,int64,0,,low,Numeric or other column,2016,2014,2016
+jc_penney_products,total_number_reviews,float64,0,,low,Numeric or other column,1.0,2.0,2.0
+kick_starter_funding,created_at,int64,0,,low,Numeric or other column,1413290884,1382903289,1393344159
+kick_starter_funding,deadline,int64,0,,low,Numeric or other column,1419102805,1386133200,1407494076
+kick_starter_funding,disable_communication,bool,0,,low,Numeric or other column,False,False,False
+kick_starter_funding,goal,float64,0,,low,Numeric or other column,2000.0,5000.0,60000.0
+melbourne_airbnb,accommodates,int64,0,,low,Numeric or other column,4,2,2
+melbourne_airbnb,availability_30,int64,0,,low,Numeric or other column,9,4,25
+melbourne_airbnb,availability_365,int64,0,,low,Numeric or other column,9,308,334
+melbourne_airbnb,availability_60,int64,0,,low,Numeric or other column,9,15,29
+melbourne_airbnb,availability_90,int64,0,,low,Numeric or other column,9,33,59
+melbourne_airbnb,bathrooms,float64,0,,low,Numeric or other column,1.0,1.0,1.5
+melbourne_airbnb,bedrooms,float64,0,,low,Numeric or other column,2.0,1.0,1.0
+melbourne_airbnb,beds,float64,0,,low,Numeric or other column,2.0,1.0,1.0
+melbourne_airbnb,calculated_host_listings_count,int64,0,,low,Numeric or other column,1,1,1
+melbourne_airbnb,cleaning_fee,float64,0,,low,Numeric or other column,20.0,50.0,100.0
+melbourne_airbnb,extra_people,int64,0,,low,Numeric or other column,0,0,0
+melbourne_airbnb,guests_included,int64,0,,low,Numeric or other column,1,1,1
+melbourne_airbnb,host_verifications_email,bool,0,,low,Numeric or other column,True,True,True
+melbourne_airbnb,host_verifications_facebook,bool,0,,low,Numeric or other column,True,False,True
+melbourne_airbnb,host_verifications_google,bool,0,,low,Numeric or other column,False,False,False
+melbourne_airbnb,host_verifications_government_id,bool,0,,low,Numeric or other column,True,True,True
+melbourne_airbnb,host_verifications_identity_manual,bool,0,,low,Numeric or other column,False,True,False
+melbourne_airbnb,host_verifications_jumio,bool,0,,low,Numeric or other column,True,True,True
+melbourne_airbnb,host_verifications_kba,bool,0,,low,Numeric or other column,False,False,False
+melbourne_airbnb,host_verifications_manual_offline,bool,0,,low,Numeric or other column,False,False,False
+melbourne_airbnb,host_verifications_manual_online,bool,0,,low,Numeric or other column,False,False,False
+melbourne_airbnb,host_verifications_offline_government_id,bool,0,,low,Numeric or other column,False,True,False
+melbourne_airbnb,host_verifications_phone,bool,0,,low,Numeric or other column,True,True,True
+melbourne_airbnb,host_verifications_reviews,bool,0,,low,Numeric or other column,True,True,True
+melbourne_airbnb,host_verifications_selfie,bool,0,,low,Numeric or other column,False,True,False
+melbourne_airbnb,host_verifications_sent_id,bool,0,,low,Numeric or other column,False,False,False
+melbourne_airbnb,host_verifications_sesame,bool,0,,low,Numeric or other column,False,False,False
+melbourne_airbnb,host_verifications_sesame_offline,bool,0,,low,Numeric or other column,False,False,False
+melbourne_airbnb,host_verifications_weibo,bool,0,,low,Numeric or other column,False,False,False
+melbourne_airbnb,host_verifications_work_email,bool,0,,low,Numeric or other column,False,False,False
+melbourne_airbnb,host_verifications_zhima_selfie,bool,0,,low,Numeric or other column,False,False,False
+melbourne_airbnb,latitude,float64,0,,low,Numeric or other column,-37.86577745,-37.99592279,-37.86093482
+melbourne_airbnb,longitude,float64,0,,low,Numeric or other column,144.9778219,145.09590409999998,144.9852228
+melbourne_airbnb,maximum_nights,int64,0,,low,Numeric or other column,9,1125,22
+melbourne_airbnb,minimum_nights,int64,0,,low,Numeric or other column,6,7,10
+melbourne_airbnb,number_of_reviews,int64,0,,low,Numeric or other column,1,30,1
+melbourne_airbnb,review_scores_accuracy,float64,0,,low,Numeric or other column,10.0,10.0,10.0
+melbourne_airbnb,review_scores_checkin,float64,0,,low,Numeric or other column,10.0,10.0,10.0
+melbourne_airbnb,review_scores_cleanliness,float64,0,,low,Numeric or other column,10.0,9.0,10.0
+melbourne_airbnb,review_scores_communication,float64,0,,low,Numeric or other column,10.0,10.0,10.0
+melbourne_airbnb,review_scores_rating,float64,0,,low,Numeric or other column,95.0,96.0,99.0
+melbourne_airbnb,review_scores_value,float64,0,,low,Numeric or other column,9.0,9.0,10.0
+melbourne_airbnb,reviews_per_month,float64,0,,low,Numeric or other column,0.17,0.46,0.16
+melbourne_airbnb,security_deposit,float64,0,,low,Numeric or other column,0.0,500.0,350.0
+mercari_price_suggestion100K,item_condition_id,int64,0,,low,Numeric or other column,1,1,4
+mercari_price_suggestion100K,shipping,int64,0,,low,Numeric or other column,0,0,0
+news_channel, average_token_length,float64,0,,low,Numeric or other column,4.36274509804,4.52064220183,4.46096654275
+news_channel, global_rate_negative_words,float64,0,,low,Numeric or other column,0.016339869281,0.00917431192661,0.0111524163569
+news_channel, global_rate_positive_words,float64,0,,low,Numeric or other column,0.0490196078431,0.045871559633,0.0297397769517
+news_channel, global_sentiment_polarity,float64,0,,low,Numeric or other column,0.126681651682,0.175208152958,0.0904166666667
+news_channel, global_subjectivity,float64,0,,low,Numeric or other column,0.374637862138,0.436175324675,0.504583333333
+news_channel, n_non_stop_unique_tokens,float64,0,,low,Numeric or other column,0.648351644789,0.729323305529,0.845070416584
+news_channel, n_non_stop_words,float64,0,,low,Numeric or other column,0.999999994505,0.999999996241,0.999999992958
+news_channel, n_tokens_content,float64,0,,low,Numeric or other column,306.0,436.0,269.0
+news_channel, n_unique_tokens,float64,0,,low,Numeric or other column,0.513333331622,0.577367204209,0.604562735344
+news_channel, num_hrefs,float64,0,,low,Numeric or other column,7.0,4.0,4.0
+news_channel, num_imgs,float64,0,,low,Numeric or other column,2.0,1.0,0.0
+news_channel, num_self_hrefs,float64,0,,low,Numeric or other column,3.0,2.0,1.0
+news_channel, num_videos,float64,0,,low,Numeric or other column,0.0,0.0,0.0
+news_channel, rate_negative_words,float64,0,,low,Numeric or other column,0.25,0.166666666667,0.272727272727
+news_channel, rate_positive_words,float64,0,,low,Numeric or other column,0.75,0.833333333333,0.727272727273
+news_popularity2, average_token_length,float64,0,,low,Numeric or other column,4.1592039801,4.26630434783,4.24845488257
+news_popularity2, n_tokens_content,float64,0,,low,Numeric or other column,402.0,184.0,809.0
+wine_reviews,points,int64,0,,low,Numeric or other column,92,86,83
+wine_reviews,price,float64,0,,low,Numeric or other column,28.0,14.0,15.0

@@ -1,0 +1,539 @@
+{
+    "music department": [
+        {
+            "canonical name": "Tuunela, Arto", 
+            "name": "Arto Tuunela", 
+            "long imdb name": "Arto Tuunela", 
+            "long imdb canonical name": "Tuunela, Arto"
+        }
+    ], 
+    "camera and electrical department": [
+        {
+            "canonical name": "Er\u00e4nen, Elina", 
+            "name": "Elina Er\u00e4nen", 
+            "long imdb name": "Elina Er\u00e4nen", 
+            "long imdb canonical name": "Er\u00e4nen, Elina"
+        }, 
+        {
+            "canonical name": "Liikanen, Jarkko", 
+            "name": "Jarkko Liikanen", 
+            "long imdb name": "Jarkko Liikanen", 
+            "long imdb canonical name": "Liikanen, Jarkko"
+        }, 
+        {
+            "canonical name": "Mutka, Perttu", 
+            "name": "Perttu Mutka", 
+            "long imdb name": "Perttu Mutka", 
+            "long imdb canonical name": "Mutka, Perttu"
+        }, 
+        {
+            "canonical name": "Wacklin, Henry", 
+            "name": "Henry Wacklin", 
+            "long imdb name": "Henry Wacklin", 
+            "long imdb canonical name": "Wacklin, Henry"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "Nordisk Film", 
+            "long imdb name": "Nordisk Film"
+        }, 
+        {
+            "name": "Nelonen", 
+            "long imdb name": "Nelonen"
+        }
+    ], 
+    "rating": 6.2, 
+    "runtimes": [
+        "85"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "Taskinen, Henna-Riikka", 
+            "name": "Henna-Riikka Taskinen", 
+            "long imdb name": "Henna-Riikka Taskinen", 
+            "long imdb canonical name": "Taskinen, Henna-Riikka"
+        }
+    ], 
+    "thanks": [
+        {
+            "canonical name": "Kallio, Ida", 
+            "name": "Ida Kallio", 
+            "long imdb name": "Ida Kallio", 
+            "long imdb canonical name": "Kallio, Ida"
+        }
+    ], 
+    "make up": [
+        {
+            "canonical name": "R\u00e4is\u00e4nen, Saara", 
+            "name": "Saara R\u00e4is\u00e4nen", 
+            "long imdb name": "Saara R\u00e4is\u00e4nen", 
+            "long imdb canonical name": "R\u00e4is\u00e4nen, Saara"
+        }
+    ], 
+    "year": 2012, 
+    "production design": [
+        {
+            "canonical name": "Linnalaakso, Otso", 
+            "name": "Otso Linnalaakso", 
+            "long imdb name": "Otso Linnalaakso", 
+            "long imdb canonical name": "Linnalaakso, Otso"
+        }
+    ], 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Hypp\u00f6nen, Anita", 
+            "name": "Anita Hypp\u00f6nen", 
+            "long imdb name": "Anita Hypp\u00f6nen", 
+            "long imdb canonical name": "Hypp\u00f6nen, Anita"
+        }, 
+        {
+            "canonical name": "Kumpula, Henna", 
+            "name": "Henna Kumpula", 
+            "long imdb name": "Henna Kumpula", 
+            "long imdb canonical name": "Kumpula, Henna"
+        }, 
+        {
+            "canonical name": "Sutinen, Laura", 
+            "name": "Laura Sutinen", 
+            "long imdb name": "Laura Sutinen", 
+            "long imdb canonical name": "Sutinen, Laura"
+        }, 
+        {
+            "canonical name": "Viitala, Kaisla", 
+            "name": "Kaisla Viitala", 
+            "long imdb name": "Kaisla Viitala", 
+            "long imdb canonical name": "Viitala, Kaisla"
+        }
+    ], 
+    "production companies": [
+        {
+            "name": "Bronson Club", 
+            "long imdb name": "Bronson Club"
+        }, 
+        {
+            "name": "Solar Films", 
+            "long imdb name": "Solar Films"
+        }
+    ], 
+    "color info": [], 
+    "visual effects": [
+        {
+            "canonical name": "Selin, Juuso", 
+            "name": "Juuso Selin", 
+            "long imdb name": "Juuso Selin", 
+            "long imdb canonical name": "Selin, Juuso"
+        }
+    ], 
+    "votes": 909, 
+    "producer": [
+        {
+            "canonical name": "Fryckman, Jesse", 
+            "name": "Jesse Fryckman", 
+            "long imdb name": "Jesse Fryckman", 
+            "long imdb canonical name": "Fryckman, Jesse"
+        }, 
+        {
+            "canonical name": "Helle, Jukka", 
+            "name": "Jukka Helle", 
+            "long imdb name": "Jukka Helle", 
+            "long imdb canonical name": "Helle, Jukka"
+        }, 
+        {
+            "canonical name": "Huttu, Oskari", 
+            "name": "Oskari Huttu", 
+            "long imdb name": "Oskari Huttu", 
+            "long imdb canonical name": "Huttu, Oskari"
+        }, 
+        {
+            "canonical name": "Selin, Markus", 
+            "name": "Markus Selin", 
+            "long imdb name": "Markus Selin", 
+            "long imdb canonical name": "Selin, Markus"
+        }, 
+        {
+            "canonical name": "Suomela, Essi", 
+            "name": "Essi Suomela", 
+            "long imdb name": "Essi Suomela", 
+            "long imdb canonical name": "Suomela, Essi"
+        }
+    ], 
+    "title": "Kulman pojat", 
+    "assistant director": [
+        {
+            "canonical name": "Purola, Mika", 
+            "name": "Mika Purola", 
+            "long imdb name": "Mika Purola", 
+            "long imdb canonical name": "Purola, Mika"
+        }, 
+        {
+            "canonical name": "Turunen, Timo", 
+            "name": "Timo Turunen", 
+            "long imdb name": "Timo Turunen", 
+            "long imdb canonical name": "Turunen, Timo"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "Airaksinen, Teppo", 
+            "name": "Teppo Airaksinen", 
+            "long imdb name": "Teppo Airaksinen", 
+            "long imdb canonical name": "Airaksinen, Teppo"
+        }, 
+        {
+            "canonical name": "Kaj\u00e1n, Jaakko", 
+            "name": "Jaakko Kaj\u00e1n", 
+            "long imdb name": "Jaakko Kaj\u00e1n", 
+            "long imdb canonical name": "Kaj\u00e1n, Jaakko"
+        }
+    ], 
+    "long imdb canonical title": "Kulman pojat (2012)", 
+    "languages": [
+        "Finnish"
+    ], 
+    "production manager": [
+        {
+            "canonical name": "Enroth, Jonna", 
+            "name": "Jonna Enroth", 
+            "long imdb name": "Jonna Enroth", 
+            "long imdb canonical name": "Enroth, Jonna"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Rautaniemi, Jussi", 
+            "name": "Jussi Rautaniemi", 
+            "long imdb name": "Jussi Rautaniemi", 
+            "long imdb canonical name": "Rautaniemi, Jussi"
+        }
+    ], 
+    "certificates": [
+        "Finland:K-12"
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "Hirvonen, Samppa", 
+            "name": "Samppa Hirvonen", 
+            "long imdb name": "Samppa Hirvonen", 
+            "long imdb canonical name": "Hirvonen, Samppa"
+        }, 
+        {
+            "canonical name": "Hulkkonen, Erno", 
+            "name": "Erno Hulkkonen", 
+            "long imdb name": "Erno Hulkkonen", 
+            "long imdb canonical name": "Hulkkonen, Erno"
+        }, 
+        {
+            "canonical name": "Kokkonen, Janne", 
+            "name": "Janne Kokkonen", 
+            "long imdb name": "Janne Kokkonen", 
+            "long imdb canonical name": "Kokkonen, Janne"
+        }, 
+        {
+            "canonical name": "Niinivaara, Karri", 
+            "name": "Karri Niinivaara", 
+            "long imdb name": "Karri Niinivaara", 
+            "long imdb canonical name": "Niinivaara, Karri"
+        }, 
+        {
+            "canonical name": "Tigerstedt, Simo", 
+            "name": "Simo Tigerstedt", 
+            "long imdb name": "Simo Tigerstedt", 
+            "long imdb canonical name": "Tigerstedt, Simo"
+        }
+    ], 
+    "long imdb title": "Kulman pojat (2012)", 
+    "country codes": [
+        "fi"
+    ], 
+    "language codes": [
+        "fi"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BMTY5NzY1MDc3OF5BMl5BanBnXkFtZTcwMzAwODUyNw@@._V1._SX98_SY140_.jpg", 
+    "plot": [
+        "A buddy comedy about a fanatic small town football supporter who falls in love with a perfect girl, only to notice that his dream-girl supports the wrong football team. Now he has to befriend the enemy or forget the girl he loves."
+    ], 
+    "genres": [
+        "Comedy"
+    ], 
+    "director": [
+        {
+            "canonical name": "Airaksinen, Teppo", 
+            "name": "Teppo Airaksinen", 
+            "long imdb name": "Teppo Airaksinen", 
+            "long imdb canonical name": "Airaksinen, Teppo"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "H\u00f6gman, Teppo", 
+            "name": "Teppo H\u00f6gman", 
+            "long imdb name": "Teppo H\u00f6gman", 
+            "long imdb canonical name": "H\u00f6gman, Teppo"
+        }
+    ], 
+    "akas": [
+        "Fanatics::International (English title) (imdb display title)", 
+        "Fanatiker::Finland (Swedish title) (imdb display title)"
+    ], 
+    "aspect ratio": "2.35 : 1", 
+    "location management": [
+        {
+            "canonical name": "Suksi, Saku", 
+            "name": "Saku Suksi", 
+            "long imdb name": "Saku Suksi", 
+            "long imdb canonical name": "Suksi, Saku"
+        }
+    ], 
+    "kind": "movie", 
+    "countries": [
+        "Finland"
+    ], 
+    "plot outline": "A buddy comedy about a fanatic small town football supporter who falls in love with a perfect girl, only to notice that his dream-girl supports the wrong football team. Now he has to befriend the enemy or forget the girl he loves.", 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BMTY5NzY1MDc3OF5BMl5BanBnXkFtZTcwMzAwODUyNw@@.jpg", 
+    "canonical title": "Kulman pojat", 
+    "cast": [
+        {
+            "canonical name": "Ritala, Eero", 
+            "name": "Eero Ritala", 
+            "long imdb name": "Eero Ritala", 
+            "long imdb canonical name": "Ritala, Eero"
+        }, 
+        {
+            "canonical name": "Saartamo, Joonas", 
+            "name": "Joonas Saartamo", 
+            "long imdb name": "Joonas Saartamo", 
+            "long imdb canonical name": "Saartamo, Joonas"
+        }, 
+        {
+            "canonical name": "Vatanen, Jussi", 
+            "name": "Jussi Vatanen", 
+            "long imdb name": "Jussi Vatanen", 
+            "long imdb canonical name": "Vatanen, Jussi"
+        }, 
+        {
+            "canonical name": "Kaihua, Lotta", 
+            "name": "Lotta Kaihua", 
+            "long imdb name": "Lotta Kaihua", 
+            "long imdb canonical name": "Kaihua, Lotta"
+        }, 
+        {
+            "canonical name": "Tiihonen, Ville", 
+            "name": "Ville Tiihonen", 
+            "long imdb name": "Ville Tiihonen", 
+            "long imdb canonical name": "Tiihonen, Ville"
+        }, 
+        {
+            "canonical name": "Ravi, Janne", 
+            "name": "Janne Ravi", 
+            "long imdb name": "Janne Ravi", 
+            "long imdb canonical name": "Ravi, Janne"
+        }, 
+        {
+            "canonical name": "V\u00e4re, Antti", 
+            "name": "Antti V\u00e4re", 
+            "long imdb name": "Antti V\u00e4re", 
+            "long imdb canonical name": "V\u00e4re, Antti"
+        }, 
+        {
+            "canonical name": "Turunen, Markus", 
+            "name": "Markus Turunen", 
+            "long imdb name": "Markus Turunen", 
+            "long imdb canonical name": "Turunen, Markus"
+        }, 
+        {
+            "canonical name": "Niittym\u00e4ki, Samuli", 
+            "name": "Samuli Niittym\u00e4ki", 
+            "long imdb name": "Samuli Niittym\u00e4ki", 
+            "long imdb canonical name": "Niittym\u00e4ki, Samuli"
+        }, 
+        {
+            "canonical name": "Ahvo, Eija", 
+            "name": "Eija Ahvo", 
+            "long imdb name": "Eija Ahvo", 
+            "long imdb canonical name": "Ahvo, Eija"
+        }, 
+        {
+            "canonical name": "Rantatalo, Petteri", 
+            "name": "Petteri Rantatalo", 
+            "long imdb name": "Petteri Rantatalo", 
+            "long imdb canonical name": "Rantatalo, Petteri"
+        }, 
+        {
+            "canonical name": "Virman, Jari", 
+            "name": "Jari Virman", 
+            "long imdb name": "Jari Virman", 
+            "long imdb canonical name": "Virman, Jari"
+        }, 
+        {
+            "canonical name": "Johansson, Pia", 
+            "name": "Pia Johansson", 
+            "long imdb name": "Pia Johansson", 
+            "long imdb canonical name": "Johansson, Pia"
+        }, 
+        {
+            "canonical name": "Mujunen, Terttu", 
+            "name": "Terttu Mujunen", 
+            "long imdb name": "Terttu Mujunen", 
+            "long imdb canonical name": "Mujunen, Terttu"
+        }, 
+        {
+            "canonical name": "Moskuvaara, Jukka", 
+            "name": "Jukka Moskuvaara", 
+            "long imdb name": "Jukka Moskuvaara", 
+            "long imdb canonical name": "Moskuvaara, Jukka"
+        }, 
+        {
+            "canonical name": "Salminen, Matti", 
+            "name": "Matti Salminen", 
+            "long imdb name": "Matti Salminen", 
+            "long imdb canonical name": "Salminen, Matti"
+        }, 
+        {
+            "canonical name": "Heinonen, Iida-Maria", 
+            "name": "Iida-Maria Heinonen", 
+            "long imdb name": "Iida-Maria Heinonen", 
+            "long imdb canonical name": "Heinonen, Iida-Maria"
+        }, 
+        {
+            "canonical name": "Sorjonen, Matti", 
+            "name": "Matti Sorjonen", 
+            "long imdb name": "Matti Sorjonen", 
+            "long imdb canonical name": "Sorjonen, Matti"
+        }, 
+        {
+            "canonical name": "Tampio, Jouni", 
+            "name": "Jouni Tampio", 
+            "long imdb name": "Jouni Tampio", 
+            "long imdb canonical name": "Tampio, Jouni"
+        }, 
+        {
+            "canonical name": "Kinnunen, Janne", 
+            "name": "Janne Kinnunen", 
+            "long imdb name": "Janne Kinnunen", 
+            "long imdb canonical name": "Kinnunen, Janne"
+        }, 
+        {
+            "canonical name": "Paavilainen, Antti", 
+            "name": "Antti Paavilainen", 
+            "long imdb name": "Antti Paavilainen", 
+            "long imdb canonical name": "Paavilainen, Antti"
+        }, 
+        {
+            "canonical name": "Koskenkorva, Saila", 
+            "name": "Saila Koskenkorva", 
+            "long imdb name": "Saila Koskenkorva", 
+            "long imdb canonical name": "Koskenkorva, Saila"
+        }, 
+        {
+            "canonical name": "Koskenkorva, Atte", 
+            "name": "Atte Koskenkorva", 
+            "long imdb name": "Atte Koskenkorva", 
+            "long imdb canonical name": "Koskenkorva, Atte"
+        }, 
+        {
+            "canonical name": "Timonen, Seppo", 
+            "name": "Seppo Timonen", 
+            "long imdb name": "Seppo Timonen", 
+            "long imdb canonical name": "Timonen, Seppo"
+        }, 
+        {
+            "canonical name": "Silvonen, Roope", 
+            "name": "Roope Silvonen", 
+            "long imdb name": "Roope Silvonen", 
+            "long imdb canonical name": "Silvonen, Roope"
+        }, 
+        {
+            "canonical name": "Konttinen, Elisa", 
+            "name": "Elisa Konttinen", 
+            "long imdb name": "Elisa Konttinen", 
+            "long imdb canonical name": "Konttinen, Elisa"
+        }, 
+        {
+            "canonical name": "Martikainen, Antti", 
+            "name": "Antti Martikainen", 
+            "long imdb name": "Antti Martikainen", 
+            "long imdb canonical name": "Martikainen, Antti"
+        }, 
+        {
+            "canonical name": "Riihel\u00e4inen, Janne", 
+            "name": "Janne Riihel\u00e4inen", 
+            "long imdb name": "Janne Riihel\u00e4inen", 
+            "long imdb canonical name": "Riihel\u00e4inen, Janne"
+        }, 
+        {
+            "canonical name": "Heiskanen, Thomas", 
+            "name": "Thomas Heiskanen", 
+            "long imdb name": "Thomas Heiskanen", 
+            "long imdb canonical name": "Heiskanen, Thomas"
+        }, 
+        {
+            "canonical name": "Fr\u00e4ntil\u00e4, Aleksi", 
+            "name": "Aleksi Fr\u00e4ntil\u00e4", 
+            "long imdb name": "Aleksi Fr\u00e4ntil\u00e4", 
+            "long imdb canonical name": "Fr\u00e4ntil\u00e4, Aleksi"
+        }, 
+        {
+            "canonical name": "M\u00f6nttinen, Tommi", 
+            "name": "Tommi M\u00f6nttinen", 
+            "long imdb name": "Tommi M\u00f6nttinen", 
+            "long imdb canonical name": "M\u00f6nttinen, Tommi"
+        }, 
+        {
+            "canonical name": "Parkkinen, Eeli", 
+            "name": "Eeli Parkkinen", 
+            "long imdb name": "Eeli Parkkinen", 
+            "long imdb canonical name": "Parkkinen, Eeli"
+        }, 
+        {
+            "canonical name": "Turunen, Aleksi", 
+            "name": "Aleksi Turunen", 
+            "long imdb name": "Aleksi Turunen", 
+            "long imdb canonical name": "Turunen, Aleksi"
+        }, 
+        {
+            "canonical name": "Turunen, Leevi", 
+            "name": "Leevi Turunen", 
+            "long imdb name": "Leevi Turunen", 
+            "long imdb canonical name": "Turunen, Leevi"
+        }, 
+        {
+            "canonical name": "Hassinen, Katriina", 
+            "name": "Katriina Hassinen", 
+            "long imdb name": "Katriina Hassinen", 
+            "long imdb canonical name": "Hassinen, Katriina"
+        }, 
+        {
+            "canonical name": "Pentik\u00e4inen, Niko", 
+            "name": "Niko Pentik\u00e4inen", 
+            "long imdb name": "Niko Pentik\u00e4inen", 
+            "long imdb canonical name": "Pentik\u00e4inen, Niko"
+        }, 
+        {
+            "canonical name": "Mustonen, Timo", 
+            "name": "Timo Mustonen", 
+            "long imdb name": "Timo Mustonen", 
+            "long imdb canonical name": "Mustonen, Timo"
+        }, 
+        {
+            "canonical name": "Kettunen, Aatu", 
+            "name": "Aatu Kettunen", 
+            "long imdb name": "Aatu Kettunen", 
+            "long imdb canonical name": "Kettunen, Aatu"
+        }, 
+        {
+            "canonical name": "Kettunen, Eemeli", 
+            "name": "Eemeli Kettunen", 
+            "long imdb name": "Eemeli Kettunen", 
+            "long imdb canonical name": "Kettunen, Eemeli"
+        }, 
+        {
+            "canonical name": "L\u00e4ntinen, Tommi", 
+            "name": "Tommi L\u00e4ntinen", 
+            "long imdb name": "Tommi L\u00e4ntinen", 
+            "long imdb canonical name": "L\u00e4ntinen, Tommi"
+        }
+    ], 
+    "smart long imdb canonical title": "Kulman pojat (2012)", 
+    "smart canonical title": "Kulman pojat"
+}

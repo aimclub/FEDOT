@@ -1,0 +1,728 @@
+{
+    "music department": [
+        {
+            "canonical name": "Apte, Mandar", 
+            "name": "Mandar Apte", 
+            "long imdb name": "Mandar Apte", 
+            "long imdb canonical name": "Apte, Mandar"
+        }, 
+        {
+            "canonical name": "Banerjee, Dibakar", 
+            "name": "Dibakar Banerjee", 
+            "long imdb name": "Dibakar Banerjee", 
+            "long imdb canonical name": "Banerjee, Dibakar"
+        }, 
+        {
+            "canonical name": "Banerjee, Dibakar", 
+            "name": "Dibakar Banerjee", 
+            "long imdb name": "Dibakar Banerjee", 
+            "long imdb canonical name": "Banerjee, Dibakar"
+        }, 
+        {
+            "canonical name": "Dadlani, Vishal", 
+            "name": "Vishal Dadlani", 
+            "long imdb name": "Vishal Dadlani", 
+            "long imdb canonical name": "Dadlani, Vishal"
+        }, 
+        {
+            "canonical name": "Dadlani, Vishal", 
+            "name": "Vishal Dadlani", 
+            "long imdb name": "Vishal Dadlani", 
+            "long imdb canonical name": "Dadlani, Vishal"
+        }, 
+        {
+            "canonical name": "Guptan, Anvita Dutt", 
+            "name": "Anvita Dutt Guptan", 
+            "long imdb name": "Anvita Dutt Guptan", 
+            "long imdb canonical name": "Guptan, Anvita Dutt"
+        }, 
+        {
+            "canonical name": "Hasan, Raja", 
+            "name": "Raja Hasan", 
+            "long imdb name": "Raja Hasan", 
+            "long imdb canonical name": "Hasan, Raja"
+        }, 
+        {
+            "canonical name": "Ingle, Arun", 
+            "name": "Arun Ingle", 
+            "long imdb name": "Arun Ingle", 
+            "long imdb canonical name": "Ingle, Arun"
+        }, 
+        {
+            "canonical name": "Krishna, Srivatsa", 
+            "name": "Srivatsa Krishna", 
+            "long imdb name": "Srivatsa Krishna", 
+            "long imdb canonical name": "Krishna, Srivatsa"
+        }, 
+        {
+            "canonical name": "Kumaar", 
+            "name": "Kumaar", 
+            "long imdb name": "Kumaar", 
+            "long imdb canonical name": "Kumaar"
+        }, 
+        {
+            "canonical name": "McCleary, Mikey", 
+            "name": "Mikey McCleary", 
+            "long imdb name": "Mikey McCleary", 
+            "long imdb canonical name": "McCleary, Mikey"
+        }, 
+        {
+            "canonical name": "Misra, Neelesh", 
+            "name": "Neelesh Misra", 
+            "long imdb name": "Neelesh Misra", 
+            "long imdb canonical name": "Misra, Neelesh"
+        }, 
+        {
+            "canonical name": "Ravjiani, Shekhar", 
+            "name": "Shekhar Ravjiani", 
+            "long imdb name": "Shekhar Ravjiani", 
+            "long imdb canonical name": "Ravjiani, Shekhar"
+        }, 
+        {
+            "canonical name": "Sagathia, Kirti", 
+            "name": "Kirti Sagathia", 
+            "long imdb name": "Kirti Sagathia", 
+            "long imdb canonical name": "Sagathia, Kirti"
+        }, 
+        {
+            "canonical name": "Sharma, Richa", 
+            "name": "Richa Sharma", 
+            "long imdb name": "Richa Sharma", 
+            "long imdb canonical name": "Sharma, Richa"
+        }, 
+        {
+            "canonical name": "Singh, Arjit", 
+            "name": "Arjit Singh", 
+            "long imdb name": "Arjit Singh", 
+            "long imdb canonical name": "Singh, Arjit"
+        }, 
+        {
+            "canonical name": "Sohoni, Chintamani", 
+            "name": "Chintamani Sohoni", 
+            "long imdb name": "Chintamani Sohoni", 
+            "long imdb canonical name": "Sohoni, Chintamani"
+        }, 
+        {
+            "canonical name": "Srikar, Nandini", 
+            "name": "Nandini Srikar", 
+            "long imdb name": "Nandini Srikar", 
+            "long imdb canonical name": "Srikar, Nandini"
+        }
+    ], 
+    "camera and electrical department": [
+        {
+            "canonical name": "Meer, Sidharth", 
+            "name": "Sidharth Meer", 
+            "long imdb name": "Sidharth Meer", 
+            "long imdb canonical name": "Meer, Sidharth"
+        }, 
+        {
+            "canonical name": "Singh, Priyanka", 
+            "name": "Priyanka Singh", 
+            "long imdb name": "Priyanka Singh", 
+            "long imdb canonical name": "Singh, Priyanka"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "Mind Blowing Films", 
+            "long imdb name": "Mind Blowing Films"
+        }, 
+        {
+            "name": "New Star", 
+            "long imdb name": "New Star"
+        }
+    ], 
+    "rating": 7.3, 
+    "runtimes": [
+        "120"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "Nath, Manoshi", 
+            "name": "Manoshi Nath", 
+            "long imdb name": "Manoshi Nath", 
+            "long imdb canonical name": "Nath, Manoshi"
+        }, 
+        {
+            "canonical name": "Sharma, Rushi", 
+            "name": "Rushi Sharma", 
+            "long imdb name": "Rushi Sharma", 
+            "long imdb canonical name": "Sharma, Rushi"
+        }
+    ], 
+    "make up": [
+        {
+            "canonical name": "DeVitre, Ayesha", 
+            "name": "Ayesha DeVitre", 
+            "long imdb name": "Ayesha DeVitre", 
+            "long imdb canonical name": "DeVitre, Ayesha"
+        }
+    ], 
+    "year": 2012, 
+    "production design": [
+        {
+            "canonical name": "Kataria, Vandana", 
+            "name": "Vandana Kataria", 
+            "long imdb name": "Vandana Kataria", 
+            "long imdb canonical name": "Kataria, Vandana"
+        }
+    ], 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Aggarwal, Mansi", 
+            "name": "Mansi Aggarwal", 
+            "long imdb name": "Mansi Aggarwal", 
+            "long imdb canonical name": "Aggarwal, Mansi"
+        }, 
+        {
+            "canonical name": "Bhattacharjee, Sagnik", 
+            "name": "Sagnik Bhattacharjee", 
+            "long imdb name": "Sagnik Bhattacharjee", 
+            "long imdb canonical name": "Bhattacharjee, Sagnik"
+        }, 
+        {
+            "canonical name": "Dhillon, Aman", 
+            "name": "Aman Dhillon", 
+            "long imdb name": "Aman Dhillon", 
+            "long imdb canonical name": "Dhillon, Aman"
+        }, 
+        {
+            "canonical name": "Mongia, Atul", 
+            "name": "Atul Mongia", 
+            "long imdb name": "Atul Mongia", 
+            "long imdb canonical name": "Mongia, Atul"
+        }, 
+        {
+            "canonical name": "More, Aniket", 
+            "name": "Aniket More", 
+            "long imdb name": "Aniket More", 
+            "long imdb canonical name": "More, Aniket"
+        }, 
+        {
+            "canonical name": "Muthamparambil, Vikas", 
+            "name": "Vikas Muthamparambil", 
+            "long imdb name": "Vikas Muthamparambil", 
+            "long imdb canonical name": "Muthamparambil, Vikas"
+        }, 
+        {
+            "canonical name": "Padda, Binny", 
+            "name": "Binny Padda", 
+            "long imdb name": "Binny Padda", 
+            "long imdb canonical name": "Padda, Binny"
+        }, 
+        {
+            "canonical name": "Padda, Ravi", 
+            "name": "Ravi Padda", 
+            "long imdb name": "Ravi Padda", 
+            "long imdb canonical name": "Padda, Ravi"
+        }, 
+        {
+            "canonical name": "Upadhyay, Risheeka", 
+            "name": "Risheeka Upadhyay", 
+            "long imdb name": "Risheeka Upadhyay", 
+            "long imdb canonical name": "Upadhyay, Risheeka"
+        }
+    ], 
+    "long imdb canonical title": "Shanghai (2012)", 
+    "color info": [], 
+    "visual effects": [
+        {
+            "canonical name": "D'Souza, Carrel", 
+            "name": "Carrel D'Souza", 
+            "long imdb name": "Carrel D'Souza", 
+            "long imdb canonical name": "D'Souza, Carrel"
+        }, 
+        {
+            "canonical name": "Das, Soumen", 
+            "name": "Soumen Das", 
+            "long imdb name": "Soumen Das", 
+            "long imdb canonical name": "Das, Soumen"
+        }, 
+        {
+            "canonical name": "Navlakha, Paresh", 
+            "name": "Paresh Navlakha", 
+            "long imdb name": "Paresh Navlakha", 
+            "long imdb canonical name": "Navlakha, Paresh"
+        }, 
+        {
+            "canonical name": "Raghunathan, Rajiv", 
+            "name": "Rajiv Raghunathan", 
+            "long imdb name": "Rajiv Raghunathan", 
+            "long imdb canonical name": "Raghunathan, Rajiv"
+        }, 
+        {
+            "canonical name": "Rasheed, Abdul", 
+            "name": "Abdul Rasheed", 
+            "long imdb name": "Abdul Rasheed", 
+            "long imdb canonical name": "Rasheed, Abdul"
+        }, 
+        {
+            "canonical name": "Rathore, Shubham Singh", 
+            "name": "Shubham Singh Rathore", 
+            "long imdb name": "Shubham Singh Rathore", 
+            "long imdb canonical name": "Rathore, Shubham Singh"
+        }, 
+        {
+            "canonical name": "Selvakumar", 
+            "name": "Selvakumar", 
+            "long imdb name": "Selvakumar", 
+            "long imdb canonical name": "Selvakumar"
+        }
+    ], 
+    "votes": 6904, 
+    "producer": [
+        {
+            "canonical name": "Banerjee, Dibakar", 
+            "name": "Dibakar Banerjee", 
+            "long imdb name": "Dibakar Banerjee", 
+            "long imdb canonical name": "Banerjee, Dibakar"
+        }, 
+        {
+            "canonical name": "Bijli, Ajay", 
+            "name": "Ajay Bijli", 
+            "long imdb name": "Ajay Bijli", 
+            "long imdb canonical name": "Bijli, Ajay"
+        }, 
+        {
+            "canonical name": "Bijli, Sanjeev K.", 
+            "name": "Sanjeev K. Bijli", 
+            "long imdb name": "Sanjeev K. Bijli", 
+            "long imdb canonical name": "Bijli, Sanjeev K."
+        }, 
+        {
+            "canonical name": "Khan, Wasim", 
+            "name": "Wasim Khan", 
+            "long imdb name": "Wasim Khan", 
+            "long imdb canonical name": "Khan, Wasim"
+        }, 
+        {
+            "canonical name": "Rathore, Kuldeep", 
+            "name": "Kuldeep Rathore", 
+            "long imdb name": "Kuldeep Rathore", 
+            "long imdb canonical name": "Rathore, Kuldeep"
+        }, 
+        {
+            "canonical name": "Sreedharan, Priya", 
+            "name": "Priya Sreedharan", 
+            "long imdb name": "Priya Sreedharan", 
+            "long imdb canonical name": "Sreedharan, Priya"
+        }
+    ], 
+    "title": "Shanghai", 
+    "assistant director": [
+        {
+            "canonical name": "Dhillon, Aman", 
+            "name": "Aman Dhillon", 
+            "long imdb name": "Aman Dhillon", 
+            "long imdb canonical name": "Dhillon, Aman"
+        }, 
+        {
+            "canonical name": "Jha, Randeep Kumar", 
+            "name": "Randeep Kumar Jha", 
+            "long imdb name": "Randeep Kumar Jha", 
+            "long imdb canonical name": "Jha, Randeep Kumar"
+        }, 
+        {
+            "canonical name": "Kasturia, Naveen", 
+            "name": "Naveen Kasturia", 
+            "long imdb name": "Naveen Kasturia", 
+            "long imdb canonical name": "Kasturia, Naveen"
+        }, 
+        {
+            "canonical name": "Muthamparambil, Vikas", 
+            "name": "Vikas Muthamparambil", 
+            "long imdb name": "Vikas Muthamparambil", 
+            "long imdb canonical name": "Muthamparambil, Vikas"
+        }, 
+        {
+            "canonical name": "Upadhyay, Risheeka", 
+            "name": "Risheeka Upadhyay", 
+            "long imdb name": "Risheeka Upadhyay", 
+            "long imdb canonical name": "Upadhyay, Risheeka"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "Vasilikos, Vasilis", 
+            "name": "Vasilis Vasilikos", 
+            "long imdb name": "Vasilis Vasilikos", 
+            "long imdb canonical name": "Vasilikos, Vasilis"
+        }, 
+        {
+            "canonical name": "Juvekar, Urmi", 
+            "name": "Urmi Juvekar", 
+            "long imdb name": "Urmi Juvekar", 
+            "long imdb canonical name": "Juvekar, Urmi"
+        }, 
+        {
+            "canonical name": "Banerjee, Dibakar", 
+            "name": "Dibakar Banerjee", 
+            "long imdb name": "Dibakar Banerjee", 
+            "long imdb canonical name": "Banerjee, Dibakar"
+        }
+    ], 
+    "casting director": [
+        {
+            "canonical name": "Mongia, Atul", 
+            "name": "Atul Mongia", 
+            "long imdb name": "Atul Mongia", 
+            "long imdb canonical name": "Mongia, Atul"
+        }
+    ], 
+    "languages": [
+        "Hindi"
+    ], 
+    "production manager": [
+        {
+            "canonical name": "Goswami, Arvind", 
+            "name": "Arvind Goswami", 
+            "long imdb name": "Arvind Goswami", 
+            "long imdb canonical name": "Goswami, Arvind"
+        }, 
+        {
+            "canonical name": "Goswami, Arvind", 
+            "name": "Arvind Goswami", 
+            "long imdb name": "Arvind Goswami", 
+            "long imdb canonical name": "Goswami, Arvind"
+        }, 
+        {
+            "canonical name": "Shaikh, Shabbir", 
+            "name": "Shabbir Shaikh", 
+            "long imdb name": "Shabbir Shaikh", 
+            "long imdb canonical name": "Shaikh, Shabbir"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Rao, Namrata", 
+            "name": "Namrata Rao", 
+            "long imdb name": "Namrata Rao", 
+            "long imdb canonical name": "Rao, Namrata"
+        }
+    ], 
+    "certificates": [
+        "Australia:M", 
+        "India:U/A", 
+        "Singapore:NC-16"
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "Babu, Tony", 
+            "name": "Tony Babu", 
+            "long imdb name": "Tony Babu", 
+            "long imdb canonical name": "Babu, Tony"
+        }, 
+        {
+            "canonical name": "Chaturvedi, Sanjay", 
+            "name": "Sanjay Chaturvedi", 
+            "long imdb name": "Sanjay Chaturvedi", 
+            "long imdb canonical name": "Chaturvedi, Sanjay"
+        }, 
+        {
+            "canonical name": "Das, Pritam", 
+            "name": "Pritam Das", 
+            "long imdb name": "Pritam Das", 
+            "long imdb canonical name": "Das, Pritam"
+        }, 
+        {
+            "canonical name": "Gupta, Santosh", 
+            "name": "Santosh Gupta", 
+            "long imdb name": "Santosh Gupta", 
+            "long imdb canonical name": "Gupta, Santosh"
+        }, 
+        {
+            "canonical name": "John, Boby", 
+            "name": "Boby John", 
+            "long imdb name": "Boby John", 
+            "long imdb canonical name": "John, Boby"
+        }, 
+        {
+            "canonical name": "Pathak, Rhitwik Raj", 
+            "name": "Rhitwik Raj Pathak", 
+            "long imdb name": "Rhitwik Raj Pathak", 
+            "long imdb canonical name": "Pathak, Rhitwik Raj"
+        }, 
+        {
+            "canonical name": "Vijayakumar, Aravind", 
+            "name": "Aravind Vijayakumar", 
+            "long imdb name": "Aravind Vijayakumar", 
+            "long imdb canonical name": "Vijayakumar, Aravind"
+        }
+    ], 
+    "long imdb title": "Shanghai (2012)", 
+    "country codes": [
+        "in"
+    ], 
+    "language codes": [
+        "hi"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BMTU4MTAwODQ2N15BMl5BanBnXkFtZTcwNDY3MzM3Nw@@._V1._SX97_SY140_.jpg", 
+    "casting department": [
+        {
+            "canonical name": "Mishra, Chander Nath", 
+            "name": "Chander Nath Mishra", 
+            "long imdb name": "Chander Nath Mishra", 
+            "long imdb canonical name": "Mishra, Chander Nath"
+        }, 
+        {
+            "canonical name": "Mishra, Padam", 
+            "name": "Padam Mishra", 
+            "long imdb name": "Padam Mishra", 
+            "long imdb canonical name": "Mishra, Padam"
+        }, 
+        {
+            "canonical name": "Rawat, Vinod", 
+            "name": "Vinod Rawat", 
+            "long imdb name": "Vinod Rawat", 
+            "long imdb canonical name": "Rawat, Vinod"
+        }, 
+        {
+            "canonical name": "Swami, Girdhar", 
+            "name": "Girdhar Swami", 
+            "long imdb name": "Girdhar Swami", 
+            "long imdb canonical name": "Swami, Girdhar"
+        }
+    ], 
+    "editorial department": [
+        {
+            "canonical name": "Bhatia, Nitesh", 
+            "name": "Nitesh Bhatia", 
+            "long imdb name": "Nitesh Bhatia", 
+            "long imdb canonical name": "Bhatia, Nitesh"
+        }, 
+        {
+            "canonical name": "Deshpande, Salil", 
+            "name": "Salil Deshpande", 
+            "long imdb name": "Salil Deshpande", 
+            "long imdb canonical name": "Deshpande, Salil"
+        }, 
+        {
+            "canonical name": "Fateh, Sajjad", 
+            "name": "Sajjad Fateh", 
+            "long imdb name": "Sajjad Fateh", 
+            "long imdb canonical name": "Fateh, Sajjad"
+        }, 
+        {
+            "canonical name": "Karkera, Rohit", 
+            "name": "Rohit Karkera", 
+            "long imdb name": "Rohit Karkera", 
+            "long imdb canonical name": "Karkera, Rohit"
+        }, 
+        {
+            "canonical name": "Meer, Sidharth", 
+            "name": "Sidharth Meer", 
+            "long imdb name": "Sidharth Meer", 
+            "long imdb canonical name": "Meer, Sidharth"
+        }, 
+        {
+            "canonical name": "Surte, Makarand", 
+            "name": "Makarand Surte", 
+            "long imdb name": "Makarand Surte", 
+            "long imdb canonical name": "Surte, Makarand"
+        }
+    ], 
+    "sound mix": [
+        "Dolby Digital"
+    ], 
+    "genres": [
+        "Crime", 
+        "Thriller"
+    ], 
+    "production companies": [
+        {
+            "name": "PVR Pictures", 
+            "long imdb name": "PVR Pictures"
+        }
+    ], 
+    "stunt performer": [
+        {
+            "canonical name": "Shaikh, Parvez", 
+            "name": "Parvez Shaikh", 
+            "long imdb name": "Parvez Shaikh", 
+            "long imdb canonical name": "Shaikh, Parvez"
+        }
+    ], 
+    "miscellaneous companies": [
+        {
+            "name": "Everymedia Technologies", 
+            "long imdb name": "Everymedia Technologies"
+        }, 
+        {
+            "name": "Marching Ants Advtg Pvt. Ltd.", 
+            "long imdb name": "Marching Ants Advtg Pvt. Ltd."
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Andritsakis, Nikos", 
+            "name": "Nikos Andritsakis", 
+            "long imdb name": "Nikos Andritsakis", 
+            "long imdb canonical name": "Andritsakis, Nikos"
+        }
+    ], 
+    "art direction": [
+        {
+            "canonical name": "Bhoir, Sachin", 
+            "name": "Sachin Bhoir", 
+            "long imdb name": "Sachin Bhoir", 
+            "long imdb canonical name": "Bhoir, Sachin"
+        }
+    ], 
+    "akas": [
+        "\u0428\u0430\u043d\u0445\u0430\u0439::Russia", 
+        "Shanghai::Greece (imdb display title)", 
+        "Szanghaj::Poland (imdb display title)"
+    ], 
+    "aspect ratio": "2.35 : 1", 
+    "director": [
+        {
+            "canonical name": "Banerjee, Dibakar", 
+            "name": "Dibakar Banerjee", 
+            "long imdb name": "Dibakar Banerjee", 
+            "long imdb canonical name": "Banerjee, Dibakar"
+        }
+    ], 
+    "kind": "movie", 
+    "art department": [
+        {
+            "canonical name": "Sondh, Parul", 
+            "name": "Parul Sondh", 
+            "long imdb name": "Parul Sondh", 
+            "long imdb canonical name": "Sondh, Parul"
+        }
+    ], 
+    "countries": [
+        "India"
+    ], 
+    "transportation department": [
+        {
+            "canonical name": "More, Aniket", 
+            "name": "Aniket More", 
+            "long imdb name": "Aniket More", 
+            "long imdb canonical name": "More, Aniket"
+        }, 
+        {
+            "canonical name": "More, Aniket", 
+            "name": "Aniket More", 
+            "long imdb name": "Aniket More", 
+            "long imdb canonical name": "More, Aniket"
+        }
+    ], 
+    "plot outline": "Prime leader of a campaign against a big government project is killed in what appears to be a road accident. An IAS officer is ordered to probe the incident and the veils of falsehood begin to drop.", 
+    "plot": [
+        "Prime leader of a campaign against a big government project is killed in what appears to be a road accident. An IAS officer is ordered to probe the incident and the veils of falsehood begin to drop."
+    ], 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BMTU4MTAwODQ2N15BMl5BanBnXkFtZTcwNDY3MzM3Nw@@.jpg", 
+    "canonical title": "Shanghai", 
+    "cast": [
+        {
+            "canonical name": "Hashmi, Emraan", 
+            "name": "Emraan Hashmi", 
+            "long imdb name": "Emraan Hashmi", 
+            "long imdb canonical name": "Hashmi, Emraan"
+        }, 
+        {
+            "canonical name": "Deol, Abhay", 
+            "name": "Abhay Deol", 
+            "long imdb name": "Abhay Deol", 
+            "long imdb canonical name": "Deol, Abhay"
+        }, 
+        {
+            "canonical name": "Chatterjee, Prasenjit", 
+            "name": "Prasenjit Chatterjee", 
+            "long imdb name": "Prasenjit Chatterjee", 
+            "long imdb canonical name": "Chatterjee, Prasenjit"
+        }, 
+        {
+            "canonical name": "Koechlin, Kalki", 
+            "name": "Kalki Koechlin", 
+            "long imdb name": "Kalki Koechlin", 
+            "long imdb canonical name": "Koechlin, Kalki"
+        }, 
+        {
+            "canonical name": "Pathak, Supriya", 
+            "name": "Supriya Pathak", 
+            "long imdb name": "Supriya Pathak", 
+            "long imdb canonical name": "Pathak, Supriya"
+        }, 
+        {
+            "canonical name": "Shome, Tillotama", 
+            "name": "Tillotama Shome", 
+            "long imdb name": "Tillotama Shome", 
+            "long imdb canonical name": "Shome, Tillotama"
+        }, 
+        {
+            "canonical name": "Jog, Anant", 
+            "name": "Anant Jog", 
+            "long imdb name": "Anant Jog", 
+            "long imdb canonical name": "Jog, Anant"
+        }, 
+        {
+            "canonical name": "Pitobash", 
+            "name": "Pitobash", 
+            "long imdb name": "Pitobash", 
+            "long imdb canonical name": "Pitobash"
+        }, 
+        {
+            "canonical name": "Shaikh, Farooq", 
+            "name": "Farooq Shaikh", 
+            "long imdb name": "Farooq Shaikh", 
+            "long imdb canonical name": "Shaikh, Farooq"
+        }, 
+        {
+            "canonical name": "Karmarkar, Kiran", 
+            "name": "Kiran Karmarkar", 
+            "long imdb name": "Kiran Karmarkar", 
+            "long imdb canonical name": "Karmarkar, Kiran"
+        }, 
+        {
+            "canonical name": "Pant, Megh", 
+            "name": "Megh Pant", 
+            "long imdb name": "Megh Pant", 
+            "long imdb canonical name": "Pant, Megh"
+        }, 
+        {
+            "canonical name": "Tiwari, Chandrahas", 
+            "name": "Chandrahas Tiwari", 
+            "long imdb name": "Chandrahas Tiwari", 
+            "long imdb canonical name": "Tiwari, Chandrahas"
+        }, 
+        {
+            "canonical name": "Wilson, Scarlett Mellish", 
+            "name": "Scarlett Mellish Wilson", 
+            "long imdb name": "Scarlett Mellish Wilson", 
+            "long imdb canonical name": "Wilson, Scarlett Mellish"
+        }
+    ], 
+    "smart long imdb canonical title": "Shanghai (2012)", 
+    "costume department": [
+        {
+            "canonical name": "Malhotra, Kriti", 
+            "name": "Kriti Malhotra", 
+            "long imdb name": "Kriti Malhotra", 
+            "long imdb canonical name": "Malhotra, Kriti"
+        }, 
+        {
+            "canonical name": "Rajurkar, Bhagyashree Dattatreya", 
+            "name": "Bhagyashree Dattatreya Rajurkar", 
+            "long imdb name": "Bhagyashree Dattatreya Rajurkar", 
+            "long imdb canonical name": "Rajurkar, Bhagyashree Dattatreya"
+        }
+    ], 
+    "original music": [
+        {
+            "canonical name": "Dadlani, Vishal", 
+            "name": "Vishal Dadlani", 
+            "long imdb name": "Vishal Dadlani", 
+            "long imdb canonical name": "Dadlani, Vishal"
+        }, 
+        {
+            "canonical name": "Ravjiani, Shekhar", 
+            "name": "Shekhar Ravjiani", 
+            "long imdb name": "Shekhar Ravjiani", 
+            "long imdb canonical name": "Ravjiani, Shekhar"
+        }
+    ], 
+    "smart canonical title": "Shanghai"
+}

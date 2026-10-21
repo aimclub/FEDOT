@@ -1,0 +1,581 @@
+{
+    "music department": [
+        {
+            "canonical name": "Eduri, John Stewart", 
+            "name": "John Stewart Eduri", 
+            "long imdb name": "John Stewart Eduri", 
+            "long imdb canonical name": "Eduri, John Stewart"
+        }, 
+        {
+            "canonical name": "Vaghani, Abhijit", 
+            "name": "Abhijit Vaghani", 
+            "long imdb name": "Abhijit Vaghani", 
+            "long imdb canonical name": "Vaghani, Abhijit"
+        }
+    ], 
+    "camera and electrical department": [
+        {
+            "canonical name": "Maity, Siba Prasad", 
+            "name": "Siba Prasad Maity", 
+            "long imdb name": "Siba Prasad Maity", 
+            "long imdb canonical name": "Maity, Siba Prasad"
+        }, 
+        {
+            "canonical name": "Pokharel, Milan", 
+            "name": "Milan Pokharel", 
+            "long imdb name": "Milan Pokharel", 
+            "long imdb canonical name": "Pokharel, Milan"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "20th Century Fox", 
+            "long imdb name": "20th Century Fox"
+        }, 
+        {
+            "name": "Fox STAR Studios", 
+            "long imdb name": "Fox STAR Studios"
+        }
+    ], 
+    "rating": 5.7, 
+    "runtimes": [
+        "USA:100"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "Anand, Shreya", 
+            "name": "Shreya Anand", 
+            "long imdb name": "Shreya Anand", 
+            "long imdb canonical name": "Anand, Shreya"
+        }, 
+        {
+            "canonical name": "Patheja, Mandeep", 
+            "name": "Mandeep Patheja", 
+            "long imdb name": "Mandeep Patheja", 
+            "long imdb canonical name": "Patheja, Mandeep"
+        }
+    ], 
+    "thanks": [
+        {
+            "canonical name": "Rai, Shwetanjali", 
+            "name": "Shwetanjali Rai", 
+            "long imdb name": "Shwetanjali Rai", 
+            "long imdb canonical name": "Rai, Shwetanjali"
+        }
+    ], 
+    "year": 2012, 
+    "miscellaneous crew": [
+        {
+            "canonical name": "D.S, Mrinalini", 
+            "name": "Mrinalini D.S", 
+            "long imdb name": "Mrinalini D.S", 
+            "long imdb canonical name": "D.S, Mrinalini"
+        }, 
+        {
+            "canonical name": "Jalali, Madhulika", 
+            "name": "Madhulika Jalali", 
+            "long imdb name": "Madhulika Jalali", 
+            "long imdb canonical name": "Jalali, Madhulika"
+        }, 
+        {
+            "canonical name": "Khandelwal, Saurabh", 
+            "name": "Saurabh Khandelwal", 
+            "long imdb name": "Saurabh Khandelwal", 
+            "long imdb canonical name": "Khandelwal, Saurabh"
+        }, 
+        {
+            "canonical name": "Mandalia, Parita", 
+            "name": "Parita Mandalia", 
+            "long imdb name": "Parita Mandalia", 
+            "long imdb canonical name": "Mandalia, Parita"
+        }, 
+        {
+            "canonical name": "Niederer, Sez", 
+            "name": "Sez Niederer", 
+            "long imdb name": "Sez Niederer", 
+            "long imdb canonical name": "Niederer, Sez"
+        }
+    ], 
+    "color info": [], 
+    "special effects department": [
+        {
+            "canonical name": "Ashmore, Ben", 
+            "name": "Ben Ashmore", 
+            "long imdb name": "Ben Ashmore", 
+            "long imdb canonical name": "Ashmore, Ben"
+        }, 
+        {
+            "canonical name": "Cawood, Steve", 
+            "name": "Steve Cawood", 
+            "long imdb name": "Steve Cawood", 
+            "long imdb canonical name": "Cawood, Steve"
+        }
+    ], 
+    "visual effects": [
+        {
+            "canonical name": "Bareria, Praveen", 
+            "name": "Praveen Bareria", 
+            "long imdb name": "Praveen Bareria", 
+            "long imdb canonical name": "Bareria, Praveen"
+        }, 
+        {
+            "canonical name": "Baria, Mahesh", 
+            "name": "Mahesh Baria", 
+            "long imdb name": "Mahesh Baria", 
+            "long imdb canonical name": "Baria, Mahesh"
+        }, 
+        {
+            "canonical name": "Choudhary, Santosh", 
+            "name": "Santosh Choudhary", 
+            "long imdb name": "Santosh Choudhary", 
+            "long imdb canonical name": "Choudhary, Santosh"
+        }, 
+        {
+            "canonical name": "Choudhary, Santosh", 
+            "name": "Santosh Choudhary", 
+            "long imdb name": "Santosh Choudhary", 
+            "long imdb canonical name": "Choudhary, Santosh"
+        }, 
+        {
+            "canonical name": "Khotkar, Swapnil", 
+            "name": "Swapnil Khotkar", 
+            "long imdb name": "Swapnil Khotkar", 
+            "long imdb canonical name": "Khotkar, Swapnil"
+        }, 
+        {
+            "canonical name": "Ray, Supath", 
+            "name": "Supath Ray", 
+            "long imdb name": "Supath Ray", 
+            "long imdb canonical name": "Ray, Supath"
+        }
+    ], 
+    "votes": 3360, 
+    "producer": [
+        {
+            "canonical name": "Agrawal, Vivek b", 
+            "name": "Vivek b Agrawal", 
+            "long imdb name": "Vivek b Agrawal", 
+            "long imdb canonical name": "Agrawal, Vivek b"
+        }, 
+        {
+            "canonical name": "Behl, Goldie", 
+            "name": "Goldie Behl", 
+            "long imdb name": "Goldie Behl", 
+            "long imdb canonical name": "Behl, Goldie"
+        }, 
+        {
+            "canonical name": "Behl, Shrishti", 
+            "name": "Shrishti Behl", 
+            "long imdb name": "Shrishti Behl", 
+            "long imdb canonical name": "Behl, Shrishti"
+        }, 
+        {
+            "canonical name": "Beso, Nancy Nisa", 
+            "name": "Nancy Nisa Beso", 
+            "long imdb name": "Nancy Nisa Beso", 
+            "long imdb canonical name": "Beso, Nancy Nisa"
+        }, 
+        {
+            "canonical name": "Bongirne, Chris", 
+            "name": "Chris Bongirne", 
+            "long imdb name": "Chris Bongirne", 
+            "long imdb canonical name": "Bongirne, Chris"
+        }, 
+        {
+            "canonical name": "Kothari, Niraj", 
+            "name": "Niraj Kothari", 
+            "long imdb name": "Niraj Kothari", 
+            "long imdb canonical name": "Kothari, Niraj"
+        }
+    ], 
+    "title": "London Paris New York", 
+    "mpaa": "Rated PG-13 for sexual content and smoking", 
+    "assistant director": [
+        {
+            "canonical name": "Beso, Nancy Nisa", 
+            "name": "Nancy Nisa Beso", 
+            "long imdb name": "Nancy Nisa Beso", 
+            "long imdb canonical name": "Beso, Nancy Nisa"
+        }, 
+        {
+            "canonical name": "DeSouza, Kesho", 
+            "name": "Kesho DeSouza", 
+            "long imdb name": "Kesho DeSouza", 
+            "long imdb canonical name": "DeSouza, Kesho"
+        }, 
+        {
+            "canonical name": "fforde, Nic", 
+            "name": "Nic fforde", 
+            "long imdb name": "Nic fforde", 
+            "long imdb canonical name": "fforde, Nic"
+        }, 
+        {
+            "canonical name": "Makhija, Shome", 
+            "name": "Shome Makhija", 
+            "long imdb name": "Shome Makhija", 
+            "long imdb canonical name": "Makhija, Shome"
+        }, 
+        {
+            "canonical name": "Zachemba, Roma", 
+            "name": "Roma Zachemba", 
+            "long imdb name": "Roma Zachemba", 
+            "long imdb canonical name": "Zachemba, Roma"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "Bhatia, Ritu", 
+            "name": "Ritu Bhatia", 
+            "long imdb name": "Ritu Bhatia", 
+            "long imdb canonical name": "Bhatia, Ritu"
+        }, 
+        {
+            "canonical name": "Menon, Anu", 
+            "name": "Anu Menon", 
+            "long imdb name": "Anu Menon", 
+            "long imdb canonical name": "Menon, Anu"
+        }
+    ], 
+    "long imdb canonical title": "London Paris New York (2012)", 
+    "languages": [
+        "Hindi"
+    ], 
+    "production manager": [
+        {
+            "canonical name": "Gandhi, Tanvi", 
+            "name": "Tanvi Gandhi", 
+            "long imdb name": "Tanvi Gandhi", 
+            "long imdb canonical name": "Gandhi, Tanvi"
+        }, 
+        {
+            "canonical name": "Marchand, Adam", 
+            "name": "Adam Marchand", 
+            "long imdb name": "Adam Marchand", 
+            "long imdb canonical name": "Marchand, Adam"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Salgaonkar, Sally", 
+            "name": "Sally Salgaonkar", 
+            "long imdb name": "Sally Salgaonkar", 
+            "long imdb canonical name": "Salgaonkar, Sally"
+        }
+    ], 
+    "certificates": [
+        "da:PG::(Ontario)", 
+        "Ireland:12A", 
+        "Singapore:PG", 
+        "UK:12A", 
+        "USA:PG-13"
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "Cameron, Paul", 
+            "name": "Paul Cameron", 
+            "long imdb name": "Paul Cameron", 
+            "long imdb canonical name": "Cameron, Paul"
+        }, 
+        {
+            "canonical name": "Gauthier, Pierre", 
+            "name": "Pierre Gauthier", 
+            "long imdb name": "Pierre Gauthier", 
+            "long imdb canonical name": "Gauthier, Pierre"
+        }, 
+        {
+            "canonical name": "John, Anish", 
+            "name": "Anish John", 
+            "long imdb name": "Anish John", 
+            "long imdb canonical name": "John, Anish"
+        }, 
+        {
+            "canonical name": "Kumar, Ashok Kumar", 
+            "name": "Ashok Kumar Kumar", 
+            "long imdb name": "Ashok Kumar Kumar", 
+            "long imdb canonical name": "Kumar, Ashok Kumar"
+        }, 
+        {
+            "canonical name": "Mokashi, Gandhar", 
+            "name": "Gandhar Mokashi", 
+            "long imdb name": "Gandhar Mokashi", 
+            "long imdb canonical name": "Mokashi, Gandhar"
+        }, 
+        {
+            "canonical name": "P.B., Ajay Kumar", 
+            "name": "Ajay Kumar P.B.", 
+            "long imdb name": "Ajay Kumar P.B.", 
+            "long imdb canonical name": "P.B., Ajay Kumar"
+        }, 
+        {
+            "canonical name": "Pelletier, Olivier", 
+            "name": "Olivier Pelletier", 
+            "long imdb name": "Olivier Pelletier", 
+            "long imdb canonical name": "Pelletier, Olivier"
+        }, 
+        {
+            "canonical name": "S.V., Koteswara Rao", 
+            "name": "Koteswara Rao S.V.", 
+            "long imdb name": "Koteswara Rao S.V.", 
+            "long imdb canonical name": "S.V., Koteswara Rao"
+        }, 
+        {
+            "canonical name": "Shimiaei, Danial", 
+            "name": "Danial Shimiaei", 
+            "long imdb name": "Danial Shimiaei", 
+            "long imdb canonical name": "Shimiaei, Danial"
+        }
+    ], 
+    "long imdb title": "London Paris New York (2012)", 
+    "country codes": [
+        "in"
+    ], 
+    "language codes": [
+        "hi"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BMTM5ODEwMzM3NV5BMl5BanBnXkFtZTcwNzg2MjQ0Nw@@._V1._SX98_SY140_.jpg", 
+    "casting department": [
+        {
+            "canonical name": "Beso, Nancy Nisa", 
+            "name": "Nancy Nisa Beso", 
+            "long imdb name": "Nancy Nisa Beso", 
+            "long imdb canonical name": "Beso, Nancy Nisa"
+        }
+    ], 
+    "special effects companies": [
+        {
+            "name": "Future Effects", 
+            "long imdb name": "Future Effects"
+        }
+    ], 
+    "genres": [
+        "Romance"
+    ], 
+    "director": [
+        {
+            "canonical name": "Menon, Anu", 
+            "name": "Anu Menon", 
+            "long imdb name": "Anu Menon", 
+            "long imdb canonical name": "Menon, Anu"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Arya, Sameer", 
+            "name": "Sameer Arya", 
+            "long imdb name": "Sameer Arya", 
+            "long imdb canonical name": "Arya, Sameer"
+        }
+    ], 
+    "akas": [
+        "L.P.N.Y.::International (English title) (short title)", 
+        "\u041b\u043e\u043d\u0434\u043e\u043d, \u041f\u0430\u0440\u0438\u0436, \u041d\u044c\u044e-\u0419\u043e\u0440\u043a::Russia", 
+        "London, P\u00e1rizs, New York::Hungary"
+    ], 
+    "production companies": [
+        {
+            "name": "Rose Movies", 
+            "long imdb name": "Rose Movies"
+        }
+    ], 
+    "kind": "movie", 
+    "art department": [
+        {
+            "canonical name": "Charmi, Ali", 
+            "name": "Ali Charmi", 
+            "long imdb name": "Ali Charmi", 
+            "long imdb canonical name": "Charmi, Ali"
+        }, 
+        {
+            "canonical name": "Valden, Elena", 
+            "name": "Elena Valden", 
+            "long imdb name": "Elena Valden", 
+            "long imdb canonical name": "Valden, Elena"
+        }, 
+        {
+            "canonical name": "Yukta, Dave", 
+            "name": "Dave Yukta", 
+            "long imdb name": "Dave Yukta", 
+            "long imdb canonical name": "Yukta, Dave"
+        }
+    ], 
+    "countries": [
+        "India"
+    ], 
+    "plot outline": "Nikhil and Lalitha are two completely different individuals who are drawn to each other in spite of their differences -- or perhaps because of it. Follow their journey as they meet in London, Paris and New York for a night in each city.", 
+    "plot": [
+        "Capturing the angst of the young twenties, \"London Paris New York\" is the story of Nikhil and Lalitha two completely different individuals who are drawn to each other in spite of their differences or perhaps because of it. The film follows their journey of love as they meet in London, Paris and New York for a night in each city. The film is a coming of age love story mirroring 3 states of love and brings back the wit into Bollywood's romantic comedies.", 
+        "Nikhil and Lalitha are two completely different individuals who are drawn to each other in spite of their differences -- or perhaps because of it. Follow their journey as they meet in London, Paris and New York for a night in each city."
+    ], 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BMTM5ODEwMzM3NV5BMl5BanBnXkFtZTcwNzg2MjQ0Nw@@.jpg", 
+    "canonical title": "London Paris New York", 
+    "cast": [
+        {
+            "canonical name": "Zafar, Ali", 
+            "name": "Ali Zafar", 
+            "long imdb name": "Ali Zafar", 
+            "long imdb canonical name": "Zafar, Ali"
+        }, 
+        {
+            "canonical name": "Hydari, Aditi Rao", 
+            "name": "Aditi Rao Hydari", 
+            "long imdb name": "Aditi Rao Hydari", 
+            "long imdb canonical name": "Hydari, Aditi Rao"
+        }, 
+        {
+            "canonical name": "Pereira, Candice", 
+            "name": "Candice Pereira", 
+            "long imdb name": "Candice Pereira", 
+            "long imdb canonical name": "Pereira, Candice"
+        }, 
+        {
+            "canonical name": "Bell, Scherrikar", 
+            "name": "Scherrikar Bell", 
+            "long imdb name": "Scherrikar Bell", 
+            "long imdb canonical name": "Bell, Scherrikar"
+        }, 
+        {
+            "canonical name": "Chan, Alina", 
+            "name": "Alina Chan", 
+            "long imdb name": "Alina Chan", 
+            "long imdb canonical name": "Chan, Alina"
+        }, 
+        {
+            "canonical name": "Clements, Judith", 
+            "name": "Judith Clements", 
+            "long imdb name": "Judith Clements", 
+            "long imdb canonical name": "Clements, Judith"
+        }, 
+        {
+            "canonical name": "Cowlin, Chris", 
+            "name": "Chris Cowlin", 
+            "long imdb name": "Chris Cowlin", 
+            "long imdb canonical name": "Cowlin, Chris"
+        }, 
+        {
+            "canonical name": "Flammer, Marco", 
+            "name": "Marco Flammer", 
+            "long imdb name": "Marco Flammer", 
+            "long imdb canonical name": "Flammer, Marco"
+        }, 
+        {
+            "canonical name": "Garde, Oihana", 
+            "name": "Oihana Garde", 
+            "long imdb name": "Oihana Garde", 
+            "long imdb canonical name": "Garde, Oihana"
+        }, 
+        {
+            "canonical name": "Geynes, Eric", 
+            "name": "Eric Geynes", 
+            "long imdb name": "Eric Geynes", 
+            "long imdb canonical name": "Geynes, Eric"
+        }, 
+        {
+            "canonical name": "Glen, Xenia", 
+            "name": "Xenia Glen", 
+            "long imdb name": "Xenia Glen", 
+            "long imdb canonical name": "Glen, Xenia"
+        }, 
+        {
+            "canonical name": "Gragnani, Cecilia", 
+            "name": "Cecilia Gragnani", 
+            "long imdb name": "Cecilia Gragnani", 
+            "long imdb canonical name": "Gragnani, Cecilia"
+        }, 
+        {
+            "canonical name": "Jay, Avita", 
+            "name": "Avita Jay", 
+            "long imdb name": "Avita Jay", 
+            "long imdb canonical name": "Jay, Avita"
+        }, 
+        {
+            "canonical name": "Kovalikova, Blazena", 
+            "name": "Blazena Kovalikova", 
+            "long imdb name": "Blazena Kovalikova", 
+            "long imdb canonical name": "Kovalikova, Blazena"
+        }, 
+        {
+            "canonical name": "Mantra", 
+            "name": "Mantra", 
+            "long imdb name": "Mantra", 
+            "long imdb canonical name": "Mantra"
+        }, 
+        {
+            "canonical name": "Polak, Martin", 
+            "name": "Martin Polak", 
+            "long imdb name": "Martin Polak", 
+            "long imdb canonical name": "Polak, Martin"
+        }, 
+        {
+            "canonical name": "Rowland, Nathan", 
+            "name": "Nathan Rowland", 
+            "long imdb name": "Nathan Rowland", 
+            "long imdb canonical name": "Rowland, Nathan"
+        }, 
+        {
+            "canonical name": "Scelovic, Vojislav", 
+            "name": "Vojislav Scelovic", 
+            "long imdb name": "Vojislav Scelovic", 
+            "long imdb canonical name": "Scelovic, Vojislav"
+        }, 
+        {
+            "canonical name": "Sesay, Emeka", 
+            "name": "Emeka Sesay", 
+            "long imdb name": "Emeka Sesay", 
+            "long imdb canonical name": "Sesay, Emeka"
+        }, 
+        {
+            "canonical name": "Spurgin, Samantha", 
+            "name": "Samantha Spurgin", 
+            "long imdb name": "Samantha Spurgin", 
+            "long imdb canonical name": "Spurgin, Samantha"
+        }, 
+        {
+            "canonical name": "Staton, Matthew J", 
+            "name": "Matthew J Staton", 
+            "long imdb name": "Matthew J Staton", 
+            "long imdb canonical name": "Staton, Matthew J"
+        }, 
+        {
+            "canonical name": "Swacha, Tom", 
+            "name": "Tom Swacha", 
+            "long imdb name": "Tom Swacha", 
+            "long imdb canonical name": "Swacha, Tom"
+        }, 
+        {
+            "canonical name": "Tahil, Dalip", 
+            "name": "Dalip Tahil", 
+            "long imdb name": "Dalip Tahil", 
+            "long imdb canonical name": "Tahil, Dalip"
+        }, 
+        {
+            "canonical name": "Machado, Calisto", 
+            "name": "Calisto Machado", 
+            "long imdb name": "Calisto Machado", 
+            "long imdb canonical name": "Machado, Calisto"
+        }
+    ], 
+    "smart long imdb canonical title": "London Paris New York (2012)", 
+    "original music": [
+        {
+            "canonical name": "Zafar, Ali", 
+            "name": "Ali Zafar", 
+            "long imdb name": "Ali Zafar", 
+            "long imdb canonical name": "Zafar, Ali"
+        }
+    ], 
+    "editorial department": [
+        {
+            "canonical name": "Bhushan, Veenu", 
+            "name": "Veenu Bhushan", 
+            "long imdb name": "Veenu Bhushan", 
+            "long imdb canonical name": "Bhushan, Veenu"
+        }, 
+        {
+            "canonical name": "Desai, Rohan", 
+            "name": "Rohan Desai", 
+            "long imdb name": "Rohan Desai", 
+            "long imdb canonical name": "Desai, Rohan"
+        }
+    ], 
+    "smart canonical title": "London Paris New York"
+}

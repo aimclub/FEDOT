@@ -1,0 +1,857 @@
+{
+    "music department": [
+        {
+            "canonical name": "Bronskill, Richard", 
+            "name": "Richard Bronskill", 
+            "long imdb name": "Richard Bronskill", 
+            "long imdb canonical name": "Bronskill, Richard"
+        }, 
+        {
+            "canonical name": "Davies, Terry", 
+            "name": "Terry Davies", 
+            "long imdb name": "Terry Davies", 
+            "long imdb canonical name": "Davies, Terry"
+        }
+    ], 
+    "camera and electrical department": [
+        {
+            "canonical name": "Bell, Andy", 
+            "name": "Andy Bell", 
+            "long imdb name": "Andy Bell", 
+            "long imdb canonical name": "Bell, Andy"
+        }, 
+        {
+            "canonical name": "Briggs, Nick", 
+            "name": "Nick Briggs", 
+            "long imdb name": "Nick Briggs", 
+            "long imdb canonical name": "Briggs, Nick"
+        }, 
+        {
+            "canonical name": "Budd, Matthew", 
+            "name": "Matthew Budd", 
+            "long imdb name": "Matthew Budd", 
+            "long imdb canonical name": "Budd, Matthew"
+        }, 
+        {
+            "canonical name": "Clark, Ian", 
+            "name": "Ian Clark", 
+            "long imdb name": "Ian Clark", 
+            "long imdb canonical name": "Clark, Ian"
+        }, 
+        {
+            "canonical name": "Hersom, Benjamin", 
+            "name": "Benjamin Hersom", 
+            "long imdb name": "Benjamin Hersom", 
+            "long imdb canonical name": "Hersom, Benjamin"
+        }, 
+        {
+            "canonical name": "Jarvis, Paul", 
+            "name": "Paul Jarvis", 
+            "long imdb name": "Paul Jarvis", 
+            "long imdb canonical name": "Jarvis, Paul"
+        }, 
+        {
+            "canonical name": "McInerney, Jaime", 
+            "name": "Jaime McInerney", 
+            "long imdb name": "Jaime McInerney", 
+            "long imdb canonical name": "McInerney, Jaime"
+        }, 
+        {
+            "canonical name": "O'Driscoll, Andrew", 
+            "name": "Andrew O'Driscoll", 
+            "long imdb name": "Andrew O'Driscoll", 
+            "long imdb canonical name": "O'Driscoll, Andrew"
+        }, 
+        {
+            "canonical name": "Payne, Martin", 
+            "name": "Martin Payne", 
+            "long imdb name": "Martin Payne", 
+            "long imdb canonical name": "Payne, Martin"
+        }, 
+        {
+            "canonical name": "Pinkney, Andy", 
+            "name": "Andy Pinkney", 
+            "long imdb name": "Andy Pinkney", 
+            "long imdb canonical name": "Pinkney, Andy"
+        }, 
+        {
+            "canonical name": "McGahon, Vince", 
+            "name": "Vince McGahon", 
+            "long imdb name": "Vince McGahon", 
+            "long imdb canonical name": "McGahon, Vince"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "ContentFilm International", 
+            "long imdb name": "ContentFilm International"
+        }, 
+        {
+            "name": "Independent Television (ITV)", 
+            "long imdb name": "Independent Television (ITV)"
+        }, 
+        {
+            "name": "ITV Studios Home Entertainment", 
+            "long imdb name": "ITV Studios Home Entertainment"
+        }, 
+        {
+            "name": "Film1", 
+            "long imdb name": "Film1"
+        }, 
+        {
+            "name": "Public Broadcasting Service (PBS)", 
+            "long imdb name": "Public Broadcasting Service (PBS)"
+        }
+    ], 
+    "rating": 7.2, 
+    "runtimes": [
+        "108"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "Walter, Charlotte", 
+            "name": "Charlotte Walter", 
+            "long imdb name": "Charlotte Walter", 
+            "long imdb canonical name": "Walter, Charlotte"
+        }
+    ], 
+    "make up": [
+        {
+            "canonical name": "Hartley, Karen", 
+            "name": "Karen Hartley", 
+            "long imdb name": "Karen Hartley", 
+            "long imdb canonical name": "Hartley, Karen"
+        }, 
+        {
+            "canonical name": "Pachter, Talli", 
+            "name": "Talli Pachter", 
+            "long imdb name": "Talli Pachter", 
+            "long imdb canonical name": "Pachter, Talli"
+        }, 
+        {
+            "canonical name": "Tomes, Juliette", 
+            "name": "Juliette Tomes", 
+            "long imdb name": "Juliette Tomes", 
+            "long imdb canonical name": "Tomes, Juliette"
+        }, 
+        {
+            "canonical name": "Wallen, Victoria", 
+            "name": "Victoria Wallen", 
+            "long imdb name": "Victoria Wallen", 
+            "long imdb canonical name": "Wallen, Victoria"
+        }
+    ], 
+    "year": 2012, 
+    "production design": [
+        {
+            "canonical name": "Hughes-Jones, Will", 
+            "name": "Will Hughes-Jones", 
+            "long imdb name": "Will Hughes-Jones", 
+            "long imdb canonical name": "Hughes-Jones, Will"
+        }
+    ], 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Alen-Buckley, Nuala", 
+            "name": "Nuala Alen-Buckley", 
+            "long imdb name": "Nuala Alen-Buckley", 
+            "long imdb canonical name": "Alen-Buckley, Nuala"
+        }, 
+        {
+            "canonical name": "Charles, Sue", 
+            "name": "Sue Charles", 
+            "long imdb name": "Sue Charles", 
+            "long imdb canonical name": "Charles, Sue"
+        }, 
+        {
+            "canonical name": "Fisher, Jonathan", 
+            "name": "Jonathan Fisher", 
+            "long imdb name": "Jonathan Fisher", 
+            "long imdb canonical name": "Fisher, Jonathan"
+        }, 
+        {
+            "canonical name": "Hillier, Paul", 
+            "name": "Paul Hillier", 
+            "long imdb name": "Paul Hillier", 
+            "long imdb canonical name": "Hillier, Paul"
+        }, 
+        {
+            "canonical name": "Kousetta, Hakan", 
+            "name": "Hakan Kousetta", 
+            "long imdb name": "Hakan Kousetta", 
+            "long imdb canonical name": "Kousetta, Hakan"
+        }, 
+        {
+            "canonical name": "Leek, Ray", 
+            "name": "Ray Leek", 
+            "long imdb name": "Ray Leek", 
+            "long imdb canonical name": "Leek, Ray"
+        }, 
+        {
+            "canonical name": "Magnusson, Kerensa", 
+            "name": "Kerensa Magnusson", 
+            "long imdb name": "Kerensa Magnusson", 
+            "long imdb canonical name": "Magnusson, Kerensa"
+        }, 
+        {
+            "canonical name": "Martin, Joe", 
+            "name": "Joe Martin", 
+            "long imdb name": "Joe Martin", 
+            "long imdb canonical name": "Martin, Joe"
+        }, 
+        {
+            "canonical name": "Miller, Nick", 
+            "name": "Nick Miller", 
+            "long imdb name": "Nick Miller", 
+            "long imdb canonical name": "Miller, Nick"
+        }, 
+        {
+            "canonical name": "Neville, Simon", 
+            "name": "Simon Neville", 
+            "long imdb name": "Simon Neville", 
+            "long imdb canonical name": "Neville, Simon"
+        }, 
+        {
+            "canonical name": "Orlik, Tim", 
+            "name": "Tim Orlik", 
+            "long imdb name": "Tim Orlik", 
+            "long imdb canonical name": "Orlik, Tim"
+        }, 
+        {
+            "canonical name": "Todd, Richard", 
+            "name": "Richard Todd", 
+            "long imdb name": "Richard Todd", 
+            "long imdb canonical name": "Todd, Richard"
+        }, 
+        {
+            "canonical name": "Verdon-Smith, George", 
+            "name": "George Verdon-Smith", 
+            "long imdb name": "George Verdon-Smith", 
+            "long imdb canonical name": "Verdon-Smith, George"
+        }, 
+        {
+            "canonical name": "Wilson, Matthew", 
+            "name": "Matthew Wilson", 
+            "long imdb name": "Matthew Wilson", 
+            "long imdb canonical name": "Wilson, Matthew"
+        }, 
+        {
+            "canonical name": "Wood, Timothy", 
+            "name": "Timothy Wood", 
+            "long imdb name": "Timothy Wood", 
+            "long imdb canonical name": "Wood, Timothy"
+        }
+    ], 
+    "production companies": [
+        {
+            "name": "Island Pictures", 
+            "long imdb name": "Island Pictures"
+        }
+    ], 
+    "color info": [], 
+    "casting department": [
+        {
+            "canonical name": "Artistes, Solomon", 
+            "name": "Solomon Artistes", 
+            "long imdb name": "Solomon Artistes", 
+            "long imdb canonical name": "Artistes, Solomon"
+        }, 
+        {
+            "canonical name": "Barbier, Abigail", 
+            "name": "Abigail Barbier", 
+            "long imdb name": "Abigail Barbier", 
+            "long imdb canonical name": "Barbier, Abigail"
+        }, 
+        {
+            "canonical name": "Jeffrey, Lillie", 
+            "name": "Lillie Jeffrey", 
+            "long imdb name": "Lillie Jeffrey", 
+            "long imdb canonical name": "Jeffrey, Lillie"
+        }
+    ], 
+    "visual effects": [
+        {
+            "canonical name": "Berners, Lara", 
+            "name": "Lara Berners", 
+            "long imdb name": "Lara Berners", 
+            "long imdb canonical name": "Berners, Lara"
+        }, 
+        {
+            "canonical name": "Burke, Jennifer", 
+            "name": "Jennifer Burke", 
+            "long imdb name": "Jennifer Burke", 
+            "long imdb canonical name": "Burke, Jennifer"
+        }, 
+        {
+            "canonical name": "Collingwood, Liam", 
+            "name": "Liam Collingwood", 
+            "long imdb name": "Liam Collingwood", 
+            "long imdb canonical name": "Collingwood, Liam"
+        }, 
+        {
+            "canonical name": "Dryden, Marcus", 
+            "name": "Marcus Dryden", 
+            "long imdb name": "Marcus Dryden", 
+            "long imdb canonical name": "Dryden, Marcus"
+        }, 
+        {
+            "canonical name": "Forno, Filippo", 
+            "name": "Filippo Forno", 
+            "long imdb name": "Filippo Forno", 
+            "long imdb canonical name": "Forno, Filippo"
+        }, 
+        {
+            "canonical name": "Hagan, Sian", 
+            "name": "Sian Hagan", 
+            "long imdb name": "Sian Hagan", 
+            "long imdb canonical name": "Hagan, Sian"
+        }, 
+        {
+            "canonical name": "O'Neil, Olivia", 
+            "name": "Olivia O'Neil", 
+            "long imdb name": "Olivia O'Neil", 
+            "long imdb canonical name": "O'Neil, Olivia"
+        }, 
+        {
+            "canonical name": "Pronk, Erik", 
+            "name": "Erik Pronk", 
+            "long imdb name": "Erik Pronk", 
+            "long imdb canonical name": "Pronk, Erik"
+        }
+    ], 
+    "votes": 3012, 
+    "producer": [
+        {
+            "canonical name": "Beardsall, Sarah", 
+            "name": "Sarah Beardsall", 
+            "long imdb name": "Sarah Beardsall", 
+            "long imdb canonical name": "Beardsall, Sarah"
+        }, 
+        {
+            "canonical name": "Clark, Julie", 
+            "name": "Julie Clark", 
+            "long imdb name": "Julie Clark", 
+            "long imdb canonical name": "Clark, Julie"
+        }, 
+        {
+            "canonical name": "Minghella, Dominic", 
+            "name": "Dominic Minghella", 
+            "long imdb name": "Dominic Minghella", 
+            "long imdb canonical name": "Minghella, Dominic"
+        }
+    ], 
+    "title": "The Scapegoat", 
+    "assistant director": [
+        {
+            "canonical name": "Croucher, Chris", 
+            "name": "Chris Croucher", 
+            "long imdb name": "Chris Croucher", 
+            "long imdb canonical name": "Croucher, Chris"
+        }, 
+        {
+            "canonical name": "King, Tamara", 
+            "name": "Tamara King", 
+            "long imdb name": "Tamara King", 
+            "long imdb canonical name": "King, Tamara"
+        }, 
+        {
+            "canonical name": "Rigg, Christian", 
+            "name": "Christian Rigg", 
+            "long imdb name": "Christian Rigg", 
+            "long imdb canonical name": "Rigg, Christian"
+        }, 
+        {
+            "canonical name": "Watson, Nige", 
+            "name": "Nige Watson", 
+            "long imdb name": "Nige Watson", 
+            "long imdb canonical name": "Watson, Nige"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "Du Maurier, Daphne", 
+            "name": "Daphne Du Maurier", 
+            "long imdb name": "Daphne Du Maurier", 
+            "long imdb canonical name": "Du Maurier, Daphne"
+        }, 
+        {
+            "canonical name": "Sturridge, Charles", 
+            "name": "Charles Sturridge", 
+            "long imdb name": "Charles Sturridge", 
+            "long imdb canonical name": "Sturridge, Charles"
+        }
+    ], 
+    "long imdb canonical title": "Scapegoat, The (2012)", 
+    "languages": [
+        "English"
+    ], 
+    "production manager": [
+        {
+            "canonical name": "Gavin, Bianca", 
+            "name": "Bianca Gavin", 
+            "long imdb name": "Bianca Gavin", 
+            "long imdb canonical name": "Gavin, Bianca"
+        }, 
+        {
+            "canonical name": "George, Kate", 
+            "name": "Kate George", 
+            "long imdb name": "Kate George", 
+            "long imdb canonical name": "George, Kate"
+        }
+    ], 
+    "casting director": [
+        {
+            "canonical name": "Guish, Michelle", 
+            "name": "Michelle Guish", 
+            "long imdb name": "Michelle Guish", 
+            "long imdb canonical name": "Guish, Michelle"
+        }, 
+        {
+            "canonical name": "Poerscout-Edgerton, Reg", 
+            "name": "Reg Poerscout-Edgerton", 
+            "long imdb name": "Reg Poerscout-Edgerton", 
+            "long imdb canonical name": "Poerscout-Edgerton, Reg"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Green, Adam", 
+            "name": "Adam Green", 
+            "long imdb name": "Adam Green", 
+            "long imdb canonical name": "Green, Adam"
+        }
+    ], 
+    "certificates": [
+        "Netherlands:6", 
+        "Singapore:PG13", 
+        "UK:PG"
+    ], 
+    "set decoration": [
+        {
+            "canonical name": "Cosgrove, Cathy", 
+            "name": "Cathy Cosgrove", 
+            "long imdb name": "Cathy Cosgrove", 
+            "long imdb canonical name": "Cosgrove, Cathy"
+        }
+    ], 
+    "costume department": [
+        {
+            "canonical name": "Collins, Beth", 
+            "name": "Beth Collins", 
+            "long imdb name": "Beth Collins", 
+            "long imdb canonical name": "Collins, Beth"
+        }, 
+        {
+            "canonical name": "Reichert, Sarah Jane", 
+            "name": "Sarah Jane Reichert", 
+            "long imdb name": "Sarah Jane Reichert", 
+            "long imdb canonical name": "Reichert, Sarah Jane"
+        }, 
+        {
+            "canonical name": "Walter, Hannah", 
+            "name": "Hannah Walter", 
+            "long imdb name": "Hannah Walter", 
+            "long imdb canonical name": "Walter, Hannah"
+        }
+    ], 
+    "long imdb title": "The Scapegoat (2012)", 
+    "country codes": [
+        "gb"
+    ], 
+    "language codes": [
+        "en"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BMTQwNjYzNDI2NF5BMl5BanBnXkFtZTcwNjkyMTE1OA@@._V1._SX94_SY140_.jpg", 
+    "special effects department": [
+        {
+            "canonical name": "Ashmore, Ben", 
+            "name": "Ben Ashmore", 
+            "long imdb name": "Ben Ashmore", 
+            "long imdb canonical name": "Ashmore, Ben"
+        }, 
+        {
+            "canonical name": "Cawood, Steve", 
+            "name": "Steve Cawood", 
+            "long imdb name": "Steve Cawood", 
+            "long imdb canonical name": "Cawood, Steve"
+        }
+    ], 
+    "special effects companies": [
+        {
+            "name": "Future Effects", 
+            "long imdb name": "Future Effects"
+        }
+    ], 
+    "genres": [
+        "Drama"
+    ], 
+    "director": [
+        {
+            "canonical name": "Sturridge, Charles", 
+            "name": "Charles Sturridge", 
+            "long imdb name": "Charles Sturridge", 
+            "long imdb canonical name": "Sturridge, Charles"
+        }
+    ], 
+    "miscellaneous companies": [
+        {
+            "name": "Allan Chapman & James Insurance Brokers", 
+            "long imdb name": "Allan Chapman & James Insurance Brokers"
+        }, 
+        {
+            "name": "Aslan Charles Kousetta", 
+            "long imdb name": "Aslan Charles Kousetta"
+        }, 
+        {
+            "name": "Casting Collective", 
+            "long imdb name": "Casting Collective"
+        }, 
+        {
+            "name": "Media Services", 
+            "long imdb name": "Media Services"
+        }, 
+        {
+            "name": "Scallywag Travel", 
+            "long imdb name": "Scallywag Travel"
+        }, 
+        {
+            "name": "TLO Film Services", 
+            "long imdb name": "TLO Film Services"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Gray, Matt", 
+            "name": "Matt Gray", 
+            "long imdb name": "Matt Gray", 
+            "long imdb canonical name": "Gray, Matt"
+        }
+    ], 
+    "art direction": [
+        {
+            "canonical name": "Probert, Karl", 
+            "name": "Karl Probert", 
+            "long imdb name": "Karl Probert", 
+            "long imdb canonical name": "Probert, Karl"
+        }
+    ], 
+    "akas": [
+        "\u041a\u043e\u0437\u0451\u043b \u043e\u0442\u043f\u0443\u0449\u0435\u043d\u0438\u044f::Russia", 
+        "O Bode Expiat\u00f3rio::Brazil (imdb display title)"
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "Bagshaw, Stuart", 
+            "name": "Stuart Bagshaw", 
+            "long imdb name": "Stuart Bagshaw", 
+            "long imdb canonical name": "Bagshaw, Stuart"
+        }, 
+        {
+            "canonical name": "Brazier, Robert", 
+            "name": "Robert Brazier", 
+            "long imdb name": "Robert Brazier", 
+            "long imdb canonical name": "Brazier, Robert"
+        }, 
+        {
+            "canonical name": "Crutch, Lewis", 
+            "name": "Lewis Crutch", 
+            "long imdb name": "Lewis Crutch", 
+            "long imdb canonical name": "Crutch, Lewis"
+        }, 
+        {
+            "canonical name": "Jackson, Bob", 
+            "name": "Bob Jackson", 
+            "long imdb name": "Bob Jackson", 
+            "long imdb canonical name": "Jackson, Bob"
+        }, 
+        {
+            "canonical name": "Lovejoy, Laura", 
+            "name": "Laura Lovejoy", 
+            "long imdb name": "Laura Lovejoy", 
+            "long imdb canonical name": "Lovejoy, Laura"
+        }, 
+        {
+            "canonical name": "Partridge, Keith", 
+            "name": "Keith Partridge", 
+            "long imdb name": "Keith Partridge", 
+            "long imdb canonical name": "Partridge, Keith"
+        }, 
+        {
+            "canonical name": "Rodda, John", 
+            "name": "John Rodda", 
+            "long imdb name": "John Rodda", 
+            "long imdb canonical name": "Rodda, John"
+        }, 
+        {
+            "canonical name": "Stewart, Kelly", 
+            "name": "Kelly Stewart", 
+            "long imdb name": "Kelly Stewart", 
+            "long imdb canonical name": "Stewart, Kelly"
+        }
+    ], 
+    "location management": [
+        {
+            "canonical name": "Bray, Rupert", 
+            "name": "Rupert Bray", 
+            "long imdb name": "Rupert Bray", 
+            "long imdb canonical name": "Bray, Rupert"
+        }, 
+        {
+            "canonical name": "Sheriff, Chris", 
+            "name": "Chris Sheriff", 
+            "long imdb name": "Chris Sheriff", 
+            "long imdb canonical name": "Sheriff, Chris"
+        }
+    ], 
+    "kind": "movie", 
+    "art department": [
+        {
+            "canonical name": "Benelick, Lynne", 
+            "name": "Lynne Benelick", 
+            "long imdb name": "Lynne Benelick", 
+            "long imdb canonical name": "Benelick, Lynne"
+        }, 
+        {
+            "canonical name": "Dalton, Richard", 
+            "name": "Richard Dalton", 
+            "long imdb name": "Richard Dalton", 
+            "long imdb canonical name": "Dalton, Richard"
+        }, 
+        {
+            "canonical name": "Ferguson, Douglas", 
+            "name": "Douglas Ferguson", 
+            "long imdb name": "Douglas Ferguson", 
+            "long imdb canonical name": "Ferguson, Douglas"
+        }, 
+        {
+            "canonical name": "Ferguson, Douglas", 
+            "name": "Douglas Ferguson", 
+            "long imdb name": "Douglas Ferguson", 
+            "long imdb canonical name": "Ferguson, Douglas"
+        }, 
+        {
+            "canonical name": "Ferrara, Stefano", 
+            "name": "Stefano Ferrara", 
+            "long imdb name": "Stefano Ferrara", 
+            "long imdb canonical name": "Ferrara, Stefano"
+        }, 
+        {
+            "canonical name": "Goodwin, Thomas", 
+            "name": "Thomas Goodwin", 
+            "long imdb name": "Thomas Goodwin", 
+            "long imdb canonical name": "Goodwin, Thomas"
+        }, 
+        {
+            "canonical name": "Hardy, Richard", 
+            "name": "Richard Hardy", 
+            "long imdb name": "Richard Hardy", 
+            "long imdb canonical name": "Hardy, Richard"
+        }, 
+        {
+            "canonical name": "Keene, Mark", 
+            "name": "Mark Keene", 
+            "long imdb name": "Mark Keene", 
+            "long imdb canonical name": "Keene, Mark"
+        }, 
+        {
+            "canonical name": "Kilham, Lizzie", 
+            "name": "Lizzie Kilham", 
+            "long imdb name": "Lizzie Kilham", 
+            "long imdb canonical name": "Kilham, Lizzie"
+        }, 
+        {
+            "canonical name": "Lee, Dean", 
+            "name": "Dean Lee", 
+            "long imdb name": "Dean Lee", 
+            "long imdb canonical name": "Lee, Dean"
+        }, 
+        {
+            "canonical name": "Parnell, Antony", 
+            "name": "Antony Parnell", 
+            "long imdb name": "Antony Parnell", 
+            "long imdb canonical name": "Parnell, Antony"
+        }, 
+        {
+            "canonical name": "Pitsillidou, Theofano", 
+            "name": "Theofano Pitsillidou", 
+            "long imdb name": "Theofano Pitsillidou", 
+            "long imdb canonical name": "Pitsillidou, Theofano"
+        }, 
+        {
+            "canonical name": "Pope, Will", 
+            "name": "Will Pope", 
+            "long imdb name": "Will Pope", 
+            "long imdb canonical name": "Pope, Will"
+        }, 
+        {
+            "canonical name": "Rosser, Chris", 
+            "name": "Chris Rosser", 
+            "long imdb name": "Chris Rosser", 
+            "long imdb canonical name": "Rosser, Chris"
+        }
+    ], 
+    "countries": [
+        "UK"
+    ], 
+    "transportation department": [
+        {
+            "canonical name": "Stoklasa, Bohdan", 
+            "name": "Bohdan Stoklasa", 
+            "long imdb name": "Bohdan Stoklasa", 
+            "long imdb canonical name": "Stoklasa, Bohdan"
+        }
+    ], 
+    "plot outline": "Set in 1952, as England prepares for the coronation, The Scapegoat tells the story of two very different men who have one thing in common - a face.", 
+    "plot": [
+        "As England is preparing for the coronation of Elizabeth II, schoolmaster John Standing comes face to face with Johnny Spence, his exact double in appearance. After a night of drinking, Standing awakes to find Spence has stolen his identity. Unsuccessful at explaining the unusual situation, Standing settles into the vacancy left by Johnny Spence. Yet with his new life comes numerous problems, including trying to juggle a wife and two mistresses and family secrets that could prove deadly...", 
+        "Set in 1952, as England prepares for the coronation, The Scapegoat tells the story of two very different men who have one thing in common - a face."
+    ], 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BMTQwNjYzNDI2NF5BMl5BanBnXkFtZTcwNjkyMTE1OA@@.jpg", 
+    "canonical title": "Scapegoat, The", 
+    "cast": [
+        {
+            "canonical name": "Rhys, Matthew", 
+            "name": "Matthew Rhys", 
+            "long imdb name": "Matthew Rhys", 
+            "long imdb canonical name": "Rhys, Matthew"
+        }, 
+        {
+            "canonical name": "Atkins, Eileen", 
+            "name": "Eileen Atkins", 
+            "long imdb name": "Eileen Atkins", 
+            "long imdb canonical name": "Atkins, Eileen"
+        }, 
+        {
+            "canonical name": "Lesser, Anton", 
+            "name": "Anton Lesser", 
+            "long imdb name": "Anton Lesser", 
+            "long imdb canonical name": "Lesser, Anton"
+        }, 
+        {
+            "canonical name": "May, Jodhi", 
+            "name": "Jodhi May", 
+            "long imdb name": "Jodhi May", 
+            "long imdb canonical name": "May, Jodhi"
+        }, 
+        {
+            "canonical name": "Nicholls, Phoebe", 
+            "name": "Phoebe Nicholls", 
+            "long imdb name": "Phoebe Nicholls", 
+            "long imdb canonical name": "Nicholls, Phoebe"
+        }, 
+        {
+            "canonical name": "Orr-Ewing, Alice", 
+            "name": "Alice Orr-Ewing", 
+            "long imdb name": "Alice Orr-Ewing", 
+            "long imdb canonical name": "Orr-Ewing, Alice"
+        }, 
+        {
+            "canonical name": "Scott, Andrew", 
+            "name": "Andrew Scott", 
+            "long imdb name": "Andrew Scott", 
+            "long imdb canonical name": "Scott, Andrew"
+        }, 
+        {
+            "canonical name": "Smith, Sheridan", 
+            "name": "Sheridan Smith", 
+            "long imdb name": "Sheridan Smith", 
+            "long imdb canonical name": "Smith, Sheridan"
+        }, 
+        {
+            "canonical name": "Testud, Sylvie", 
+            "name": "Sylvie Testud", 
+            "long imdb name": "Sylvie Testud", 
+            "long imdb canonical name": "Testud, Sylvie"
+        }, 
+        {
+            "canonical name": "Torrens, Pip", 
+            "name": "Pip Torrens", 
+            "long imdb name": "Pip Torrens", 
+            "long imdb canonical name": "Torrens, Pip"
+        }, 
+        {
+            "canonical name": "Mercer, Ian", 
+            "name": "Ian Mercer", 
+            "long imdb name": "Ian Mercer", 
+            "long imdb canonical name": "Mercer, Ian"
+        }, 
+        {
+            "canonical name": "Webb, Eloise", 
+            "name": "Eloise Webb", 
+            "long imdb name": "Eloise Webb", 
+            "long imdb canonical name": "Webb, Eloise"
+        }, 
+        {
+            "canonical name": "Wadham, Julian", 
+            "name": "Julian Wadham", 
+            "long imdb name": "Julian Wadham", 
+            "long imdb canonical name": "Wadham, Julian"
+        }, 
+        {
+            "canonical name": "Ridings, Richard", 
+            "name": "Richard Ridings", 
+            "long imdb name": "Richard Ridings", 
+            "long imdb canonical name": "Ridings, Richard"
+        }, 
+        {
+            "canonical name": "Oliver, Roland", 
+            "name": "Roland Oliver", 
+            "long imdb name": "Roland Oliver", 
+            "long imdb canonical name": "Oliver, Roland"
+        }, 
+        {
+            "canonical name": "Lloyd-Hughes, Ben", 
+            "name": "Ben Lloyd-Hughes", 
+            "long imdb name": "Ben Lloyd-Hughes", 
+            "long imdb canonical name": "Lloyd-Hughes, Ben"
+        }, 
+        {
+            "canonical name": "Bennett, Greg", 
+            "name": "Greg Bennett", 
+            "long imdb name": "Greg Bennett", 
+            "long imdb canonical name": "Bennett, Greg"
+        }, 
+        {
+            "canonical name": "Poole, Martin", 
+            "name": "Martin Poole", 
+            "long imdb name": "Martin Poole", 
+            "long imdb canonical name": "Poole, Martin"
+        }, 
+        {
+            "canonical name": "Scarfe, Lucy", 
+            "name": "Lucy Scarfe", 
+            "long imdb name": "Lucy Scarfe", 
+            "long imdb canonical name": "Scarfe, Lucy"
+        }
+    ], 
+    "smart long imdb canonical title": "Scapegoat, The (2012)", 
+    "original music": [
+        {
+            "canonical name": "Johnston, Adrian", 
+            "name": "Adrian Johnston", 
+            "long imdb name": "Adrian Johnston", 
+            "long imdb canonical name": "Johnston, Adrian"
+        }
+    ], 
+    "editorial department": [
+        {
+            "canonical name": "Grant, Adam", 
+            "name": "Adam Grant", 
+            "long imdb name": "Adam Grant", 
+            "long imdb canonical name": "Grant, Adam"
+        }, 
+        {
+            "canonical name": "Ho, Michael", 
+            "name": "Michael Ho", 
+            "long imdb name": "Michael Ho", 
+            "long imdb canonical name": "Ho, Michael"
+        }, 
+        {
+            "canonical name": "Matich, Vicki", 
+            "name": "Vicki Matich", 
+            "long imdb name": "Vicki Matich", 
+            "long imdb canonical name": "Matich, Vicki"
+        }
+    ], 
+    "smart canonical title": "Scapegoat, The"
+}

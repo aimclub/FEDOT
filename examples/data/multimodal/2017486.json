@@ -1,0 +1,943 @@
+{
+    "music department": [
+        {
+            "canonical name": "Couson, Laurent", 
+            "name": "Laurent Couson", 
+            "long imdb name": "Laurent Couson", 
+            "long imdb canonical name": "Couson, Laurent"
+        }, 
+        {
+            "canonical name": "Marzin, Alexis", 
+            "name": "Alexis Marzin", 
+            "long imdb name": "Alexis Marzin", 
+            "long imdb canonical name": "Marzin, Alexis"
+        }, 
+        {
+            "canonical name": "Witkowski, Piotr", 
+            "name": "Piotr Witkowski", 
+            "long imdb name": "Piotr Witkowski", 
+            "long imdb canonical name": "Witkowski, Piotr"
+        }
+    ], 
+    "camera and electrical department": [
+        {
+            "canonical name": "Alin, Ciobanu", 
+            "name": "Ciobanu Alin", 
+            "long imdb name": "Ciobanu Alin", 
+            "long imdb canonical name": "Alin, Ciobanu"
+        }, 
+        {
+            "canonical name": "Budescu, George", 
+            "name": "George Budescu", 
+            "long imdb name": "George Budescu", 
+            "long imdb canonical name": "Budescu, George"
+        }, 
+        {
+            "canonical name": "Ciobanu, Daniel", 
+            "name": "Daniel Ciobanu", 
+            "long imdb name": "Daniel Ciobanu", 
+            "long imdb canonical name": "Ciobanu, Daniel"
+        }, 
+        {
+            "canonical name": "Cioplea, Radu", 
+            "name": "Radu Cioplea", 
+            "long imdb name": "Radu Cioplea", 
+            "long imdb canonical name": "Cioplea, Radu"
+        }, 
+        {
+            "canonical name": "Constantin, Nica", 
+            "name": "Nica Constantin", 
+            "long imdb name": "Nica Constantin", 
+            "long imdb canonical name": "Constantin, Nica"
+        }, 
+        {
+            "canonical name": "Dascalescu, George", 
+            "name": "George Dascalescu", 
+            "long imdb name": "George Dascalescu", 
+            "long imdb canonical name": "Dascalescu, George"
+        }, 
+        {
+            "canonical name": "Ivascu, George", 
+            "name": "George Ivascu", 
+            "long imdb name": "George Ivascu", 
+            "long imdb canonical name": "Ivascu, George"
+        }, 
+        {
+            "canonical name": "Landau, Erwin", 
+            "name": "Erwin Landau", 
+            "long imdb name": "Erwin Landau", 
+            "long imdb canonical name": "Landau, Erwin"
+        }, 
+        {
+            "canonical name": "Landau, Erwin", 
+            "name": "Erwin Landau", 
+            "long imdb name": "Erwin Landau", 
+            "long imdb canonical name": "Landau, Erwin"
+        }, 
+        {
+            "canonical name": "Lupu, Cristi", 
+            "name": "Cristi Lupu", 
+            "long imdb name": "Cristi Lupu", 
+            "long imdb canonical name": "Lupu, Cristi"
+        }, 
+        {
+            "canonical name": "Nainer, Sorin", 
+            "name": "Sorin Nainer", 
+            "long imdb name": "Sorin Nainer", 
+            "long imdb canonical name": "Nainer, Sorin"
+        }, 
+        {
+            "canonical name": "Nanoveanu, Dan", 
+            "name": "Dan Nanoveanu", 
+            "long imdb name": "Dan Nanoveanu", 
+            "long imdb canonical name": "Nanoveanu, Dan"
+        }, 
+        {
+            "canonical name": "Nicolaescu, Dana", 
+            "name": "Dana Nicolaescu", 
+            "long imdb name": "Dana Nicolaescu", 
+            "long imdb canonical name": "Nicolaescu, Dana"
+        }, 
+        {
+            "canonical name": "Romero, Richard", 
+            "name": "Richard Romero", 
+            "long imdb name": "Richard Romero", 
+            "long imdb canonical name": "Romero, Richard"
+        }, 
+        {
+            "canonical name": "Sandor, Adrian", 
+            "name": "Adrian Sandor", 
+            "long imdb name": "Adrian Sandor", 
+            "long imdb canonical name": "Sandor, Adrian"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "IFC Films", 
+            "long imdb name": "IFC Films"
+        }, 
+        {
+            "name": "Neo", 
+            "long imdb name": "Neo"
+        }, 
+        {
+            "name": "Sundance Selects", 
+            "long imdb name": "Sundance Selects"
+        }, 
+        {
+            "name": "IFC Films", 
+            "long imdb name": "IFC Films"
+        }, 
+        {
+            "name": "Sundance Selects", 
+            "long imdb name": "Sundance Selects"
+        }
+    ], 
+    "rating": 7.1, 
+    "runtimes": [
+        "112"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "Levinta, Doina", 
+            "name": "Doina Levinta", 
+            "long imdb name": "Doina Levinta", 
+            "long imdb canonical name": "Levinta, Doina"
+        }
+    ], 
+    "make up": [
+        {
+            "canonical name": "Coulon, Lucas", 
+            "name": "Lucas Coulon", 
+            "long imdb name": "Lucas Coulon", 
+            "long imdb canonical name": "Coulon, Lucas"
+        }, 
+        {
+            "canonical name": "Maria, Andreescu", 
+            "name": "Andreescu Maria", 
+            "long imdb name": "Andreescu Maria", 
+            "long imdb canonical name": "Maria, Andreescu"
+        }, 
+        {
+            "canonical name": "Ozier, Laura", 
+            "name": "Laura Ozier", 
+            "long imdb name": "Laura Ozier", 
+            "long imdb canonical name": "Ozier, Laura"
+        }, 
+        {
+            "canonical name": "Tudor, Elena", 
+            "name": "Elena Tudor", 
+            "long imdb name": "Elena Tudor", 
+            "long imdb canonical name": "Tudor, Elena"
+        }, 
+        {
+            "canonical name": "Tudor, Manuela", 
+            "name": "Manuela Tudor", 
+            "long imdb name": "Manuela Tudor", 
+            "long imdb canonical name": "Tudor, Manuela"
+        }
+    ], 
+    "year": 2014, 
+    "production design": [
+        {
+            "canonical name": "Niculescu, Christian", 
+            "name": "Christian Niculescu", 
+            "long imdb name": "Christian Niculescu", 
+            "long imdb canonical name": "Niculescu, Christian"
+        }
+    ], 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Coman, Cristian", 
+            "name": "Cristian Coman", 
+            "long imdb name": "Cristian Coman", 
+            "long imdb canonical name": "Coman, Cristian"
+        }, 
+        {
+            "canonical name": "Dudkiewicz, Marta", 
+            "name": "Marta Dudkiewicz", 
+            "long imdb name": "Marta Dudkiewicz", 
+            "long imdb canonical name": "Dudkiewicz, Marta"
+        }, 
+        {
+            "canonical name": "Ghitescu, Ruxandra", 
+            "name": "Ruxandra Ghitescu", 
+            "long imdb name": "Ruxandra Ghitescu", 
+            "long imdb canonical name": "Ghitescu, Ruxandra"
+        }, 
+        {
+            "canonical name": "Larquemin, St\u00e9phane", 
+            "name": "St\u00e9phane Larquemin", 
+            "long imdb name": "St\u00e9phane Larquemin", 
+            "long imdb canonical name": "Larquemin, St\u00e9phane"
+        }, 
+        {
+            "canonical name": "Opran, Isabela", 
+            "name": "Isabela Opran", 
+            "long imdb name": "Isabela Opran", 
+            "long imdb canonical name": "Opran, Isabela"
+        }, 
+        {
+            "canonical name": "Popa, Luana", 
+            "name": "Luana Popa", 
+            "long imdb name": "Luana Popa", 
+            "long imdb canonical name": "Popa, Luana"
+        }, 
+        {
+            "canonical name": "Simon, Virginie", 
+            "name": "Virginie Simon", 
+            "long imdb name": "Virginie Simon", 
+            "long imdb canonical name": "Simon, Virginie"
+        }, 
+        {
+            "canonical name": "Toderiuc, Lucia", 
+            "name": "Lucia Toderiuc", 
+            "long imdb name": "Lucia Toderiuc", 
+            "long imdb canonical name": "Toderiuc, Lucia"
+        }, 
+        {
+            "canonical name": "Voss, Nell", 
+            "name": "Nell Voss", 
+            "long imdb name": "Nell Voss", 
+            "long imdb canonical name": "Voss, Nell"
+        }
+    ], 
+    "long imdb canonical title": "Closer to the Moon (2014)", 
+    "color info": [], 
+    "special effects department": [
+        {
+            "canonical name": "Adrian, Stegaru", 
+            "name": "Stegaru Adrian", 
+            "long imdb name": "Stegaru Adrian", 
+            "long imdb canonical name": "Adrian, Stegaru"
+        }, 
+        {
+            "canonical name": "Adrian, Stegaru", 
+            "name": "Stegaru Adrian", 
+            "long imdb name": "Stegaru Adrian", 
+            "long imdb canonical name": "Adrian, Stegaru"
+        }
+    ], 
+    "plot": [
+        "Bucharest 1959. A spectacular Bank heist has the country in an uproar. In post-war Communist Romania it is an unimaginable slap in the face to the iron fisted authorities. Four men and a woman are arrested, tried, convicted and while waiting for their execution... are forced to star in a propaganda film about the crime. All five protagonists were heroes of the resistance during the Second World War and highly placed members of Romanian society. They clearly knew they would be caught and executed.", 
+        "A Romanian police officer teams up with a small crew of old friends from the World War II Jewish Resistance to pull off a heist by convincing everyone at the scene of the crime that they are only filming a movie."
+    ], 
+    "votes": 2815, 
+    "producer": [
+        {
+            "canonical name": "Fitzgerald, Michael", 
+            "name": "Michael Fitzgerald", 
+            "long imdb name": "Michael Fitzgerald", 
+            "long imdb canonical name": "Fitzgerald, Michael"
+        }, 
+        {
+            "canonical name": "Friedman, Denis", 
+            "name": "Denis Friedman", 
+            "long imdb name": "Denis Friedman", 
+            "long imdb canonical name": "Friedman, Denis"
+        }, 
+        {
+            "canonical name": "Glass, Penelope", 
+            "name": "Penelope Glass", 
+            "long imdb name": "Penelope Glass", 
+            "long imdb canonical name": "Glass, Penelope"
+        }, 
+        {
+            "canonical name": "Leone, Alessandro", 
+            "name": "Alessandro Leone", 
+            "long imdb name": "Alessandro Leone", 
+            "long imdb canonical name": "Leone, Alessandro"
+        }, 
+        {
+            "canonical name": "Paunescu, Bobby", 
+            "name": "Bobby Paunescu", 
+            "long imdb name": "Bobby Paunescu", 
+            "long imdb canonical name": "Paunescu, Bobby"
+        }, 
+        {
+            "canonical name": "Ranieri, Renata", 
+            "name": "Renata Ranieri", 
+            "long imdb name": "Renata Ranieri", 
+            "long imdb canonical name": "Ranieri, Renata"
+        }, 
+        {
+            "canonical name": "Romero, Richard", 
+            "name": "Richard Romero", 
+            "long imdb name": "Richard Romero", 
+            "long imdb canonical name": "Romero, Richard"
+        }, 
+        {
+            "canonical name": "Tucci, Ugo", 
+            "name": "Ugo Tucci", 
+            "long imdb name": "Ugo Tucci", 
+            "long imdb canonical name": "Tucci, Ugo"
+        }
+    ], 
+    "title": "Closer to the Moon", 
+    "assistant director": [
+        {
+            "canonical name": "Butoi, Anca", 
+            "name": "Anca Butoi", 
+            "long imdb name": "Anca Butoi", 
+            "long imdb canonical name": "Butoi, Anca"
+        }, 
+        {
+            "canonical name": "Cook, Brian W.", 
+            "name": "Brian W. Cook", 
+            "long imdb name": "Brian W. Cook", 
+            "long imdb canonical name": "Cook, Brian W."
+        }, 
+        {
+            "canonical name": "Petre, Mariuca", 
+            "name": "Mariuca Petre", 
+            "long imdb name": "Mariuca Petre", 
+            "long imdb canonical name": "Petre, Mariuca"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "Caranfil, Nae", 
+            "name": "Nae Caranfil", 
+            "long imdb name": "Nae Caranfil", 
+            "long imdb canonical name": "Caranfil, Nae"
+        }
+    ], 
+    "casting director": [
+        {
+            "canonical name": "Davis, Leo", 
+            "name": "Leo Davis", 
+            "long imdb name": "Leo Davis", 
+            "long imdb canonical name": "Davis, Leo"
+        }, 
+        {
+            "canonical name": "Grosu, Laura", 
+            "name": "Laura Grosu", 
+            "long imdb name": "Laura Grosu", 
+            "long imdb canonical name": "Grosu, Laura"
+        }, 
+        {
+            "canonical name": "Holm, Lissy", 
+            "name": "Lissy Holm", 
+            "long imdb name": "Lissy Holm", 
+            "long imdb canonical name": "Holm, Lissy"
+        }, 
+        {
+            "canonical name": "Toma, Liliana", 
+            "name": "Liliana Toma", 
+            "long imdb name": "Liliana Toma", 
+            "long imdb canonical name": "Toma, Liliana"
+        }
+    ], 
+    "languages": [
+        "English"
+    ], 
+    "production manager": [
+        {
+            "canonical name": "Dumitru, Bogdan", 
+            "name": "Bogdan Dumitru", 
+            "long imdb name": "Bogdan Dumitru", 
+            "long imdb canonical name": "Dumitru, Bogdan"
+        }, 
+        {
+            "canonical name": "Poninski, Lukasz", 
+            "name": "Lukasz Poninski", 
+            "long imdb name": "Lukasz Poninski", 
+            "long imdb canonical name": "Poninski, Lukasz"
+        }
+    ], 
+    "set decoration": [
+        {
+            "canonical name": "Popa, Andreea", 
+            "name": "Andreea Popa", 
+            "long imdb name": "Andreea Popa", 
+            "long imdb canonical name": "Popa, Andreea"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Cristutiu, Catalin", 
+            "name": "Catalin Cristutiu", 
+            "long imdb name": "Catalin Cristutiu", 
+            "long imdb canonical name": "Cristutiu, Catalin"
+        }, 
+        {
+            "canonical name": "Madaras, Larry", 
+            "name": "Larry Madaras", 
+            "long imdb name": "Larry Madaras", 
+            "long imdb canonical name": "Madaras, Larry"
+        }, 
+        {
+            "canonical name": "Silvi, Roberto", 
+            "name": "Roberto Silvi", 
+            "long imdb name": "Roberto Silvi", 
+            "long imdb canonical name": "Silvi, Roberto"
+        }
+    ], 
+    "certificates": [
+        "UK:12A", 
+        "USA:Not Rated"
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "Bach, David", 
+            "name": "David Bach", 
+            "long imdb name": "David Bach", 
+            "long imdb canonical name": "Bach, David"
+        }, 
+        {
+            "canonical name": "Bouchez, Philippe", 
+            "name": "Philippe Bouchez", 
+            "long imdb name": "Philippe Bouchez", 
+            "long imdb canonical name": "Bouchez, Philippe"
+        }, 
+        {
+            "canonical name": "Chivu, Inu", 
+            "name": "Inu Chivu", 
+            "long imdb name": "Inu Chivu", 
+            "long imdb canonical name": "Chivu, Inu"
+        }, 
+        {
+            "canonical name": "Dumitru, Alexandru", 
+            "name": "Alexandru Dumitru", 
+            "long imdb name": "Alexandru Dumitru", 
+            "long imdb canonical name": "Dumitru, Alexandru"
+        }, 
+        {
+            "canonical name": "Leftarache, Marius", 
+            "name": "Marius Leftarache", 
+            "long imdb name": "Marius Leftarache", 
+            "long imdb canonical name": "Leftarache, Marius"
+        }, 
+        {
+            "canonical name": "McKeown, Timothy D.", 
+            "name": "Timothy D. McKeown", 
+            "long imdb name": "Timothy D. McKeown", 
+            "long imdb canonical name": "McKeown, Timothy D."
+        }, 
+        {
+            "canonical name": "Tabacaru, Florin", 
+            "name": "Florin Tabacaru", 
+            "long imdb name": "Florin Tabacaru", 
+            "long imdb canonical name": "Tabacaru, Florin"
+        }, 
+        {
+            "canonical name": "Tabacaru, Florin", 
+            "name": "Florin Tabacaru", 
+            "long imdb name": "Florin Tabacaru", 
+            "long imdb canonical name": "Tabacaru, Florin"
+        }, 
+        {
+            "canonical name": "Tabacaru, Florin", 
+            "name": "Florin Tabacaru", 
+            "long imdb name": "Florin Tabacaru", 
+            "long imdb canonical name": "Tabacaru, Florin"
+        }, 
+        {
+            "canonical name": "Vieillard, Dominique", 
+            "name": "Dominique Vieillard", 
+            "long imdb name": "Dominique Vieillard", 
+            "long imdb canonical name": "Vieillard, Dominique"
+        }
+    ], 
+    "long imdb title": "Closer to the Moon (2014)", 
+    "country codes": [
+        "ro", 
+        "us", 
+        "it", 
+        "pl", 
+        "fr"
+    ], 
+    "language codes": [
+        "en"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BMTU3NjAzOTAxOF5BMl5BanBnXkFtZTgwNjE5MTUxNTE@._V1._SX95_SY140_.jpg", 
+    "casting department": [
+        {
+            "canonical name": "Dudkiewicz, Marta", 
+            "name": "Marta Dudkiewicz", 
+            "long imdb name": "Marta Dudkiewicz", 
+            "long imdb canonical name": "Dudkiewicz, Marta"
+        }
+    ], 
+    "editorial department": [
+        {
+            "canonical name": "Brizio, Edo", 
+            "name": "Edo Brizio", 
+            "long imdb name": "Edo Brizio", 
+            "long imdb canonical name": "Brizio, Edo"
+        }, 
+        {
+            "canonical name": "Codleanu, Mihai", 
+            "name": "Mihai Codleanu", 
+            "long imdb name": "Mihai Codleanu", 
+            "long imdb canonical name": "Codleanu, Mihai"
+        }, 
+        {
+            "canonical name": "Enache, Alexandru", 
+            "name": "Alexandru Enache", 
+            "long imdb name": "Alexandru Enache", 
+            "long imdb canonical name": "Enache, Alexandru"
+        }
+    ], 
+    "sound mix": [
+        "Dolby Digital"
+    ], 
+    "location management": [
+        {
+            "canonical name": "Dobrean, Marius", 
+            "name": "Marius Dobrean", 
+            "long imdb name": "Marius Dobrean", 
+            "long imdb canonical name": "Dobrean, Marius"
+        }, 
+        {
+            "canonical name": "Mitrea, Mihai", 
+            "name": "Mihai Mitrea", 
+            "long imdb name": "Mihai Mitrea", 
+            "long imdb canonical name": "Mitrea, Mihai"
+        }
+    ], 
+    "genres": [
+        "Comedy", 
+        "Drama"
+    ], 
+    "director": [
+        {
+            "canonical name": "Caranfil, Nae", 
+            "name": "Nae Caranfil", 
+            "long imdb name": "Nae Caranfil", 
+            "long imdb canonical name": "Caranfil, Nae"
+        }
+    ], 
+    "stunt performer": [
+        {
+            "canonical name": "Dragan, Madalin", 
+            "name": "Madalin Dragan", 
+            "long imdb name": "Madalin Dragan", 
+            "long imdb canonical name": "Dragan, Madalin"
+        }, 
+        {
+            "canonical name": "Iliescu, Mihai", 
+            "name": "Mihai Iliescu", 
+            "long imdb name": "Mihai Iliescu", 
+            "long imdb canonical name": "Iliescu, Mihai"
+        }, 
+        {
+            "canonical name": "Petrica, Marin", 
+            "name": "Marin Petrica", 
+            "long imdb name": "Marin Petrica", 
+            "long imdb canonical name": "Petrica, Marin"
+        }, 
+        {
+            "canonical name": "Vintileanu, Andrei", 
+            "name": "Andrei Vintileanu", 
+            "long imdb name": "Andrei Vintileanu", 
+            "long imdb canonical name": "Vintileanu, Andrei"
+        }, 
+        {
+            "canonical name": "Padureanu, Cosmin", 
+            "name": "Cosmin Padureanu", 
+            "long imdb name": "Cosmin Padureanu", 
+            "long imdb canonical name": "Padureanu, Cosmin"
+        }
+    ], 
+    "miscellaneous companies": [
+        {
+            "name": "Alvernia Studios", 
+            "long imdb name": "Alvernia Studios"
+        }, 
+        {
+            "name": "Central Casting Romania", 
+            "long imdb name": "Central Casting Romania"
+        }, 
+        {
+            "name": "Vantage Film", 
+            "long imdb name": "Vantage Film"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Panduru, Marius", 
+            "name": "Marius Panduru", 
+            "long imdb name": "Marius Panduru", 
+            "long imdb canonical name": "Panduru, Marius"
+        }
+    ], 
+    "akas": [
+        "Gang Rosenthala::Poland (imdb display title)", 
+        "Mai aproape de luna::Romania (poster title)", 
+        "\u0411\u043b\u0438\u0436\u0435 \u043a \u041b\u0443\u043d\u0435::Russia", 
+        "K\u00f6zelebb a Holdhoz::Hungary (imdb display title)"
+    ], 
+    "aspect ratio": "2.35 : 1", 
+    "production companies": [
+        {
+            "name": "Agresywna Banda", 
+            "long imdb name": "Agresywna Banda"
+        }, 
+        {
+            "name": "Denis Friedman Productions", 
+            "long imdb name": "Denis Friedman Productions"
+        }, 
+        {
+            "name": "Mandragora Movies", 
+            "long imdb name": "Mandragora Movies"
+        }
+    ], 
+    "kind": "movie", 
+    "art department": [
+        {
+            "canonical name": "Cosmin, Onica", 
+            "name": "Onica Cosmin", 
+            "long imdb name": "Onica Cosmin", 
+            "long imdb canonical name": "Cosmin, Onica"
+        }, 
+        {
+            "canonical name": "Diana, Ghinea", 
+            "name": "Ghinea Diana", 
+            "long imdb name": "Ghinea Diana", 
+            "long imdb canonical name": "Diana, Ghinea"
+        }, 
+        {
+            "canonical name": "Mihaila, Cristian", 
+            "name": "Cristian Mihaila", 
+            "long imdb name": "Cristian Mihaila", 
+            "long imdb canonical name": "Mihaila, Cristian"
+        }, 
+        {
+            "canonical name": "Petrini, Alina", 
+            "name": "Alina Petrini", 
+            "long imdb name": "Alina Petrini", 
+            "long imdb canonical name": "Petrini, Alina"
+        }, 
+        {
+            "canonical name": "Popa, Andrei-Florian", 
+            "name": "Andrei-Florian Popa", 
+            "long imdb name": "Andrei-Florian Popa", 
+            "long imdb canonical name": "Popa, Andrei-Florian"
+        }, 
+        {
+            "canonical name": "Stanciu, Mihai", 
+            "name": "Mihai Stanciu", 
+            "long imdb name": "Mihai Stanciu", 
+            "long imdb canonical name": "Stanciu, Mihai"
+        }, 
+        {
+            "canonical name": "Ungureanu, Adrian", 
+            "name": "Adrian Ungureanu", 
+            "long imdb name": "Adrian Ungureanu", 
+            "long imdb canonical name": "Ungureanu, Adrian"
+        }, 
+        {
+            "canonical name": "Zarnoianu, Laurentiu", 
+            "name": "Laurentiu Zarnoianu", 
+            "long imdb name": "Laurentiu Zarnoianu", 
+            "long imdb canonical name": "Zarnoianu, Laurentiu"
+        }
+    ], 
+    "countries": [
+        "Romania", 
+        "USA", 
+        "Italy", 
+        "Poland", 
+        "France"
+    ], 
+    "transportation department": [
+        {
+            "canonical name": "Muntean, Radu Vaida", 
+            "name": "Radu Vaida Muntean", 
+            "long imdb name": "Radu Vaida Muntean", 
+            "long imdb canonical name": "Muntean, Radu Vaida"
+        }
+    ], 
+    "plot outline": "A Romanian police officer teams up with a small crew of old friends from the World War II Jewish Resistance to pull off a heist by convincing everyone at the scene of the crime that they are only filming a movie.", 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BMTU3NjAzOTAxOF5BMl5BanBnXkFtZTgwNjE5MTUxNTE@.jpg", 
+    "canonical title": "Closer to the Moon", 
+    "cast": [
+        {
+            "canonical name": "Farmiga, Vera", 
+            "name": "Vera Farmiga", 
+            "long imdb name": "Vera Farmiga", 
+            "long imdb canonical name": "Farmiga, Vera"
+        }, 
+        {
+            "canonical name": "Lloyd, Harry", 
+            "name": "Harry Lloyd", 
+            "long imdb name": "Harry Lloyd", 
+            "long imdb canonical name": "Lloyd, Harry"
+        }, 
+        {
+            "canonical name": "Strong, Mark", 
+            "name": "Mark Strong", 
+            "long imdb name": "Mark Strong", 
+            "long imdb canonical name": "Strong, Mark"
+        }, 
+        {
+            "canonical name": "Lesser, Anton", 
+            "name": "Anton Lesser", 
+            "long imdb name": "Anton Lesser", 
+            "long imdb canonical name": "Lesser, Anton"
+        }, 
+        {
+            "canonical name": "Armstrong, Joe", 
+            "name": "Joe Armstrong", 
+            "long imdb name": "Joe Armstrong", 
+            "long imdb canonical name": "Armstrong, Joe"
+        }, 
+        {
+            "canonical name": "Corduner, Allan", 
+            "name": "Allan Corduner", 
+            "long imdb name": "Allan Corduner", 
+            "long imdb canonical name": "Corduner, Allan"
+        }, 
+        {
+            "canonical name": "Plester, Tim", 
+            "name": "Tim Plester", 
+            "long imdb name": "Tim Plester", 
+            "long imdb canonical name": "Plester, Tim"
+        }, 
+        {
+            "canonical name": "McKay, Christian", 
+            "name": "Christian McKay", 
+            "long imdb name": "Christian McKay", 
+            "long imdb canonical name": "McKay, Christian"
+        }, 
+        {
+            "canonical name": "Barladeanu, Monica", 
+            "name": "Monica Barladeanu", 
+            "long imdb name": "Monica Barladeanu", 
+            "long imdb canonical name": "Barladeanu, Monica"
+        }, 
+        {
+            "canonical name": "Keyworth, Gwyneth", 
+            "name": "Gwyneth Keyworth", 
+            "long imdb name": "Gwyneth Keyworth", 
+            "long imdb canonical name": "Keyworth, Gwyneth"
+        }, 
+        {
+            "canonical name": "Hancock, Martin", 
+            "name": "Martin Hancock", 
+            "long imdb name": "Martin Hancock", 
+            "long imdb canonical name": "Hancock, Martin"
+        }, 
+        {
+            "canonical name": "D'Silva, Darrell", 
+            "name": "Darrell D'Silva", 
+            "long imdb name": "Darrell D'Silva", 
+            "long imdb canonical name": "D'Silva, Darrell"
+        }, 
+        {
+            "canonical name": "Henshaw, John", 
+            "name": "John Henshaw", 
+            "long imdb name": "John Henshaw", 
+            "long imdb canonical name": "Henshaw, John"
+        }, 
+        {
+            "canonical name": "Buckley, Andrew", 
+            "name": "Andrew Buckley", 
+            "long imdb name": "Andrew Buckley", 
+            "long imdb canonical name": "Buckley, Andrew"
+        }, 
+        {
+            "canonical name": "Jesson, Paul", 
+            "name": "Paul Jesson", 
+            "long imdb name": "Paul Jesson", 
+            "long imdb canonical name": "Jesson, Paul"
+        }, 
+        {
+            "canonical name": "Cuka, Frances", 
+            "name": "Frances Cuka", 
+            "long imdb name": "Frances Cuka", 
+            "long imdb canonical name": "Cuka, Frances"
+        }, 
+        {
+            "canonical name": "O'Silva, Alan", 
+            "name": "Alan O'Silva", 
+            "long imdb name": "Alan O'Silva", 
+            "long imdb canonical name": "O'Silva, Alan"
+        }, 
+        {
+            "canonical name": "McQuarrie, Stuart", 
+            "name": "Stuart McQuarrie", 
+            "long imdb name": "Stuart McQuarrie", 
+            "long imdb canonical name": "McQuarrie, Stuart"
+        }, 
+        {
+            "canonical name": "McDougall, Martin", 
+            "name": "Martin McDougall", 
+            "long imdb name": "Martin McDougall", 
+            "long imdb canonical name": "McDougall, Martin"
+        }, 
+        {
+            "canonical name": "de Keyser, David", 
+            "name": "David de Keyser", 
+            "long imdb name": "David de Keyser", 
+            "long imdb canonical name": "de Keyser, David"
+        }, 
+        {
+            "canonical name": "Burcea, George", 
+            "name": "George Burcea", 
+            "long imdb name": "George Burcea", 
+            "long imdb canonical name": "Burcea, George"
+        }, 
+        {
+            "canonical name": "Grama, Ionut", 
+            "name": "Ionut Grama", 
+            "long imdb name": "Ionut Grama", 
+            "long imdb canonical name": "Grama, Ionut"
+        }, 
+        {
+            "canonical name": "Bota, Cristian", 
+            "name": "Cristian Bota", 
+            "long imdb name": "Cristian Bota", 
+            "long imdb canonical name": "Bota, Cristian"
+        }, 
+        {
+            "canonical name": "Banzaru, Radu", 
+            "name": "Radu Banzaru", 
+            "long imdb name": "Radu Banzaru", 
+            "long imdb canonical name": "Banzaru, Radu"
+        }, 
+        {
+            "canonical name": "Constantin, Gabriel", 
+            "name": "Gabriel Constantin", 
+            "long imdb name": "Gabriel Constantin", 
+            "long imdb canonical name": "Constantin, Gabriel"
+        }, 
+        {
+            "canonical name": "Gaughan, Ed", 
+            "name": "Ed Gaughan", 
+            "long imdb name": "Ed Gaughan", 
+            "long imdb canonical name": "Gaughan, Ed"
+        }, 
+        {
+            "canonical name": "Gillespie, Grant", 
+            "name": "Grant Gillespie", 
+            "long imdb name": "Grant Gillespie", 
+            "long imdb canonical name": "Gillespie, Grant"
+        }, 
+        {
+            "canonical name": "Iacoban, Radu", 
+            "name": "Radu Iacoban", 
+            "long imdb name": "Radu Iacoban", 
+            "long imdb canonical name": "Iacoban, Radu"
+        }, 
+        {
+            "canonical name": "Luna, Smaranda", 
+            "name": "Smaranda Luna", 
+            "long imdb name": "Smaranda Luna", 
+            "long imdb canonical name": "Luna, Smaranda"
+        }, 
+        {
+            "canonical name": "Vizante, Marius Florea", 
+            "name": "Marius Florea Vizante", 
+            "long imdb name": "Marius Florea Vizante", 
+            "long imdb canonical name": "Vizante, Marius Florea"
+        }, 
+        {
+            "canonical name": "Walewski, Marcin", 
+            "name": "Marcin Walewski", 
+            "long imdb name": "Marcin Walewski", 
+            "long imdb canonical name": "Walewski, Marcin"
+        }, 
+        {
+            "canonical name": "Ulici, Corneliu", 
+            "name": "Corneliu Ulici", 
+            "long imdb name": "Corneliu Ulici", 
+            "long imdb canonical name": "Ulici, Corneliu"
+        }, 
+        {
+            "canonical name": "Cosmin, Dominte", 
+            "name": "Dominte Cosmin", 
+            "long imdb name": "Dominte Cosmin", 
+            "long imdb canonical name": "Cosmin, Dominte"
+        }, 
+        {
+            "canonical name": "Michalski, Isaiah", 
+            "name": "Isaiah Michalski", 
+            "long imdb name": "Isaiah Michalski", 
+            "long imdb canonical name": "Michalski, Isaiah"
+        }, 
+        {
+            "canonical name": "Penisoara, Florin", 
+            "name": "Florin Penisoara", 
+            "long imdb name": "Florin Penisoara", 
+            "long imdb canonical name": "Penisoara, Florin"
+        }, 
+        {
+            "canonical name": "Chitu, Ioana", 
+            "name": "Ioana Chitu", 
+            "long imdb name": "Ioana Chitu", 
+            "long imdb canonical name": "Chitu, Ioana"
+        }, 
+        {
+            "canonical name": "Cojocaru, Mihai", 
+            "name": "Mihai Cojocaru", 
+            "long imdb name": "Mihai Cojocaru", 
+            "long imdb canonical name": "Cojocaru, Mihai"
+        }, 
+        {
+            "canonical name": "Petriceanu, Orlando", 
+            "name": "Orlando Petriceanu", 
+            "long imdb name": "Orlando Petriceanu", 
+            "long imdb canonical name": "Petriceanu, Orlando"
+        }
+    ], 
+    "smart long imdb canonical title": "Closer to the Moon (2014)", 
+    "costume department": [
+        {
+            "canonical name": "Sav, Diana", 
+            "name": "Diana Sav", 
+            "long imdb name": "Diana Sav", 
+            "long imdb canonical name": "Sav, Diana"
+        }
+    ], 
+    "original music": [
+        {
+            "canonical name": "Couson, Laurent", 
+            "name": "Laurent Couson", 
+            "long imdb name": "Laurent Couson", 
+            "long imdb canonical name": "Couson, Laurent"
+        }
+    ], 
+    "smart canonical title": "Closer to the Moon"
+}

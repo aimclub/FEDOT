@@ -1,0 +1,704 @@
+{
+    "rating": 6.9, 
+    "sound crew": [
+        {
+            "canonical name": "Hammond, Paul", 
+            "name": "Paul Hammond", 
+            "long imdb name": "Paul Hammond", 
+            "long imdb canonical name": "Hammond, Paul"
+        }, 
+        {
+            "canonical name": "Kram, Erica", 
+            "name": "Erica Kram", 
+            "long imdb name": "Erica Kram", 
+            "long imdb canonical name": "Kram, Erica"
+        }, 
+        {
+            "canonical name": "Wu, Jiang", 
+            "name": "Jiang Wu", 
+            "long imdb name": "Jiang Wu", 
+            "long imdb canonical name": "Wu, Jiang"
+        }
+    ], 
+    "camera and electrical department": [
+        {
+            "canonical name": "Epron, Remi", 
+            "name": "Remi Epron", 
+            "long imdb name": "Remi Epron", 
+            "long imdb canonical name": "Epron, Remi"
+        }, 
+        {
+            "canonical name": "Qian, Tiantian", 
+            "name": "Tiantian Qian", 
+            "long imdb name": "Tiantian Qian", 
+            "long imdb canonical name": "Qian, Tiantian"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "Well Go USA Entertainment", 
+            "long imdb name": "Well Go USA Entertainment"
+        }, 
+        {
+            "name": "China Lion Film Distribution", 
+            "long imdb name": "China Lion Film Distribution"
+        }, 
+        {
+            "name": "China Lion Film Distribution", 
+            "long imdb name": "China Lion Film Distribution"
+        }, 
+        {
+            "name": "China Lion Film Distribution", 
+            "long imdb name": "China Lion Film Distribution"
+        }, 
+        {
+            "name": "Golden Village Pictures", 
+            "long imdb name": "Golden Village Pictures"
+        }, 
+        {
+            "name": "Lark Films Distribution", 
+            "long imdb name": "Lark Films Distribution"
+        }, 
+        {
+            "name": "BFI Video", 
+            "long imdb name": "BFI Video"
+        }, 
+        {
+            "name": "Central Park Films", 
+            "long imdb name": "Central Park Films"
+        }, 
+        {
+            "name": "Central Park Films", 
+            "long imdb name": "Central Park Films"
+        }, 
+        {
+            "name": "Emperor Motion Pictures", 
+            "long imdb name": "Emperor Motion Pictures"
+        }, 
+        {
+            "name": "IPA Asia Pacific", 
+            "long imdb name": "IPA Asia Pacific"
+        }, 
+        {
+            "name": "Koch Media", 
+            "long imdb name": "Koch Media"
+        }, 
+        {
+            "name": "Koch Media", 
+            "long imdb name": "Koch Media"
+        }, 
+        {
+            "name": "Waylen Group", 
+            "long imdb name": "Waylen Group"
+        }
+    ], 
+    "runtimes": [
+        "145"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "Yip, Tim", 
+            "name": "Tim Yip", 
+            "long imdb name": "Tim Yip", 
+            "long imdb canonical name": "Yip, Tim"
+        }
+    ], 
+    "year": 2012, 
+    "production design": [
+        {
+            "canonical name": "Shi, Haiying", 
+            "name": "Haiying Shi", 
+            "long imdb name": "Haiying Shi", 
+            "long imdb canonical name": "Shi, Haiying"
+        }
+    ], 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Hsing, Alfred", 
+            "name": "Alfred Hsing", 
+            "long imdb name": "Alfred Hsing", 
+            "long imdb canonical name": "Hsing, Alfred"
+        }, 
+        {
+            "canonical name": "Hsing, Alfred", 
+            "name": "Alfred Hsing", 
+            "long imdb name": "Alfred Hsing", 
+            "long imdb canonical name": "Hsing, Alfred"
+        }, 
+        {
+            "canonical name": "Jiang, Elisa", 
+            "name": "Elisa Jiang", 
+            "long imdb name": "Elisa Jiang", 
+            "long imdb canonical name": "Jiang, Elisa"
+        }
+    ], 
+    "color info": [], 
+    "visual effects": [
+        {
+            "canonical name": "Chen, Cui", 
+            "name": "Cui Chen", 
+            "long imdb name": "Cui Chen", 
+            "long imdb canonical name": "Chen, Cui"
+        }
+    ], 
+    "votes": 2346, 
+    "producer": [
+        {
+            "canonical name": "Chen'an", 
+            "name": "Chen'an", 
+            "long imdb name": "Chen'an", 
+            "long imdb canonical name": "Chen'an"
+        }, 
+        {
+            "canonical name": "Chen, Kuo-fu", 
+            "name": "Kuo-fu Chen", 
+            "long imdb name": "Kuo-fu Chen", 
+            "long imdb canonical name": "Chen, Kuo-fu"
+        }, 
+        {
+            "canonical name": "Gao, Chengsheng", 
+            "name": "Chengsheng Gao", 
+            "long imdb name": "Chengsheng Gao", 
+            "long imdb canonical name": "Gao, Chengsheng"
+        }, 
+        {
+            "canonical name": "Han, Sanping", 
+            "name": "Sanping Han", 
+            "long imdb name": "Sanping Han", 
+            "long imdb canonical name": "Han, Sanping"
+        }, 
+        {
+            "canonical name": "Han, Xiaoli", 
+            "name": "Xiaoli Han", 
+            "long imdb name": "Xiaoli Han", 
+            "long imdb canonical name": "Han, Xiaoli"
+        }, 
+        {
+            "canonical name": "Ho, Lorraine", 
+            "name": "Lorraine Ho", 
+            "long imdb name": "Lorraine Ho", 
+            "long imdb canonical name": "Ho, Lorraine"
+        }, 
+        {
+            "canonical name": "Hu, Xiaofeng", 
+            "name": "Xiaofeng Hu", 
+            "long imdb name": "Xiaofeng Hu", 
+            "long imdb canonical name": "Hu, Xiaofeng"
+        }, 
+        {
+            "canonical name": "Hu, Xiaofeng", 
+            "name": "Xiaofeng Hu", 
+            "long imdb name": "Xiaofeng Hu", 
+            "long imdb canonical name": "Hu, Xiaofeng"
+        }, 
+        {
+            "canonical name": "Huang, Xiang", 
+            "name": "Xiang Huang", 
+            "long imdb name": "Xiang Huang", 
+            "long imdb canonical name": "Huang, Xiang"
+        }, 
+        {
+            "canonical name": "Lam, Peter", 
+            "name": "Peter Lam", 
+            "long imdb name": "Peter Lam", 
+            "long imdb canonical name": "Lam, Peter"
+        }, 
+        {
+            "canonical name": "Lam, Stephen", 
+            "name": "Stephen Lam", 
+            "long imdb name": "Stephen Lam", 
+            "long imdb canonical name": "Lam, Stephen"
+        }, 
+        {
+            "canonical name": "Lau, Shirley", 
+            "name": "Shirley Lau", 
+            "long imdb name": "Shirley Lau", 
+            "long imdb canonical name": "Lau, Shirley"
+        }, 
+        {
+            "canonical name": "Lee, Albert", 
+            "name": "Albert Lee", 
+            "long imdb name": "Albert Lee", 
+            "long imdb canonical name": "Lee, Albert"
+        }, 
+        {
+            "canonical name": "Li, Chaoyang", 
+            "name": "Chaoyang Li", 
+            "long imdb name": "Chaoyang Li", 
+            "long imdb canonical name": "Li, Chaoyang"
+        }, 
+        {
+            "canonical name": "Liu, Guangquan", 
+            "name": "Guangquan Liu", 
+            "long imdb name": "Guangquan Liu", 
+            "long imdb canonical name": "Liu, Guangquan"
+        }, 
+        {
+            "canonical name": "Liu, Wanli", 
+            "name": "Wanli Liu", 
+            "long imdb name": "Wanli Liu", 
+            "long imdb canonical name": "Liu, Wanli"
+        }, 
+        {
+            "canonical name": "Ni, Zhengwei", 
+            "name": "Zhengwei Ni", 
+            "long imdb name": "Zhengwei Ni", 
+            "long imdb canonical name": "Ni, Zhengwei"
+        }, 
+        {
+            "canonical name": "Ren, Yue", 
+            "name": "Yue Ren", 
+            "long imdb name": "Yue Ren", 
+            "long imdb canonical name": "Ren, Yue"
+        }, 
+        {
+            "canonical name": "Song, Dai", 
+            "name": "Dai Song", 
+            "long imdb name": "Dai Song", 
+            "long imdb canonical name": "Song, Dai"
+        }, 
+        {
+            "canonical name": "Wang, Yiyang", 
+            "name": "Yiyang Wang", 
+            "long imdb name": "Yiyang Wang", 
+            "long imdb canonical name": "Wang, Yiyang"
+        }, 
+        {
+            "canonical name": "Wang, Zhongjun", 
+            "name": "Zhongjun Wang", 
+            "long imdb name": "Zhongjun Wang", 
+            "long imdb canonical name": "Wang, Zhongjun"
+        }, 
+        {
+            "canonical name": "Wang, Zhonglei", 
+            "name": "Zhonglei Wang", 
+            "long imdb name": "Zhonglei Wang", 
+            "long imdb canonical name": "Wang, Zhonglei"
+        }, 
+        {
+            "canonical name": "Yang, Bernard", 
+            "name": "Bernard Yang", 
+            "long imdb name": "Bernard Yang", 
+            "long imdb canonical name": "Yang, Bernard"
+        }, 
+        {
+            "canonical name": "Yang, Wenhong", 
+            "name": "Wenhong Yang", 
+            "long imdb name": "Wenhong Yang", 
+            "long imdb canonical name": "Yang, Wenhong"
+        }, 
+        {
+            "canonical name": "Yeung, Albert", 
+            "name": "Albert Yeung", 
+            "long imdb name": "Albert Yeung", 
+            "long imdb canonical name": "Yeung, Albert"
+        }, 
+        {
+            "canonical name": "Yue, Xia", 
+            "name": "Xia Yue", 
+            "long imdb name": "Xia Yue", 
+            "long imdb canonical name": "Yue, Xia"
+        }, 
+        {
+            "canonical name": "Zhang, Dajun", 
+            "name": "Dajun Zhang", 
+            "long imdb name": "Dajun Zhang", 
+            "long imdb canonical name": "Zhang, Dajun"
+        }, 
+        {
+            "canonical name": "Zhang, Huali", 
+            "name": "Huali Zhang", 
+            "long imdb name": "Huali Zhang", 
+            "long imdb canonical name": "Zhang, Huali"
+        }, 
+        {
+            "canonical name": "Zhang, Qiang", 
+            "name": "Qiang Zhang", 
+            "long imdb name": "Qiang Zhang", 
+            "long imdb canonical name": "Zhang, Qiang"
+        }, 
+        {
+            "canonical name": "Zhang, Yu", 
+            "name": "Yu Zhang", 
+            "long imdb name": "Yu Zhang", 
+            "long imdb canonical name": "Zhang, Yu"
+        }, 
+        {
+            "canonical name": "Zhao, Duojia", 
+            "name": "Duojia Zhao", 
+            "long imdb name": "Duojia Zhao", 
+            "long imdb canonical name": "Zhao, Duojia"
+        }, 
+        {
+            "canonical name": "Zhao, Haicheng", 
+            "name": "Haicheng Zhao", 
+            "long imdb name": "Haicheng Zhao", 
+            "long imdb canonical name": "Zhao, Haicheng"
+        }, 
+        {
+            "canonical name": "Zhao, Hongmei", 
+            "name": "Hongmei Zhao", 
+            "long imdb name": "Hongmei Zhao", 
+            "long imdb canonical name": "Zhao, Hongmei"
+        }
+    ], 
+    "title": "Yi jiu si er", 
+    "assistant director": [
+        {
+            "canonical name": "Jiang, Elisa", 
+            "name": "Elisa Jiang", 
+            "long imdb name": "Elisa Jiang", 
+            "long imdb canonical name": "Jiang, Elisa"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "Liu, Zhenyun", 
+            "name": "Zhenyun Liu", 
+            "long imdb name": "Zhenyun Liu", 
+            "long imdb canonical name": "Liu, Zhenyun"
+        }, 
+        {
+            "canonical name": "Liu, Zhenyun", 
+            "name": "Zhenyun Liu", 
+            "long imdb name": "Zhenyun Liu", 
+            "long imdb canonical name": "Liu, Zhenyun"
+        }
+    ], 
+    "long imdb canonical title": "Yi jiu si er (2012)", 
+    "languages": [
+        "Mandarin", 
+        "English", 
+        "Japanese"
+    ], 
+    "production manager": [
+        {
+            "canonical name": "Pomerantz, Jason", 
+            "name": "Jason Pomerantz", 
+            "long imdb name": "Jason Pomerantz", 
+            "long imdb canonical name": "Pomerantz, Jason"
+        }
+    ], 
+    "certificates": [
+        "Australia:MA15+", 
+        "Germany:16", 
+        "Hong Kong:IIB", 
+        "Singapore:NC-16", 
+        "UK:15", 
+        "USA:Not Rated"
+    ], 
+    "costume department": [
+        {
+            "canonical name": "Wang, Rong", 
+            "name": "Rong Wang", 
+            "long imdb name": "Rong Wang", 
+            "long imdb canonical name": "Wang, Rong"
+        }
+    ], 
+    "long imdb title": "Yi jiu si er (2012)", 
+    "country codes": [
+        "cn"
+    ], 
+    "language codes": [
+        "cmn", 
+        "en", 
+        "ja"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BNjc2OTA3Mjc1Nl5BMl5BanBnXkFtZTcwMjQyNzU3OA@@._V1._SX100_SY140_.jpg", 
+    "plot": [
+        "A famine with multiple contributing factors and devastating effects during the Second Sino-Japanese war is chronicled from the official perspective of reporters, generals, politicians and real families whose lives were forever altered by drastic measures they were forced to take in order to survive. Alternately ignoring the dire nature of the famine and its subsequent exodus of millions of people from the Hunen province, and minimizing its devastation to the outside world, the Chinese Nationalist government of the time is one which seems to be over burdened by ongoing war efforts and corruption in the distribution of relief supplies. Policy and private life are worlds apart in stopping the devastation shown through the portrayals of those who lived to tell the tale and their accounts of those who were not so lucky, of whom there were many (3 million.) This is a true story based upon Liu Zhenyun's novel \"Remembering 1942,\" Zhenyun himself is the descendant of a survivor of the 1942 famine and his family story is poignantly portrayed--showing heroism, self sacrifice, terrible misfortune and ultimate survival of the lucky few.", 
+        "A deadly drought in 1942 takes its toll on central China's Henan province during the war against Japan."
+    ], 
+    "sound mix": [
+        "Dolby Digital"
+    ], 
+    "genres": [
+        "Drama"
+    ], 
+    "director": [
+        {
+            "canonical name": "Feng, Xiaogang", 
+            "name": "Xiaogang Feng", 
+            "long imdb name": "Xiaogang Feng", 
+            "long imdb canonical name": "Feng, Xiaogang"
+        }
+    ], 
+    "miscellaneous companies": [
+        {
+            "name": "CPC Chongqing Municipal Party Committee Propaganda Department", 
+            "long imdb name": "CPC Chongqing Municipal Party Committee Propaganda Department"
+        }, 
+        {
+            "name": "Cinerent", 
+            "long imdb name": "Cinerent"
+        }, 
+        {
+            "name": "Dolby Laboratories", 
+            "long imdb name": "Dolby Laboratories"
+        }, 
+        {
+            "name": "Huayi Brothers Media", 
+            "long imdb name": "Huayi Brothers Media"
+        }, 
+        {
+            "name": "Ketalog", 
+            "long imdb name": "Ketalog"
+        }, 
+        {
+            "name": "Post Haste Sound", 
+            "long imdb name": "Post Haste Sound"
+        }, 
+        {
+            "name": "Propaganda Department of the CPC Shaanxi Provincial Committee", 
+            "long imdb name": "Propaganda Department of the CPC Shaanxi Provincial Committee"
+        }, 
+        {
+            "name": "Shanxi Provincial Party Committee Propaganda Department", 
+            "long imdb name": "Shanxi Provincial Party Committee Propaganda Department"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "L\u00fc, Yue", 
+            "name": "Yue L\u00fc", 
+            "long imdb name": "Yue L\u00fc", 
+            "long imdb canonical name": "L\u00fc, Yue"
+        }
+    ], 
+    "akas": [
+        "Back to 1942::International (English title) (imdb display title)", 
+        "\u0412\u0441\u043f\u043e\u043c\u0438\u043d\u0430\u044f 1942::Russia", 
+        "\u041e\u0431\u0440\u0430\u0442\u043d\u043e \u0432 1942-\u0440\u0430::Bulgaria (Bulgarian title)", 
+        "Empire of War - Der letzte Widerstand::Germany (imdb display title)"
+    ], 
+    "aspect ratio": "2.35 : 1", 
+    "production companies": [
+        {
+            "name": "China Film Co.", 
+            "long imdb name": "China Film Co."
+        }, 
+        {
+            "name": "Emperor Film Production", 
+            "long imdb name": "Emperor Film Production"
+        }, 
+        {
+            "name": "Huayi Brothers Media", 
+            "long imdb name": "Huayi Brothers Media"
+        }, 
+        {
+            "name": "Media Asia Films", 
+            "long imdb name": "Media Asia Films"
+        }
+    ], 
+    "kind": "movie", 
+    "countries": [
+        "China"
+    ], 
+    "plot outline": "A deadly drought in 1942 takes its toll on central China's Henan province during the war against Japan.", 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BNjc2OTA3Mjc1Nl5BMl5BanBnXkFtZTcwMjQyNzU3OA@@.jpg", 
+    "canonical title": "Yi jiu si er", 
+    "cast": [
+        {
+            "canonical name": "Zhang, Guoli", 
+            "name": "Guoli Zhang", 
+            "long imdb name": "Guoli Zhang", 
+            "long imdb canonical name": "Zhang, Guoli"
+        }, 
+        {
+            "canonical name": "Zhang, Hanyu", 
+            "name": "Hanyu Zhang", 
+            "long imdb name": "Hanyu Zhang", 
+            "long imdb canonical name": "Zhang, Hanyu"
+        }, 
+        {
+            "canonical name": "Fan, Wei", 
+            "name": "Wei Fan", 
+            "long imdb name": "Wei Fan", 
+            "long imdb canonical name": "Fan, Wei"
+        }, 
+        {
+            "canonical name": "Feng, Yuanzheng", 
+            "name": "Yuanzheng Feng", 
+            "long imdb name": "Yuanzheng Feng", 
+            "long imdb canonical name": "Feng, Yuanzheng"
+        }, 
+        {
+            "canonical name": "Xu, Fan", 
+            "name": "Fan Xu", 
+            "long imdb name": "Fan Xu", 
+            "long imdb canonical name": "Xu, Fan"
+        }, 
+        {
+            "canonical name": "Chen, Daoming", 
+            "name": "Daoming Chen", 
+            "long imdb name": "Daoming Chen", 
+            "long imdb canonical name": "Chen, Daoming"
+        }, 
+        {
+            "canonical name": "Li, Xuejian", 
+            "name": "Xuejian Li", 
+            "long imdb name": "Xuejian Li", 
+            "long imdb canonical name": "Li, Xuejian"
+        }, 
+        {
+            "canonical name": "Yao, Jingyi", 
+            "name": "Jingyi Yao", 
+            "long imdb name": "Jingyi Yao", 
+            "long imdb canonical name": "Yao, Jingyi"
+        }, 
+        {
+            "canonical name": "Peng, Jiale", 
+            "name": "Jiale Peng", 
+            "long imdb name": "Jiale Peng", 
+            "long imdb canonical name": "Peng, Jiale"
+        }, 
+        {
+            "canonical name": "Qian, Li", 
+            "name": "Li Qian", 
+            "long imdb name": "Li Qian", 
+            "long imdb canonical name": "Qian, Li"
+        }, 
+        {
+            "canonical name": "Yuan, Huifang", 
+            "name": "Huifang Yuan", 
+            "long imdb name": "Huifang Yuan", 
+            "long imdb canonical name": "Yuan, Huifang"
+        }, 
+        {
+            "canonical name": "Zhang, Shaohua", 
+            "name": "Shaohua Zhang", 
+            "long imdb name": "Shaohua Zhang", 
+            "long imdb canonical name": "Zhang, Shaohua"
+        }, 
+        {
+            "canonical name": "Wang, Ziwen", 
+            "name": "Ziwen Wang", 
+            "long imdb name": "Ziwen Wang", 
+            "long imdb canonical name": "Wang, Ziwen"
+        }, 
+        {
+            "canonical name": "Zhang, Mo", 
+            "name": "Mo Zhang", 
+            "long imdb name": "Mo Zhang", 
+            "long imdb canonical name": "Zhang, Mo"
+        }, 
+        {
+            "canonical name": "Zhao, Yi", 
+            "name": "Yi Zhao", 
+            "long imdb name": "Yi Zhao", 
+            "long imdb canonical name": "Zhao, Yi"
+        }, 
+        {
+            "canonical name": "Zhang, Shu", 
+            "name": "Shu Zhang", 
+            "long imdb name": "Shu Zhang", 
+            "long imdb canonical name": "Zhang, Shu"
+        }, 
+        {
+            "canonical name": "Tian, Xiaojie", 
+            "name": "Xiaojie Tian", 
+            "long imdb name": "Xiaojie Tian", 
+            "long imdb canonical name": "Tian, Xiaojie"
+        }, 
+        {
+            "canonical name": "Ke, Lan", 
+            "name": "Lan Ke", 
+            "long imdb name": "Lan Ke", 
+            "long imdb canonical name": "Ke, Lan"
+        }, 
+        {
+            "canonical name": "Zhang, Guoqiang", 
+            "name": "Guoqiang Zhang", 
+            "long imdb name": "Guoqiang Zhang", 
+            "long imdb canonical name": "Zhang, Guoqiang"
+        }, 
+        {
+            "canonical name": "Yu, Zhen", 
+            "name": "Zhen Yu", 
+            "long imdb name": "Zhen Yu", 
+            "long imdb canonical name": "Yu, Zhen"
+        }, 
+        {
+            "canonical name": "Chang, Morning", 
+            "name": "Morning Chang", 
+            "long imdb name": "Morning Chang", 
+            "long imdb canonical name": "Chang, Morning"
+        }, 
+        {
+            "canonical name": "Lin, Yongjian", 
+            "name": "Yongjian Lin", 
+            "long imdb name": "Yongjian Lin", 
+            "long imdb canonical name": "Lin, Yongjian"
+        }, 
+        {
+            "canonical name": "Robbins, Tim", 
+            "name": "Tim Robbins", 
+            "long imdb name": "Tim Robbins", 
+            "long imdb canonical name": "Robbins, Tim"
+        }, 
+        {
+            "canonical name": "Brody, Adrien", 
+            "name": "Adrien Brody", 
+            "long imdb name": "Adrien Brody", 
+            "long imdb canonical name": "Brody, Adrien"
+        }, 
+        {
+            "canonical name": "Duan, Yihong", 
+            "name": "Yihong Duan", 
+            "long imdb name": "Yihong Duan", 
+            "long imdb canonical name": "Duan, Yihong"
+        }, 
+        {
+            "canonical name": "Boyd, Nathaniel", 
+            "name": "Nathaniel Boyd", 
+            "long imdb name": "Nathaniel Boyd", 
+            "long imdb canonical name": "Boyd, Nathaniel"
+        }, 
+        {
+            "canonical name": "Du, Chun", 
+            "name": "Chun Du", 
+            "long imdb name": "Chun Du", 
+            "long imdb canonical name": "Du, Chun"
+        }, 
+        {
+            "canonical name": "L\u00fc, Zhong", 
+            "name": "Zhong L\u00fc", 
+            "long imdb name": "Zhong L\u00fc", 
+            "long imdb canonical name": "L\u00fc, Zhong"
+        }, 
+        {
+            "canonical name": "Qiao, Zhenyu", 
+            "name": "Zhenyu Qiao", 
+            "long imdb name": "Zhenyu Qiao", 
+            "long imdb canonical name": "Qiao, Zhenyu"
+        }, 
+        {
+            "canonical name": "Su, Alec", 
+            "name": "Alec Su", 
+            "long imdb name": "Alec Su", 
+            "long imdb canonical name": "Su, Alec"
+        }, 
+        {
+            "canonical name": "Yang, Jiahui", 
+            "name": "Jiahui Yang", 
+            "long imdb name": "Jiahui Yang", 
+            "long imdb canonical name": "Yang, Jiahui"
+        }, 
+        {
+            "canonical name": "Hsing, Alfred", 
+            "name": "Alfred Hsing", 
+            "long imdb name": "Alfred Hsing", 
+            "long imdb canonical name": "Hsing, Alfred"
+        }
+    ], 
+    "smart long imdb canonical title": "Yi jiu si er (2012)", 
+    "original music": [
+        {
+            "canonical name": "Zhao, Jiping", 
+            "name": "Jiping Zhao", 
+            "long imdb name": "Jiping Zhao", 
+            "long imdb canonical name": "Zhao, Jiping"
+        }
+    ], 
+    "smart canonical title": "Yi jiu si er"
+}

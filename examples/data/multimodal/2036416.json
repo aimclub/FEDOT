@@ -1,0 +1,553 @@
+{
+    "music department": [
+        {
+            "canonical name": "Hsueh, Jamie", 
+            "name": "Jamie Hsueh", 
+            "long imdb name": "Jamie Hsueh", 
+            "long imdb canonical name": "Hsueh, Jamie"
+        }, 
+        {
+            "canonical name": "Tsuei, Adam", 
+            "name": "Adam Tsuei", 
+            "long imdb name": "Adam Tsuei", 
+            "long imdb canonical name": "Tsuei, Adam"
+        }
+    ], 
+    "camera and electrical department": [
+        {
+            "canonical name": "Li, Chia-Yu", 
+            "name": "Chia-Yu Li", 
+            "long imdb name": "Chia-Yu Li", 
+            "long imdb canonical name": "Li, Chia-Yu"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "20th Century Fox", 
+            "long imdb name": "20th Century Fox"
+        }, 
+        {
+            "name": "20th Century Fox", 
+            "long imdb name": "20th Century Fox"
+        }, 
+        {
+            "name": "Maxam", 
+            "long imdb name": "Maxam"
+        }, 
+        {
+            "name": "Mirovision", 
+            "long imdb name": "Mirovision"
+        }, 
+        {
+            "name": "Zazie Films", 
+            "long imdb name": "Zazie Films"
+        }, 
+        {
+            "name": "Star Ritz Productions Co.", 
+            "long imdb name": "Star Ritz Productions Co."
+        }
+    ], 
+    "rating": 7.7, 
+    "runtimes": [
+        "109", 
+        "Malaysia:109::(cut version)"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "Hsu, Li-Wen", 
+            "name": "Li-Wen Hsu", 
+            "long imdb name": "Li-Wen Hsu", 
+            "long imdb canonical name": "Hsu, Li-Wen"
+        }
+    ], 
+    "make up": [
+        {
+            "canonical name": "Cheng, Yun-Chi", 
+            "name": "Yun-Chi Cheng", 
+            "long imdb name": "Yun-Chi Cheng", 
+            "long imdb canonical name": "Cheng, Yun-Chi"
+        }, 
+        {
+            "canonical name": "Huang, Ling-Hui", 
+            "name": "Ling-Hui Huang", 
+            "long imdb name": "Ling-Hui Huang", 
+            "long imdb canonical name": "Huang, Ling-Hui"
+        }, 
+        {
+            "canonical name": "Huang, Wei-Hung", 
+            "name": "Wei-Hung Huang", 
+            "long imdb name": "Wei-Hung Huang", 
+            "long imdb canonical name": "Huang, Wei-Hung"
+        }, 
+        {
+            "canonical name": "Kao, Hsiu-Wen", 
+            "name": "Hsiu-Wen Kao", 
+            "long imdb name": "Hsiu-Wen Kao", 
+            "long imdb canonical name": "Kao, Hsiu-Wen"
+        }, 
+        {
+            "canonical name": "Kuo, Wei-Ti", 
+            "name": "Wei-Ti Kuo", 
+            "long imdb name": "Wei-Ti Kuo", 
+            "long imdb canonical name": "Kuo, Wei-Ti"
+        }, 
+        {
+            "canonical name": "Wu, Yi-Jung", 
+            "name": "Yi-Jung Wu", 
+            "long imdb name": "Yi-Jung Wu", 
+            "long imdb canonical name": "Wu, Yi-Jung"
+        }, 
+        {
+            "canonical name": "Yang, Chih-Chieh", 
+            "name": "Chih-Chieh Yang", 
+            "long imdb name": "Chih-Chieh Yang", 
+            "long imdb canonical name": "Yang, Chih-Chieh"
+        }
+    ], 
+    "year": 2011, 
+    "color info": [], 
+    "visual effects": [
+        {
+            "canonical name": "Hu, Tony", 
+            "name": "Tony Hu", 
+            "long imdb name": "Tony Hu", 
+            "long imdb canonical name": "Hu, Tony"
+        }
+    ], 
+    "genres": [
+        "Comedy", 
+        "Drama", 
+        "Romance"
+    ], 
+    "producer": [
+        {
+            "canonical name": "Chai, Angie", 
+            "name": "Angie Chai", 
+            "long imdb name": "Angie Chai", 
+            "long imdb canonical name": "Chai, Angie"
+        }, 
+        {
+            "canonical name": "Chai, Angie", 
+            "name": "Angie Chai", 
+            "long imdb name": "Angie Chai", 
+            "long imdb canonical name": "Chai, Angie"
+        }, 
+        {
+            "canonical name": "Deng, Hans", 
+            "name": "Hans Deng", 
+            "long imdb name": "Hans Deng", 
+            "long imdb canonical name": "Deng, Hans"
+        }, 
+        {
+            "canonical name": "Fang, Henry", 
+            "name": "Henry Fang", 
+            "long imdb name": "Henry Fang", 
+            "long imdb canonical name": "Fang, Henry"
+        }, 
+        {
+            "canonical name": "Fang, Molly", 
+            "name": "Molly Fang", 
+            "long imdb name": "Molly Fang", 
+            "long imdb canonical name": "Fang, Molly"
+        }, 
+        {
+            "canonical name": "Hsieh, Min-Tsen", 
+            "name": "Min-Tsen Hsieh", 
+            "long imdb name": "Min-Tsen Hsieh", 
+            "long imdb canonical name": "Hsieh, Min-Tsen"
+        }, 
+        {
+            "canonical name": "Lin, Heng-Yi", 
+            "name": "Heng-Yi Lin", 
+            "long imdb name": "Heng-Yi Lin", 
+            "long imdb canonical name": "Lin, Heng-Yi"
+        }, 
+        {
+            "canonical name": "Tsai, Yeh-Ta", 
+            "name": "Yeh-Ta Tsai", 
+            "long imdb name": "Yeh-Ta Tsai", 
+            "long imdb canonical name": "Tsai, Yeh-Ta"
+        }, 
+        {
+            "canonical name": "Tsuei, Adam", 
+            "name": "Adam Tsuei", 
+            "long imdb name": "Adam Tsuei", 
+            "long imdb canonical name": "Tsuei, Adam"
+        }, 
+        {
+            "canonical name": "Tung, Szu-Mei", 
+            "name": "Szu-Mei Tung", 
+            "long imdb name": "Szu-Mei Tung", 
+            "long imdb canonical name": "Tung, Szu-Mei"
+        }
+    ], 
+    "title": "Na xie nian, wo men yi qi zhui de nv hai", 
+    "assistant director": [
+        {
+            "canonical name": "Chiang, Chin-Lin", 
+            "name": "Chin-Lin Chiang", 
+            "long imdb name": "Chin-Lin Chiang", 
+            "long imdb canonical name": "Chiang, Chin-Lin"
+        }, 
+        {
+            "canonical name": "Hu, Chia-Chen", 
+            "name": "Chia-Chen Hu", 
+            "long imdb name": "Chia-Chen Hu", 
+            "long imdb canonical name": "Hu, Chia-Chen"
+        }, 
+        {
+            "canonical name": "Liao, Ming-Yi", 
+            "name": "Ming-Yi Liao", 
+            "long imdb name": "Ming-Yi Liao", 
+            "long imdb canonical name": "Liao, Ming-Yi"
+        }, 
+        {
+            "canonical name": "Yen, Chun-Wei", 
+            "name": "Chun-Wei Yen", 
+            "long imdb name": "Chun-Wei Yen", 
+            "long imdb canonical name": "Yen, Chun-Wei"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "Ko, Giddens", 
+            "name": "Giddens Ko", 
+            "long imdb name": "Giddens Ko", 
+            "long imdb canonical name": "Ko, Giddens"
+        }, 
+        {
+            "canonical name": "Ko, Giddens", 
+            "name": "Giddens Ko", 
+            "long imdb name": "Giddens Ko", 
+            "long imdb canonical name": "Ko, Giddens"
+        }
+    ], 
+    "long imdb canonical title": "Na xie nian, wo men yi qi zhui de nv hai (2011)", 
+    "languages": [
+        "Mandarin"
+    ], 
+    "production manager": [
+        {
+            "canonical name": "Hu, Tony", 
+            "name": "Tony Hu", 
+            "long imdb name": "Tony Hu", 
+            "long imdb canonical name": "Hu, Tony"
+        }, 
+        {
+            "canonical name": "Tsui, Amy", 
+            "name": "Amy Tsui", 
+            "long imdb name": "Amy Tsui", 
+            "long imdb canonical name": "Tsui, Amy"
+        }
+    ], 
+    "casting director": [
+        {
+            "canonical name": "Chen, Chia-Feng", 
+            "name": "Chia-Feng Chen", 
+            "long imdb name": "Chia-Feng Chen", 
+            "long imdb canonical name": "Chen, Chia-Feng"
+        }, 
+        {
+            "canonical name": "Huang, Chian-Wei", 
+            "name": "Chian-Wei Huang", 
+            "long imdb name": "Chian-Wei Huang", 
+            "long imdb canonical name": "Huang, Chian-Wei"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Liao, Ming-Yi", 
+            "name": "Ming-Yi Liao", 
+            "long imdb name": "Ming-Yi Liao", 
+            "long imdb canonical name": "Liao, Ming-Yi"
+        }
+    ], 
+    "certificates": [
+        "Hong Kong:IIB", 
+        "Malaysia:18::(censored version)", 
+        "Singapore:NC-16", 
+        "South Korea:15", 
+        "Taiwan:R-12"
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "Hu, Erica", 
+            "name": "Erica Hu", 
+            "long imdb name": "Erica Hu", 
+            "long imdb canonical name": "Hu, Erica"
+        }, 
+        {
+            "canonical name": "Kuo, Li Chi", 
+            "name": "Li Chi Kuo", 
+            "long imdb name": "Li Chi Kuo", 
+            "long imdb canonical name": "Kuo, Li Chi"
+        }, 
+        {
+            "canonical name": "Kuo, Li Chi", 
+            "name": "Li Chi Kuo", 
+            "long imdb name": "Li Chi Kuo", 
+            "long imdb canonical name": "Kuo, Li Chi"
+        }, 
+        {
+            "canonical name": "Kuo, Li Chi", 
+            "name": "Li Chi Kuo", 
+            "long imdb name": "Li Chi Kuo", 
+            "long imdb canonical name": "Kuo, Li Chi"
+        }, 
+        {
+            "canonical name": "Li, E.-Chi", 
+            "name": "E.-Chi Li", 
+            "long imdb name": "E.-Chi Li", 
+            "long imdb canonical name": "Li, E.-Chi"
+        }, 
+        {
+            "canonical name": "Li, E.-Chi", 
+            "name": "E.-Chi Li", 
+            "long imdb name": "E.-Chi Li", 
+            "long imdb canonical name": "Li, E.-Chi"
+        }, 
+        {
+            "canonical name": "Li, E.-Chi", 
+            "name": "E.-Chi Li", 
+            "long imdb name": "E.-Chi Li", 
+            "long imdb canonical name": "Li, E.-Chi"
+        }, 
+        {
+            "canonical name": "Tseng, Ya-Ning", 
+            "name": "Ya-Ning Tseng", 
+            "long imdb name": "Ya-Ning Tseng", 
+            "long imdb canonical name": "Tseng, Ya-Ning"
+        }, 
+        {
+            "canonical name": "Tu, Duu-Chih", 
+            "name": "Duu-Chih Tu", 
+            "long imdb name": "Duu-Chih Tu", 
+            "long imdb canonical name": "Tu, Duu-Chih"
+        }, 
+        {
+            "canonical name": "Tu, Duu-Chih", 
+            "name": "Duu-Chih Tu", 
+            "long imdb name": "Duu-Chih Tu", 
+            "long imdb canonical name": "Tu, Duu-Chih"
+        }, 
+        {
+            "canonical name": "Tu, Duu-Chih", 
+            "name": "Duu-Chih Tu", 
+            "long imdb name": "Duu-Chih Tu", 
+            "long imdb canonical name": "Tu, Duu-Chih"
+        }, 
+        {
+            "canonical name": "Wu, Shu-yao", 
+            "name": "Shu-yao Wu", 
+            "long imdb name": "Shu-yao Wu", 
+            "long imdb canonical name": "Wu, Shu-yao"
+        }, 
+        {
+            "canonical name": "Yang, Agnes", 
+            "name": "Agnes Yang", 
+            "long imdb name": "Agnes Yang", 
+            "long imdb canonical name": "Yang, Agnes"
+        }
+    ], 
+    "long imdb title": "Na xie nian, wo men yi qi zhui de nv hai (2011)", 
+    "country codes": [
+        "tw"
+    ], 
+    "language codes": [
+        "cmn"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BMWU2OTAyMTktMTU5MC00MTNhLTg1NzAtOTZjNWFjMDRiZGUxXkEyXkFqcGdeQXVyNDY3MzUxOTI@._V1._SX97_SY140_.jpg", 
+    "plot": [
+        "A group of close friends who attend a private school all have a debilitating crush on the sunny star pupil, Shen Jiayi. The only member of the group who claims not to is Ke Jingteng, but he ends up loving her as well."
+    ], 
+    "sound mix": [
+        "Dolby Digital"
+    ], 
+    "votes": 6095, 
+    "director": [
+        {
+            "canonical name": "Ko, Giddens", 
+            "name": "Giddens Ko", 
+            "long imdb name": "Giddens Ko", 
+            "long imdb canonical name": "Ko, Giddens"
+        }
+    ], 
+    "miscellaneous companies": [
+        {
+            "name": "3H Sound Studio Ltd.", 
+            "long imdb name": "3H Sound Studio Ltd."
+        }, 
+        {
+            "name": "Taipei Postproduction", 
+            "long imdb name": "Taipei Postproduction"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Chou, Yi-Hsien", 
+            "name": "Yi-Hsien Chou", 
+            "long imdb name": "Yi-Hsien Chou", 
+            "long imdb canonical name": "Chou, Yi-Hsien"
+        }
+    ], 
+    "art direction": [
+        {
+            "canonical name": "Chan-Chih, Shen", 
+            "name": "Shen Chan-Chih", 
+            "long imdb name": "Shen Chan-Chih", 
+            "long imdb canonical name": "Chan-Chih, Shen"
+        }
+    ], 
+    "akas": [
+        "You Are the Apple of My Eye::International (English title) (imdb display title)", 
+        "You're the Apple of My Eye::Singapore (English title) (alternative title)", 
+        "\u0422\u044b - \u0441\u0430\u043c\u043e\u0435 \u0434\u043e\u0440\u043e\u0433\u043e\u0435, \u0447\u0442\u043e \u0443 \u043c\u0435\u043d\u044f \u0435\u0441\u0442\u044c::Russia", 
+        "Na xie nian, wo men yi qi zhui de nv hai::China (Mandarin title) (imdb display title)"
+    ], 
+    "aspect ratio": "2.35 : 1", 
+    "production companies": [
+        {
+            "name": "Star Ritz Productions Co.", 
+            "long imdb name": "Star Ritz Productions Co."
+        }, 
+        {
+            "name": "Sony Music Entertainment", 
+            "long imdb name": "Sony Music Entertainment"
+        }
+    ], 
+    "kind": "movie", 
+    "art department": [
+        {
+            "canonical name": "Liao, Ping-Yi", 
+            "name": "Ping-Yi Liao", 
+            "long imdb name": "Ping-Yi Liao", 
+            "long imdb canonical name": "Liao, Ping-Yi"
+        }, 
+        {
+            "canonical name": "Wu, Chung-Hsien", 
+            "name": "Chung-Hsien Wu", 
+            "long imdb name": "Chung-Hsien Wu", 
+            "long imdb canonical name": "Wu, Chung-Hsien"
+        }
+    ], 
+    "countries": [
+        "Taiwan"
+    ], 
+    "plot outline": "A group of close friends who attend a private school all have a debilitating crush on the sunny star pupil, Shen Jiayi. The only member of the group who claims not to is Ke Jingteng, but he ends up loving her as well.", 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BMWU2OTAyMTktMTU5MC00MTNhLTg1NzAtOTZjNWFjMDRiZGUxXkEyXkFqcGdeQXVyNDY3MzUxOTI@.jpg", 
+    "canonical title": "Na xie nian, wo men yi qi zhui de nv hai", 
+    "cast": [
+        {
+            "canonical name": "Ko, Chen-tung", 
+            "name": "Chen-tung Ko", 
+            "long imdb name": "Chen-tung Ko", 
+            "long imdb canonical name": "Ko, Chen-tung"
+        }, 
+        {
+            "canonical name": "Chen, Michelle", 
+            "name": "Michelle Chen", 
+            "long imdb name": "Michelle Chen", 
+            "long imdb canonical name": "Chen, Michelle"
+        }, 
+        {
+            "canonical name": "Hao, Shao-Wen", 
+            "name": "Shao-Wen Hao", 
+            "long imdb name": "Shao-Wen Hao", 
+            "long imdb canonical name": "Hao, Shao-Wen"
+        }, 
+        {
+            "canonical name": "Owodog", 
+            "name": "Owodog", 
+            "long imdb name": "Owodog", 
+            "long imdb canonical name": "Owodog"
+        }, 
+        {
+            "canonical name": "Tsai, Emerson", 
+            "name": "Emerson Tsai", 
+            "long imdb name": "Emerson Tsai", 
+            "long imdb canonical name": "Tsai, Emerson"
+        }, 
+        {
+            "canonical name": "Hou, Yan-xi", 
+            "name": "Yan-xi Hou", 
+            "long imdb name": "Yan-xi Hou", 
+            "long imdb canonical name": "Hou, Yan-xi"
+        }, 
+        {
+            "canonical name": "Wan, Wan", 
+            "name": "Wan Wan", 
+            "long imdb name": "Wan Wan", 
+            "long imdb canonical name": "Wan, Wan"
+        }, 
+        {
+            "canonical name": "Wang, Lotus", 
+            "name": "Lotus Wang", 
+            "long imdb name": "Lotus Wang", 
+            "long imdb canonical name": "Wang, Lotus"
+        }, 
+        {
+            "canonical name": "Fang, Beatrice", 
+            "name": "Beatrice Fang", 
+            "long imdb name": "Beatrice Fang", 
+            "long imdb canonical name": "Fang, Beatrice"
+        }, 
+        {
+            "canonical name": "Huang, Denny", 
+            "name": "Denny Huang", 
+            "long imdb name": "Denny Huang", 
+            "long imdb canonical name": "Huang, Denny"
+        }, 
+        {
+            "canonical name": "Huang, Yi-Siang", 
+            "name": "Yi-Siang Huang", 
+            "long imdb name": "Yi-Siang Huang", 
+            "long imdb canonical name": "Huang, Yi-Siang"
+        }, 
+        {
+            "canonical name": "Kao, Li-Hung", 
+            "name": "Li-Hung Kao", 
+            "long imdb name": "Li-Hung Kao", 
+            "long imdb canonical name": "Kao, Li-Hung"
+        }, 
+        {
+            "canonical name": "Lai, Megan", 
+            "name": "Megan Lai", 
+            "long imdb name": "Megan Lai", 
+            "long imdb canonical name": "Lai, Megan"
+        }, 
+        {
+            "canonical name": "Lee, Vivi", 
+            "name": "Vivi Lee", 
+            "long imdb name": "Vivi Lee", 
+            "long imdb canonical name": "Lee, Vivi"
+        }, 
+        {
+            "canonical name": "Tsai, Wu-Hsiung", 
+            "name": "Wu-Hsiung Tsai", 
+            "long imdb name": "Wu-Hsiung Tsai", 
+            "long imdb canonical name": "Tsai, Wu-Hsiung"
+        }, 
+        {
+            "canonical name": "Yen, Yi-Wen", 
+            "name": "Yi-Wen Yen", 
+            "long imdb name": "Yi-Wen Yen", 
+            "long imdb canonical name": "Yen, Yi-Wen"
+        }, 
+        {
+            "canonical name": "Ko, Giddens", 
+            "name": "Giddens Ko", 
+            "long imdb name": "Giddens Ko", 
+            "long imdb canonical name": "Ko, Giddens"
+        }
+    ], 
+    "smart long imdb canonical title": "Na xie nian, wo men yi qi zhui de nv hai (2011)", 
+    "original music": [
+        {
+            "canonical name": "Hou, Chris", 
+            "name": "Chris Hou", 
+            "long imdb name": "Chris Hou", 
+            "long imdb canonical name": "Hou, Chris"
+        }
+    ], 
+    "smart canonical title": "Na xie nian, wo men yi qi zhui de nv hai"
+}

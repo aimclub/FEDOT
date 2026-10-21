@@ -1,0 +1,511 @@
+{
+    "rating": 6.1, 
+    "camera and electrical department": [
+        {
+            "canonical name": "Antonopoulos, Gregory", 
+            "name": "Gregory Antonopoulos", 
+            "long imdb name": "Gregory Antonopoulos", 
+            "long imdb canonical name": "Antonopoulos, Gregory"
+        }, 
+        {
+            "canonical name": "Bede-Fazekas, M\u00e1t\u00e9", 
+            "name": "M\u00e1t\u00e9 Bede-Fazekas", 
+            "long imdb name": "M\u00e1t\u00e9 Bede-Fazekas", 
+            "long imdb canonical name": "Bede-Fazekas, M\u00e1t\u00e9"
+        }, 
+        {
+            "canonical name": "Davis, Saela", 
+            "name": "Saela Davis", 
+            "long imdb name": "Saela Davis", 
+            "long imdb canonical name": "Davis, Saela"
+        }, 
+        {
+            "canonical name": "Hallenstein, Margaux", 
+            "name": "Margaux Hallenstein", 
+            "long imdb name": "Margaux Hallenstein", 
+            "long imdb canonical name": "Hallenstein, Margaux"
+        }, 
+        {
+            "canonical name": "Huang, Connie", 
+            "name": "Connie Huang", 
+            "long imdb name": "Connie Huang", 
+            "long imdb canonical name": "Huang, Connie"
+        }, 
+        {
+            "canonical name": "Huang, Connie", 
+            "name": "Connie Huang", 
+            "long imdb name": "Connie Huang", 
+            "long imdb canonical name": "Huang, Connie"
+        }, 
+        {
+            "canonical name": "Jacobs, Corey", 
+            "name": "Corey Jacobs", 
+            "long imdb name": "Corey Jacobs", 
+            "long imdb canonical name": "Jacobs, Corey"
+        }, 
+        {
+            "canonical name": "Kuperstein, Zach", 
+            "name": "Zach Kuperstein", 
+            "long imdb name": "Zach Kuperstein", 
+            "long imdb canonical name": "Kuperstein, Zach"
+        }, 
+        {
+            "canonical name": "Parikh, Nayantara", 
+            "name": "Nayantara Parikh", 
+            "long imdb name": "Nayantara Parikh", 
+            "long imdb canonical name": "Parikh, Nayantara"
+        }, 
+        {
+            "canonical name": "Stoltzfus, Zach", 
+            "name": "Zach Stoltzfus", 
+            "long imdb name": "Zach Stoltzfus", 
+            "long imdb canonical name": "Stoltzfus, Zach"
+        }, 
+        {
+            "canonical name": "Willmott, Dace", 
+            "name": "Dace Willmott", 
+            "long imdb name": "Dace Willmott", 
+            "long imdb canonical name": "Willmott, Dace"
+        }, 
+        {
+            "canonical name": "Wu, Mengfan", 
+            "name": "Mengfan Wu", 
+            "long imdb name": "Mengfan Wu", 
+            "long imdb canonical name": "Wu, Mengfan"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "Tribeca Film", 
+            "long imdb name": "Tribeca Film"
+        }
+    ], 
+    "runtimes": [
+        "81"
+    ], 
+    "thanks": [
+        {
+            "canonical name": "Carbone, Maria", 
+            "name": "Maria Carbone", 
+            "long imdb name": "Maria Carbone", 
+            "long imdb canonical name": "Carbone, Maria"
+        }, 
+        {
+            "canonical name": "Carbone, Michele", 
+            "name": "Michele Carbone", 
+            "long imdb name": "Michele Carbone", 
+            "long imdb canonical name": "Carbone, Michele"
+        }, 
+        {
+            "canonical name": "Egan, Martin", 
+            "name": "Martin Egan", 
+            "long imdb name": "Martin Egan", 
+            "long imdb canonical name": "Egan, Martin"
+        }, 
+        {
+            "canonical name": "Egan, Shirley", 
+            "name": "Shirley Egan", 
+            "long imdb name": "Shirley Egan", 
+            "long imdb canonical name": "Egan, Shirley"
+        }
+    ], 
+    "year": 2013, 
+    "production design": [
+        {
+            "canonical name": "Royer, Charlotte", 
+            "name": "Charlotte Royer", 
+            "long imdb name": "Charlotte Royer", 
+            "long imdb canonical name": "Royer, Charlotte"
+        }
+    ], 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Dorf, Benjamin", 
+            "name": "Benjamin Dorf", 
+            "long imdb name": "Benjamin Dorf", 
+            "long imdb canonical name": "Dorf, Benjamin"
+        }, 
+        {
+            "canonical name": "Funk, Nolan", 
+            "name": "Nolan Funk", 
+            "long imdb name": "Nolan Funk", 
+            "long imdb canonical name": "Funk, Nolan"
+        }, 
+        {
+            "canonical name": "Lockhart, Annalise", 
+            "name": "Annalise Lockhart", 
+            "long imdb name": "Annalise Lockhart", 
+            "long imdb canonical name": "Lockhart, Annalise"
+        }, 
+        {
+            "canonical name": "Murphy, John", 
+            "name": "John Murphy", 
+            "long imdb name": "John Murphy", 
+            "long imdb canonical name": "Murphy, John"
+        }, 
+        {
+            "canonical name": "Petock, Matthew", 
+            "name": "Matthew Petock", 
+            "long imdb name": "Matthew Petock", 
+            "long imdb canonical name": "Petock, Matthew"
+        }, 
+        {
+            "canonical name": "Reiland, Jennifer May", 
+            "name": "Jennifer May Reiland", 
+            "long imdb name": "Jennifer May Reiland", 
+            "long imdb canonical name": "Reiland, Jennifer May"
+        }, 
+        {
+            "canonical name": "Rush, George", 
+            "name": "George Rush", 
+            "long imdb name": "George Rush", 
+            "long imdb canonical name": "Rush, George"
+        }
+    ], 
+    "color info": [], 
+    "visual effects": [
+        {
+            "canonical name": "Billy, D.", 
+            "name": "D. Billy", 
+            "long imdb name": "D. Billy", 
+            "long imdb canonical name": "Billy, D."
+        }, 
+        {
+            "canonical name": "Jarzyna, Katarzyna", 
+            "name": "Katarzyna Jarzyna", 
+            "long imdb name": "Katarzyna Jarzyna", 
+            "long imdb canonical name": "Jarzyna, Katarzyna"
+        }, 
+        {
+            "canonical name": "Sasim, Piotr", 
+            "name": "Piotr Sasim", 
+            "long imdb name": "Piotr Sasim", 
+            "long imdb canonical name": "Sasim, Piotr"
+        }, 
+        {
+            "canonical name": "Sawko, Jaroslaw", 
+            "name": "Jaroslaw Sawko", 
+            "long imdb name": "Jaroslaw Sawko", 
+            "long imdb canonical name": "Sawko, Jaroslaw"
+        }, 
+        {
+            "canonical name": "Sikora, Piotr", 
+            "name": "Piotr Sikora", 
+            "long imdb name": "Piotr Sikora", 
+            "long imdb canonical name": "Sikora, Piotr"
+        }
+    ], 
+    "votes": 1318, 
+    "producer": [
+        {
+            "canonical name": "Bailey-Hoover, Jordan", 
+            "name": "Jordan Bailey-Hoover", 
+            "long imdb name": "Jordan Bailey-Hoover", 
+            "long imdb canonical name": "Bailey-Hoover, Jordan"
+        }, 
+        {
+            "canonical name": "Carbone, Daniel Patrick", 
+            "name": "Daniel Patrick Carbone", 
+            "long imdb name": "Daniel Patrick Carbone", 
+            "long imdb canonical name": "Carbone, Daniel Patrick"
+        }, 
+        {
+            "canonical name": "Petock, Matthew", 
+            "name": "Matthew Petock", 
+            "long imdb name": "Matthew Petock", 
+            "long imdb canonical name": "Petock, Matthew"
+        }, 
+        {
+            "canonical name": "Shedd, Zachary", 
+            "name": "Zachary Shedd", 
+            "long imdb name": "Zachary Shedd", 
+            "long imdb canonical name": "Shedd, Zachary"
+        }
+    ], 
+    "title": "Hide Your Smiling Faces", 
+    "assistant director": [
+        {
+            "canonical name": "Shedd, Zachary", 
+            "name": "Zachary Shedd", 
+            "long imdb name": "Zachary Shedd", 
+            "long imdb canonical name": "Shedd, Zachary"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "Carbone, Daniel Patrick", 
+            "name": "Daniel Patrick Carbone", 
+            "long imdb name": "Daniel Patrick Carbone", 
+            "long imdb canonical name": "Carbone, Daniel Patrick"
+        }
+    ], 
+    "long imdb canonical title": "Hide Your Smiling Faces (2013)", 
+    "languages": [
+        "English"
+    ], 
+    "production manager": [
+        {
+            "canonical name": "Goldberg, Zachary", 
+            "name": "Zachary Goldberg", 
+            "long imdb name": "Zachary Goldberg", 
+            "long imdb canonical name": "Goldberg, Zachary"
+        }, 
+        {
+            "canonical name": "Kjerulff, Lisa", 
+            "name": "Lisa Kjerulff", 
+            "long imdb name": "Lisa Kjerulff", 
+            "long imdb canonical name": "Kjerulff, Lisa"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Carbone, Daniel Patrick", 
+            "name": "Daniel Patrick Carbone", 
+            "long imdb name": "Daniel Patrick Carbone", 
+            "long imdb canonical name": "Carbone, Daniel Patrick"
+        }
+    ], 
+    "certificates": [
+        "UK:15", 
+        "USA:Not Rated"
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "Foster, Chris", 
+            "name": "Chris Foster", 
+            "long imdb name": "Chris Foster", 
+            "long imdb canonical name": "Foster, Chris"
+        }, 
+        {
+            "canonical name": "Foster, Chris", 
+            "name": "Chris Foster", 
+            "long imdb name": "Chris Foster", 
+            "long imdb canonical name": "Foster, Chris"
+        }, 
+        {
+            "canonical name": "McKeever, Dow", 
+            "name": "Dow McKeever", 
+            "long imdb name": "Dow McKeever", 
+            "long imdb canonical name": "McKeever, Dow"
+        }, 
+        {
+            "canonical name": "McKeever, Marsha", 
+            "name": "Marsha McKeever", 
+            "long imdb name": "Marsha McKeever", 
+            "long imdb canonical name": "McKeever, Marsha"
+        }, 
+        {
+            "canonical name": "Neeley, Larry", 
+            "name": "Larry Neeley", 
+            "long imdb name": "Larry Neeley", 
+            "long imdb canonical name": "Neeley, Larry"
+        }, 
+        {
+            "canonical name": "Townsend, Peter", 
+            "name": "Peter Townsend", 
+            "long imdb name": "Peter Townsend", 
+            "long imdb canonical name": "Townsend, Peter"
+        }, 
+        {
+            "canonical name": "Vancho, Brian", 
+            "name": "Brian Vancho", 
+            "long imdb name": "Brian Vancho", 
+            "long imdb canonical name": "Vancho, Brian"
+        }
+    ], 
+    "long imdb title": "Hide Your Smiling Faces (2013)", 
+    "country codes": [
+        "us"
+    ], 
+    "language codes": [
+        "en"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BMTUwMjg2NzYyOF5BMl5BanBnXkFtZTgwNzEyNDIzMTE@._V1._SX95_SY140_.jpg", 
+    "special effects department": [
+        {
+            "canonical name": "Jencks, Nathaniel", 
+            "name": "Nathaniel Jencks", 
+            "long imdb name": "Nathaniel Jencks", 
+            "long imdb canonical name": "Jencks, Nathaniel"
+        }
+    ], 
+    "special effects companies": [
+        {
+            "name": "Platige Image", 
+            "long imdb name": "Platige Image"
+        }
+    ], 
+    "genres": [
+        "Drama"
+    ], 
+    "director": [
+        {
+            "canonical name": "Carbone, Daniel Patrick", 
+            "name": "Daniel Patrick Carbone", 
+            "long imdb name": "Daniel Patrick Carbone", 
+            "long imdb canonical name": "Carbone, Daniel Patrick"
+        }
+    ], 
+    "miscellaneous companies": [
+        {
+            "name": "Digital Arts", 
+            "long imdb name": "Digital Arts"
+        }, 
+        {
+            "name": "Dolby Laboratories", 
+            "long imdb name": "Dolby Laboratories"
+        }, 
+        {
+            "name": "Handheld Films", 
+            "long imdb name": "Handheld Films"
+        }, 
+        {
+            "name": "Murphy PR", 
+            "long imdb name": "Murphy PR"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Bentgen, Nick", 
+            "name": "Nick Bentgen", 
+            "long imdb name": "Nick Bentgen", 
+            "long imdb canonical name": "Bentgen, Nick"
+        }
+    ], 
+    "akas": [
+        "Krypste ta hamogela sas::Greece (festival title)", 
+        "Nie u\u015bmiechaj si\u0119::Poland", 
+        "Sakrij svoj osmeh::Serbia (imdb display title)", 
+        "Tirem o Sorriso do Rosto::Brazil (imdb display title)"
+    ], 
+    "aspect ratio": "1.78 : 1", 
+    "production companies": [
+        {
+            "name": "Flies", 
+            "long imdb name": "Flies"
+        }
+    ], 
+    "kind": "movie", 
+    "art department": [
+        {
+            "canonical name": "Bush, Sam", 
+            "name": "Sam Bush", 
+            "long imdb name": "Sam Bush", 
+            "long imdb canonical name": "Bush, Sam"
+        }, 
+        {
+            "canonical name": "Velazquez, Alex", 
+            "name": "Alex Velazquez", 
+            "long imdb name": "Alex Velazquez", 
+            "long imdb canonical name": "Velazquez, Alex"
+        }, 
+        {
+            "canonical name": "Wright, Doug", 
+            "name": "Doug Wright", 
+            "long imdb name": "Doug Wright", 
+            "long imdb canonical name": "Wright, Doug"
+        }
+    ], 
+    "countries": [
+        "USA"
+    ], 
+    "plot outline": "After a neighborhood tragedy, two adolescent brothers confront changing relationships, the mystery of nature, and their own mortality.", 
+    "plot": [
+        "After a neighborhood tragedy, two adolescent brothers confront changing relationships, the mystery of nature, and their own mortality. Hide Your Smiling Faces is an atmospheric exploration of rural American life through the often distorted lens of youth.", 
+        "After a neighborhood tragedy, two adolescent brothers confront changing relationships, the mystery of nature, and their own mortality."
+    ], 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BMTUwMjg2NzYyOF5BMl5BanBnXkFtZTgwNzEyNDIzMTE@.jpg", 
+    "canonical title": "Hide Your Smiling Faces", 
+    "cast": [
+        {
+            "canonical name": "Jones, Ryan", 
+            "name": "Ryan Jones", 
+            "long imdb name": "Ryan Jones", 
+            "long imdb canonical name": "Jones, Ryan"
+        }, 
+        {
+            "canonical name": "Varnson, Nathan", 
+            "name": "Nathan Varnson", 
+            "long imdb name": "Nathan Varnson", 
+            "long imdb canonical name": "Varnson, Nathan"
+        }, 
+        {
+            "canonical name": "O'Leary, Colm", 
+            "name": "Colm O'Leary", 
+            "long imdb name": "Colm O'Leary", 
+            "long imdb canonical name": "O'Leary, Colm"
+        }, 
+        {
+            "canonical name": "Cruz, Thomas", 
+            "name": "Thomas Cruz", 
+            "long imdb name": "Thomas Cruz", 
+            "long imdb canonical name": "Cruz, Thomas"
+        }, 
+        {
+            "canonical name": "Starbuck, Christina", 
+            "name": "Christina Starbuck", 
+            "long imdb name": "Christina Starbuck", 
+            "long imdb canonical name": "Starbuck, Christina"
+        }, 
+        {
+            "canonical name": "Kies, Chris", 
+            "name": "Chris Kies", 
+            "long imdb name": "Chris Kies", 
+            "long imdb canonical name": "Kies, Chris"
+        }, 
+        {
+            "canonical name": "Chamberlain, Andrew M.", 
+            "name": "Andrew M. Chamberlain", 
+            "long imdb name": "Andrew M. Chamberlain", 
+            "long imdb canonical name": "Chamberlain, Andrew M."
+        }, 
+        {
+            "canonical name": "Middleton, Clark", 
+            "name": "Clark Middleton", 
+            "long imdb name": "Clark Middleton", 
+            "long imdb canonical name": "Middleton, Clark"
+        }, 
+        {
+            "canonical name": "Tomic, Ivan", 
+            "name": "Ivan Tomic", 
+            "long imdb name": "Ivan Tomic", 
+            "long imdb canonical name": "Tomic, Ivan"
+        }
+    ], 
+    "smart long imdb canonical title": "Hide Your Smiling Faces (2013)", 
+    "original music": [
+        {
+            "canonical name": "Donne, Robert", 
+            "name": "Robert Donne", 
+            "long imdb name": "Robert Donne", 
+            "long imdb canonical name": "Donne, Robert"
+        }
+    ], 
+    "editorial department": [
+        {
+            "canonical name": "Daigle, John", 
+            "name": "John Daigle", 
+            "long imdb name": "John Daigle", 
+            "long imdb canonical name": "Daigle, John"
+        }, 
+        {
+            "canonical name": "Dutkiewicz, Piotr", 
+            "name": "Piotr Dutkiewicz", 
+            "long imdb name": "Piotr Dutkiewicz", 
+            "long imdb canonical name": "Dutkiewicz, Piotr"
+        }, 
+        {
+            "canonical name": "Dutkiewicz, Piotr", 
+            "name": "Piotr Dutkiewicz", 
+            "long imdb name": "Piotr Dutkiewicz", 
+            "long imdb canonical name": "Dutkiewicz, Piotr"
+        }, 
+        {
+            "canonical name": "Otwinowska, Ewa", 
+            "name": "Ewa Otwinowska", 
+            "long imdb name": "Ewa Otwinowska", 
+            "long imdb canonical name": "Otwinowska, Ewa"
+        }
+    ], 
+    "smart canonical title": "Hide Your Smiling Faces"
+}

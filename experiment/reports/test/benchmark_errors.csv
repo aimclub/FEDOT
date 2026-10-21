@@ -1,0 +1,54 @@
+dataset,column,detector,expected,predicted,correct,error_type
+melbourne_airbnb,access,current_fedot,1,0,0,FN
+melbourne_airbnb,amenities,current_fedot,0,1,0,FP
+melbourne_airbnb,host_about,current_fedot,1,0,0,FN
+melbourne_airbnb,house_rules,current_fedot,1,0,0,FN
+melbourne_airbnb,interaction,current_fedot,1,0,0,FN
+melbourne_airbnb,license,current_fedot,0,1,0,FP
+melbourne_airbnb,neighborhood_overview,current_fedot,1,0,0,FN
+melbourne_airbnb,notes,current_fedot,1,0,0,FN
+melbourne_airbnb,transit,current_fedot,1,0,0,FN
+melbourne_airbnb,amenities,pr903,0,1,0,FP
+melbourne_airbnb,amenities,improved_v1,0,1,0,FP
+imdb_genre_prediction,Actors,current_fedot,0,1,0,FP
+imdb_genre_prediction,Director,pr903,0,1,0,FP
+imdb_genre_prediction,Actors,pr903,0,1,0,FP
+imdb_genre_prediction,Title,improved_v1,1,0,0,FN
+imdb_genre_prediction,Actors,improved_v1,0,1,0,FP
+fake_job_postings2,title,current_fedot,1,0,0,FN
+fake_job_postings2,title,improved_v1,1,0,0,FN
+kick_starter_funding,keywords,current_fedot,0,1,0,FP
+kick_starter_funding,keywords,pr903,0,1,0,FP
+kick_starter_funding,name,improved_v1,1,0,0,FN
+kick_starter_funding,keywords,improved_v1,0,1,0,FP
+ae_price_prediction,product_name,current_fedot,1,0,0,FN
+ae_price_prediction,description,current_fedot,1,0,0,FN
+ae_price_prediction,product_name,pr903,1,0,0,FN
+ae_price_prediction,description,pr903,1,0,0,FN
+ae_price_prediction,product_name,improved_v1,1,0,0,FN
+ae_price_prediction,description,improved_v1,1,0,0,FN
+google_qa_answer_type_reason_explanation,question_title,current_fedot,1,0,0,FN
+google_qa_answer_type_reason_explanation,question_body,current_fedot,1,0,0,FN
+google_qa_question_type_reason_explanation,question_title,current_fedot,1,0,0,FN
+google_qa_question_type_reason_explanation,question_body,current_fedot,1,0,0,FN
+women_clothing_review,Title,current_fedot,1,0,0,FN
+women_clothing_review,Title,improved_v1,1,0,0,FN
+mercari_price_suggestion100K,item_description,current_fedot,1,0,0,FN
+mercari_price_suggestion100K,name,improved_v1,1,0,0,FN
+mercari_price_suggestion100K,category_name,improved_v2,0,1,0,FP
+jc_penney_products,name_title,current_fedot,1,0,0,FN
+jc_penney_products,description,current_fedot,1,0,0,FN
+bookprice_prediction,Author,pr903,0,1,0,FP
+bookprice_prediction,Edition,pr903,0,1,0,FP
+bookprice_prediction,Edition,improved_v2,0,1,0,FP
+data_scientist_salary,job_description,current_fedot,1,0,0,FN
+data_scientist_salary,job_desig,current_fedot,1,0,0,FN
+data_scientist_salary,key_skills,current_fedot,1,0,0,FN
+california_house_price,Address,current_fedot,0,1,0,FP
+california_house_price,Address,pr903,0,1,0,FP
+california_house_price,Address,improved_v2,0,1,0,FP
+california_house_price,Parking,improved_v2,0,1,0,FP
+california_house_price,Middle School,improved_v2,0,1,0,FP
+california_house_price,High School,improved_v2,0,1,0,FP
+california_house_price,Appliances included,improved_v2,0,1,0,FP
+california_house_price,Parking features,improved_v2,0,1,0,FP

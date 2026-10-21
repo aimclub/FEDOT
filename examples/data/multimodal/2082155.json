@@ -1,0 +1,743 @@
+{
+    "music department": [
+        {
+            "canonical name": "Mercado, Geronimo", 
+            "name": "Geronimo Mercado", 
+            "long imdb name": "Geronimo Mercado", 
+            "long imdb canonical name": "Mercado, Geronimo"
+        }
+    ], 
+    "camera and electrical department": [
+        {
+            "canonical name": "Berrios, Sajid", 
+            "name": "Sajid Berrios", 
+            "long imdb name": "Sajid Berrios", 
+            "long imdb canonical name": "Berrios, Sajid"
+        }, 
+        {
+            "canonical name": "Cancel, Wilfredo", 
+            "name": "Wilfredo Cancel", 
+            "long imdb name": "Wilfredo Cancel", 
+            "long imdb canonical name": "Cancel, Wilfredo"
+        }, 
+        {
+            "canonical name": "Huertas, Nelson", 
+            "name": "Nelson Huertas", 
+            "long imdb name": "Nelson Huertas", 
+            "long imdb canonical name": "Huertas, Nelson"
+        }, 
+        {
+            "canonical name": "Maldonado, Ra\u00fal Rosado", 
+            "name": "Ra\u00fal Rosado Maldonado", 
+            "long imdb name": "Ra\u00fal Rosado Maldonado", 
+            "long imdb canonical name": "Maldonado, Ra\u00fal Rosado"
+        }, 
+        {
+            "canonical name": "Medina, Abner", 
+            "name": "Abner Medina", 
+            "long imdb name": "Abner Medina", 
+            "long imdb canonical name": "Medina, Abner"
+        }, 
+        {
+            "canonical name": "Melero, Arturo", 
+            "name": "Arturo Melero", 
+            "long imdb name": "Arturo Melero", 
+            "long imdb canonical name": "Melero, Arturo"
+        }, 
+        {
+            "canonical name": "Monta\u00f1ez, Willie", 
+            "name": "Willie Monta\u00f1ez", 
+            "long imdb name": "Willie Monta\u00f1ez", 
+            "long imdb canonical name": "Monta\u00f1ez, Willie"
+        }, 
+        {
+            "canonical name": "P\u00e9rez, Javier Enrique", 
+            "name": "Javier Enrique P\u00e9rez", 
+            "long imdb name": "Javier Enrique P\u00e9rez", 
+            "long imdb canonical name": "P\u00e9rez, Javier Enrique"
+        }, 
+        {
+            "canonical name": "Rivera, Oggie", 
+            "name": "Oggie Rivera", 
+            "long imdb name": "Oggie Rivera", 
+            "long imdb canonical name": "Rivera, Oggie"
+        }, 
+        {
+            "canonical name": "Le\u00f3n, Raquel Sanabria", 
+            "name": "Raquel Sanabria Le\u00f3n", 
+            "long imdb name": "Raquel Sanabria Le\u00f3n", 
+            "long imdb canonical name": "Le\u00f3n, Raquel Sanabria"
+        }, 
+        {
+            "canonical name": "Le\u00f3n, Raquel Sanabria", 
+            "name": "Raquel Sanabria Le\u00f3n", 
+            "long imdb name": "Raquel Sanabria Le\u00f3n", 
+            "long imdb canonical name": "Le\u00f3n, Raquel Sanabria"
+        }, 
+        {
+            "canonical name": "Sang, Su-Jeng", 
+            "name": "Su-Jeng Sang", 
+            "long imdb name": "Su-Jeng Sang", 
+            "long imdb canonical name": "Sang, Su-Jeng"
+        }, 
+        {
+            "canonical name": "Vazquez, Pedro Pito", 
+            "name": "Pedro Pito Vazquez", 
+            "long imdb name": "Pedro Pito Vazquez", 
+            "long imdb canonical name": "Vazquez, Pedro Pito"
+        }
+    ], 
+    "producer": [
+        {
+            "canonical name": "Alcazar, Roberto", 
+            "name": "Roberto Alcazar", 
+            "long imdb name": "Roberto Alcazar", 
+            "long imdb canonical name": "Alcazar, Roberto"
+        }, 
+        {
+            "canonical name": "Ferrer, Alejandro", 
+            "name": "Alejandro Ferrer", 
+            "long imdb name": "Alejandro Ferrer", 
+            "long imdb canonical name": "Ferrer, Alejandro"
+        }, 
+        {
+            "canonical name": "Fonalledas, Eduardo R. Emanuelli", 
+            "name": "Eduardo R. Emanuelli Fonalledas", 
+            "long imdb name": "Eduardo R. Emanuelli Fonalledas", 
+            "long imdb canonical name": "Fonalledas, Eduardo R. Emanuelli"
+        }, 
+        {
+            "canonical name": "Irizarry, Bruno", 
+            "name": "Bruno Irizarry", 
+            "long imdb name": "Bruno Irizarry", 
+            "long imdb canonical name": "Irizarry, Bruno"
+        }, 
+        {
+            "canonical name": "Irizarry, Bruno", 
+            "name": "Bruno Irizarry", 
+            "long imdb name": "Bruno Irizarry", 
+            "long imdb canonical name": "Irizarry, Bruno"
+        }, 
+        {
+            "canonical name": "McHugh, Shimmy", 
+            "name": "Shimmy McHugh", 
+            "long imdb name": "Shimmy McHugh", 
+            "long imdb canonical name": "McHugh, Shimmy"
+        }, 
+        {
+            "canonical name": "McHugh, Shimmy", 
+            "name": "Shimmy McHugh", 
+            "long imdb name": "Shimmy McHugh", 
+            "long imdb canonical name": "McHugh, Shimmy"
+        }, 
+        {
+            "canonical name": "P\u00e9rez, Javier Enrique", 
+            "name": "Javier Enrique P\u00e9rez", 
+            "long imdb name": "Javier Enrique P\u00e9rez", 
+            "long imdb canonical name": "P\u00e9rez, Javier Enrique"
+        }, 
+        {
+            "canonical name": "Trucco, Gustavo", 
+            "name": "Gustavo Trucco", 
+            "long imdb name": "Gustavo Trucco", 
+            "long imdb canonical name": "Trucco, Gustavo"
+        }, 
+        {
+            "canonical name": "Vaquer, Josean Rivera", 
+            "name": "Josean Rivera Vaquer", 
+            "long imdb name": "Josean Rivera Vaquer", 
+            "long imdb canonical name": "Vaquer, Josean Rivera"
+        }
+    ], 
+    "rating": 7.3, 
+    "runtimes": [
+        "98"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "Santiago, Julia Michelle", 
+            "name": "Julia Michelle Santiago", 
+            "long imdb name": "Julia Michelle Santiago", 
+            "long imdb canonical name": "Santiago, Julia Michelle"
+        }
+    ], 
+    "make up": [
+        {
+            "canonical name": "Col\u00f3n, Marta Ezal", 
+            "name": "Marta Ezal Col\u00f3n", 
+            "long imdb name": "Marta Ezal Col\u00f3n", 
+            "long imdb canonical name": "Col\u00f3n, Marta Ezal"
+        }, 
+        {
+            "canonical name": "Col\u00f3n, Marta Ezal", 
+            "name": "Marta Ezal Col\u00f3n", 
+            "long imdb name": "Marta Ezal Col\u00f3n", 
+            "long imdb canonical name": "Col\u00f3n, Marta Ezal"
+        }, 
+        {
+            "canonical name": "Guzman, Ana", 
+            "name": "Ana Guzman", 
+            "long imdb name": "Ana Guzman", 
+            "long imdb canonical name": "Guzman, Ana"
+        }, 
+        {
+            "canonical name": "Pichardo, Luz Elaine", 
+            "name": "Luz Elaine Pichardo", 
+            "long imdb name": "Luz Elaine Pichardo", 
+            "long imdb canonical name": "Pichardo, Luz Elaine"
+        }
+    ], 
+    "year": 2013, 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Bruckman, Roc\u00edo Garc\u00eda", 
+            "name": "Roc\u00edo Garc\u00eda Bruckman", 
+            "long imdb name": "Roc\u00edo Garc\u00eda Bruckman", 
+            "long imdb canonical name": "Bruckman, Roc\u00edo Garc\u00eda"
+        }, 
+        {
+            "canonical name": "Cotto, Carlos", 
+            "name": "Carlos Cotto", 
+            "long imdb name": "Carlos Cotto", 
+            "long imdb canonical name": "Cotto, Carlos"
+        }, 
+        {
+            "canonical name": "del Toro, J.L.", 
+            "name": "J.L. del Toro", 
+            "long imdb name": "J.L. del Toro", 
+            "long imdb canonical name": "del Toro, J.L."
+        }, 
+        {
+            "canonical name": "Jamis, Kemel", 
+            "name": "Kemel Jamis", 
+            "long imdb name": "Kemel Jamis", 
+            "long imdb canonical name": "Jamis, Kemel"
+        }, 
+        {
+            "canonical name": "Rivero, Bernadette", 
+            "name": "Bernadette Rivero", 
+            "long imdb name": "Bernadette Rivero", 
+            "long imdb canonical name": "Rivero, Bernadette"
+        }, 
+        {
+            "canonical name": "Murphy, Vanessa Rodr\u00edguez", 
+            "name": "Vanessa Rodr\u00edguez Murphy", 
+            "long imdb name": "Vanessa Rodr\u00edguez Murphy", 
+            "long imdb canonical name": "Murphy, Vanessa Rodr\u00edguez"
+        }, 
+        {
+            "canonical name": "Sanabria, Raquel", 
+            "name": "Raquel Sanabria", 
+            "long imdb name": "Raquel Sanabria", 
+            "long imdb canonical name": "Sanabria, Raquel"
+        }, 
+        {
+            "canonical name": "Santaliz, Coraly", 
+            "name": "Coraly Santaliz", 
+            "long imdb name": "Coraly Santaliz", 
+            "long imdb canonical name": "Santaliz, Coraly"
+        }
+    ], 
+    "color info": [], 
+    "visual effects": [
+        {
+            "canonical name": "Gutierrez, Jose", 
+            "name": "Jose Gutierrez", 
+            "long imdb name": "Jose Gutierrez", 
+            "long imdb canonical name": "Gutierrez, Jose"
+        }, 
+        {
+            "canonical name": "Mu\u00f1iz, Pedro Javier", 
+            "name": "Pedro Javier Mu\u00f1iz", 
+            "long imdb name": "Pedro Javier Mu\u00f1iz", 
+            "long imdb canonical name": "Mu\u00f1iz, Pedro Javier"
+        }
+    ], 
+    "votes": 327, 
+    "title": "200 Cartas", 
+    "assistant director": [
+        {
+            "canonical name": "Del Toro, J.L.", 
+            "name": "J.L. Del Toro", 
+            "long imdb name": "J.L. Del Toro", 
+            "long imdb canonical name": "Del Toro, J.L."
+        }, 
+        {
+            "canonical name": "Riera, Sonia Gonz\u00e1lez", 
+            "name": "Sonia Gonz\u00e1lez Riera", 
+            "long imdb name": "Sonia Gonz\u00e1lez Riera", 
+            "long imdb canonical name": "Riera, Sonia Gonz\u00e1lez"
+        }, 
+        {
+            "canonical name": "Jamis, Kemel", 
+            "name": "Kemel Jamis", 
+            "long imdb name": "Kemel Jamis", 
+            "long imdb canonical name": "Jamis, Kemel"
+        }, 
+        {
+            "canonical name": "P\u00e9rez, Javier Enrique", 
+            "name": "Javier Enrique P\u00e9rez", 
+            "long imdb name": "Javier Enrique P\u00e9rez", 
+            "long imdb canonical name": "P\u00e9rez, Javier Enrique"
+        }, 
+        {
+            "canonical name": "Romero, Jes\u00fas A.", 
+            "name": "Jes\u00fas A. Romero", 
+            "long imdb name": "Jes\u00fas A. Romero", 
+            "long imdb canonical name": "Romero, Jes\u00fas A."
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "Irizarry, Bruno", 
+            "name": "Bruno Irizarry", 
+            "long imdb name": "Bruno Irizarry", 
+            "long imdb canonical name": "Irizarry, Bruno"
+        }
+    ], 
+    "long imdb canonical title": "200 Cartas (2013)", 
+    "languages": [
+        "Spanish", 
+        "English"
+    ], 
+    "production manager": [
+        {
+            "canonical name": "Estevez, Katia Gonzalez", 
+            "name": "Katia Gonzalez Estevez", 
+            "long imdb name": "Katia Gonzalez Estevez", 
+            "long imdb canonical name": "Estevez, Katia Gonzalez"
+        }
+    ], 
+    "casting director": [
+        {
+            "canonical name": "De Miguel, Sig", 
+            "name": "Sig De Miguel", 
+            "long imdb name": "Sig De Miguel", 
+            "long imdb canonical name": "De Miguel, Sig"
+        }, 
+        {
+            "canonical name": "Vincent, Stephen", 
+            "name": "Stephen Vincent", 
+            "long imdb name": "Stephen Vincent", 
+            "long imdb canonical name": "Vincent, Stephen"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Mu\u00f1iz, Pedro Javier", 
+            "name": "Pedro Javier Mu\u00f1iz", 
+            "long imdb name": "Pedro Javier Mu\u00f1iz", 
+            "long imdb canonical name": "Mu\u00f1iz, Pedro Javier"
+        }
+    ], 
+    "costume department": [
+        {
+            "canonical name": "Castro, Yasiri", 
+            "name": "Yasiri Castro", 
+            "long imdb name": "Yasiri Castro", 
+            "long imdb canonical name": "Castro, Yasiri"
+        }
+    ], 
+    "long imdb title": "200 Cartas (2013)", 
+    "country codes": [
+        "pr", 
+        "us"
+    ], 
+    "language codes": [
+        "es", 
+        "en"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BMTQ2Mjc0MTU1OV5BMl5BanBnXkFtZTgwNTg4ODYxMDE@._V1._SX97_SY140_.jpg", 
+    "casting department": [
+        {
+            "canonical name": "Finkler, Samantha", 
+            "name": "Samantha Finkler", 
+            "long imdb name": "Samantha Finkler", 
+            "long imdb canonical name": "Finkler, Samantha"
+        }, 
+        {
+            "canonical name": "Quiros, Suzette", 
+            "name": "Suzette Quiros", 
+            "long imdb name": "Suzette Quiros", 
+            "long imdb canonical name": "Quiros, Suzette"
+        }, 
+        {
+            "canonical name": "Rodriguez, Maria Alejandra", 
+            "name": "Maria Alejandra Rodriguez", 
+            "long imdb name": "Maria Alejandra Rodriguez", 
+            "long imdb canonical name": "Rodriguez, Maria Alejandra"
+        }
+    ], 
+    "editorial department": [
+        {
+            "canonical name": "Padilla, Pedro", 
+            "name": "Pedro Padilla", 
+            "long imdb name": "Pedro Padilla", 
+            "long imdb canonical name": "Padilla, Pedro"
+        }
+    ], 
+    "sound mix": [
+        "Dolby SR::(RCA Sound Recording)"
+    ], 
+    "genres": [
+        "Comedy", 
+        "Romance"
+    ], 
+    "director": [
+        {
+            "canonical name": "Irizarry, Bruno", 
+            "name": "Bruno Irizarry", 
+            "long imdb name": "Bruno Irizarry", 
+            "long imdb canonical name": "Irizarry, Bruno"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Germain, Raoul", 
+            "name": "Raoul Germain", 
+            "long imdb name": "Raoul Germain", 
+            "long imdb canonical name": "Germain, Raoul"
+        }
+    ], 
+    "art direction": [
+        {
+            "canonical name": "Carrion, Fernando", 
+            "name": "Fernando Carrion", 
+            "long imdb name": "Fernando Carrion", 
+            "long imdb canonical name": "Carrion, Fernando"
+        }
+    ], 
+    "akas": [
+        "Looking for Maria Sanchez::International (English title) (imdb display title)"
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "Calitto, Jaime", 
+            "name": "Jaime Calitto", 
+            "long imdb name": "Jaime Calitto", 
+            "long imdb canonical name": "Calitto, Jaime"
+        }, 
+        {
+            "canonical name": "Landrau, Luis Antonio", 
+            "name": "Luis Antonio Landrau", 
+            "long imdb name": "Luis Antonio Landrau", 
+            "long imdb canonical name": "Landrau, Luis Antonio"
+        }, 
+        {
+            "canonical name": "McCloskey, David F.", 
+            "name": "David F. McCloskey", 
+            "long imdb name": "David F. McCloskey", 
+            "long imdb canonical name": "McCloskey, David F."
+        }, 
+        {
+            "canonical name": "Mercado, Geronimo", 
+            "name": "Geronimo Mercado", 
+            "long imdb name": "Geronimo Mercado", 
+            "long imdb canonical name": "Mercado, Geronimo"
+        }, 
+        {
+            "canonical name": "Mercado, Geronimo", 
+            "name": "Geronimo Mercado", 
+            "long imdb name": "Geronimo Mercado", 
+            "long imdb canonical name": "Mercado, Geronimo"
+        }, 
+        {
+            "canonical name": "Mercado, Geronimo", 
+            "name": "Geronimo Mercado", 
+            "long imdb name": "Geronimo Mercado", 
+            "long imdb canonical name": "Mercado, Geronimo"
+        }
+    ], 
+    "production companies": [
+        {
+            "name": "Vanguardia Films", 
+            "long imdb name": "Vanguardia Films"
+        }
+    ], 
+    "kind": "movie", 
+    "art department": [
+        {
+            "canonical name": "Alfaro, Paul", 
+            "name": "Paul Alfaro", 
+            "long imdb name": "Paul Alfaro", 
+            "long imdb canonical name": "Alfaro, Paul"
+        }, 
+        {
+            "canonical name": "Carrion, Fernando", 
+            "name": "Fernando Carrion", 
+            "long imdb name": "Fernando Carrion", 
+            "long imdb canonical name": "Carrion, Fernando"
+        }, 
+        {
+            "canonical name": "L\u00f3pez-Franco, Francisco 'Panchi'", 
+            "name": "Francisco 'Panchi' L\u00f3pez-Franco", 
+            "long imdb name": "Francisco 'Panchi' L\u00f3pez-Franco", 
+            "long imdb canonical name": "L\u00f3pez-Franco, Francisco 'Panchi'"
+        }, 
+        {
+            "canonical name": "Rivera, Amilcar", 
+            "name": "Amilcar Rivera", 
+            "long imdb name": "Amilcar Rivera", 
+            "long imdb canonical name": "Rivera, Amilcar"
+        }
+    ], 
+    "countries": [
+        "Puerto Rico", 
+        "USA"
+    ], 
+    "transportation department": [
+        {
+            "canonical name": "Delgado, Doel", 
+            "name": "Doel Delgado", 
+            "long imdb name": "Doel Delgado", 
+            "long imdb canonical name": "Delgado, Doel"
+        }, 
+        {
+            "canonical name": "Ramos, Amaury", 
+            "name": "Amaury Ramos", 
+            "long imdb name": "Amaury Ramos", 
+            "long imdb canonical name": "Ramos, Amaury"
+        }, 
+        {
+            "canonical name": "Rivera, Doel Delgado", 
+            "name": "Doel Delgado Rivera", 
+            "long imdb name": "Doel Delgado Rivera", 
+            "long imdb canonical name": "Rivera, Doel Delgado"
+        }
+    ], 
+    "plot outline": "200 Cartas is a romantic comedy about the life of a Puerto Rican born in NY. One night, Raul meets Maria...", 
+    "plot": [
+        "200 Cartas is a romantic comedy about the life of a Puerto Rican born in NY. One night, Raul meets Maria, a young Puerto Rican woman visiting New York. The night of their encounter, something dramatic happens and they are suddenly separated. Struck by love at first sight, he travels to Puerto Rico in search of this beautiful girl. This adventure will have him traveling around the island in search of his love.", 
+        "Raul (Lin Manuel Miranda), a young newyorican man meets a beautiful Puerto Rican girl, Maria Sanchez (Mayra Matos), in a club in New York City. Before he can get to know her a fight breaks and they get separated. He can't stop thinking about her and decides to go to Puerto Rico with his good friend Juan, (Jaime Camil) to look for her. Upon arriving he discovers that there are over 200 Maria Sanchez in the phone book! So, he decides to write 200 letters to find his dream girl. His quest will take Raul and Juan in a comical journey throughout Puerto Rico where they'll meet Yolanda (Dayanara Torres) a new friend that will help them. Will Raul find what he is looking for?"
+    ], 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BMTQ2Mjc0MTU1OV5BMl5BanBnXkFtZTgwNTg4ODYxMDE@.jpg", 
+    "canonical title": "200 Cartas", 
+    "cast": [
+        {
+            "canonical name": "Miranda, Lin-Manuel", 
+            "name": "Lin-Manuel Miranda", 
+            "long imdb name": "Lin-Manuel Miranda", 
+            "long imdb canonical name": "Miranda, Lin-Manuel"
+        }, 
+        {
+            "canonical name": "Camil, Jaime", 
+            "name": "Jaime Camil", 
+            "long imdb name": "Jaime Camil", 
+            "long imdb canonical name": "Camil, Jaime"
+        }, 
+        {
+            "canonical name": "Torres, Dayanara", 
+            "name": "Dayanara Torres", 
+            "long imdb name": "Dayanara Torres", 
+            "long imdb canonical name": "Torres, Dayanara"
+        }, 
+        {
+            "canonical name": "Steuer, Monica", 
+            "name": "Monica Steuer", 
+            "long imdb name": "Monica Steuer", 
+            "long imdb canonical name": "Steuer, Monica"
+        }, 
+        {
+            "canonical name": "P\u00e9rez, Mayra Matos", 
+            "name": "Mayra Matos P\u00e9rez", 
+            "long imdb name": "Mayra Matos P\u00e9rez", 
+            "long imdb canonical name": "P\u00e9rez, Mayra Matos"
+        }, 
+        {
+            "canonical name": "Alicea, Victor", 
+            "name": "Victor Alicea", 
+            "long imdb name": "Victor Alicea", 
+            "long imdb canonical name": "Alicea, Victor"
+        }, 
+        {
+            "canonical name": "Alvarez, Maris\u00e9", 
+            "name": "Maris\u00e9 Alvarez", 
+            "long imdb name": "Maris\u00e9 Alvarez", 
+            "long imdb canonical name": "Alvarez, Maris\u00e9"
+        }, 
+        {
+            "canonical name": "Archambault, Neville", 
+            "name": "Neville Archambault", 
+            "long imdb name": "Neville Archambault", 
+            "long imdb canonical name": "Archambault, Neville"
+        }, 
+        {
+            "canonical name": "Belkies, Davila", 
+            "name": "Davila Belkies", 
+            "long imdb name": "Davila Belkies", 
+            "long imdb canonical name": "Belkies, Davila"
+        }, 
+        {
+            "canonical name": "Breedlove, Rose", 
+            "name": "Rose Breedlove", 
+            "long imdb name": "Rose Breedlove", 
+            "long imdb canonical name": "Breedlove, Rose"
+        }, 
+        {
+            "canonical name": "Carbone, Alexandra", 
+            "name": "Alexandra Carbone", 
+            "long imdb name": "Alexandra Carbone", 
+            "long imdb canonical name": "Carbone, Alexandra"
+        }, 
+        {
+            "canonical name": "Chac\u00f3n, Iris", 
+            "name": "Iris Chac\u00f3n", 
+            "long imdb name": "Iris Chac\u00f3n", 
+            "long imdb canonical name": "Chac\u00f3n, Iris"
+        }, 
+        {
+            "canonical name": "Colon, Loren", 
+            "name": "Loren Colon", 
+            "long imdb name": "Loren Colon", 
+            "long imdb canonical name": "Colon, Loren"
+        }, 
+        {
+            "canonical name": "De Quesada, Alfredo", 
+            "name": "Alfredo De Quesada", 
+            "long imdb name": "Alfredo De Quesada", 
+            "long imdb canonical name": "De Quesada, Alfredo"
+        }, 
+        {
+            "canonical name": "Del Puerto, Catalina", 
+            "name": "Catalina Del Puerto", 
+            "long imdb name": "Catalina Del Puerto", 
+            "long imdb canonical name": "Del Puerto, Catalina"
+        }, 
+        {
+            "canonical name": "Franco, Ernesto", 
+            "name": "Ernesto Franco", 
+            "long imdb name": "Ernesto Franco", 
+            "long imdb canonical name": "Franco, Ernesto"
+        }, 
+        {
+            "canonical name": "Gomez, Czarina", 
+            "name": "Czarina Gomez", 
+            "long imdb name": "Czarina Gomez", 
+            "long imdb canonical name": "Gomez, Czarina"
+        }, 
+        {
+            "canonical name": "Herrera, John", 
+            "name": "John Herrera", 
+            "long imdb name": "John Herrera", 
+            "long imdb canonical name": "Herrera, John"
+        }, 
+        {
+            "canonical name": "Irizarry, Bruno", 
+            "name": "Bruno Irizarry", 
+            "long imdb name": "Bruno Irizarry", 
+            "long imdb canonical name": "Irizarry, Bruno"
+        }, 
+        {
+            "canonical name": "Isaac, Joel", 
+            "name": "Joel Isaac", 
+            "long imdb name": "Joel Isaac", 
+            "long imdb canonical name": "Isaac, Joel"
+        }, 
+        {
+            "canonical name": "Lebr\u00f3n, Juan Manuel", 
+            "name": "Juan Manuel Lebr\u00f3n", 
+            "long imdb name": "Juan Manuel Lebr\u00f3n", 
+            "long imdb canonical name": "Lebr\u00f3n, Juan Manuel"
+        }, 
+        {
+            "canonical name": "Martinez, Sebastian", 
+            "name": "Sebastian Martinez", 
+            "long imdb name": "Sebastian Martinez", 
+            "long imdb canonical name": "Martinez, Sebastian"
+        }, 
+        {
+            "canonical name": "Merced, Gretza M.", 
+            "name": "Gretza M. Merced", 
+            "long imdb name": "Gretza M. Merced", 
+            "long imdb canonical name": "Merced, Gretza M."
+        }, 
+        {
+            "canonical name": "Montilla, Pili", 
+            "name": "Pili Montilla", 
+            "long imdb name": "Pili Montilla", 
+            "long imdb canonical name": "Montilla, Pili"
+        }, 
+        {
+            "canonical name": "Perez, Wilfred Omar", 
+            "name": "Wilfred Omar Perez", 
+            "long imdb name": "Wilfred Omar Perez", 
+            "long imdb canonical name": "Perez, Wilfred Omar"
+        }, 
+        {
+            "canonical name": "Pi\u00f1ero, Milagros", 
+            "name": "Milagros Pi\u00f1ero", 
+            "long imdb name": "Milagros Pi\u00f1ero", 
+            "long imdb canonical name": "Pi\u00f1ero, Milagros"
+        }, 
+        {
+            "canonical name": "Ramos, Jonathan Louis", 
+            "name": "Jonathan Louis Ramos", 
+            "long imdb name": "Jonathan Louis Ramos", 
+            "long imdb canonical name": "Ramos, Jonathan Louis"
+        }, 
+        {
+            "canonical name": "Raul, Luis", 
+            "name": "Luis Raul", 
+            "long imdb name": "Luis Raul", 
+            "long imdb canonical name": "Raul, Luis"
+        }, 
+        {
+            "canonical name": "Rodriguez, Wilfredo", 
+            "name": "Wilfredo Rodriguez", 
+            "long imdb name": "Wilfredo Rodriguez", 
+            "long imdb canonical name": "Rodriguez, Wilfredo"
+        }, 
+        {
+            "canonical name": "Rojas, Fernando", 
+            "name": "Fernando Rojas", 
+            "long imdb name": "Fernando Rojas", 
+            "long imdb canonical name": "Rojas, Fernando"
+        }, 
+        {
+            "canonical name": "Sampat, Reema", 
+            "name": "Reema Sampat", 
+            "long imdb name": "Reema Sampat", 
+            "long imdb canonical name": "Sampat, Reema"
+        }, 
+        {
+            "canonical name": "Santiago, Isaac", 
+            "name": "Isaac Santiago", 
+            "long imdb name": "Isaac Santiago", 
+            "long imdb canonical name": "Santiago, Isaac"
+        }, 
+        {
+            "canonical name": "Sesarre, Julio", 
+            "name": "Julio Sesarre", 
+            "long imdb name": "Julio Sesarre", 
+            "long imdb canonical name": "Sesarre, Julio"
+        }, 
+        {
+            "canonical name": "Soto, Omar Cruz", 
+            "name": "Omar Cruz Soto", 
+            "long imdb name": "Omar Cruz Soto", 
+            "long imdb canonical name": "Soto, Omar Cruz"
+        }, 
+        {
+            "canonical name": "S\u00e1nchez-Vahamondes, Roy", 
+            "name": "Roy S\u00e1nchez-Vahamondes", 
+            "long imdb name": "Roy S\u00e1nchez-Vahamondes", 
+            "long imdb canonical name": "S\u00e1nchez-Vahamondes, Roy"
+        }, 
+        {
+            "canonical name": "Valedon, Guillermo", 
+            "name": "Guillermo Valedon", 
+            "long imdb name": "Guillermo Valedon", 
+            "long imdb canonical name": "Valedon, Guillermo"
+        }
+    ], 
+    "smart long imdb canonical title": "200 Cartas (2013)", 
+    "original music": [
+        {
+            "canonical name": "Mercado, Geronimo", 
+            "name": "Geronimo Mercado", 
+            "long imdb name": "Geronimo Mercado", 
+            "long imdb canonical name": "Mercado, Geronimo"
+        }
+    ], 
+    "smart canonical title": "200 Cartas"
+}

@@ -1,0 +1,773 @@
+{
+    "music department": [
+        {
+            "canonical name": "Barbot, R\u00e9mi", 
+            "name": "R\u00e9mi Barbot", 
+            "long imdb name": "R\u00e9mi Barbot", 
+            "long imdb canonical name": "Barbot, R\u00e9mi"
+        }, 
+        {
+            "canonical name": "Degremont, Isabelle", 
+            "name": "Isabelle Degremont", 
+            "long imdb name": "Isabelle Degremont", 
+            "long imdb canonical name": "Degremont, Isabelle"
+        }, 
+        {
+            "canonical name": "Hamburger, Raphael", 
+            "name": "Raphael Hamburger", 
+            "long imdb name": "Raphael Hamburger", 
+            "long imdb canonical name": "Hamburger, Raphael"
+        }
+    ], 
+    "camera and electrical department": [
+        {
+            "canonical name": "Agius, Matthieu", 
+            "name": "Matthieu Agius", 
+            "long imdb name": "Matthieu Agius", 
+            "long imdb canonical name": "Agius, Matthieu"
+        }, 
+        {
+            "canonical name": "Brambilla, Alessandro", 
+            "name": "Alessandro Brambilla", 
+            "long imdb name": "Alessandro Brambilla", 
+            "long imdb canonical name": "Brambilla, Alessandro"
+        }, 
+        {
+            "canonical name": "de Calignon, Gr\u00e9goire", 
+            "name": "Gr\u00e9goire de Calignon", 
+            "long imdb name": "Gr\u00e9goire de Calignon", 
+            "long imdb canonical name": "de Calignon, Gr\u00e9goire"
+        }, 
+        {
+            "canonical name": "Gerthoffert, Jb", 
+            "name": "Jb Gerthoffert", 
+            "long imdb name": "Jb Gerthoffert", 
+            "long imdb canonical name": "Gerthoffert, Jb"
+        }, 
+        {
+            "canonical name": "Jay, Jean-Baptiste", 
+            "name": "Jean-Baptiste Jay", 
+            "long imdb name": "Jean-Baptiste Jay", 
+            "long imdb canonical name": "Jay, Jean-Baptiste"
+        }, 
+        {
+            "canonical name": "Perinet, Sabrina", 
+            "name": "Sabrina Perinet", 
+            "long imdb name": "Sabrina Perinet", 
+            "long imdb canonical name": "Perinet, Sabrina"
+        }, 
+        {
+            "canonical name": "Ragetly, Nicolas", 
+            "name": "Nicolas Ragetly", 
+            "long imdb name": "Nicolas Ragetly", 
+            "long imdb canonical name": "Ragetly, Nicolas"
+        }, 
+        {
+            "canonical name": "Valletoux, Thierry", 
+            "name": "Thierry Valletoux", 
+            "long imdb name": "Thierry Valletoux", 
+            "long imdb canonical name": "Valletoux, Thierry"
+        }, 
+        {
+            "canonical name": "Young, Clayton", 
+            "name": "Clayton Young", 
+            "long imdb name": "Clayton Young", 
+            "long imdb canonical name": "Young, Clayton"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "Stone Angels", 
+            "long imdb name": "Stone Angels"
+        }
+    ], 
+    "rating": 6.4, 
+    "runtimes": [
+        "104"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "Mathieu, Isabelle", 
+            "name": "Isabelle Mathieu", 
+            "long imdb name": "Isabelle Mathieu", 
+            "long imdb canonical name": "Mathieu, Isabelle"
+        }
+    ], 
+    "thanks": [
+        {
+            "canonical name": "Lecat, Julien", 
+            "name": "Julien Lecat", 
+            "long imdb name": "Julien Lecat", 
+            "long imdb canonical name": "Lecat, Julien"
+        }
+    ], 
+    "make up": [
+        {
+            "canonical name": "Afonso, Olivier", 
+            "name": "Olivier Afonso", 
+            "long imdb name": "Olivier Afonso", 
+            "long imdb canonical name": "Afonso, Olivier"
+        }, 
+        {
+            "canonical name": "Rov\u00e8re, Tina", 
+            "name": "Tina Rov\u00e8re", 
+            "long imdb name": "Tina Rov\u00e8re", 
+            "long imdb canonical name": "Rov\u00e8re, Tina"
+        }
+    ], 
+    "year": 2012, 
+    "production design": [
+        {
+            "canonical name": "Gordowski, Samantha", 
+            "name": "Samantha Gordowski", 
+            "long imdb name": "Samantha Gordowski", 
+            "long imdb canonical name": "Gordowski, Samantha"
+        }
+    ], 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Linval, Alexis", 
+            "name": "Alexis Linval", 
+            "long imdb name": "Alexis Linval", 
+            "long imdb canonical name": "Linval, Alexis"
+        }, 
+        {
+            "canonical name": "Mulot, Laurent", 
+            "name": "Laurent Mulot", 
+            "long imdb name": "Laurent Mulot", 
+            "long imdb canonical name": "Mulot, Laurent"
+        }, 
+        {
+            "canonical name": "Portal, Eve", 
+            "name": "Eve Portal", 
+            "long imdb name": "Eve Portal", 
+            "long imdb canonical name": "Portal, Eve"
+        }, 
+        {
+            "canonical name": "Rak, Myriam", 
+            "name": "Myriam Rak", 
+            "long imdb name": "Myriam Rak", 
+            "long imdb canonical name": "Rak, Myriam"
+        }, 
+        {
+            "canonical name": "Rives, Lisa-Nina", 
+            "name": "Lisa-Nina Rives", 
+            "long imdb name": "Lisa-Nina Rives", 
+            "long imdb canonical name": "Rives, Lisa-Nina"
+        }, 
+        {
+            "canonical name": "Tatin, Eric", 
+            "name": "Eric Tatin", 
+            "long imdb name": "Eric Tatin", 
+            "long imdb canonical name": "Tatin, Eric"
+        }
+    ], 
+    "color info": [], 
+    "visual effects": [
+        {
+            "canonical name": "Fauch\u00e8re, S\u00e9bastien", 
+            "name": "S\u00e9bastien Fauch\u00e8re", 
+            "long imdb name": "S\u00e9bastien Fauch\u00e8re", 
+            "long imdb canonical name": "Fauch\u00e8re, S\u00e9bastien"
+        }, 
+        {
+            "canonical name": "Friang, Karine", 
+            "name": "Karine Friang", 
+            "long imdb name": "Karine Friang", 
+            "long imdb canonical name": "Friang, Karine"
+        }, 
+        {
+            "canonical name": "Labidi, Khaled", 
+            "name": "Khaled Labidi", 
+            "long imdb name": "Khaled Labidi", 
+            "long imdb canonical name": "Labidi, Khaled"
+        }, 
+        {
+            "canonical name": "Padilla, Brian", 
+            "name": "Brian Padilla", 
+            "long imdb name": "Brian Padilla", 
+            "long imdb canonical name": "Padilla, Brian"
+        }
+    ], 
+    "votes": 578, 
+    "producer": [
+        {
+            "canonical name": "Galitzine, Laetitia", 
+            "name": "Laetitia Galitzine", 
+            "long imdb name": "Laetitia Galitzine", 
+            "long imdb canonical name": "Galitzine, Laetitia"
+        }, 
+        {
+            "canonical name": "G\u00e9lin, Hugo", 
+            "name": "Hugo G\u00e9lin", 
+            "long imdb name": "Hugo G\u00e9lin", 
+            "long imdb canonical name": "G\u00e9lin, Hugo"
+        }, 
+        {
+            "canonical name": "Pogam, Pierre-Ange Le", 
+            "name": "Pierre-Ange Le Pogam", 
+            "long imdb name": "Pierre-Ange Le Pogam", 
+            "long imdb canonical name": "Pogam, Pierre-Ange Le"
+        }, 
+        {
+            "canonical name": "Delorme, Dani\u00e8le", 
+            "name": "Dani\u00e8le Delorme", 
+            "long imdb name": "Dani\u00e8le Delorme", 
+            "long imdb canonical name": "Delorme, Dani\u00e8le"
+        }
+    ], 
+    "title": "Comme des fr\u00e8res", 
+    "assistant director": [
+        {
+            "canonical name": "Gaudin, Mika\u00ebl", 
+            "name": "Mika\u00ebl Gaudin", 
+            "long imdb name": "Mika\u00ebl Gaudin", 
+            "long imdb canonical name": "Gaudin, Mika\u00ebl"
+        }, 
+        {
+            "canonical name": "Jullien, Basile", 
+            "name": "Basile Jullien", 
+            "long imdb name": "Basile Jullien", 
+            "long imdb canonical name": "Jullien, Basile"
+        }, 
+        {
+            "canonical name": "Pouilloux, Jean-Baptiste", 
+            "name": "Jean-Baptiste Pouilloux", 
+            "long imdb name": "Jean-Baptiste Pouilloux", 
+            "long imdb canonical name": "Pouilloux, Jean-Baptiste"
+        }, 
+        {
+            "canonical name": "Toulorge, Elvire", 
+            "name": "Elvire Toulorge", 
+            "long imdb name": "Elvire Toulorge", 
+            "long imdb canonical name": "Toulorge, Elvire"
+        }
+    ], 
+    "writer": [
+        {
+            "canonical name": "G\u00e9lin, Hugo", 
+            "name": "Hugo G\u00e9lin", 
+            "long imdb name": "Hugo G\u00e9lin", 
+            "long imdb canonical name": "G\u00e9lin, Hugo"
+        }, 
+        {
+            "canonical name": "Protat, Romain", 
+            "name": "Romain Protat", 
+            "long imdb name": "Romain Protat", 
+            "long imdb canonical name": "Protat, Romain"
+        }, 
+        {
+            "canonical name": "Mimran, Herv\u00e9", 
+            "name": "Herv\u00e9 Mimran", 
+            "long imdb name": "Herv\u00e9 Mimran", 
+            "long imdb canonical name": "Mimran, Herv\u00e9"
+        }
+    ], 
+    "long imdb canonical title": "Comme des fr\u00e8res (2012)", 
+    "languages": [
+        "French"
+    ], 
+    "production manager": [
+        {
+            "canonical name": "Del Rio, Thomas", 
+            "name": "Thomas Del Rio", 
+            "long imdb name": "Thomas Del Rio", 
+            "long imdb canonical name": "Del Rio, Thomas"
+        }, 
+        {
+            "canonical name": "Egry, Ygal", 
+            "name": "Ygal Egry", 
+            "long imdb name": "Ygal Egry", 
+            "long imdb canonical name": "Egry, Ygal"
+        }, 
+        {
+            "canonical name": "Goldblat, Abraham", 
+            "name": "Abraham Goldblat", 
+            "long imdb name": "Abraham Goldblat", 
+            "long imdb canonical name": "Goldblat, Abraham"
+        }, 
+        {
+            "canonical name": "Henry-Cavillon, Anne-Sophie", 
+            "name": "Anne-Sophie Henry-Cavillon", 
+            "long imdb name": "Anne-Sophie Henry-Cavillon", 
+            "long imdb canonical name": "Henry-Cavillon, Anne-Sophie"
+        }, 
+        {
+            "canonical name": "Paquot, Sandrine", 
+            "name": "Sandrine Paquot", 
+            "long imdb name": "Sandrine Paquot", 
+            "long imdb canonical name": "Paquot, Sandrine"
+        }, 
+        {
+            "canonical name": "Pichereau-Quentin, Am\u00e9lie", 
+            "name": "Am\u00e9lie Pichereau-Quentin", 
+            "long imdb name": "Am\u00e9lie Pichereau-Quentin", 
+            "long imdb canonical name": "Pichereau-Quentin, Am\u00e9lie"
+        }, 
+        {
+            "canonical name": "Roucou, Nicolas", 
+            "name": "Nicolas Roucou", 
+            "long imdb name": "Nicolas Roucou", 
+            "long imdb canonical name": "Roucou, Nicolas"
+        }, 
+        {
+            "canonical name": "Vedrine, Eric", 
+            "name": "Eric Vedrine", 
+            "long imdb name": "Eric Vedrine", 
+            "long imdb canonical name": "Vedrine, Eric"
+        }
+    ], 
+    "casting director": [
+        {
+            "canonical name": "B\u00e9nichou, Pierre-Jacques", 
+            "name": "Pierre-Jacques B\u00e9nichou", 
+            "long imdb name": "Pierre-Jacques B\u00e9nichou", 
+            "long imdb canonical name": "B\u00e9nichou, Pierre-Jacques"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Sivan, Gr\u00e9goire", 
+            "name": "Gr\u00e9goire Sivan", 
+            "long imdb name": "Gr\u00e9goire Sivan", 
+            "long imdb canonical name": "Sivan, Gr\u00e9goire"
+        }
+    ], 
+    "certificates": [
+        "Singapore:PG13", 
+        "Singapore:NC-16::(DVD rating)"
+    ], 
+    "set decoration": [
+        {
+            "canonical name": "Martin, Eve", 
+            "name": "Eve Martin", 
+            "long imdb name": "Eve Martin", 
+            "long imdb canonical name": "Martin, Eve"
+        }
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "Bourreau, Christophe", 
+            "name": "Christophe Bourreau", 
+            "long imdb name": "Christophe Bourreau", 
+            "long imdb canonical name": "Bourreau, Christophe"
+        }, 
+        {
+            "canonical name": "Brajdic, Christophe", 
+            "name": "Christophe Brajdic", 
+            "long imdb name": "Christophe Brajdic", 
+            "long imdb canonical name": "Brajdic, Christophe"
+        }, 
+        {
+            "canonical name": "Casanova, Marco", 
+            "name": "Marco Casanova", 
+            "long imdb name": "Marco Casanova", 
+            "long imdb canonical name": "Casanova, Marco"
+        }, 
+        {
+            "canonical name": "Cosson, Vincent", 
+            "name": "Vincent Cosson", 
+            "long imdb name": "Vincent Cosson", 
+            "long imdb canonical name": "Cosson, Vincent"
+        }, 
+        {
+            "canonical name": "Gallerand, Alexandre", 
+            "name": "Alexandre Gallerand", 
+            "long imdb name": "Alexandre Gallerand", 
+            "long imdb canonical name": "Gallerand, Alexandre"
+        }, 
+        {
+            "canonical name": "Gonthier, J\u00e9r\u00f4me", 
+            "name": "J\u00e9r\u00f4me Gonthier", 
+            "long imdb name": "J\u00e9r\u00f4me Gonthier", 
+            "long imdb canonical name": "Gonthier, J\u00e9r\u00f4me"
+        }, 
+        {
+            "canonical name": "Picq, Pierre", 
+            "name": "Pierre Picq", 
+            "long imdb name": "Pierre Picq", 
+            "long imdb canonical name": "Picq, Pierre"
+        }, 
+        {
+            "canonical name": "P\u00e9ria, Olivier", 
+            "name": "Olivier P\u00e9ria", 
+            "long imdb name": "Olivier P\u00e9ria", 
+            "long imdb canonical name": "P\u00e9ria, Olivier"
+        }
+    ], 
+    "long imdb title": "Comme des fr\u00e8res (2012)", 
+    "country codes": [
+        "fr"
+    ], 
+    "language codes": [
+        "fr"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BMTQ1MzgyODMwMl5BMl5BanBnXkFtZTgwNDExNTU3NzE@._V1._SX100_SY136_.jpg", 
+    "casting department": [
+        {
+            "canonical name": "Peyrot, Jennifer", 
+            "name": "Jennifer Peyrot", 
+            "long imdb name": "Jennifer Peyrot", 
+            "long imdb canonical name": "Peyrot, Jennifer"
+        }, 
+        {
+            "canonical name": "Villier, Fanny", 
+            "name": "Fanny Villier", 
+            "long imdb name": "Fanny Villier", 
+            "long imdb canonical name": "Villier, Fanny"
+        }
+    ], 
+    "special effects companies": [
+        {
+            "name": "Sabotage Studio", 
+            "long imdb name": "Sabotage Studio"
+        }
+    ], 
+    "location management": [
+        {
+            "canonical name": "Lance, No\u00e9mie", 
+            "name": "No\u00e9mie Lance", 
+            "long imdb name": "No\u00e9mie Lance", 
+            "long imdb canonical name": "Lance, No\u00e9mie"
+        }, 
+        {
+            "canonical name": "Pujol, Fran\u00e7ois", 
+            "name": "Fran\u00e7ois Pujol", 
+            "long imdb name": "Fran\u00e7ois Pujol", 
+            "long imdb canonical name": "Pujol, Fran\u00e7ois"
+        }
+    ], 
+    "genres": [
+        "Comedy"
+    ], 
+    "director": [
+        {
+            "canonical name": "G\u00e9lin, Hugo", 
+            "name": "Hugo G\u00e9lin", 
+            "long imdb name": "Hugo G\u00e9lin", 
+            "long imdb canonical name": "G\u00e9lin, Hugo"
+        }
+    ], 
+    "stunt performer": [
+        {
+            "canonical name": "Guene, Julie", 
+            "name": "Julie Guene", 
+            "long imdb name": "Julie Guene", 
+            "long imdb canonical name": "Guene, Julie"
+        }, 
+        {
+            "canonical name": "Gu\u00e9gan, Pascal", 
+            "name": "Pascal Gu\u00e9gan", 
+            "long imdb name": "Pascal Gu\u00e9gan", 
+            "long imdb canonical name": "Gu\u00e9gan, Pascal"
+        }
+    ], 
+    "miscellaneous companies": [
+        {
+            "name": "Aerial Camera Systems (ACS)", 
+            "long imdb name": "Aerial Camera Systems (ACS)"
+        }, 
+        {
+            "name": "Cin\u00e9syl", 
+            "long imdb name": "Cin\u00e9syl"
+        }, 
+        {
+            "name": "Studio Obsidienne", 
+            "long imdb name": "Studio Obsidienne"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Massart, Nicolas", 
+            "name": "Nicolas Massart", 
+            "long imdb name": "Nicolas Massart", 
+            "long imdb canonical name": "Massart, Nicolas"
+        }
+    ], 
+    "art direction": [
+        {
+            "canonical name": "Melaragni, Marco", 
+            "name": "Marco Melaragni", 
+            "long imdb name": "Marco Melaragni", 
+            "long imdb canonical name": "Melaragni, Marco"
+        }
+    ], 
+    "akas": [
+        "Just Like Brothers::International (English title) (imdb display title)"
+    ], 
+    "aspect ratio": "1.85 : 1", 
+    "production companies": [
+        {
+            "name": "Zazi Films", 
+            "long imdb name": "Zazi Films"
+        }, 
+        {
+            "name": "Stone Angels", 
+            "long imdb name": "Stone Angels"
+        }, 
+        {
+            "name": "Direct Cin\u00e9ma", 
+            "long imdb name": "Direct Cin\u00e9ma"
+        }, 
+        {
+            "name": "TPS Star", 
+            "long imdb name": "TPS Star"
+        }, 
+        {
+            "name": "Cin\u00e9+", 
+            "long imdb name": "Cin\u00e9+"
+        }, 
+        {
+            "name": "Direct 8", 
+            "long imdb name": "Direct 8"
+        }, 
+        {
+            "name": "Cofinova 8", 
+            "long imdb name": "Cofinova 8"
+        }, 
+        {
+            "name": "La Banque Postale Images 5", 
+            "long imdb name": "La Banque Postale Images 5"
+        }
+    ], 
+    "kind": "movie", 
+    "art department": [
+        {
+            "canonical name": "Noviel, Jean", 
+            "name": "Jean Noviel", 
+            "long imdb name": "Jean Noviel", 
+            "long imdb canonical name": "Noviel, Jean"
+        }
+    ], 
+    "countries": [
+        "France"
+    ], 
+    "plot outline": "Since Charlie is no longer there, the lives of Boris, Elie, and Maxime have been torn apart. These three men...", 
+    "plot": [
+        "Since Charlie is no longer there, the lives of Boris, Elie, and Maxime have been torn apart. These three men, who have nothing in common, all shared one thing: their love for Charlie. One loved her like a sister, one loved her like the woman of his dreams, one loved her like a friend. Except that Charlie is dead and none of them - not Boris, an accomplished businessman, not Elie, a night owl scriptwriter, and not Maxime, still living at home with his mother - know how to deal with it. But because she asked them to do so, they abruptly decide to undertake a journey together, heading for Corsica and the house that Charlie loved so much. Except that here they are stuck in a car together for over 500 miles. It's going to be a long journey. Boris, Elie and Maxime, three men, three generations, no affinity. But by the time they arrive at their destination, they will have realized one majorly important thing: Charlie has changed their lives forever."
+    ], 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BMTQ1MzgyODMwMl5BMl5BanBnXkFtZTgwNDExNTU3NzE@.jpg", 
+    "canonical title": "Comme des fr\u00e8res", 
+    "cast": [
+        {
+            "canonical name": "Demaison, Fran\u00e7ois-Xavier", 
+            "name": "Fran\u00e7ois-Xavier Demaison", 
+            "long imdb name": "Fran\u00e7ois-Xavier Demaison", 
+            "long imdb canonical name": "Demaison, Fran\u00e7ois-Xavier"
+        }, 
+        {
+            "canonical name": "Duvauchelle, Nicolas", 
+            "name": "Nicolas Duvauchelle", 
+            "long imdb name": "Nicolas Duvauchelle", 
+            "long imdb canonical name": "Duvauchelle, Nicolas"
+        }, 
+        {
+            "canonical name": "Niney, Pierre", 
+            "name": "Pierre Niney", 
+            "long imdb name": "Pierre Niney", 
+            "long imdb canonical name": "Niney, Pierre"
+        }, 
+        {
+            "canonical name": "Thierry, M\u00e9lanie", 
+            "name": "M\u00e9lanie Thierry", 
+            "long imdb name": "M\u00e9lanie Thierry", 
+            "long imdb canonical name": "Thierry, M\u00e9lanie"
+        }, 
+        {
+            "canonical name": "Thomassin, Florence", 
+            "name": "Florence Thomassin", 
+            "long imdb name": "Florence Thomassin", 
+            "long imdb canonical name": "Thomassin, Florence"
+        }, 
+        {
+            "canonical name": "Cassel, C\u00e9cile", 
+            "name": "C\u00e9cile Cassel", 
+            "long imdb name": "C\u00e9cile Cassel", 
+            "long imdb canonical name": "Cassel, C\u00e9cile"
+        }, 
+        {
+            "canonical name": "Presle, Micheline", 
+            "name": "Micheline Presle", 
+            "long imdb name": "Micheline Presle", 
+            "long imdb canonical name": "Presle, Micheline"
+        }, 
+        {
+            "canonical name": "Laudenbach, Philippe", 
+            "name": "Philippe Laudenbach", 
+            "long imdb name": "Philippe Laudenbach", 
+            "long imdb canonical name": "Laudenbach, Philippe"
+        }, 
+        {
+            "canonical name": "Frantz, Jacques", 
+            "name": "Jacques Frantz", 
+            "long imdb name": "Jacques Frantz", 
+            "long imdb canonical name": "Frantz, Jacques"
+        }, 
+        {
+            "canonical name": "Gautry, Lannick", 
+            "name": "Lannick Gautry", 
+            "long imdb name": "Lannick Gautry", 
+            "long imdb canonical name": "Gautry, Lannick"
+        }, 
+        {
+            "canonical name": "Bonaventura, Flore", 
+            "name": "Flore Bonaventura", 
+            "long imdb name": "Flore Bonaventura", 
+            "long imdb canonical name": "Bonaventura, Flore"
+        }, 
+        {
+            "canonical name": "Cayrey, Jean-Fran\u00e7ois", 
+            "name": "Jean-Fran\u00e7ois Cayrey", 
+            "long imdb name": "Jean-Fran\u00e7ois Cayrey", 
+            "long imdb canonical name": "Cayrey, Jean-Fran\u00e7ois"
+        }, 
+        {
+            "canonical name": "Pierens, Diane", 
+            "name": "Diane Pierens", 
+            "long imdb name": "Diane Pierens", 
+            "long imdb canonical name": "Pierens, Diane"
+        }, 
+        {
+            "canonical name": "Caillot, Magali", 
+            "name": "Magali Caillot", 
+            "long imdb name": "Magali Caillot", 
+            "long imdb canonical name": "Caillot, Magali"
+        }, 
+        {
+            "canonical name": "Dross, Patrick", 
+            "name": "Patrick Dross", 
+            "long imdb name": "Patrick Dross", 
+            "long imdb canonical name": "Dross, Patrick"
+        }, 
+        {
+            "canonical name": "M\u00e9lanie, Guillaume", 
+            "name": "Guillaume M\u00e9lanie", 
+            "long imdb name": "Guillaume M\u00e9lanie", 
+            "long imdb canonical name": "M\u00e9lanie, Guillaume"
+        }, 
+        {
+            "canonical name": "Melennec, Patrice", 
+            "name": "Patrice Melennec", 
+            "long imdb name": "Patrice Melennec", 
+            "long imdb canonical name": "Melennec, Patrice"
+        }, 
+        {
+            "canonical name": "Roussel, Nathalie", 
+            "name": "Nathalie Roussel", 
+            "long imdb name": "Nathalie Roussel", 
+            "long imdb canonical name": "Roussel, Nathalie"
+        }, 
+        {
+            "canonical name": "L\u00e9vy, Emy", 
+            "name": "Emy L\u00e9vy", 
+            "long imdb name": "Emy L\u00e9vy", 
+            "long imdb canonical name": "L\u00e9vy, Emy"
+        }, 
+        {
+            "canonical name": "Beugnet, Pablo", 
+            "name": "Pablo Beugnet", 
+            "long imdb name": "Pablo Beugnet", 
+            "long imdb canonical name": "Beugnet, Pablo"
+        }, 
+        {
+            "canonical name": "Chevallier, Richard", 
+            "name": "Richard Chevallier", 
+            "long imdb name": "Richard Chevallier", 
+            "long imdb canonical name": "Chevallier, Richard"
+        }, 
+        {
+            "canonical name": "Bouch\u00e8de, Guillaume", 
+            "name": "Guillaume Bouch\u00e8de", 
+            "long imdb name": "Guillaume Bouch\u00e8de", 
+            "long imdb canonical name": "Bouch\u00e8de, Guillaume"
+        }, 
+        {
+            "canonical name": "Tempez, Cindy", 
+            "name": "Cindy Tempez", 
+            "long imdb name": "Cindy Tempez", 
+            "long imdb canonical name": "Tempez, Cindy"
+        }, 
+        {
+            "canonical name": "Darmon, Thomas", 
+            "name": "Thomas Darmon", 
+            "long imdb name": "Thomas Darmon", 
+            "long imdb canonical name": "Darmon, Thomas"
+        }, 
+        {
+            "canonical name": "Pogam, Pierre-Ange Le", 
+            "name": "Pierre-Ange Le Pogam", 
+            "long imdb name": "Pierre-Ange Le Pogam", 
+            "long imdb canonical name": "Pogam, Pierre-Ange Le"
+        }, 
+        {
+            "canonical name": "Kossmann, Natacha", 
+            "name": "Natacha Kossmann", 
+            "long imdb name": "Natacha Kossmann", 
+            "long imdb canonical name": "Kossmann, Natacha"
+        }, 
+        {
+            "canonical name": "Kowalewski, Katharina", 
+            "name": "Katharina Kowalewski", 
+            "long imdb name": "Katharina Kowalewski", 
+            "long imdb canonical name": "Kowalewski, Katharina"
+        }
+    ], 
+    "smart long imdb canonical title": "Comme des fr\u00e8res (2012)", 
+    "editorial department": [
+        {
+            "canonical name": "Brechet, Jerome", 
+            "name": "Jerome Brechet", 
+            "long imdb name": "Jerome Brechet", 
+            "long imdb canonical name": "Brechet, Jerome"
+        }, 
+        {
+            "canonical name": "Combette, Jean-Baptiste", 
+            "name": "Jean-Baptiste Combette", 
+            "long imdb name": "Jean-Baptiste Combette", 
+            "long imdb canonical name": "Combette, Jean-Baptiste"
+        }, 
+        {
+            "canonical name": "Douvry, Muriel", 
+            "name": "Muriel Douvry", 
+            "long imdb name": "Muriel Douvry", 
+            "long imdb canonical name": "Douvry, Muriel"
+        }, 
+        {
+            "canonical name": "Gousty, Julie", 
+            "name": "Julie Gousty", 
+            "long imdb name": "Julie Gousty", 
+            "long imdb canonical name": "Gousty, Julie"
+        }, 
+        {
+            "canonical name": "Lips, Guillaume", 
+            "name": "Guillaume Lips", 
+            "long imdb name": "Guillaume Lips", 
+            "long imdb canonical name": "Lips, Guillaume"
+        }, 
+        {
+            "canonical name": "Liron, Mathieu", 
+            "name": "Mathieu Liron", 
+            "long imdb name": "Mathieu Liron", 
+            "long imdb canonical name": "Liron, Mathieu"
+        }, 
+        {
+            "canonical name": "Loeve, No\u00e9mie Azul", 
+            "name": "No\u00e9mie Azul Loeve", 
+            "long imdb name": "No\u00e9mie Azul Loeve", 
+            "long imdb canonical name": "Loeve, No\u00e9mie Azul"
+        }, 
+        {
+            "canonical name": "Samson, Audrey", 
+            "name": "Audrey Samson", 
+            "long imdb name": "Audrey Samson", 
+            "long imdb canonical name": "Samson, Audrey"
+        }, 
+        {
+            "canonical name": "Souchet, Julien", 
+            "name": "Julien Souchet", 
+            "long imdb name": "Julien Souchet", 
+            "long imdb canonical name": "Souchet, Julien"
+        }
+    ], 
+    "smart canonical title": "Comme des fr\u00e8res"
+}

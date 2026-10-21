@@ -1,0 +1,517 @@
+{
+    "music department": [
+        {
+            "canonical name": "Escofet, Sebasti\u00e1n", 
+            "name": "Sebasti\u00e1n Escofet", 
+            "long imdb name": "Sebasti\u00e1n Escofet", 
+            "long imdb canonical name": "Escofet, Sebasti\u00e1n"
+        }, 
+        {
+            "canonical name": "Novick, Federico", 
+            "name": "Federico Novick", 
+            "long imdb name": "Federico Novick", 
+            "long imdb canonical name": "Novick, Federico"
+        }
+    ], 
+    "camera and electrical department": [
+        {
+            "canonical name": "Bendersky, Martin", 
+            "name": "Martin Bendersky", 
+            "long imdb name": "Martin Bendersky", 
+            "long imdb canonical name": "Bendersky, Martin"
+        }, 
+        {
+            "canonical name": "Bonello, Mariano", 
+            "name": "Mariano Bonello", 
+            "long imdb name": "Mariano Bonello", 
+            "long imdb canonical name": "Bonello, Mariano"
+        }, 
+        {
+            "canonical name": "Delgado, Benjamin", 
+            "name": "Benjamin Delgado", 
+            "long imdb name": "Benjamin Delgado", 
+            "long imdb canonical name": "Delgado, Benjamin"
+        }, 
+        {
+            "canonical name": "Insausti, Ivan", 
+            "name": "Ivan Insausti", 
+            "long imdb name": "Ivan Insausti", 
+            "long imdb canonical name": "Insausti, Ivan"
+        }, 
+        {
+            "canonical name": "Poleri, Mariano", 
+            "name": "Mariano Poleri", 
+            "long imdb name": "Mariano Poleri", 
+            "long imdb canonical name": "Poleri, Mariano"
+        }, 
+        {
+            "canonical name": "Quevedo, Gabriel", 
+            "name": "Gabriel Quevedo", 
+            "long imdb name": "Gabriel Quevedo", 
+            "long imdb canonical name": "Quevedo, Gabriel"
+        }
+    ], 
+    "distributors": [
+        {
+            "name": "Amstelfilm", 
+            "long imdb name": "Amstelfilm"
+        }, 
+        {
+            "name": "Buena Vista International", 
+            "long imdb name": "Buena Vista International"
+        }, 
+        {
+            "name": "Eurozoom", 
+            "long imdb name": "Eurozoom"
+        }, 
+        {
+            "name": "Pioniwa Film", 
+            "long imdb name": "Pioniwa Film"
+        }, 
+        {
+            "name": "Alambique Filmes", 
+            "long imdb name": "Alambique Filmes"
+        }, 
+        {
+            "name": "Blu Shine", 
+            "long imdb name": "Blu Shine"
+        }, 
+        {
+            "name": "Film1", 
+            "long imdb name": "Film1"
+        }, 
+        {
+            "name": "First Run Features", 
+            "long imdb name": "First Run Features"
+        }, 
+        {
+            "name": "Paris Filmes", 
+            "long imdb name": "Paris Filmes"
+        }, 
+        {
+            "name": "Premi\u00e8re TV Distribution", 
+            "long imdb name": "Premi\u00e8re TV Distribution"
+        }
+    ], 
+    "rating": 7.0, 
+    "runtimes": [
+        "Argentina:91"
+    ], 
+    "costume designer": [
+        {
+            "canonical name": "Marti, Luciana", 
+            "name": "Luciana Marti", 
+            "long imdb name": "Luciana Marti", 
+            "long imdb canonical name": "Marti, Luciana"
+        }, 
+        {
+            "canonical name": "Marti, Manuela", 
+            "name": "Manuela Marti", 
+            "long imdb name": "Manuela Marti", 
+            "long imdb canonical name": "Marti, Manuela"
+        }
+    ], 
+    "make up": [
+        {
+            "canonical name": "Moccia, Alberto", 
+            "name": "Alberto Moccia", 
+            "long imdb name": "Alberto Moccia", 
+            "long imdb canonical name": "Moccia, Alberto"
+        }, 
+        {
+            "canonical name": "Mu\u00f1oz, V\u00edctor", 
+            "name": "V\u00edctor Mu\u00f1oz", 
+            "long imdb name": "V\u00edctor Mu\u00f1oz", 
+            "long imdb canonical name": "Mu\u00f1oz, V\u00edctor"
+        }, 
+        {
+            "canonical name": "\u00c1lvarez, Anabel", 
+            "name": "Anabel \u00c1lvarez", 
+            "long imdb name": "Anabel \u00c1lvarez", 
+            "long imdb canonical name": "\u00c1lvarez, Anabel"
+        }
+    ], 
+    "year": 2012, 
+    "miscellaneous crew": [
+        {
+            "canonical name": "Ot\u00e1rola, Valeria", 
+            "name": "Valeria Ot\u00e1rola", 
+            "long imdb name": "Valeria Ot\u00e1rola", 
+            "long imdb canonical name": "Ot\u00e1rola, Valeria"
+        }
+    ], 
+    "color info": [], 
+    "visual effects": [
+        {
+            "canonical name": "Langsam, Claudio", 
+            "name": "Claudio Langsam", 
+            "long imdb name": "Claudio Langsam", 
+            "long imdb canonical name": "Langsam, Claudio"
+        }
+    ], 
+    "votes": 1176, 
+    "producer": [
+        {
+            "canonical name": "Casado, Patricio Alvarez", 
+            "name": "Patricio Alvarez Casado", 
+            "long imdb name": "Patricio Alvarez Casado", 
+            "long imdb canonical name": "Casado, Patricio Alvarez"
+        }, 
+        {
+            "canonical name": "Barrons, Jennifer", 
+            "name": "Jennifer Barrons", 
+            "long imdb name": "Jennifer Barrons", 
+            "long imdb canonical name": "Barrons, Jennifer"
+        }, 
+        {
+            "canonical name": "Bo, Armando", 
+            "name": "Armando Bo", 
+            "long imdb name": "Armando Bo", 
+            "long imdb canonical name": "Bo, Armando"
+        }, 
+        {
+            "canonical name": "Bo, Victor", 
+            "name": "Victor Bo", 
+            "long imdb name": "Victor Bo", 
+            "long imdb canonical name": "Bo, Victor"
+        }, 
+        {
+            "canonical name": "Cristi, Leticia", 
+            "name": "Leticia Cristi", 
+            "long imdb name": "Leticia Cristi", 
+            "long imdb canonical name": "Cristi, Leticia"
+        }, 
+        {
+            "canonical name": "Fern\u00e1ndez, Mariano 'Chino'", 
+            "name": "Mariano 'Chino' Fern\u00e1ndez", 
+            "long imdb name": "Mariano 'Chino' Fern\u00e1ndez", 
+            "long imdb canonical name": "Fern\u00e1ndez, Mariano 'Chino'"
+        }, 
+        {
+            "canonical name": "Golin, Steve", 
+            "name": "Steve Golin", 
+            "long imdb name": "Steve Golin", 
+            "long imdb canonical name": "Golin, Steve"
+        }, 
+        {
+            "canonical name": "I\u00f1\u00e1rritu, Alejandro G.", 
+            "name": "Alejandro G. I\u00f1\u00e1rritu", 
+            "long imdb name": "Alejandro G. I\u00f1\u00e1rritu", 
+            "long imdb canonical name": "I\u00f1\u00e1rritu, Alejandro G."
+        }, 
+        {
+            "canonical name": "Kuschevatzky, Axel", 
+            "name": "Axel Kuschevatzky", 
+            "long imdb name": "Axel Kuschevatzky", 
+            "long imdb canonical name": "Kuschevatzky, Axel"
+        }, 
+        {
+            "canonical name": "Mosteir\u00edn, Mat\u00edas", 
+            "name": "Mat\u00edas Mosteir\u00edn", 
+            "long imdb name": "Mat\u00edas Mosteir\u00edn", 
+            "long imdb canonical name": "Mosteir\u00edn, Mat\u00edas"
+        }, 
+        {
+            "canonical name": "Redmon, Keith", 
+            "name": "Keith Redmon", 
+            "long imdb name": "Keith Redmon", 
+            "long imdb canonical name": "Redmon, Keith"
+        }, 
+        {
+            "canonical name": "Sigman, Hugo", 
+            "name": "Hugo Sigman", 
+            "long imdb name": "Hugo Sigman", 
+            "long imdb canonical name": "Sigman, Hugo"
+        }
+    ], 
+    "title": "El \u00faltimo Elvis", 
+    "smart canonical title": "\u00faltimo Elvis, El", 
+    "writer": [
+        {
+            "canonical name": "Bo, Armando", 
+            "name": "Armando Bo", 
+            "long imdb name": "Armando Bo", 
+            "long imdb canonical name": "Bo, Armando"
+        }, 
+        {
+            "canonical name": "Giacobone, Nicol\u00e1s", 
+            "name": "Nicol\u00e1s Giacobone", 
+            "long imdb name": "Nicol\u00e1s Giacobone", 
+            "long imdb canonical name": "Giacobone, Nicol\u00e1s"
+        }
+    ], 
+    "long imdb canonical title": "\u00faltimo Elvis, El (2012)", 
+    "languages": [
+        "Spanish", 
+        "English"
+    ], 
+    "casting director": [
+        {
+            "canonical name": "Braier, Javier", 
+            "name": "Javier Braier", 
+            "long imdb name": "Javier Braier", 
+            "long imdb canonical name": "Braier, Javier"
+        }
+    ], 
+    "editor": [
+        {
+            "canonical name": "Bo, Armando", 
+            "name": "Armando Bo", 
+            "long imdb name": "Armando Bo", 
+            "long imdb canonical name": "Bo, Armando"
+        }, 
+        {
+            "canonical name": "Pena, Patricio", 
+            "name": "Patricio Pena", 
+            "long imdb name": "Patricio Pena", 
+            "long imdb canonical name": "Pena, Patricio"
+        }
+    ], 
+    "certificates": [
+        "Argentina:13", 
+        "France:Tous publics", 
+        "Mexico:B-15", 
+        "Netherlands:6", 
+        "Portugal:M/12", 
+        "South Korea:15"
+    ], 
+    "sound crew": [
+        {
+            "canonical name": "Casta\u00f1eda, Mauricio", 
+            "name": "Mauricio Casta\u00f1eda", 
+            "long imdb name": "Mauricio Casta\u00f1eda", 
+            "long imdb canonical name": "Casta\u00f1eda, Mauricio"
+        }, 
+        {
+            "canonical name": "Casta\u00f1eda, Mauricio", 
+            "name": "Mauricio Casta\u00f1eda", 
+            "long imdb name": "Mauricio Casta\u00f1eda", 
+            "long imdb canonical name": "Casta\u00f1eda, Mauricio"
+        }, 
+        {
+            "canonical name": "Porta, Mart\u00edn", 
+            "name": "Mart\u00edn Porta", 
+            "long imdb name": "Mart\u00edn Porta", 
+            "long imdb canonical name": "Porta, Mart\u00edn"
+        }, 
+        {
+            "canonical name": "Seltzer, Martin", 
+            "name": "Martin Seltzer", 
+            "long imdb name": "Martin Seltzer", 
+            "long imdb canonical name": "Seltzer, Martin"
+        }
+    ], 
+    "long imdb title": "El \u00faltimo Elvis (2012)", 
+    "country codes": [
+        "ar"
+    ], 
+    "language codes": [
+        "es", 
+        "en"
+    ], 
+    "cover url": "http://ia.media-imdb.com/images/M/MV5BODYxODc3MDY3MF5BMl5BanBnXkFtZTcwNTE1ODgyNw@@._V1._SX98_SY140_.jpg", 
+    "casting department": [
+        {
+            "canonical name": "Ar\u00e1oz, Ana", 
+            "name": "Ana Ar\u00e1oz", 
+            "long imdb name": "Ana Ar\u00e1oz", 
+            "long imdb canonical name": "Ar\u00e1oz, Ana"
+        }
+    ], 
+    "editorial department": [
+        {
+            "canonical name": "Cavanagh, Luisa", 
+            "name": "Luisa Cavanagh", 
+            "long imdb name": "Luisa Cavanagh", 
+            "long imdb canonical name": "Cavanagh, Luisa"
+        }, 
+        {
+            "canonical name": "Giacobone, Nicol\u00e1s", 
+            "name": "Nicol\u00e1s Giacobone", 
+            "long imdb name": "Nicol\u00e1s Giacobone", 
+            "long imdb canonical name": "Giacobone, Nicol\u00e1s"
+        }
+    ], 
+    "sound mix": [
+        "Dolby Digital"
+    ], 
+    "genres": [
+        "Drama"
+    ], 
+    "director": [
+        {
+            "canonical name": "Bo, Armando", 
+            "name": "Armando Bo", 
+            "long imdb name": "Armando Bo", 
+            "long imdb canonical name": "Bo, Armando"
+        }
+    ], 
+    "miscellaneous companies": [
+        {
+            "name": "HD Argentina", 
+            "long imdb name": "HD Argentina"
+        }
+    ], 
+    "cinematographer": [
+        {
+            "canonical name": "Julia, Javier", 
+            "name": "Javier Julia", 
+            "long imdb name": "Javier Julia", 
+            "long imdb canonical name": "Julia, Javier"
+        }
+    ], 
+    "art direction": [
+        {
+            "canonical name": "Gimelberg, Daniel", 
+            "name": "Daniel Gimelberg", 
+            "long imdb name": "Daniel Gimelberg", 
+            "long imdb canonical name": "Gimelberg, Daniel"
+        }
+    ], 
+    "akas": [
+        "The Last Elvis::International (English title) (imdb display title), USA (imdb display title)", 
+        "O \u00daltimo Elvis::Brazil (imdb display title), Portugal (imdb display title)", 
+        "The Last Elvis::Sweden (imdb display title)", 
+        "Ultimo Elvis::France (new title)"
+    ], 
+    "aspect ratio": "1.85 : 1", 
+    "production companies": [
+        {
+            "name": "Anonymous Content", 
+            "long imdb name": "Anonymous Content"
+        }, 
+        {
+            "name": "Instituto Nacional de Cine y Artes Audiovisuales (INCAA)", 
+            "long imdb name": "Instituto Nacional de Cine y Artes Audiovisuales (INCAA)"
+        }, 
+        {
+            "name": "K&S Films", 
+            "long imdb name": "K&S Films"
+        }, 
+        {
+            "name": "Kramer & Sigman Films", 
+            "long imdb name": "Kramer & Sigman Films"
+        }, 
+        {
+            "name": "Rebolucion", 
+            "long imdb name": "Rebolucion"
+        }, 
+        {
+            "name": "Televisi\u00f3n Federal (Telefe)", 
+            "long imdb name": "Televisi\u00f3n Federal (Telefe)"
+        }
+    ], 
+    "kind": "movie", 
+    "art department": [
+        {
+            "canonical name": "Bages, Leandro", 
+            "name": "Leandro Bages", 
+            "long imdb name": "Leandro Bages", 
+            "long imdb canonical name": "Bages, Leandro"
+        }, 
+        {
+            "canonical name": "Coss, Jazm\u00edn", 
+            "name": "Jazm\u00edn Coss", 
+            "long imdb name": "Jazm\u00edn Coss", 
+            "long imdb canonical name": "Coss, Jazm\u00edn"
+        }, 
+        {
+            "canonical name": "Galli, Constanza", 
+            "name": "Constanza Galli", 
+            "long imdb name": "Constanza Galli", 
+            "long imdb canonical name": "Galli, Constanza"
+        }, 
+        {
+            "canonical name": "Mondello, Alejandro Gast\u00f3n", 
+            "name": "Alejandro Gast\u00f3n Mondello", 
+            "long imdb name": "Alejandro Gast\u00f3n Mondello", 
+            "long imdb canonical name": "Mondello, Alejandro Gast\u00f3n"
+        }, 
+        {
+            "canonical name": "Mondello, Ariel Guillermo", 
+            "name": "Ariel Guillermo Mondello", 
+            "long imdb name": "Ariel Guillermo Mondello", 
+            "long imdb canonical name": "Mondello, Ariel Guillermo"
+        }, 
+        {
+            "canonical name": "Quartaruolo, Luciana", 
+            "name": "Luciana Quartaruolo", 
+            "long imdb name": "Luciana Quartaruolo", 
+            "long imdb canonical name": "Quartaruolo, Luciana"
+        }, 
+        {
+            "canonical name": "Ra\u00f1i, Muriel", 
+            "name": "Muriel Ra\u00f1i", 
+            "long imdb name": "Muriel Ra\u00f1i", 
+            "long imdb canonical name": "Ra\u00f1i, Muriel"
+        }
+    ], 
+    "countries": [
+        "Argentina"
+    ], 
+    "plot outline": "A tragic accident causes an Elvis impersonator to reassess his priorities.", 
+    "plot": [
+        "A tragic accident causes an Elvis impersonator to reassess his priorities."
+    ], 
+    "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BODYxODc3MDY3MF5BMl5BanBnXkFtZTcwNTE1ODgyNw@@.jpg", 
+    "canonical title": "\u00faltimo Elvis, El", 
+    "cast": [
+        {
+            "canonical name": "McInerny, John", 
+            "name": "John McInerny", 
+            "long imdb name": "John McInerny", 
+            "long imdb canonical name": "McInerny, John"
+        }, 
+        {
+            "canonical name": "Siciliani, Griselda", 
+            "name": "Griselda Siciliani", 
+            "long imdb name": "Griselda Siciliani", 
+            "long imdb canonical name": "Siciliani, Griselda"
+        }, 
+        {
+            "canonical name": "Lopez, Margarita", 
+            "name": "Margarita Lopez", 
+            "long imdb name": "Margarita Lopez", 
+            "long imdb canonical name": "Lopez, Margarita"
+        }, 
+        {
+            "canonical name": "Carrillo, Lucrecia", 
+            "name": "Lucrecia Carrillo", 
+            "long imdb name": "Lucrecia Carrillo", 
+            "long imdb canonical name": "Carrillo, Lucrecia"
+        }, 
+        {
+            "canonical name": "Childers, Nora", 
+            "name": "Nora Childers", 
+            "long imdb name": "Nora Childers", 
+            "long imdb canonical name": "Childers, Nora"
+        }, 
+        {
+            "canonical name": "Presedo, Roc\u00edo Rodr\u00edguez", 
+            "name": "Roc\u00edo Rodr\u00edguez Presedo", 
+            "long imdb name": "Roc\u00edo Rodr\u00edguez Presedo", 
+            "long imdb canonical name": "Presedo, Roc\u00edo Rodr\u00edguez"
+        }, 
+        {
+            "canonical name": "Romero, Corina", 
+            "name": "Corina Romero", 
+            "long imdb name": "Corina Romero", 
+            "long imdb canonical name": "Romero, Corina"
+        }, 
+        {
+            "canonical name": "Williams, J.W.", 
+            "name": "J.W. Williams", 
+            "long imdb name": "J.W. Williams", 
+            "long imdb canonical name": "Williams, J.W."
+        }
+    ], 
+    "smart long imdb canonical title": "\u00faltimo Elvis, El (2012)", 
+    "original music": [
+        {
+            "canonical name": "Escofet, Sebasti\u00e1n", 
+            "name": "Sebasti\u00e1n Escofet", 
+            "long imdb name": "Sebasti\u00e1n Escofet", 
+            "long imdb canonical name": "Escofet, Sebasti\u00e1n"
+        }
+    ]
+}
