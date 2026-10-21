@@ -790,7 +790,7 @@ class PipelineSearchSpace(SearchSpace):
                     'type': 'discrete'},
             },
             'catboost': {
-                'iterations': {
+                'num_trees': {
                     'hyperopt-dist': hp.randint,
                     'sampling-scope': [500, 10000],
                     'type': 'discrete'
@@ -815,7 +815,7 @@ class PipelineSearchSpace(SearchSpace):
                     'sampling-scope': [0, 25],
                     'type': 'discrete'
                 },
-                'border_count': {
+                'max_bin': {
                     'hyperopt-dist': hp.uniformint,
                     'sampling-scope': [1, 65535],
                     'type': 'discrete'
@@ -832,7 +832,7 @@ class PipelineSearchSpace(SearchSpace):
                 }
             },
             'catboostreg': {
-                'iterations': {
+                'num_trees': {
                     'hyperopt-dist': hp.randint,
                     'sampling-scope': [500, 10000],
                     'type': 'discrete'
@@ -857,7 +857,7 @@ class PipelineSearchSpace(SearchSpace):
                     'sampling-scope': [0, 25],
                     'type': 'discrete'
                 },
-                'border_count': {
+                'max_bin': {
                     'hyperopt-dist': hp.uniformint,
                     'sampling-scope': [1, 65535],
                     'type': 'discrete'
