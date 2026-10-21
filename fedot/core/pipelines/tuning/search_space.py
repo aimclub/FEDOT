@@ -805,11 +805,6 @@ class PipelineSearchSpace(SearchSpace):
                     'sampling-scope': [4, 10],
                     'type': 'discrete'
                 },
-                'max_leaves': {
-                    'hyperopt-dist': hp.uniformint,
-                    'sampling-scope': [1, 100],
-                    'type': 'discrete'
-                },
                 'min_data_in_leaf': {
                     'hyperopt-dist': partial(hp.qloguniform, q=1),
                     'sampling-scope': [0, 25],
@@ -845,11 +840,6 @@ class PipelineSearchSpace(SearchSpace):
                 'max_depth': {
                     'hyperopt-dist': hp.uniformint,
                     'sampling-scope': [4, 10],
-                    'type': 'discrete'
-                },
-                'max_leaves': {
-                    'hyperopt-dist': hp.uniformint,
-                    'sampling-scope': [1, 100],
                     'type': 'discrete'
                 },
                 'min_data_in_leaf': {
