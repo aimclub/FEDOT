@@ -1,4 +1,3 @@
-from functools import partial
 from typing import Optional
 
 from golem.core.tuning.search_space import SearchSpace, OperationParametersMapping
@@ -790,7 +789,7 @@ class PipelineSearchSpace(SearchSpace):
                     'type': 'discrete'},
             },
             'catboost': {
-                'iterations': {
+                'num_trees': {
                     'hyperopt-dist': hp.randint,
                     'sampling-scope': [500, 10000],
                     'type': 'discrete'
@@ -805,17 +804,7 @@ class PipelineSearchSpace(SearchSpace):
                     'sampling-scope': [4, 10],
                     'type': 'discrete'
                 },
-                'max_leaves': {
-                    'hyperopt-dist': hp.uniformint,
-                    'sampling-scope': [1, 100],
-                    'type': 'discrete'
-                },
-                'min_data_in_leaf': {
-                    'hyperopt-dist': partial(hp.qloguniform, q=1),
-                    'sampling-scope': [0, 25],
-                    'type': 'discrete'
-                },
-                'border_count': {
+                'max_bin': {
                     'hyperopt-dist': hp.uniformint,
                     'sampling-scope': [1, 65535],
                     'type': 'discrete'
@@ -832,7 +821,7 @@ class PipelineSearchSpace(SearchSpace):
                 }
             },
             'catboostreg': {
-                'iterations': {
+                'num_trees': {
                     'hyperopt-dist': hp.randint,
                     'sampling-scope': [500, 10000],
                     'type': 'discrete'
@@ -847,17 +836,7 @@ class PipelineSearchSpace(SearchSpace):
                     'sampling-scope': [4, 10],
                     'type': 'discrete'
                 },
-                'max_leaves': {
-                    'hyperopt-dist': hp.uniformint,
-                    'sampling-scope': [1, 100],
-                    'type': 'discrete'
-                },
-                'min_data_in_leaf': {
-                    'hyperopt-dist': partial(hp.qloguniform, q=1),
-                    'sampling-scope': [0, 25],
-                    'type': 'discrete'
-                },
-                'border_count': {
+                'max_bin': {
                     'hyperopt-dist': hp.uniformint,
                     'sampling-scope': [1, 65535],
                     'type': 'discrete'
