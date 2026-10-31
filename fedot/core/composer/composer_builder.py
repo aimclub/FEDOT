@@ -15,7 +15,6 @@ from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
-from fedot.core.optimisers.isolated_gp_optimizer import IsolatedEvoGraphOptimizer
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
@@ -126,20 +125,6 @@ class ComposerBuilder:
     def _get_default_complexity_metrics() -> List[MetricsEnum]:
         return [ComplexityMetricsEnum.node_number]
 
-    def _parallel_candidates_need_isolation(self) -> bool:
-        """Kill a stuck native candidate only for parallel search with a deadline.
-
-        A single job and an infinite timeout keep the stock dispatcher.
-        """
-        if self.optimizer_cls is not EvoGraphOptimizer:
-            return False
-        requirements = self.composer_requirements
-        if requirements is None or requirements.parallelization_mode != "populational":
-            return False
-        if requirements.n_jobs <= 1:
-            return False
-        return requirements.timeout is not None or requirements.max_graph_fit_time is not None
-
     def build(self) -> Composer:
         multi_objective = len(self.metrics) > 1
         if not self.composer_requirements:
@@ -166,14 +151,11 @@ class ComposerBuilder:
             .with_initial_graphs(self.initial_population) \
             .with_custom_generation_function(self.initial_population_generation_function)()
 
-        optimizer_cls = self.optimizer_cls
-        if self._parallel_candidates_need_isolation():
-            optimizer_cls = IsolatedEvoGraphOptimizer
-        optimiser = optimizer_cls(objective=objective,
-                                  initial_graphs=initial_population,
-                                  requirements=self.composer_requirements,
-                                  graph_generation_params=self.graph_generation_params,
-                                  graph_optimizer_params=self.optimizer_parameters)
+        optimiser = self.optimizer_cls(objective=objective,
+                                       initial_graphs=initial_population,
+                                       requirements=self.composer_requirements,
+                                       graph_generation_params=self.graph_generation_params,
+                                       graph_optimizer_params=self.optimizer_parameters)
 
         composer = self.composer_cls(optimiser,
                                      self.composer_requirements,

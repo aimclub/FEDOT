@@ -1,89 +1,85 @@
 import time
 from datetime import timedelta
-from functools import partial
-from types import SimpleNamespace
 
-from golem.core.optimisers.genetic.gp_optimizer import EvoGraphOptimizer
+import numpy as np
+from joblib import Parallel, delayed
 
 from fedot.api.main import Fedot
 from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.optimisers.candidate_isolation import run_candidates_isolated
-from fedot.core.optimisers.isolated_candidate_dispatcher import IsolatedCandidateDispatcher
-from fedot.core.optimisers.isolated_gp_optimizer import IsolatedEvoGraphOptimizer
+from fedot.core.data.data import InputData
+from fedot.core.pipelines.node import PipelineNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.repository.tasks import Task, TaskTypesEnum
-
-
-def _sleep_or_return(label, delay):
-    if delay:
-        time.sleep(delay)
-    return label
-
-
-def _requirements(**kwargs):
-    return PipelineComposerRequirements(primary=['logit'], secondary=['logit'], **kwargs)
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+from golem.core.optimisers.genetic.gp_optimizer import EvoGraphOptimizer
 
 
 def _composer(**requirement_kwargs):
     pipeline = PipelineBuilder().add_node('logit').build()
+    requirements = PipelineComposerRequirements(
+        primary=['logit'], secondary=['logit'], **requirement_kwargs)
     return ComposerBuilder(Task(TaskTypesEnum.classification)).with_requirements(
-        _requirements(**requirement_kwargs)
+        requirements
     ).with_initial_pipelines(pipeline).build()
 
 
-def test_parallel_search_with_deadline_uses_isolated_optimizer():
+def test_parallel_search_keeps_the_stock_optimizer():
     composer = _composer(timeout=timedelta(minutes=1), n_jobs=2)
 
-    assert isinstance(composer.optimizer, IsolatedEvoGraphOptimizer)
-    assert isinstance(composer.optimizer.eval_dispatcher, IsolatedCandidateDispatcher)
-
-
-def test_single_job_keeps_stock_optimizer():
-    composer = _composer(timeout=timedelta(minutes=1), n_jobs=1)
-
     assert isinstance(composer.optimizer, EvoGraphOptimizer)
-    assert not isinstance(composer.optimizer, IsolatedEvoGraphOptimizer)
+    assert composer.optimizer.__class__ is EvoGraphOptimizer
 
 
-def test_infinite_timeout_keeps_stock_optimizer():
-    composer = _composer(timeout=None, max_graph_fit_time=None, n_jobs=2)
-
-    assert isinstance(composer.optimizer, EvoGraphOptimizer)
-    assert not isinstance(composer.optimizer, IsolatedEvoGraphOptimizer)
-
-
-def test_process_deadline_covers_each_cv_fold_and_search_budget():
-    dispatcher = IsolatedCandidateDispatcher.__new__(IsolatedCandidateDispatcher)
-    dispatcher._objective_eval = SimpleNamespace(
-        _time_constraint=timedelta(seconds=10),
-        _data_producer=partial(int, cv_folds=5),
+def test_timed_fit_stops_native_call_and_keeps_the_other_result():
+    slow = InputData(
+        idx=np.arange(8000),
+        features=np.random.default_rng(8000).normal(size=(8000, 12)),
+        target=np.zeros(8000),
+        task=Task(TaskTypesEnum.ts_forecasting),
+        data_type=DataTypesEnum.table,
     )
-    dispatcher.timer = SimpleNamespace(timeout=timedelta(seconds=1000), seconds_from_start=0)
-
-    assert dispatcher._candidate_timeout_seconds() == 50
-
-    dispatcher.timer = SimpleNamespace(timeout=timedelta(seconds=30), seconds_from_start=0)
-    assert dispatcher._candidate_timeout_seconds() == 30
-
-
-def test_isolated_candidate_timeout_kills_process_and_keeps_sibling():
-    outcomes = run_candidates_isolated(
-        evaluator=_sleep_or_return,
-        requests=(
-            ('slow', ('slow', 8), {}),
-            ('fast', ('fast', 0), {}),
-        ),
-        n_jobs=2,
-        timeout_seconds=0.4,
-        startup_timeout_seconds=20,
+    slow.supplementary_data.is_auto_preprocessed = True
+    fast = InputData(
+        idx=np.arange(30),
+        features=np.random.default_rng(1).normal(size=(30, 4)),
+        target=np.array([0, 1] * 15),
+        task=Task(TaskTypesEnum.classification),
+        data_type=DataTypesEnum.table,
     )
-    by_uid = {outcome.uid: outcome for outcome in outcomes}
 
-    assert by_uid['fast'].status == 'ok'
-    assert by_uid['fast'].value == 'fast'
-    assert by_uid['slow'].status == 'timeout'
-    assert by_uid['slow'].cleanup_confirmed is True
+    def run(kind):
+        if kind == 'slow':
+            from gph import ripser_parallel
+            from fedot.core.operations.evaluation.operation_implementations.data_operations.topological.fast_topological_extractor import \
+                TopologicalFeaturesImplementation
+
+            def _slow_extract(_self, _features):
+                cloud = np.random.default_rng(8000).normal(size=(8000, 12))
+                ripser_parallel(cloud, maxdim=1, n_threads=1, collapse_edges=False)
+                return np.zeros((len(_features), 1))
+
+            TopologicalFeaturesImplementation._extract_features = _slow_extract
+            pipeline = Pipeline(PipelineNode('topological_features'))
+            data = slow
+            limit = timedelta(seconds=2)
+        else:
+            pipeline = Pipeline(PipelineNode('logit'))
+            data = fast
+            limit = timedelta(seconds=30)
+        started = time.monotonic()
+        try:
+            pipeline.fit(data, time_constraint=limit)
+            return 'finished', round(time.monotonic() - started, 3)
+        except TimeoutError:
+            return 'timeout', round(time.monotonic() - started, 3)
+
+    results = Parallel(n_jobs=2)(delayed(run)(kind) for kind in ('slow', 'fast'))
+
+    assert results[0][0] == 'timeout'
+    assert results[0][1] < 12
+    assert results[1][0] == 'finished'
 
 
 def test_parallel_fit_returns_a_pipeline():
@@ -110,19 +106,30 @@ def test_parallel_fit_returns_a_pipeline():
 
 
 def test_final_refit_timeout_keeps_fitted_pipeline():
-    model = Fedot(problem='classification', timeout=0.1, n_jobs=1, preset='fast_train')
+    model = Fedot(
+        problem='ts_forecasting',
+        task_params=TsForecastingParams(forecast_length=12),
+        timeout=0.1,
+        n_jobs=1,
+        preset='fast_train',
+        with_tuning=False,
+        logging_level=40,
+    )
+    lagged = PipelineNode('lagged')
+    initial = Pipeline(PipelineNode('ridge', nodes_from=[lagged]))
+    model.fit(features=np.arange(80, dtype=float), predefined_model=initial)
+    fitted = model.current_pipeline
 
-    class _Pipeline:
-        def __init__(self, fitted):
-            self.is_fitted = fitted
+    class _Slow:
+        is_fitted = False
 
         def fit(self, *_args, **_kwargs):
             raise TimeoutError('fit limit')
 
-    current = _Pipeline(False)
-    fallback = _Pipeline(True)
-    model.current_pipeline = current
-    model.api_composer.fitted_initial_assumption = fallback
+    model.api_composer.fitted_initial_assumption = fitted
+    model.current_pipeline = _Slow()
+    model.params['max_pipeline_fit_time'] = 0.02
 
-    assert model._train_pipeline_on_full_dataset(None, object()) is True
-    assert model.current_pipeline is fallback
+    assert model._train_pipeline_on_full_dataset(None, model.train_data) is True
+    assert model.current_pipeline is fitted
+    assert model.current_pipeline.is_fitted

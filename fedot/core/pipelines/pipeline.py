@@ -1,9 +1,8 @@
+import multiprocessing
 from copy import deepcopy
 from datetime import timedelta
 from os import PathLike
 from typing import Dict, List, Optional, Sequence, Tuple, Union
-
-import func_timeout
 from golem.core.dag.graph import Graph
 from golem.core.dag.graph_delegate import GraphDelegate
 from golem.core.dag.graph_node import GraphNode
@@ -31,6 +30,36 @@ from fedot.preprocessing.preprocessing import DataPreprocessor
 from fedot.utilities.composer_timer import fedot_composer_timer
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
+_FIT_STARTUP_SECONDS = 60
+
+
+def _stop_fit_process(process: multiprocessing.Process) -> None:
+    if process.is_alive():
+        process.kill()
+    process.join(5)
+
+
+def _run_limited_fit(connection, pipeline, input_data, predictions_cache, fold_id) -> None:
+    """Fit one pipeline copy. The parent kills this process when the limit expires."""
+    try:
+        connection.send(("ready",))
+        state = {}
+        fitted = []
+        pipeline._fit(
+            input_data=input_data,
+            process_state_dict=state,
+            fitted_operations=fitted,
+            predictions_cache=predictions_cache,
+            fold_id=fold_id,
+        )
+        connection.send(("ok", state, fitted))
+    except BaseException as exc:
+        try:
+            connection.send(("error", exc))
+        except Exception:
+            pass
+    finally:
+        connection.close()
 
 
 class Pipeline(GraphDelegate, Serializable):
@@ -78,21 +107,42 @@ class Pipeline(GraphDelegate, Serializable):
             OutputData: values predicted on the provided ``input_data``
         """
 
-        time = int(time.total_seconds())
-        process_state_dict = {}
-        fitted_operations = []
+        seconds = int(time.total_seconds())
+        if seconds <= 0:
+            raise TimeoutError(
+                f'Pipeline fitness evaluation time limit is expired (more then {seconds} seconds)')
+        # func_timeout does not interrupt a native call. A forked child can be
+        # killed from the worker that already owns the candidate, so the parent
+        # dispatcher still receives the other candidates.
+        context = multiprocessing.get_context("fork")
+        parent, child = context.Pipe(duplex=False)
+        process = context.Process(
+            target=_run_limited_fit,
+            args=(child, self, input_data, predictions_cache, fold_id),
+        )
+        process.start()
+        child.close()
         try:
-            func_timeout.func_timeout(
-                time, self._fit,
-                args=(input_data, process_state_dict, fitted_operations, predictions_cache, fold_id)
-            )
-        except func_timeout.FunctionTimedOut:
-            raise TimeoutError(f'Pipeline fitness evaluation time limit is expired (more then {time} seconds)')
-
-        self.computation_time = process_state_dict['computation_time_in_seconds']
-        for node_num, _ in enumerate(self.nodes):
-            self.nodes[node_num].fitted_operation = fitted_operations[node_num]
-        return process_state_dict['train_predicted']
+            if not parent.poll(_FIT_STARTUP_SECONDS):
+                raise TimeoutError(
+                    f'Pipeline fitness evaluation time limit is expired (more then {seconds} seconds)')
+            started = parent.recv()
+            if started[0] == "error":
+                raise started[1]
+            if not parent.poll(seconds):
+                raise TimeoutError(
+                    f'Pipeline fitness evaluation time limit is expired (more then {seconds} seconds)')
+            payload = parent.recv()
+            if payload[0] == "error":
+                raise payload[1]
+            _kind, state, fitted_operations = payload
+            self.computation_time = state['computation_time_in_seconds']
+            for node_num, _ in enumerate(self.nodes):
+                self.nodes[node_num].fitted_operation = fitted_operations[node_num]
+            return state['train_predicted']
+        finally:
+            _stop_fit_process(process)
+            parent.close()
 
     def _fit(self,
              input_data: Optional[InputData] = None,
