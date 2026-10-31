@@ -1,3 +1,4 @@
+import datetime
 import logging
 from copy import deepcopy
 from typing import Any, List, Optional, Sequence, Tuple, Union
@@ -192,8 +193,16 @@ class Fedot:
 
                 with fedot_composer_timer.launch_train_inference():
                     if self.history and not self.history.is_empty() or not self.current_pipeline.is_fitted:
-                        self._train_pipeline_on_full_dataset(recommendations_for_data, full_train_not_preprocessed)
-                        self.log.message('Final pipeline was fitted')
+                        retained = self._train_pipeline_on_full_dataset(
+                            recommendations_for_data, full_train_not_preprocessed
+                        )
+                        if retained:
+                            self.log.message(
+                                'Final refit hit the same fit limit used during search; '
+                                'retained an already fitted pipeline'
+                            )
+                        else:
+                            self.log.message('Final pipeline was fitted')
                     else:
                         self.log.message('Already fitted initial pipeline is used')
 
@@ -566,7 +575,10 @@ class Fedot:
 
     def _train_pipeline_on_full_dataset(self, recommendations: Optional[dict],
                                         full_train_not_preprocessed: Union[InputData, MultiModalData]):
-        """Applies training procedure for obtained pipeline if dataset was clipped
+        """Applies training procedure for obtained pipeline if dataset was clipped.
+
+        Returns True when the refit hit the search-time fit limit and an already
+        fitted pipeline was kept.
         """
 
         if recommendations is not None:
@@ -574,7 +586,24 @@ class Fedot:
             self.data_processor.accept_and_apply_recommendations(full_train_not_preprocessed,
                                                                  {k: v for k, v in recommendations.items()
                                                                   if k != 'cut'})
-        self.current_pipeline.fit(
-            full_train_not_preprocessed,
-            n_jobs=self.params.n_jobs
-        )
+        limit_minutes = self.params.get('max_pipeline_fit_time')
+        time_constraint = None
+        if limit_minutes:
+            time_constraint = datetime.timedelta(minutes=float(limit_minutes))
+        try:
+            self.current_pipeline.fit(
+                full_train_not_preprocessed,
+                time_constraint=time_constraint,
+                n_jobs=self.params.n_jobs
+            )
+        except TimeoutError:
+            fallback = self.current_pipeline if getattr(self.current_pipeline, 'is_fitted', False) else None
+            if fallback is None:
+                fitted_initial = getattr(self.api_composer, 'fitted_initial_assumption', None)
+                if fitted_initial is not None and getattr(fitted_initial, 'is_fitted', False):
+                    fallback = fitted_initial
+            if fallback is None:
+                raise
+            self.current_pipeline = fallback
+            return True
+        return False
