@@ -1,5 +1,6 @@
 import datetime
 import gc
+import multiprocessing
 from copy import deepcopy
 from typing import List, Optional, Sequence, Tuple, Union
 
@@ -21,6 +22,27 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.metrics_repository import MetricIDType
 from fedot.utilities.composer_timer import fedot_composer_timer
+
+
+def _run_tuner(connection, tuner, pipeline):
+    """Tune in a child. The parent kills this process when the tuning budget ends."""
+    try:
+        connection.send(("ready",))
+        tuned = tuner.tune(pipeline)
+        connection.send(("ok", tuned, bool(getattr(tuner, "was_tuned", False))))
+    except BaseException as exc:
+        try:
+            connection.send(("error", exc))
+        except Exception:
+            pass
+    finally:
+        connection.close()
+
+
+def _stop_tuner_process(process):
+    if process.is_alive():
+        process.kill()
+    process.join(5)
 
 
 class ApiComposer:
@@ -185,13 +207,49 @@ class ApiComposer:
             with self.timer.launch_tuning():
                 self.was_tuned = False
                 self.log.message(f'Hyperparameters tuning started with {round(timeout_for_tuning)} min. timeout')
-                tuned_pipeline = tuner.tune(pipeline_gp_composed)
-                self.log.message('Hyperparameters tuning finished')
+                tuned_pipeline, self.was_tuned = self._tune_within_limit(
+                    tuner, pipeline_gp_composed, timeout_for_tuning * 60
+                )
+                if self.was_tuned:
+                    self.log.message('Hyperparameters tuning finished')
+                else:
+                    self.log.message('Tuning hit its time limit; kept the composed pipeline')
         else:
             self.log.message(f'Time for pipeline composing was {str(self.timer.composing_spend_time)}.\n'
                              f'The remaining {max(0, round(timeout_for_tuning, 1))} seconds are not enough '
                              f'to tune the hyperparameters.')
             self.log.message('Composed pipeline returned without tuning.')
             tuned_pipeline = pipeline_gp_composed
-        self.was_tuned = tuner.was_tuned
+            self.was_tuned = False
         return tuned_pipeline
+
+    def _tune_within_limit(self, tuner, pipeline, timeout_seconds):
+        """Return the tuned pipeline, or the composed one if tuning exceeds its budget.
+
+        Hyperopt finishes the current trial after its own timeout, so a long
+        native trial can run past the search deadline. A forked child can be
+        killed, and the already fitted composed pipeline stays in this process.
+        """
+        seconds = int(timeout_seconds)
+        if seconds <= 0:
+            return pipeline, False
+        context = multiprocessing.get_context("fork")
+        parent, child = context.Pipe(duplex=False)
+        process = context.Process(target=_run_tuner, args=(child, tuner, pipeline))
+        process.start()
+        child.close()
+        try:
+            if not parent.poll(60):
+                return pipeline, False
+            started = parent.recv()
+            if started[0] == "error":
+                raise started[1]
+            if not parent.poll(seconds):
+                return pipeline, False
+            payload = parent.recv()
+            if payload[0] == "error":
+                raise payload[1]
+            return payload[1], bool(payload[2])
+        finally:
+            _stop_tuner_process(process)
+            parent.close()
