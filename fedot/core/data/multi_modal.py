@@ -199,6 +199,7 @@ class MultiModalData(Dict[str, InputData]):
             column
             for column in text_columns
             if column not in link_columns
+               and column not in sparse_columns
         ]
 
         data_text = (
@@ -230,7 +231,6 @@ class MultiModalData(Dict[str, InputData]):
                 target_columns,
             )
         )
-        table_features, target = process_target_and_features(data_frame_table, target_columns)
 
         data_part_transformation_func = partial(array_to_input_data,
                                                 idx=idx, target_array=target, task=task)
