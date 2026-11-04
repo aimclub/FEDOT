@@ -40,6 +40,12 @@ from fedot.preprocessing.preprocessing import DataPreprocessor
 from fedot.utilities.composer_timer import fedot_composer_timer
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
+
+
+class PipelineTimeLimitExceeded(TimeoutError):
+    """A process isolation deadline expired before a pipeline operation finished."""
+
+
 # A timed-out unpickler cannot safely be killed in Python. Bound outstanding
 # decoders; only the caller may install a fully received result into its model.
 _RESULT_READER = threading.BoundedSemaphore(1)
@@ -151,7 +157,7 @@ def _run_in_process(function, args, timeout_seconds):
     is allowed; subsequent results fail closed if it does not finish in time.
     """
     if timeout_seconds <= 0:
-        raise TimeoutError('Limited worker time budget is exhausted')
+        raise PipelineTimeLimitExceeded('Limited worker time budget is exhausted')
     deadline = time.monotonic() + _FIT_STARTUP_SECONDS
     parent, child = multiprocessing.Pipe()
     random_states = random.getstate(), np.random.get_state()
@@ -164,7 +170,7 @@ def _run_in_process(function, args, timeout_seconds):
         process.start()
         child.close()
         if not parent.poll(max(0, deadline - time.monotonic())):
-            raise TimeoutError('Limited worker startup time budget is exhausted')
+            raise PipelineTimeLimitExceeded('Limited worker startup time budget is exhausted')
         if parent.recv_bytes() != b'ready':
             raise RuntimeError('Limited worker sent an invalid readiness message')
         if os.name == 'nt':
@@ -180,9 +186,9 @@ def _run_in_process(function, args, timeout_seconds):
         deadline = time.monotonic() + timeout_seconds
         parent.send_bytes(b'start')
         if not parent.poll(max(0, deadline - time.monotonic())):
-            raise TimeoutError('Limited worker execution time budget is exhausted')
+            raise PipelineTimeLimitExceeded('Limited worker execution time budget is exhausted')
         if not _RESULT_READER.acquire(timeout=max(0, deadline - time.monotonic())):
-            raise TimeoutError('Previous limited worker result is still decoding')
+            raise PipelineTimeLimitExceeded('Previous limited worker result is still decoding')
         results = queue.Queue(maxsize=1)
         try:
             threading.Thread(target=_receive_result, args=(parent, results), daemon=True).start()
@@ -193,7 +199,7 @@ def _run_in_process(function, args, timeout_seconds):
         try:
             kind, result = results.get(timeout=max(0, deadline - time.monotonic()))
         except queue.Empty:
-            raise TimeoutError('Limited worker result time budget is exhausted') from None
+            raise PipelineTimeLimitExceeded('Limited worker result time budget is exhausted') from None
         if kind == 'error':
             raise result
         return result

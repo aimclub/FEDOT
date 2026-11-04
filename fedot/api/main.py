@@ -24,7 +24,7 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_forecast, plot_roc_auc
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
-from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline import Pipeline, PipelineTimeLimitExceeded
 from fedot.core.pipelines.ts_wrappers import convert_forecast_to_output, out_of_sample_ts_forecast
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.metrics_repository import MetricCallable
@@ -596,7 +596,7 @@ class Fedot:
                 time_constraint=time_constraint,
                 n_jobs=self.params.n_jobs
             )
-        except TimeoutError:
+        except PipelineTimeLimitExceeded:
             fallback = self.current_pipeline if getattr(self.current_pipeline, 'is_fitted', False) else None
             if fallback is None:
                 fitted_initial = getattr(self.api_composer, 'fitted_initial_assumption', None)

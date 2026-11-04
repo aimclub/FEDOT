@@ -17,7 +17,7 @@ from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData
-from fedot.core.pipelines.pipeline import Pipeline, _run_in_process
+from fedot.core.pipelines.pipeline import Pipeline, PipelineTimeLimitExceeded, _run_in_process
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.metrics_repository import MetricIDType
 from fedot.utilities.composer_timer import fedot_composer_timer
@@ -215,5 +215,5 @@ class ApiComposer:
         """
         try:
             return _run_in_process(_run_tuner, (tuner, pipeline), timeout_seconds)
-        except TimeoutError:
+        except PipelineTimeLimitExceeded:
             return pipeline, False

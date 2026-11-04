@@ -127,7 +127,8 @@ def test_final_refit_timeout_keeps_fitted_pipeline():
         is_fitted = False
 
         def fit(self, *_args, **_kwargs):
-            raise TimeoutError('fit limit')
+            from fedot.core.pipelines.pipeline import PipelineTimeLimitExceeded
+            raise PipelineTimeLimitExceeded('fit limit')
 
     model.api_composer.fitted_initial_assumption = fitted
     model.current_pipeline = _Slow()
@@ -160,6 +161,36 @@ def test_tuning_result_decode_respects_deadline():
     assert elapsed < 15
     # Let a timed-out decoder finish before other tests use its bounded slot.
     time.sleep(9)
+
+
+def test_tuner_timeout_error_is_not_treated_as_budget_exhaustion(monkeypatch):
+    from fedot.api.api_utils import api_composer as api_composer_module
+    from fedot.api.api_utils.api_composer import ApiComposer
+
+    def fail_tuner(*_args):
+        raise TimeoutError('tuner raised an operation error')
+
+    monkeypatch.setattr(api_composer_module, '_run_in_process', fail_tuner)
+    with pytest.raises(TimeoutError, match='operation error'):
+        ApiComposer._tune_within_limit(None, object(), 'fallback', 10)
+
+
+def test_final_refit_timeout_error_is_not_treated_as_budget_exhaustion():
+    from types import SimpleNamespace
+
+    class AlreadyFittedPipeline:
+        is_fitted = True
+
+        def fit(self, *_args, **_kwargs):
+            raise TimeoutError('operation raised a timeout')
+
+    model = object.__new__(Fedot)
+    model.params = SimpleNamespace(get=lambda _name: 1, n_jobs=1)
+    model.current_pipeline = AlreadyFittedPipeline()
+    model.api_composer = SimpleNamespace(fitted_initial_assumption=None)
+
+    with pytest.raises(TimeoutError, match='operation raised a timeout'):
+        model._train_pipeline_on_full_dataset(None, object())
 
 
 def _series():
