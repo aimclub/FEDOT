@@ -89,6 +89,9 @@ def test_parallel_fit_returns_a_pipeline():
         n_jobs=2,
         preset='fast_train',
         with_tuning=False,
+        use_operations_cache=False,
+        use_preprocessing_cache=False,
+        use_predictions_cache=False,
         pop_size=2,
         num_of_generations=1,
         max_depth=2,
@@ -110,6 +113,9 @@ def test_final_refit_timeout_keeps_fitted_pipeline():
         n_jobs=1,
         preset='fast_train',
         with_tuning=False,
+        use_operations_cache=False,
+        use_preprocessing_cache=False,
+        use_predictions_cache=False,
         logging_level=40,
     )
     lagged = PipelineNode('lagged')
