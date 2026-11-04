@@ -1,6 +1,7 @@
 import multiprocessing
 import os
 import queue
+import random
 import signal
 import threading
 import time
@@ -10,6 +11,7 @@ from datetime import timedelta
 from os import PathLike
 from typing import Dict, List, Optional, Sequence, Tuple, Union
 
+import numpy as np
 from joblib.externals.loky.backend.context import get_context
 from golem.core.dag.graph import Graph
 from golem.core.dag.graph_delegate import GraphDelegate
@@ -107,12 +109,14 @@ def _watch_process_group(control, pgid):
         control.close()
 
 
-def _limited_worker(connection, function, args):
+def _limited_worker(connection, function, args, random_states):
     if os.name != 'nt':
         os.setsid()
     connection.send_bytes(b'ready')
     if connection.recv_bytes() != b'start':
         return
+    random.setstate(random_states[0])
+    np.random.set_state(random_states[1])
     try:
         payload = ('ok', function(*args))
     except BaseException as exc:
@@ -150,7 +154,8 @@ def _run_in_process(function, args, timeout_seconds):
         raise TimeoutError('Limited worker time budget is exhausted')
     deadline = time.monotonic() + _FIT_STARTUP_SECONDS
     parent, child = multiprocessing.Pipe()
-    process = get_context('loky').Process(target=_limited_worker, args=(child, function, args))
+    random_states = random.getstate(), np.random.get_state()
+    process = get_context('loky').Process(target=_limited_worker, args=(child, function, args, random_states))
     guardian = None
     guard_parent = guard_child = None
     close_job = None

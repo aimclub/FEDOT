@@ -354,3 +354,41 @@ def test_windows_job_owns_tree_before_start_and_closes_handles(monkeypatch, assi
         with pytest.raises(OSError, match='job assignment failed'):
             _windows_job(42)
     assert sorted(closed) == [123, 456]
+
+
+def _draw_random_state():
+    import random
+    return random.random(), np.random.random()
+
+
+def test_limited_worker_preserves_callers_seed():
+    import random
+    from fedot.core.pipelines.pipeline import _run_in_process
+    py_state, np_state = random.getstate(), np.random.get_state()
+    try:
+        random.seed(1234)
+        np.random.seed(1234)
+        expected = _draw_random_state()
+        random.seed(1234)
+        np.random.seed(1234)
+        assert _run_in_process(_draw_random_state, (), 20) == expected
+    finally:
+        random.setstate(py_state)
+        np.random.set_state(np_state)
+
+
+def test_real_tuner_crosses_process_boundary_and_returns_pipeline():
+    from fedot.api.api_utils.api_composer import ApiComposer
+    from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
+    rng = np.random.default_rng(42)
+    features = rng.normal(size=(40, 2))
+    data = InputData(idx=np.arange(40), features=features, target=features[:, 0] + features[:, 1],
+                     task=Task(TaskTypesEnum.regression), data_type=DataTypesEnum.table)
+    pipeline = Pipeline(PipelineNode('ridge'))
+    tuner = (TunerBuilder(data.task).with_n_jobs(1).with_cv_folds(2).with_iterations(1)
+             .with_timeout(timedelta(seconds=60)).with_eval_time_constraint(timedelta(seconds=10)).build(data))
+    result, tuned = ApiComposer._tune_within_limit(None, tuner, pipeline, 90)
+    assert tuned is True
+    assert isinstance(result, Pipeline)
+    result.fit(data, time_constraint=timedelta(seconds=20))
+    assert np.isfinite(result.predict(data).predict).all()
