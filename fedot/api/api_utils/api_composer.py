@@ -1,6 +1,5 @@
 import datetime
 import gc
-import multiprocessing
 from copy import deepcopy
 from typing import List, Optional, Sequence, Tuple, Union
 
@@ -18,31 +17,15 @@ from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData
-from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline import Pipeline, _run_in_process
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.metrics_repository import MetricIDType
 from fedot.utilities.composer_timer import fedot_composer_timer
 
 
-def _run_tuner(connection, tuner, pipeline):
-    """Tune in a child. The parent kills this process when the tuning budget ends."""
-    try:
-        connection.send(("ready",))
-        tuned = tuner.tune(pipeline)
-        connection.send(("ok", tuned, bool(getattr(tuner, "was_tuned", False))))
-    except BaseException as exc:
-        try:
-            connection.send(("error", exc))
-        except Exception:
-            pass
-    finally:
-        connection.close()
-
-
-def _stop_tuner_process(process):
-    if process.is_alive():
-        process.kill()
-    process.join(5)
+def _run_tuner(tuner, pipeline):
+    tuned = tuner.tune(pipeline)
+    return tuned, bool(getattr(tuner, 'was_tuned', False))
 
 
 class ApiComposer:
@@ -227,29 +210,10 @@ class ApiComposer:
         """Return the tuned pipeline, or the composed one if tuning exceeds its budget.
 
         Hyperopt finishes the current trial after its own timeout, so a long
-        native trial can run past the search deadline. A forked child can be
+        native trial can run past the search deadline. A separate child can be
         killed, and the already fitted composed pipeline stays in this process.
         """
-        seconds = int(timeout_seconds)
-        if seconds <= 0:
-            return pipeline, False
-        context = multiprocessing.get_context("fork")
-        parent, child = context.Pipe(duplex=False)
-        process = context.Process(target=_run_tuner, args=(child, tuner, pipeline))
-        process.start()
-        child.close()
         try:
-            if not parent.poll(60):
-                return pipeline, False
-            started = parent.recv()
-            if started[0] == "error":
-                raise started[1]
-            if not parent.poll(seconds):
-                return pipeline, False
-            payload = parent.recv()
-            if payload[0] == "error":
-                raise payload[1]
-            return payload[1], bool(payload[2])
-        finally:
-            _stop_tuner_process(process)
-            parent.close()
+            return _run_in_process(_run_tuner, (tuner, pipeline), timeout_seconds)
+        except TimeoutError:
+            return pipeline, False
