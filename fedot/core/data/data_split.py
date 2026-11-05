@@ -149,7 +149,7 @@ def _are_stratification_allowed(data: Union[InputData, MultiModalData], split_ra
                               f" Data split can not be done for {data.task.task_type.name} task."))
 
     # check that split ratio allows to set all classes to both samples
-    test_size = round(len(data.target) * (1. - split_ratio))
+    test_size = int(np.ceil(len(data.target) * (1. - split_ratio)))
     labels_count = len(classes[0])
     if test_size < labels_count:
         return False
