@@ -141,7 +141,7 @@
       21
     ]
   },
-  "xgbreg": {
+  "xgboostreg": {
     "n_estimators": [
       80,
       110
