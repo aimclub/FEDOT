@@ -1,9 +1,18 @@
+import multiprocessing
+import os
+import queue
+import random
+import signal
+import threading
+import time
+
 from copy import deepcopy
 from datetime import timedelta
 from os import PathLike
 from typing import Dict, List, Optional, Sequence, Tuple, Union
 
-import func_timeout
+import numpy as np
+from joblib.externals.loky.backend.context import get_context
 from golem.core.dag.graph import Graph
 from golem.core.dag.graph_delegate import GraphDelegate
 from golem.core.dag.graph_node import GraphNode
@@ -31,6 +40,208 @@ from fedot.preprocessing.preprocessing import DataPreprocessor
 from fedot.utilities.composer_timer import fedot_composer_timer
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
+
+
+class PipelineTimeLimitExceeded(TimeoutError):
+    """A process isolation deadline expired before a pipeline operation finished."""
+
+
+# A timed-out unpickler cannot safely be killed in Python. Bound outstanding
+# decoders; only the caller may install a fully received result into its model.
+_RESULT_READER = threading.BoundedSemaphore(1)
+_FIT_STARTUP_SECONDS = 60
+
+
+def _windows_job(pid):
+    """Own the child tree before allowing user code to run (Windows only)."""
+    import ctypes
+    from ctypes import wintypes
+
+    class BasicLimits(ctypes.Structure):
+        _fields_ = [('process_time', ctypes.c_longlong), ('job_time', ctypes.c_longlong),
+                    ('flags', wintypes.DWORD), ('min_working_set', ctypes.c_size_t),
+                    ('max_working_set', ctypes.c_size_t), ('active_processes', wintypes.DWORD),
+                    ('affinity', ctypes.c_size_t), ('priority', wintypes.DWORD),
+                    ('scheduling', wintypes.DWORD)]
+
+    class ExtendedLimits(ctypes.Structure):
+        _fields_ = [('basic', BasicLimits), ('io', ctypes.c_ulonglong * 6),
+                    ('process_memory', ctypes.c_size_t), ('job_memory', ctypes.c_size_t),
+                    ('peak_process_memory', ctypes.c_size_t), ('peak_job_memory', ctypes.c_size_t)]
+
+    kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+    kernel.CreateJobObjectW.restype = wintypes.HANDLE
+    kernel.CreateJobObjectW.argtypes = [ctypes.c_void_p, wintypes.LPCWSTR]
+    kernel.OpenProcess.restype = wintypes.HANDLE
+    kernel.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+    kernel.SetInformationJobObject.argtypes = [wintypes.HANDLE, ctypes.c_int,
+                                             ctypes.c_void_p, wintypes.DWORD]
+    kernel.AssignProcessToJobObject.argtypes = [wintypes.HANDLE, wintypes.HANDLE]
+    kernel.CloseHandle.argtypes = [wintypes.HANDLE]
+    job = kernel.CreateJobObjectW(None, None)
+    if not job:
+        raise ctypes.WinError(ctypes.get_last_error())
+    process = None
+    try:
+        limits = ExtendedLimits()
+        limits.basic.flags = 0x2000  # JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+        if not kernel.SetInformationJobObject(job, 9, ctypes.byref(limits), ctypes.sizeof(limits)):
+            raise ctypes.WinError(ctypes.get_last_error())
+        process = kernel.OpenProcess(0x0101, False, pid)  # SET_QUOTA | TERMINATE
+        if not process or not kernel.AssignProcessToJobObject(job, process):
+            raise ctypes.WinError(ctypes.get_last_error())
+    except BaseException:
+        kernel.CloseHandle(job)
+        raise
+    finally:
+        if process:
+            kernel.CloseHandle(process)
+    return lambda: kernel.CloseHandle(job)
+
+
+def _watch_process_group(control, pgid):
+    """Watch outside the fit interpreter: native code may hold its GIL."""
+    os.setsid()
+    control.send_bytes(b'ready')
+    try:
+        control.recv_bytes()
+    except (EOFError, OSError):
+        pass
+    try:
+        os.killpg(pgid, signal.SIGKILL)
+    except ProcessLookupError:
+        pass
+    finally:
+        control.close()
+
+
+def _limited_worker(connection, function, args, random_states):
+    if os.name != 'nt':
+        os.setsid()
+    connection.send_bytes(b'ready')
+    if connection.recv_bytes() != b'start':
+        return
+    random.setstate(random_states[0])
+    np.random.set_state(random_states[1])
+    try:
+        payload = ('ok', function(*args))
+    except BaseException as exc:
+        payload = ('error', exc)
+    try:
+        connection.send(payload)
+    except BaseException:
+        connection.send(('error', RuntimeError('Could not serialize limited worker result')))
+    connection.close()
+    # The guardian owns this root until the caller receives the complete result.
+    threading.Event().wait()
+
+
+def _receive_result(connection, results):
+    try:
+        results.put(connection.recv())
+    except (EOFError, OSError):
+        results.put(('error', RuntimeError('Limited worker process exited without a result')))
+    except BaseException as exc:
+        results.put(('error', exc))
+    finally:
+        connection.close()
+        _RESULT_READER.release()
+
+
+def _run_in_process(function, args, timeout_seconds):
+    """Bound worker startup, then computation and result reception.
+
+    loky can start this worker from another loky worker and on Windows; fork
+    is never required. A late result is private to the receiver thread and
+    cannot mutate the caller's pipeline. One incomplete decoder per process
+    is allowed; subsequent results fail closed if it does not finish in time.
+    """
+    if timeout_seconds <= 0:
+        raise PipelineTimeLimitExceeded('Limited worker time budget is exhausted')
+    deadline = time.monotonic() + _FIT_STARTUP_SECONDS
+    parent, child = multiprocessing.Pipe()
+    random_states = random.getstate(), np.random.get_state()
+    process = get_context('loky').Process(target=_limited_worker, args=(child, function, args, random_states))
+    guardian = None
+    guard_parent = guard_child = None
+    close_job = None
+    reader_started = False
+    try:
+        process.start()
+        child.close()
+        if not parent.poll(max(0, deadline - time.monotonic())):
+            raise PipelineTimeLimitExceeded('Limited worker startup time budget is exhausted')
+        if parent.recv_bytes() != b'ready':
+            raise RuntimeError('Limited worker sent an invalid readiness message')
+        if os.name == 'nt':
+            close_job = _windows_job(process.pid)
+        else:
+            guard_parent, guard_child = multiprocessing.Pipe()
+            guardian = get_context('loky').Process(target=_watch_process_group, args=(guard_child, process.pid))
+            guardian.start()
+            guard_child.close()
+            if not guard_parent.poll(max(0, deadline - time.monotonic())) or guard_parent.recv_bytes() != b'ready':
+                raise RuntimeError('Limited worker guardian did not start')
+        # Preserve the existing startup allowance; importing FEDOT is not fit time.
+        deadline = time.monotonic() + timeout_seconds
+        parent.send_bytes(b'start')
+        if not parent.poll(max(0, deadline - time.monotonic())):
+            raise PipelineTimeLimitExceeded('Limited worker execution time budget is exhausted')
+        if not _RESULT_READER.acquire(timeout=max(0, deadline - time.monotonic())):
+            raise PipelineTimeLimitExceeded('Previous limited worker result is still decoding')
+        results = queue.Queue(maxsize=1)
+        try:
+            threading.Thread(target=_receive_result, args=(parent, results), daemon=True).start()
+            reader_started = True
+        except BaseException:
+            _RESULT_READER.release()
+            raise
+        try:
+            kind, result = results.get(timeout=max(0, deadline - time.monotonic()))
+        except queue.Empty:
+            raise PipelineTimeLimitExceeded('Limited worker result time budget is exhausted') from None
+        if kind == 'error':
+            raise result
+        return result
+    except EOFError as exc:
+        raise RuntimeError('Limited worker process exited before readiness') from exc
+    finally:
+        child.close()
+        if guard_child is not None:
+            guard_child.close()
+        if guard_parent is not None:
+            guard_parent.close()
+        if close_job is not None:
+            close_job()
+        cleanup_error = None
+        if guardian is not None and guardian.pid is not None:
+            guardian.join(5)
+            if guardian.is_alive() or guardian.exitcode != 0:
+                cleanup_error = RuntimeError('Limited worker guardian cleanup failed')
+        if process.pid is not None:
+            if process.is_alive() and (guardian is None or cleanup_error is not None):
+                if os.name == 'nt':
+                    process.terminate()
+                else:
+                    try:
+                        os.killpg(process.pid, signal.SIGKILL)
+                    except ProcessLookupError:
+                        os.kill(process.pid, signal.SIGKILL)
+            process.join(5)
+            if process.is_alive():
+                cleanup_error = RuntimeError('Limited worker process cleanup failed')
+        if not reader_started:
+            parent.close()
+        if cleanup_error is not None:
+            raise cleanup_error
+
+
+def _fit_in_process(pipeline, input_data, predictions_cache, fold_id):
+    predicted = pipeline._fit(input_data=input_data, predictions_cache=predictions_cache, fold_id=fold_id)
+    nodes = [(node.fitted_operation, node.parameters, getattr(node, 'fit_time_in_seconds', None))
+             for node in pipeline.nodes]
+    return predicted, pipeline.computation_time, nodes
+
 
 
 class Pipeline(GraphDelegate, Serializable):
@@ -78,21 +289,14 @@ class Pipeline(GraphDelegate, Serializable):
             OutputData: values predicted on the provided ``input_data``
         """
 
-        time = int(time.total_seconds())
-        process_state_dict = {}
-        fitted_operations = []
-        try:
-            func_timeout.func_timeout(
-                time, self._fit,
-                args=(input_data, process_state_dict, fitted_operations, predictions_cache, fold_id)
-            )
-        except func_timeout.FunctionTimedOut:
-            raise TimeoutError(f'Pipeline fitness evaluation time limit is expired (more then {time} seconds)')
-
-        self.computation_time = process_state_dict['computation_time_in_seconds']
-        for node_num, _ in enumerate(self.nodes):
-            self.nodes[node_num].fitted_operation = fitted_operations[node_num]
-        return process_state_dict['train_predicted']
+        predicted, computation_time, nodes = _run_in_process(
+            _fit_in_process, (self, input_data, predictions_cache, fold_id), time.total_seconds())
+        for node, (fitted, parameters, fit_seconds) in zip(self.nodes, nodes):
+            node.fitted_operation = fitted
+            node.parameters = parameters
+            node.fit_time_in_seconds = fit_seconds
+        self.computation_time = computation_time
+        return predicted
 
     def _fit(self,
              input_data: Optional[InputData] = None,
