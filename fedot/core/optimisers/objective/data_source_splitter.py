@@ -1,6 +1,7 @@
 from functools import partial
 from typing import Optional, Union
 
+import numpy as np
 from golem.core.log import default_log
 
 from fedot.core.constants import default_data_split_ratio_by_task
@@ -50,6 +51,7 @@ class DataSourceSplitter:
     def build(self, data: Union[InputData, MultiModalData]) -> DataSource:
         # define split_ratio
         self.split_ratio = self.split_ratio or default_data_split_ratio_by_task[data.task.task_type]
+        is_multitarget = data.target.ndim == 2 and data.target.shape[1] > 1
 
         # Check cv_folds
         if self.cv_folds is not None:
@@ -63,6 +65,17 @@ class DataSourceSplitter:
                 raise ValueError((f"cv_folds ({self.cv_folds}) is greater than"
                                   f" the maximum allowed count {data.target.shape[0] - 1}"))
 
+            if self.stratify and data.task.task_type is TaskTypesEnum.classification and not is_multitarget:
+                target = data.target
+                if target.ndim == 2:
+                    target = np.array([" ".join(row.astype("str")) for row in target])
+                min_class_count = int(np.min(np.unique(target, return_counts=True)[1]))
+                if 1 < min_class_count < self.cv_folds:
+                    self.log.info(f"Stratified cross validation with {self.cv_folds} folds cannot be provided "
+                                  f"because the least populated class has only {min_class_count} samples. "
+                                  f"Cross validation folds is set to {min_class_count}.")
+                    self.cv_folds = min_class_count
+
         # Calculate the number of validation blocks for timeseries forecasting
         if data.task.task_type is TaskTypesEnum.ts_forecasting and self.validation_blocks is None:
             self._propose_cv_folds_and_validation_blocks(data)
@@ -74,8 +87,9 @@ class DataSourceSplitter:
         if self.stratify:
             # check that stratification can be done
             # for cross validation split ratio is defined as validation_size / all_data_size
-            split_ratio = self.split_ratio if self.cv_folds is None else (1 - 1 / (self.cv_folds + 1))
-            self.stratify = _are_stratification_allowed(data, split_ratio)
+            split_ratio = self.split_ratio if self.cv_folds is None else (1 - 1 / self.cv_folds)
+            self.stratify = ((self.cv_folds is None or not is_multitarget)
+                             and _are_stratification_allowed(data, split_ratio))
             if not self.stratify:
                 self.log.info("Stratificated splitting of data is disabled.")
 
