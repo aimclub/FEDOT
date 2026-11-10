@@ -100,6 +100,19 @@ def test_lgbm_fit_diagnostics_reads_actual_fitted_model():
     assert actual == dict(requested_rounds=400, fitted_rounds=217, best_iteration=187, learning_rate=0.06)
 
 
+def test_horizon_confirmation_preserves_controls_and_has_only_four_cells():
+    baseline, candidate, _ = lgbm_parameters()
+    baseline['lgbm']['learning_rate'] = 0.029815738804900536
+    full = dict(probe.parameter_variants(baseline, candidate, learning_rate_horizon=True))
+    confirmation = probe.parameter_variants(baseline, candidate, horizon_confirmation=True)
+    assert [label for label, _ in confirmation] == [
+        'lr_baseline_trees_100', 'lr_010_trees_100',
+        'lr_baseline_trees_400', 'lr_010_trees_400']
+    assert all(parameters == full[label] for label, parameters in confirmation)
+    with pytest.raises(ValueError, match='only one'):
+        probe.parameter_variants(baseline, candidate, learning_rate_horizon=True, horizon_confirmation=True)
+
+
 def test_lgbm_diagnostic_through_real_pipeline():
     rng = np.random.default_rng(42)
     data = probe.InputData(idx=np.arange(120), features=rng.normal(size=(120, 4)),

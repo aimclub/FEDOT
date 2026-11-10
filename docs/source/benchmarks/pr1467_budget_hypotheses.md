@@ -464,3 +464,51 @@ hash, harness and pinned tuner hashes were verified. The queue was launched
 after checking that no benchmark/probe/queue process was active on copper.
 The completed ruthenium fold1 pair's truth rows and class-column order were
 also explicitly compared and match for all 41,619 predictions.
+
+## Horizon grid completed: 18:26 UTC
+
+All eight cells are COMPLETE; no probe process remains. Independent NPZ
+recomputation confirms the remaining 400-tree losses:
+
+| Learning rate | Inner logloss | Fit + prediction (s) |
+| --- | ---: | ---: |
+| 0.06 | 0.15657376978545082 | 197.94 |
+| 0.10 | 0.14689176235612272 | 201.88 |
+| 0.15 | 0.14587823529584684 | 200.95 |
+
+All eight share identical validation labels, have finite/bounded/normalized
+probabilities, and differ only in learning_rate/n_estimators. Fitted rounds
+and best iteration equal the requested 100 or 400 in every cell. The effect
+is not solely a preference for a higher learning rate: allowing more trees
+helps at every tested rate. This supports underfitting at the 100-tree limit
+for this graph and split, but does not establish a safe general runtime or
+default. In particular, increasing initial-model cost can change FEDOT's
+composition/tuning decisions, as already observed on Dionis.
+
+Full JSON SHA-256:
+`eb7bfa4ea1974f2e0f8bc9ca4b8a78f700d9e1b13b76647e6ce45dd557fc6c24`.
+Last three NPZ SHA-256, in row order:
+
+- `5230a46d98cac5cb678a22a2b5d0886d41f67450ad5b198efa8857b61ba8f0cc`
+- `1b8b597e72b2c456833ddcf8c4f0187a462072f11b680461b83d18840dbc60b7`
+- `bc2afa6134e2b6c845126ef43b0e38e02d5865c4e1a3d21e1d27a5cdbcb04f8a`
+
+### Prespecified additional-fold confirmation
+
+Dysprosium, new stage `covertype-horizon-fold4-20261110`, four train-only fits
+on outer-training **fold4**. Keep the original frozen baseline graph and all
+other parameters from fold3's logged graph (no new tuning). Cross the exact
+baseline rate 0.029815738804900536 / **0.10** with **100 / 400** trees, seed42,
+Hessian0.001, same inner split policy. Rate0.10 is a standard interior value
+with a loss close to 0.15 at 400 trees; do not chase the grid's smallest loss.
+This tests both main changes and their interaction on another fold, while
+saving probabilities and actual iteration metadata. It is still not an
+outer-test score or independent multi-dataset evidence. Training folds overlap
+as usual in cross-validation; treat this as replication, not a fresh dataset.
+The runner now accepts an explicit preparation fold and validates task/fold/
+split/cell count before marking COMPLETE. Previous deployed runners and all
+old results remain unchanged. Full end-to-end budget/regression checks are
+still required before any model-default or search-space proposal.
+
+Copper's Dionis2 baseline is still active; its sequential candidate remains
+queued. No active or STARTED job is restarted.

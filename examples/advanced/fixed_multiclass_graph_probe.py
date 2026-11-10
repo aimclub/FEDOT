@@ -35,15 +35,17 @@ def final_parameters(path):
 
 
 def parameter_variants(baseline, candidate, component_ablation=False, lgbm_ablation=False,
-                       learning_rate_horizon=False):
+                       learning_rate_horizon=False, horizon_confirmation=False):
     """Frozen controls and one-factor swaps; never tune on the holdout."""
-    if sum((component_ablation, lgbm_ablation, learning_rate_horizon)) > 1:
+    if sum((component_ablation, lgbm_ablation, learning_rate_horizon, horizon_confirmation)) > 1:
         raise ValueError('Select only one ablation mode')
-    if learning_rate_horizon:
+    if learning_rate_horizon or horizon_confirmation:
         variants = []
+        rates = [('baseline', baseline['lgbm']['learning_rate']), ('010', 0.1)]
+        if learning_rate_horizon:
+            rates = [rates[0], ('006', 0.06), rates[1], ('015', 0.15)]
         for rounds in (100, 400):
-            for label, rate in (('baseline', baseline['lgbm']['learning_rate']),
-                                ('006', 0.06), ('010', 0.1), ('015', 0.15)):
+            for label, rate in rates:
                 parameters = deepcopy(baseline)
                 parameters['lgbm'].update(learning_rate=rate, n_estimators=rounds)
                 variants.append((f'lr_{label}_trees_{rounds}', parameters))
@@ -101,10 +103,11 @@ def main(args):
     results = []
     lgbm_ablation = getattr(args, 'lgbm_ablation', False)
     horizon = getattr(args, 'learning_rate_horizon', False)
+    confirmation = getattr(args, 'horizon_confirmation', False)
     parameter_sets = parameter_variants(final_parameters(args.baseline_log),
                                        final_parameters(args.candidate_log),
-                                       args.component_ablation, lgbm_ablation, horizon)
-    single_factor = args.component_ablation or lgbm_ablation or horizon
+                                       args.component_ablation, lgbm_ablation, horizon, confirmation)
+    single_factor = args.component_ablation or lgbm_ablation or horizon or confirmation
     seeds = (42,) if single_factor else (42, 104732)
     weights = (0.001,) if single_factor else (0.001, 1.0)
     for seed in seeds:
@@ -134,7 +137,7 @@ def main(args):
                               inner_logloss=log_loss(valid.target, probabilities),
                               parameters=parameters,
                               lgbm_fit=lgbm_fit_diagnostics(pipeline))
-                if horizon:
+                if horizon or confirmation:
                     fitted = result['lgbm_fit']
                     assert fitted['requested_rounds'] == parameters['lgbm']['n_estimators']
                     assert 1 <= fitted['fitted_rounds'] <= fitted['requested_rounds']
@@ -163,5 +166,6 @@ if __name__ == '__main__':
     modes.add_argument('--component-ablation', action='store_true')
     modes.add_argument('--lgbm-ablation', action='store_true')
     modes.add_argument('--learning-rate-horizon', action='store_true')
+    modes.add_argument('--horizon-confirmation', action='store_true')
     parser.add_argument('--save-predictions', action='store_true')
     main(parser.parse_args())
