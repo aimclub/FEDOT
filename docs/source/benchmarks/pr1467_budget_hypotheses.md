@@ -388,3 +388,15 @@ general default change. Check runtime as well as loss. No outer-test labels
 enter this test; require another fold before proposing a search policy.
 No model source or active ruthenium runner is changed. Copper remains free
 for the subsequent fold/control once this bounded range check is available.
+
+The horizon queue uses diagnostic revision
+`6e0037bfc891b3309c37eef12227572781dbba72` (FEDOT model code unchanged), archive
+SHA-256 `4788466a800d6fd7ecfdc6dced7e4502ad1adec05b86d7182b6577490621a4f9`.
+Six current probe tests passed locally, including a real LightGBM pipeline
+round-count check; the three preparation tests also passed. All nine passed
+on dysprosium before launching. The initial preflight collection failed
+because the installed examples package shadowed the preparation module;
+both diagnostic modules were then loaded by their exact frozen paths.
+Both preflight logs are retained; no deployed source was edited and no
+training run was repeated. The queue was launched after confirming that the
+preceding probe and all benchmark processes on dysprosium had exited.
