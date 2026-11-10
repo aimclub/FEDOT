@@ -62,3 +62,52 @@ and training time. Record failures, not only completed scores. New trials may
 follow only after checking the current runs and specifying a new hypothesis;
 do not duplicate active work. Promote changes only after paired evidence and
 additional folds, not a single favorable result. Stop exhausted hypotheses.
+
+## Interim inspection: 2026-11-10, 16:07 UTC
+
+All three queues were checked against live processes, not only marker files.
+No jobs were restarted and deployed code was not edited.
+
+### Dionis on ruthenium: measured-budget control completed
+
+Revision `6f05a1ae`, fold0, seed104729: independently recomputed outer-test
+logloss **0.8051071883477428**, job **1097.1 s**, training **917.9 s**.
+All 41,619 rows / 355 probability columns were finite, in [0,1], with maximum
+normalization error 8.44e-15. The recomputed loss matches the printed score.
+Prediction SHA-256:
+`c00140cbedd1ce23935c0be53b1cb419e0997ef71cc5ee30f26066753e06b59f`.
+Harness and vendored tuner hashes still match the preceding report.
+
+This is **not evidence that the measured-CV budgeting change improved quality**:
+the initial LightGBM fit took 584.1 s, estimated five-fold cost was 2920.6 s,
+and composition was skipped. Tuning was also skipped with zero estimated
+remaining allocation. Final full-data fitting exceeded its 324-second cap;
+FEDOT restored the fitted initial `scaling -> lgbm` assumption. There was no
+selected-graph evolutionary CV timing for the new policy to consume.
+The headroom candidate started at 16:04:06 UTC and is still running.
+
+On copper the regularized control is still in composition. Its initial fit
+took 367.6 s; its LightGBM CV fit subsequently exceeded 324 s. The difference
+in initial fit duration across hosts changes whether composition runs at all;
+cross-host score differences cannot isolate a code change.
+
+### Covertype fixed-graph probe: partial results only
+
+Seven of eight fits had printed results by this inspection; the last fit
+was still running and no COMPLETE marker existed. Completed matched cells:
+
+| Seed | Frozen parameter source | Hessian 0.001 inner loss | Hessian 1.0 inner loss |
+| --- | --- | ---: | ---: |
+| 42 | Earlier baseline | 0.3026504446866336 | 0.3021077789025798 |
+| 42 | Earlier candidate | 0.16129716838365343 | 0.16287027659432696 |
+| 104732 | Earlier baseline | 0.30240434047870385 | 0.30280942387032667 |
+
+For seed42 the parameter-set effect is much larger than the Hessian effect;
+changing only Hessian slightly helps the baseline set but hurts the candidate
+set. Do not attribute the earlier 51% full-run difference to regularization.
+These losses are the diagnostic's inner holdout scores, not outer-test AMLB
+scores. The runner checked finite, bounded, normalized probabilities before
+printing each result. Unlike full AMLB runs, this probe does not save its
+probability arrays, so these partial losses have not been independently
+recomputed from prediction artifacts. Wait for all eight cells before
+summarizing the factorial result or deciding the next experiment.
