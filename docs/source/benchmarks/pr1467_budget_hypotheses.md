@@ -522,3 +522,65 @@ the four-cell controls and real LightGBM round metadata. The archive hash
 and LF shell syntax were checked. The command uses `confirm 4` explicitly.
 Copper's harness confirms `_save_artifacts='info'`; initial fit took 383.2 s
 and composition was entered, unlike the earlier ruthenium refit pairs.
+
+## Additional-fold confirmation and next end-to-end test: 18:50 UTC
+
+Dysprosium's fold4 confirmation is COMPLETE, with no remaining probe process.
+All four saved NPZ files were independently recomputed: identical 104,583
+validation labels / seven classes, finite values in [0,1], maximum row-sum
+error 6.67e-16. Only the declared learning rate and tree count differ.
+Requested rounds, fitted rounds and best iteration agree in all four cells.
+
+| Learning rate | Trees | Inner logloss | Fit + prediction (s) |
+| --- | ---: | ---: | ---: |
+| 0.029815738804900536 | 100 | 0.302819962108981 | 161.46 |
+| 0.10 | 100 | 0.2193775165508452 | 163.58 |
+| 0.029815738804900536 | 400 | 0.19196571955887998 | 205.23 |
+| 0.10 | 400 | 0.14631012443572525 | 203.37 |
+
+JSON SHA-256: `0ca9474ca6f8ba221b2c3372e16b5210d68c868071f41e5ca541aa2c401c2776`.
+NPZ SHA-256, in table order:
+
+- `0fc9a9a644257626ed7b4048ced83c24e352b9773b9cee3a1e0ca90f469debdd`
+- `b972a19de42831cfaeaacdca75cc3bbe56e9f7f6d0b31e428121b0f55acda3bd`
+- `3e41510cf49ecb81283646001f9de9eb5d5039105e6c58354ad8de3c8e290dde`
+- `aefebc87a7fdc6ac8da72da5f30e7840b5ca6fefd8b5ea238d7075b6aa784e8b`
+
+This replicates the underfitting mechanism on another overlapping training
+fold, not a full AutoML or multi-dataset improvement. The frozen five-node
+graph and Hessian0.001 also differ from the next full-run search setting.
+
+### Predeclared bounded end-to-end series
+
+Stage `lgbm-horizon-e2e-20261110`: one sequential baseline/candidate pair on
+each of two free hosts, **Covertype fold4 / large on dysprosium**, and
+**fabert fold4 / medium on ruthenium**. Copper's active Dionis2 pair is left
+untouched. Identical new source revisions for baseline/candidate; the only
+variant is an opt-in operation-default overlay setting classification LGBM
+`n_estimators=400` instead of the library default100. Learning rate is NOT
+overridden (the native default is already0.1; tuning remains free to sample
+it). Early stopping30, native deadlines, multiclass Hessian policy, search
+space, API budget and final-refit defaultfalse remain identical. Explicit
+node parameters still override defaults. LGBM regression is unchanged.
+
+This is an experiment profile, not a change to general defaults. The sparse
+profile `examples/advanced/lgbm_400_defaults.json` is activated only by the
+absolute-path environment variable `FEDOT_OPERATION_DEFAULTS_OVERLAY`,
+inherited by framework/worker processes. Invalid profiles fail loudly;
+cached built-in defaults are never mutated. The future runner clears any
+ambient overlay for baseline, enables the frozen profile only for candidate,
+and records path, hash and effective defaults in environment.txt. Existing
+deployed runners/sources are not edited.
+
+Hypothesis: a longer horizon improves end-to-end Covertype loss without
+exceeding the one-hour budget; fabert screens for search/runtime regressions
+on another multiclass task. Increased initial-fit cost may instead suppress
+composition/tuning, or native deadlines may prevent400 rounds. Either is
+a valid negative finding. Do not attribute differences solely to tree count
+if graph selection or sampled tuning proposals diverge. Retain full history,
+inspect graph/parameters, initial time, CV failures, final fallback and actual
+round metadata where artifacts expose it. Independently check predictions,
+paired labels/classes and both job/training duration <=3600s. All four runs
+use 1h8c, seed104733, portfoliofalse, best_quality, tuningtrue, sequential,
+n_jobs8, `_save_artifacts=info`. No prior run is repeated. This screening pair
+is insufficient to promote a general default or update original PR1467.

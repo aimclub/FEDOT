@@ -15,6 +15,8 @@ candidate_remaining_refit=${6:-false}
 [[ "$candidate_remaining_refit" =~ ^(true|false)$ ]]
 variants=${7:-'baseline candidate'}
 [[ "$variants" == 'baseline candidate' || "$variants" == candidate ]]
+candidate_profile=${8:-none}
+[[ "$candidate_profile" == none || "$candidate_profile" == lgbm400 ]]
 stage="$diagnostics/$series"
 benchmark_python="$root/venvs/automlbenchmark/bin/python"
 framework_python="$root/automlbenchmark/frameworks/FEDOT/venv/bin/python"
@@ -47,7 +49,13 @@ for variant in $variants; do
     date -u +%FT%TZ >"$run/STARTED"
     cp "$stage/$variant.commit" "$run/source.commit"
     export PYTHONPATH="$diagnostics/vendor:$code_root:$source_stage/automlbenchmark"
+    unset FEDOT_OPERATION_DEFAULTS_OVERLAY
+    if [[ "$variant" == candidate && "$candidate_profile" == lgbm400 ]]; then
+        export FEDOT_OPERATION_DEFAULTS_OVERLAY="$code_root/examples/advanced/lgbm_400_defaults.json"
+        test -s "$FEDOT_OPERATION_DEFAULTS_OVERLAY"
+    fi
     "$framework_python" -c 'import sys, fedot, golem, lightgbm, sklearn; print(sys.version); print(fedot.__file__); print(golem.__file__); print(lightgbm.__version__, sklearn.__version__)' >"$run/environment.txt"
+    "$framework_python" -c 'import os, hashlib; from pathlib import Path; from fedot.core.operations.operation_parameters import get_default_params; p=os.environ.get("FEDOT_OPERATION_DEFAULTS_OVERLAY"); print("operation_defaults_overlay:", p); print("overlay_sha256:", hashlib.sha256(Path(p).read_bytes()).hexdigest() if p else None); print("lgbm_effective_defaults:", get_default_params("lgbm"))' >>"$run/environment.txt"
     session="fedot.multiclass-quality-$variant.$task.fold$fold"
     extra_args=()
     if [[ "$variant" == candidate && "$candidate_remaining_refit" == true ]]; then
