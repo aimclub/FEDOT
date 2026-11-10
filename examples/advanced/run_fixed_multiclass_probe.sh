@@ -29,7 +29,7 @@ export PYTHONPATH="$diagnostics/vendor:$code"
 cd "$run"
 timeout --signal=TERM --kill-after=60s 1200s "$benchmark_python" \
     "$code/examples/advanced/multiclass_train_probe.py" prepare \
-    --cache "$root/input/openml" --task-id 7593 --fold 3 --output train.npz >prepare.log 2>&1
+    --cache "$root/input" --task-id 7593 --fold 3 --output train.npz >prepare.log 2>&1
 "$framework_python" -c 'import sys, fedot, golem, lightgbm, sklearn; print(sys.version); print(fedot.__file__); print(golem.__file__); print(lightgbm.__version__, sklearn.__version__)' >environment.txt
 timeout --signal=TERM --kill-after=60s 7200s "$framework_python" \
     "$code/examples/advanced/fixed_multiclass_graph_probe.py" \
