@@ -158,3 +158,15 @@ independent probability-level recomputation is made for this probe.
 - Copper: leave the existing baseline/candidate budget queue running.
 
 Original PR, old archives and finished artifacts remain untouched.
+
+Both new series use immutable revision
+`95d90fdc64f8827f759471f5e70a8651daa48251`, archive SHA-256
+`dc0006103566b267f238adbe24176a2422e6e85e65e0848ab97e02fd4302e880`.
+Local checks: 15 final-refit/fallback tests, 28 budget/preparation tests and
+one component-probe test passed (the groups overlap). On each new host,
+10 focused tests passed before launch. The minimal archive omits package
+initializers for examples, so the probe test was explicitly loaded from its
+frozen file path to avoid the installed examples package shadowing it.
+No deployed model source was changed for this test correction.
+Ruthenium launched candidate-only at about 16:33 UTC; dysprosium launched
+the component queue after its preceding factorial had completed.
