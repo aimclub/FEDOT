@@ -1054,3 +1054,47 @@ folds,526s per evaluation and701s search, reserving time for final CV.
 These are baseline execution-path observations, not evidence of either
 candidate correction or a quality effect. Continue the existing monitor;
 do not duplicate the waiting candidates or infer400-tree activation early.
+
+## Isolated controls still running: 21:28 UTC
+
+Both original baseline queue/benchmark/framework processes were confirmed
+alive at21:26; candidates have no STARTED marker. At21:28 neither run has
+COMPLETE/FAILED, predictions or saved history. All seven runtime manifest
+entries on each host still match the predeclared hashes. No new launches,
+restarts, source/runtime changes or old-result edits were performed.
+
+Ruthenium fabert5 composition finished at21:23:26.769 (22.06min), selecting
+scaling/CatBoost with CV loss0.8644510262049153. The measured branch reports
+22.1s/fold,1710.2s tuning allocation and116.4s refit reserve; the tuner uses
+three folds,86s/evaluation and1538s search. Initial tuner fitness is invalid
+after a timeout; the next two proposals also time out by21:28:19.199. This
+is not an outer-test loss or a completed failed job.
+
+Timing provenance still needs the saved history and selected UID: the log
+contains TWO CatBoost evaluations with that same fitness, not just one.
+The first brackets21:06:56.483--21:08:55.409 (118.926s, logged n_jobs=-1);
+the later brackets21:17:52.263--21:18:55.919 (63.656s, logged n_jobs=8).
+The final evolutionary evaluation is RF at21:22:20.041--21:23:26.138
+(66.097s), consistent with the reported approximately66.3s CV estimate.
+Do not assign the first CatBoost duration to the selected individual from
+fitness alone, or claim that copy-on-write will necessarily remove these
+timeouts. Audit exact graph/parameters, UID and evaluation/cache context
+after history is saved; the candidate has not run yet.
+
+Dysprosium Covertype5 baseline completed tuning at21:27:24.814 and entered
+final full-data fitting; final-fit success and outer predictions are pending.
+All four logged CV evaluations are finite and below the526s cap:
+
+| Evaluation | CV logloss | Log-bracket duration (s) |
+| --- | ---: | ---: |
+| Initial | 0.3353285206128941 | 311.038 |
+| Trial0 | 0.20333203650236442 | 353.542 |
+| Trial1 | 0.2796287465369989 | 337.208 |
+| Final check | 0.2033320365023361 | 334.689 |
+
+The tuner returned the five-node tuned stack, with logit C0.9748076242284924
+and LGBM learning_rate0.056851279175165234 / num_leaves227. These are baseline
+observations, not400-tree evidence. Wait for the existing sequential candidate
+and verify its actual framework environment and initial graph before calling
+the intended horizon intervention active. Full fitted-round evidence remains
+distinct from an n_estimators setting. Copper remains intentionally unused.

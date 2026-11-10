@@ -162,3 +162,20 @@ useful multiclass booster fits feasible within the per-fit allowance, and
 additional folds. These are follow-up proposals, not changes or new runs
 performed as part of this monitoring task. The candidate remains experimental
 on the separate branch; no improvement is being promoted to the original PR.
+
+## Follow-up status: 2026-11-10 21:28 UTC
+
+The isolated fold5 controls declared in
+[the budget hypothesis report](pr1467_budget_hypotheses.md) are still active;
+their candidates have not STARTED. These later experiments do not change the
+initial paired results above or promote changes to PR1467.
+
+Covertype5 baseline has finished finite tuning evaluations (final CV
+0.2033320365023361) and is fitting the final model; outer predictions and
+budget validation are pending. Fabert5 baseline selected CatBoost but its
+86s tuner cap has already produced invalid initial fitness and two timed-out
+proposals. Saved history is not available yet: two evolutionary CatBoost
+evaluations have identical fitness but different log durations/parameters,
+so selected-duration provenance must not be inferred from fitness alone.
+Both frozen runtime manifests verify. No new jobs or code changes were made
+in this monitoring pass; continue the existing queues before further series.
