@@ -728,3 +728,96 @@ baseline is still active. No jobs were restarted, no deployed code/results
 were edited and no additional series was launched. The monitoring log's
 96.7% disk-use number was checked against the actual run/tmp filesystem:
 `/var/essdata` is74% used with about249TiB available, not out of space.
+
+## Refit pair complete; horizon transport failure: 19:50 UTC
+
+### Dionis2: no prediction benefit after composition
+
+Copper's remaining-refit candidate is COMPLETE. Independent outer loss is
+**0.8521750855647503**, job **2895.4s**, training **2844.1s**, compared with
+baseline2965.2/2904.1s and exactly the same loss. Prediction bytes are identical
+to baseline (SHA `7920d079098d2720c7a06e2aec126d120e17ab51d5c7c6ae9a6db3a9960b8d7e`).
+All41,619 x355 probabilities pass finite/range/normalization checks; paired
+truth rows and class-column order were explicitly compared and match.
+
+The true flag was recorded by the harness and actually allocated447.4s for
+final refit at19:44:57.957. Scaling/logit finished at19:48:31.419, about213.5s
+later, with no fallback. Baseline also completed this graph within its324s
+cap. Both entered composition, selected the same logit graph and skipped
+infeasible tuning. Thus the opt-in policy remained within the overall budget
+after search but produced **no quality gain on this fold**. The shorter job
+does not by itself establish a speed benefit; composition timings differed.
+The earlier two skipped-composition Dionis folds retain their modest gains,
+not a general improvement claim.
+
+Candidate history SHA:
+`64dd04f7920463a9259fb31861edc8967a0af2263418fc489c490789762c3929`.
+The selected scaling/logit graph matches history `_tuning_result`; finite
+CV losses are1.094133081717849 (LGBM) and0.8575016046202981 (logit).
+Logit metadata859.7470227302983s /5 gives171.9s/fold, tuning97.3s and
+refit reserve518.3s. LGBM again shares the same overwritten metadata, so its
+stored duration is not an independent measurement. No tuner evaluation ran.
+
+### fabert4 control: finite test score despite invalid tuner fitness
+
+Ruthenium baseline is COMPLETE: independently recomputed loss
+**1.1099874516424617**, job **3207.8s**, training **3180.8s**. Its824 x7
+probabilities are finite, bounded, normalized (max error4.45e-16).
+Prediction SHA: `da53cdb4280aa9286adff3b273eadd9ed43d375f33ea64b426c159f5ddfcf39f`.
+Truth-label SHA: `61442115986144bf7a15d1f8b4709d8927047e047270f9d336a0fa9ca9db40c5`.
+History SHA: `51ebd98e14d4a7ac745d39707bf4ee7f1e290acb399d9fd8d2d5c58456a467f1`.
+Final scaling/CatBoost fit succeeded at19:48:08, with the untuned parameters.
+
+Here shared metadata contaminates the **selected** graph, unlike the copper
+logit case. Evolution explicitly reduced CV from5 to3 folds. Selected CatBoost
+UID `ba3e8ff1-f902-4f8c-9f78-7d470f2e3f42` has finite fitness0.8871864530763364;
+its actual logged CV ran19:02:16.769--19:04:28.409 (**131.640s**). Its history
+instead contains64.26434571295977s, timestamp19:18:27.180862, shared by all
+eight initial individuals. That duration belongs to the last XGBoost
+evaluation (log63.980s plus dispatcher overhead). Exact selected graph and
+parameters match, but the associated duration is wrong.
+
+The measured branch used21.4s/fold and an84s tuning-evaluation cap, whereas
+the selected graph's observed three-fold CV cost was131.6s. Initial tuner
+fitness, all recorded trial fitnesses and final-check fitness were invalid/
+infinite with evaluation timeouts. This directly links corrupted duration
+provenance to an undersized cap; it is not infinite outer-test logloss and
+does not establish that metadata isolation alone will fix every timeout.
+Candidate automatically STARTED at **19:48:21 UTC**; do not repeat it.
+
+### Invalid horizon ablation: the profile never reached framework execution
+
+The experiment's environment checks were insufficient. On BOTH dysprosium
+and ruthenium, read-only inspection of just the relevant environment keys
+confirms `FEDOT_OPERATION_DEFAULTS_OVERLAY` is present in runbenchmark.py
+but **absent in the actual frameworks/FEDOT/exec.py process**. No secrets
+or unrelated environment values were printed. The frozen
+`frameworks/shared/caller.py::run_in_venv` builds an explicit environment from
+its retained-variable list; the new profile variable is not retained.
+PYTHONPATH is forwarded, explaining why source revision checks still passed.
+
+Caller SHA: `44d71531e311ebe29f8975ef1bd8d44330b6a4fc6820192cb30c84869eed0aea`.
+FEDOT harness __init__.py SHA:
+`497587c2e49990e8c244efdbb2c75683907649f0ffa522653dc1373ac582c4e9`.
+These hashes match on both hosts. Covertype candidate's actual initial graph
+contains no n_estimators override and its initial CV loss0.32902927736895277
+is effectively identical to baseline0.3290292773165658. Its tuning proposals
+already differ; any eventual score difference is **not evidence for400 trees**.
+Treat these completed/active runs as same-model repeats for variability,
+not as the intended100-vs400 ablation. Preserve their artifacts and markers.
+
+The worker-inheritance unit test used an ordinary subprocess inheriting the
+parent environment, not AMLB's sanitized subprocess boundary. Passing those
+tests and logging400 before launch did not prove application inside training.
+The future correction must explicitly pass the profile via run_in_venv's
+`options.env` or extend its retained-variable list **without dropping the
+existing retained variables**. Use only a new isolated harness copy, pin/hash
+it, and test through the actual sanitized launcher with a cheap child probe
+that checks imported FEDOT path, effective node defaults and model constructor
+before any new full run. Do not patch active harnesses, sources or queues.
+
+No new expensive series was launched. Copper is now available, but the
+remaining horizon-labelled repeats are still active. Finish their audits,
+then validate metadata isolation and profile transport before deciding on
+the next bounded experiment. Original PR1467 and general defaults remain
+unchanged; neither problem has been patched in deployed code.
