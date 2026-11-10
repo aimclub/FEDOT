@@ -34,10 +34,20 @@ def final_parameters(path):
     return parameters
 
 
-def parameter_variants(baseline, candidate, component_ablation=False, lgbm_ablation=False):
+def parameter_variants(baseline, candidate, component_ablation=False, lgbm_ablation=False,
+                       learning_rate_horizon=False):
     """Frozen controls and one-factor swaps; never tune on the holdout."""
-    if component_ablation and lgbm_ablation:
+    if sum((component_ablation, lgbm_ablation, learning_rate_horizon)) > 1:
         raise ValueError('Select only one ablation mode')
+    if learning_rate_horizon:
+        variants = []
+        for rounds in (100, 400):
+            for label, rate in (('baseline', baseline['lgbm']['learning_rate']),
+                                ('006', 0.06), ('010', 0.1), ('015', 0.15)):
+                parameters = deepcopy(baseline)
+                parameters['lgbm'].update(learning_rate=rate, n_estimators=rounds)
+                variants.append((f'lr_{label}_trees_{rounds}', parameters))
+        return variants
     if lgbm_ablation:
         fields = ('learning_rate', 'num_leaves', 'min_data_in_leaf',
                   'colsample_bytree', 'reg_alpha', 'reg_lambda', 'subsample')
@@ -62,6 +72,18 @@ def parameter_variants(baseline, candidate, component_ablation=False, lgbm_ablat
     return variants
 
 
+def lgbm_fit_diagnostics(pipeline):
+    node = next(node for node in pipeline.nodes if node.operation.operation_type == 'lgbm')
+    operation = node.fitted_operation
+    model = getattr(operation, 'model', operation)
+    if model is None:
+        return {}
+    return dict(requested_rounds=int(model.n_estimators),
+                fitted_rounds=int(model.n_estimators_),
+                best_iteration=int(model.best_iteration_),
+                learning_rate=float(model.learning_rate))
+
+
 def main(args):
     if args.output.exists():
         raise FileExistsError(args.output)
@@ -78,10 +100,11 @@ def main(args):
     train, valid = input_data(rows_train), input_data(rows_valid)
     results = []
     lgbm_ablation = getattr(args, 'lgbm_ablation', False)
+    horizon = getattr(args, 'learning_rate_horizon', False)
     parameter_sets = parameter_variants(final_parameters(args.baseline_log),
                                        final_parameters(args.candidate_log),
-                                       args.component_ablation, lgbm_ablation)
-    single_factor = args.component_ablation or lgbm_ablation
+                                       args.component_ablation, lgbm_ablation, horizon)
+    single_factor = args.component_ablation or lgbm_ablation or horizon
     seeds = (42,) if single_factor else (42, 104732)
     weights = (0.001,) if single_factor else (0.001, 1.0)
     for seed in seeds:
@@ -109,7 +132,13 @@ def main(args):
                 result = dict(parameter_source=label, min_child_weight=weight, seed=seed,
                               seconds=time.monotonic() - started,
                               inner_logloss=log_loss(valid.target, probabilities),
-                              parameters=parameters)
+                              parameters=parameters,
+                              lgbm_fit=lgbm_fit_diagnostics(pipeline))
+                if horizon:
+                    fitted = result['lgbm_fit']
+                    assert fitted['requested_rounds'] == parameters['lgbm']['n_estimators']
+                    assert 1 <= fitted['fitted_rounds'] <= fitted['requested_rounds']
+                    assert fitted['learning_rate'] == parameters['lgbm']['learning_rate']
                 if args.save_predictions:
                     prediction_path = args.output.with_name(f'{args.output.stem}-cell{len(results)}.npz')
                     with prediction_path.open('xb') as stream:
@@ -133,5 +162,6 @@ if __name__ == '__main__':
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument('--component-ablation', action='store_true')
     modes.add_argument('--lgbm-ablation', action='store_true')
+    modes.add_argument('--learning-rate-horizon', action='store_true')
     parser.add_argument('--save-predictions', action='store_true')
     main(parser.parse_args())

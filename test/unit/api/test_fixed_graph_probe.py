@@ -69,3 +69,49 @@ def test_lgbm_probe_rejects_unexpected_parameter_differences():
         probe.parameter_variants(baseline, candidate, lgbm_ablation=True)
     with pytest.raises(ValueError, match='only one'):
         probe.parameter_variants(baseline, candidate, component_ablation=True, lgbm_ablation=True)
+
+
+def test_learning_rate_horizon_grid_is_bounded_and_changes_only_two_fields():
+    baseline, candidate, _ = lgbm_parameters()
+    baseline['lgbm']['learning_rate'] = 0.029815738804900536
+    before = deepcopy(baseline)
+    variants = probe.parameter_variants(baseline, candidate, learning_rate_horizon=True)
+    assert len(variants) == 8
+    assert len({label for label, _ in variants}) == 8
+    grid = set()
+    for _, parameters in variants:
+        lgbm = parameters['lgbm']
+        grid.add((lgbm['learning_rate'], lgbm['n_estimators']))
+        assert all(parameters[name] == baseline[name] for name in baseline if name != 'lgbm')
+        assert all(lgbm[key] == baseline['lgbm'][key] for key in baseline['lgbm'] if key != 'learning_rate')
+    assert grid == {(rate, trees) for rate in (0.029815738804900536, 0.06, 0.1, 0.15)
+                    for trees in (100, 400)}
+    variants[0][1]['lgbm']['sentinel'] = 99
+    assert baseline == before
+    with pytest.raises(ValueError, match='only one'):
+        probe.parameter_variants(baseline, candidate, lgbm_ablation=True, learning_rate_horizon=True)
+
+
+def test_lgbm_fit_diagnostics_reads_actual_fitted_model():
+    model = SimpleNamespace(n_estimators=400, n_estimators_=217, best_iteration_=187, learning_rate=0.06)
+    node = SimpleNamespace(operation=SimpleNamespace(operation_type='lgbm'),
+                           fitted_operation=SimpleNamespace(model=model))
+    actual = probe.lgbm_fit_diagnostics(SimpleNamespace(nodes=[node]))
+    assert actual == dict(requested_rounds=400, fitted_rounds=217, best_iteration=187, learning_rate=0.06)
+
+
+def test_lgbm_diagnostic_through_real_pipeline():
+    rng = np.random.default_rng(42)
+    data = probe.InputData(idx=np.arange(120), features=rng.normal(size=(120, 4)),
+                           target=np.arange(120) % 3,
+                           task=probe.Task(probe.TaskTypesEnum.classification),
+                           data_type=probe.DataTypesEnum.table)
+    node = probe.PipelineNode('lgbm')
+    node.parameters = dict(n_estimators=7, learning_rate=0.06, num_leaves=5,
+                           use_eval_set=False, early_stopping_rounds=None,
+                           min_child_weight=0.001, verbose=-1)
+    pipeline = probe.Pipeline(node)
+    pipeline.fit(data, n_jobs=1)
+    diagnostics = probe.lgbm_fit_diagnostics(pipeline)
+    assert diagnostics['requested_rounds'] == diagnostics['fitted_rounds'] == 7
+    assert diagnostics['learning_rate'] == 0.06

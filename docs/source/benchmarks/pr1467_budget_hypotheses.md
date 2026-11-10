@@ -337,3 +337,54 @@ Ruthenium fold1 baseline remains active; its initial fit took 558.3 s and it
 skipped composition/tuning, like fold0. No paired fold1 score is available.
 Copper is free, but no new expensive run is started before the outstanding
 parameter/refit evidence determines a justified next test.
+
+## Parameter ablation completed: 17:46 UTC
+
+All nine Covertype cells are COMPLETE and the probe process has exited.
+All NPZ probabilities and labels were independently checked; all single-field
+parameter controls are exact. The last four inner losses are:
+
+- colsample_bytree only: **0.28814437112154057**, 159.38 s;
+- reg_alpha only: **0.3029925662822302**, 156.01 s;
+- reg_lambda only: **0.3020101001475171**, 153.19 s;
+- subsample only: **0.3026504446866336**, 153.16 s.
+
+Subsample-only predictions are byte-identical to baseline. In these frozen
+parameters bagging_fraction is also explicitly set; the isolated subsample
+change therefore should not be assumed to control effective row sampling.
+Learning rate contributes the largest single-field improvement, with leaves
+and feature fraction also helping. No single replacement reaches the full
+LightGBM block's loss; do not assume independent/additive effects.
+This is one inner split of outer fold3, not a general AMLB improvement.
+
+Final JSON SHA-256:
+`c7046e04fc387398b6be71ddbf081ad4c28e3875784f8da3fe9cf0f250ba0c45`.
+Last four NPZ SHA-256, in the above order:
+
+- `ec4ad56761fd6ff012b3b0a0f5ed3d6ce0ed3374de8247514469ae29beb062db`
+- `559663518926b20eb60f1707141bcf492824be1bfb8f3629d23123200f936390`
+- `756a967b16534c6750caac0bea62c36322162e3cfe4dc7748af57a51fcfaaab2`
+- `f00e8167124aab0432ebfce3c28d4630d52732fe066bc500bbb05512f4c5eb75`
+
+Ruthenium fold1 baseline is COMPLETE: independently recomputed loss
+**0.8207629887502289**, job **1045.0 s**, training **892.5 s**. The 41,619 x355
+probabilities are finite, bounded, normalized (max error 8.66e-15); SHA-256
+`597358e8f5d04b6185d61b94ecad5946924587566d0b72355084d721162281d6`.
+Like fold0, final fit exceeded 324 s and fell back to the initial LGBM.
+The remaining-refit candidate started at 17:30:20 UTC and is still running;
+there is no completed fold1 pair yet.
+
+### Next bounded hypothesis: learning rate versus tree horizon
+
+Dysprosium, new stage `covertype-lr-horizon-20261110`, same train-only fold3
+and seed42/Hessian0.001: eight fixed-graph fits. Cross learning rates
+**0.029815738804900536 (exact baseline), 0.06, 0.10, 0.15** with explicit
+**100 / 400 trees**. All other parameters and the inner split remain baseline.
+Save probabilities plus actual fitted-round/best-iteration metadata.
+Hypothesis: some of the learning-rate effect reflects underfitting at the
+fixed 100-tree horizon. This distinguishes allowing more rounds from simply
+raising learning rate, and tests a small prespecified range rather than a
+general default change. Check runtime as well as loss. No outer-test labels
+enter this test; require another fold before proposing a search policy.
+No model source or active ruthenium runner is changed. Copper remains free
+for the subsequent fold/control once this bounded range check is available.
