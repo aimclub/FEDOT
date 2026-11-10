@@ -1,0 +1,2 @@
+# Benchmark runners must remain executable by Bash in Windows-created archives.
+*.sh text eol=lf

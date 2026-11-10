@@ -28,6 +28,15 @@ This is an experimental hypothesis, **not a demonstrated AMLB improvement**.
 The isolated train-only probe compares 0.001 and 1.0 on the same inner split
 of the OpenML outer training fold. It is a mechanism check, not a benchmark.
 
+Train-only Dionis fold 0 check (2026-11-10, copper): 374,569 outer-training
+rows, 60 features, 355 classes; stratified 80/20 inner split, seed 42.
+The 0.001 default produced inner logloss **3.192454**, selected iteration **1**,
+and took **62.74 s**. Changing only the leaf-Hessian minimum to 1.0 produced
+inner logloss **0.829552**, selected iteration **100**, and took **288.50 s**.
+This supports the numerical-stability hypothesis, but also increases fit
+cost. It does not establish an improvement over FEDOT's selected logistic
+regression, nor does it resolve the infinite CV fitness symptom.
+
 ## Controlled full-run protocol
 
 - Baseline: the parent above; candidate: this branch's recorded commit.
