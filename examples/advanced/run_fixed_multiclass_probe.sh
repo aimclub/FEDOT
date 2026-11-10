@@ -4,10 +4,12 @@ set -euo pipefail
 root=${1:?benchmark root}
 series=${2:?series}
 mode=${3:-factorial}
-[[ "$mode" == factorial || "$mode" == components ]]
+[[ "$mode" == factorial || "$mode" == components || "$mode" == lgbm ]]
 extra_args=(--save-predictions)
 if [[ "$mode" == components ]]; then
     extra_args+=(--component-ablation)
+elif [[ "$mode" == lgbm ]]; then
+    extra_args+=(--lgbm-ablation)
 fi
 [[ "$root" == "/var/essdata/$(id -un)/fedot-amlb-official-1h8c" ]]
 [[ "$series" =~ ^[A-Za-z0-9_-]+$ ]]

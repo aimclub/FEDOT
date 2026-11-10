@@ -34,6 +34,34 @@ def final_parameters(path):
     return parameters
 
 
+def parameter_variants(baseline, candidate, component_ablation=False, lgbm_ablation=False):
+    """Frozen controls and one-factor swaps; never tune on the holdout."""
+    if component_ablation and lgbm_ablation:
+        raise ValueError('Select only one ablation mode')
+    if lgbm_ablation:
+        fields = ('learning_rate', 'num_leaves', 'min_data_in_leaf',
+                  'colsample_bytree', 'reg_alpha', 'reg_lambda', 'subsample')
+        changed = {key for key in baseline['lgbm'].keys() | candidate['lgbm'].keys()
+                   if baseline['lgbm'].get(key) != candidate['lgbm'].get(key)}
+        if changed != set(fields):
+            raise ValueError(f'Unexpected LightGBM parameter differences: {changed}')
+        full_swap = deepcopy(baseline)
+        full_swap['lgbm'] = deepcopy(candidate['lgbm'])
+        variants = [('baseline', deepcopy(baseline)), ('swap_lgbm', full_swap)]
+        for field in fields:
+            parameters = deepcopy(baseline)
+            parameters['lgbm'][field] = candidate['lgbm'][field]
+            variants.append(('lgbm_' + field, parameters))
+        return variants
+    variants = [('baseline', deepcopy(baseline)), ('candidate', deepcopy(candidate))]
+    if component_ablation:
+        for operation in ('catboost', 'xgboost', 'lgbm', 'logit'):
+            parameters = deepcopy(baseline)
+            parameters[operation] = deepcopy(candidate[operation])
+            variants.append(('swap_' + operation, parameters))
+    return variants
+
+
 def main(args):
     if args.output.exists():
         raise FileExistsError(args.output)
@@ -49,16 +77,13 @@ def main(args):
 
     train, valid = input_data(rows_train), input_data(rows_valid)
     results = []
-    parameter_sets = [('baseline', final_parameters(args.baseline_log)),
-                      ('candidate', final_parameters(args.candidate_log))]
-    if args.component_ablation:
-        baseline, candidate = parameter_sets[0][1], parameter_sets[1][1]
-        for operation in ('catboost', 'xgboost', 'lgbm', 'logit'):
-            parameters = deepcopy(baseline)
-            parameters[operation] = deepcopy(candidate[operation])
-            parameter_sets.append(('swap_' + operation, parameters))
-    seeds = (42,) if args.component_ablation else (42, 104732)
-    weights = (0.001,) if args.component_ablation else (0.001, 1.0)
+    lgbm_ablation = getattr(args, 'lgbm_ablation', False)
+    parameter_sets = parameter_variants(final_parameters(args.baseline_log),
+                                       final_parameters(args.candidate_log),
+                                       args.component_ablation, lgbm_ablation)
+    single_factor = args.component_ablation or lgbm_ablation
+    seeds = (42,) if single_factor else (42, 104732)
+    weights = (0.001,) if single_factor else (0.001, 1.0)
     for seed in seeds:
         for label, frozen_parameters in parameter_sets:
             for weight in weights:
@@ -105,6 +130,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('data', 'baseline-log', 'candidate-log', 'output'):
         parser.add_argument('--' + name, type=Path, required=True)
-    parser.add_argument('--component-ablation', action='store_true')
+    modes = parser.add_mutually_exclusive_group()
+    modes.add_argument('--component-ablation', action='store_true')
+    modes.add_argument('--lgbm-ablation', action='store_true')
     parser.add_argument('--save-predictions', action='store_true')
     main(parser.parse_args())

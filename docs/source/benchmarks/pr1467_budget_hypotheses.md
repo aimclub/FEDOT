@@ -212,3 +212,54 @@ all-block effect. Wait for LightGBM/logit cells before identifying a driver;
 these are still train-only diagnostics, not full AutoML benchmark gains.
 No new experiment was launched during this inspection: all three servers
 have active work, and the outstanding results determine the next hypothesis.
+
+## Completed refit/component checks: 17:08 UTC
+
+Ruthenium's opt-in remaining-budget refit completed without fallback. The log
+allocates 2512.1 s at 16:43:21 and reports `Final pipeline was fitted` at
+16:55:41, with the same scaling/LightGBM graph. Independently recomputed
+Dionis0 outer loss is **0.8021429238192925**, versus the same-host completed
+control **0.8051071883489818** (0.368% lower). Job/training time increased
+from 1034.9/892.6 s to **1427.1/1306.8 s**, both within 3600 s. The harness
+recorded the true flag; all 41,619 x 355 probabilities are finite, bounded,
+normalized (maximum error 8.44e-15). Prediction SHA-256:
+`3e2f203ceb3706a34acadbd5a511769899de997c8db0b0cce3c2e57fa68253b6`.
+This supports successful full refit on one fold, not general quality gain.
+
+All six Covertype component cells are COMPLETE. Independent recomputation
+of the last two saved arrays gives **0.16127422159206897** for LightGBM-only
+replacement (148.99 s) and **0.3017539731968004** for logit-only replacement
+(152.26 s). All cells have identical validation labels and pass probability
+checks, maximum row-sum error 6.67e-16. Parameter dictionaries were checked:
+each swap changes exactly the named operation and uses its candidate block.
+Thus the LightGBM block accounts for the large effect in this fixed-graph
+train-only probe. Neither a specific LightGBM parameter nor a general search
+policy is yet established. JSON SHA-256:
+`eba53b40f0c5f47fc41a5be0039436725c7f1983ffaacc3921f0cc1d4ce3da80`.
+Last two probability SHA-256 values:
+
+- `7d8ae36ed2e34916da1b9f62bf8a577840c90631c005b9b1a29b1bbfc82c2d5c`
+- `eb3b4469077c9d3ffc90c8905c29139f584db12ac1eef19ed178c16d46a9e4c1`
+
+Copper's measured-budget candidate remains active; do not duplicate it.
+
+### Next bounded tests (declared before launch)
+
+- Ruthenium, new stage `remaining-refit-fold1-20261110`: Dionis fold1,
+  sequential baseline/candidate with **identical model source 95d90fdc**;
+  only candidate enables `final_fit_use_remaining_time=true`. Same 1h8c
+  settings, seed104730. Baseline retains the default false flag. Require
+  independent score checks, successful refit, no fallback and <=3600 s;
+  record any runtime-dependent search differences rather than attributing
+  every score change to refit. No fold0 control is rerun.
+- Dysprosium, new stage `covertype-lgbm-parameters-20261110`: nine train-only
+  fixed-graph fits, unchanged seed42/Hessian0.001/inner split. Controls are
+  the frozen baseline and baseline with the full candidate LightGBM block.
+  Seven one-parameter replacements are learning_rate, num_leaves,
+  min_data_in_leaf, colsample_bytree, reg_alpha, reg_lambda and subsample.
+  All other blocks stay baseline; save each probability array. Hypothesis:
+  the larger learning rate helps the fixed 100-tree horizon, but test all
+  changed fields before selecting a cause or range. This is not a search
+  space change and never evaluates outer-test labels.
+
+No general defaults or original PR code are changed by these new tests.
