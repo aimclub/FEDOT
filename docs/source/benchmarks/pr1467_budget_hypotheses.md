@@ -821,3 +821,75 @@ remaining horizon-labelled repeats are still active. Finish their audits,
 then validate metadata isolation and profile transport before deciding on
 the next bounded experiment. Original PR1467 and general defaults remain
 unchanged; neither problem has been patched in deployed code.
+
+## Covertype repeat audited; fabert still active: 20:10 UTC
+
+Dysprosium's horizon-labelled candidate is COMPLETE, and its queue/framework
+processes have exited. Its immutable source remains `30142fca`; the caller,
+FEDOT harness exec.py and GOLEM individual.py hashes still match the recorded
+frozen versions. Copper is also idle with both Dionis2 runs COMPLETE. The
+first process-list shell command returned status1 on these idle hosts because
+grep found no matching processes, not because a benchmark failed; the
+dysprosium absence was subsequently confirmed by a successful Python/ps check.
+Ruthenium's candidate fabert4 remains active in composition (generation1 at
+20:05:44), with the original queue, runbenchmark and framework exec processes.
+No active or STARTED run was restarted and no deployed artifact was edited.
+
+### Independently validated Covertype repeat
+
+Candidate outer-test logloss is **0.32656395269926863**, versus baseline
+**0.1587776834879601**. Job/training times are **1893.9/1866.8s**, versus
+1888.0/1855.8s; both remain below3600s. All58,101 x7 probabilities are finite,
+within [0,1], normalized (maximum error6.67e-16), and all truth/predicted labels
+are valid. Paired truth rows and probability-column ordering1--7 explicitly
+match. Recomputed loss agrees with the printed scoreboard within1e-5.
+
+- Prediction SHA: `58c4e1061a129081e16b37e6cea3c757a4d92197723ceffe5da3681c0f1dd30f`.
+- Truth SHA: `ec782fe1951ad22a62bf3c8fac5fd70e26850addd7c79be9b190add3e711c684`.
+- History SHA: `8aaeef0aa4f4d738d885240e497f725e28f39db747de6c329113cc30d344f9ad`.
+
+This is **not a400-tree regression**: the already-confirmed sanitized-env
+transport failure means the intended overlay never reached training. Treat
+the pair as same-configuration repeats with different sampled hyperparameters,
+not as an operation-default ablation. Its large score spread reinforces the
+need to control/record proposal variability before attributing quality changes.
+
+Composition was skipped. Tuning used two folds, a529s evaluation cap and706s
+search allowance; both trials and the final check completed with finite CV
+fitness, without evaluation timeouts. Durations below come from matching log
+start/end boundaries, not nonexistent computation-time fields in tuner history:
+
+| Evaluation | Evaluated CV logloss | Log-bracketed duration (s) |
+| --- | ---: | ---: |
+| Initial graph | 0.32902927736895277 | 314.075 |
+| Trial0 | 0.33708520970456035 | 345.895 |
+| Trial1 | 0.3478314082476658 | 337.279 |
+| Final check of trial0 | 0.33708520970456035 | 344.618 |
+
+Both proposals were worse than the initial graph. At19:54:30.618 the tuner
+explicitly returned its initial graph. The last history individual
+`d877245c-140c-4e6f-869f-4da73135ad2a` therefore stores the **returned initial
+graph and its original fitness0.32902927736895277**, not the just-evaluated
+trial0 fitness. The pinned tuner's final-check source confirms this intended
+recording behavior; it is not the shared evolutionary-metadata corruption.
+Canonical operation/parameter/edge signatures match the first individual,
+the last individual and `_tuning_result`; final graph log parameters agree.
+The returned graph is the untuned five-node stack, with no n_estimators400
+override. Trial0/1 LGBM rates were0.0157005068/0.0346223973, unlike the control's
+selected0.1392565031; those trial parameters were not retained.
+
+Final full-data refit succeeded at19:57:56.051, about205.4s after tuning ended.
+There was no refit-timeout fallback: rejection of worse tuned parameters is
+a separate, successful quality check. A loky resource-tracker cleanup KeyError
+appears again, but the run completed and saved valid predictions.
+
+### Next action remains gated by the outstanding audit
+
+Do not launch another full run merely because copper and dysprosium are free.
+Finish the active fabert repeat first. Then implement the already-motivated
+metadata copy-on-write and explicit overlay transport corrections only in new
+isolated, hashed vendor/harness artifacts. Require cheap initial/offspring,
+sequential/parallel/serialization metadata tests and an actual sanitized
+run_in_venv child probe before declaring the next bounded paired series.
+Neither correction is implemented or deployed in this inspection. General
+defaults and original PR1467 remain unchanged.
