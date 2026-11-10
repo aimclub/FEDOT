@@ -454,3 +454,13 @@ guaranteed for fold2; inspect actual execution before attributing an effect.
 Compare the new same-host pair only, not copper versus ruthenium as an
 ablation. No old control is repeated. Ruthenium is free for the subsequent
 Covertype validation when its complete range check is available.
+
+The new copper pair uses identical source revision
+`44262616ed4b84178a8d5ff779043fb7a7362ebe`, with no FEDOT model-code diff from
+95d90fdc. Archive SHA-256:
+`b866d7f4b043590e18f41762920e286c2415506185c0ff0f65e82fbdfafeca4a`.
+Nine final-refit tests passed locally and on copper; shell syntax, archive
+hash, harness and pinned tuner hashes were verified. The queue was launched
+after checking that no benchmark/probe/queue process was active on copper.
+The completed ruthenium fold1 pair's truth rows and class-column order were
+also explicitly compared and match for all 41,619 predictions.
