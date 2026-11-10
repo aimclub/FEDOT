@@ -512,3 +512,13 @@ still required before any model-default or search-space proposal.
 
 Copper's Dionis2 baseline is still active; its sequential candidate remains
 queued. No active or STARTED job is restarted.
+
+The fold4 probe uses immutable diagnostic revision
+`17f6cb6aa97b8126490cd7591affa460ff32d93b`, FEDOT model unchanged from
+95d90fdc. Archive SHA-256:
+`233a48e5f88075a72e67c74c7d98bc01f9909abc644e8a198e1294a079dc56d4`.
+Ten focused tests passed locally and on dysprosium before launch, including
+the four-cell controls and real LightGBM round metadata. The archive hash
+and LF shell syntax were checked. The command uses `confirm 4` explicitly.
+Copper's harness confirms `_save_artifacts='info'`; initial fit took 383.2 s
+and composition was entered, unlike the earlier ruthenium refit pairs.
