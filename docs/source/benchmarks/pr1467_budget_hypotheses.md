@@ -554,7 +554,7 @@ graph and Hessian0.001 also differ from the next full-run search setting.
 
 Stage `lgbm-horizon-e2e-20261110`: one sequential baseline/candidate pair on
 each of two free hosts, **Covertype fold4 / large on dysprosium**, and
-**fabert fold4 / medium on ruthenium**. Copper's active Dionis2 pair is left
+**fabert fold4 / small on ruthenium**. Copper's active Dionis2 pair is left
 untouched. Identical new source revisions for baseline/candidate; the only
 variant is an opt-in operation-default overlay setting classification LGBM
 `n_estimators=400` instead of the library default100. Learning rate is NOT
@@ -584,3 +584,20 @@ paired labels/classes and both job/training duration <=3600s. All four runs
 use 1h8c, seed104733, portfoliofalse, best_quality, tuningtrue, sequential,
 n_jobs8, `_save_artifacts=info`. No prior run is repeated. This screening pair
 is insufficient to promote a general default or update original PR1467.
+
+The two new pairs use identical immutable source revision
+`30142fca3293be94125505a6dbe590c380631a3c` for baseline and candidate.
+Archive SHA-256:
+`50a04a8d911beb8f69b22067d656b94134d9f826e0727a3d93d5f1dbd9ae6f36`.
+Forty-seven focused local tests passed; 42 tests passed separately on each
+new server, including worker inheritance of the overlay, explicit-parameter
+precedence, unchanged regression defaults, multiclass regularization and
+native time limits. Archive, harness and vendor hashes were verified.
+The initial ruthenium preparation rejected the proposed medium suite before
+creating the stage or any STARTED run: fabert belongs to small. The corrected
+suite is recorded above; no training was attempted or repeated for medium.
+Dysprosium's queue launched at **18:53:47 UTC**, ruthenium's at
+**18:54:11 UTC**, after checking no preceding benchmark/probe/queue process
+was active. Each has a new STARTED baseline and an exclusive queue; candidate
+waits for baseline. Copper's original Dionis2 baseline is still active at
+18:54 UTC and has not been restarted or changed.
