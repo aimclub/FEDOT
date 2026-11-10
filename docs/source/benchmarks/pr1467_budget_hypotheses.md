@@ -170,3 +170,45 @@ frozen file path to avoid the installed examples package shadowing it.
 No deployed model source was changed for this test correction.
 Ruthenium launched candidate-only at about 16:33 UTC; dysprosium launched
 the component queue after its preceding factorial had completed.
+
+## Interim validation: 16:47 UTC
+
+Copper's regularized control completed: independently recomputed logloss
+**0.8345753647977304**, job **2897.3 s**, training **2840.5 s**. All
+41,619 x 355 probabilities were finite, in [0,1], maximum normalization error
+1.12e-15. Its prediction SHA-256 is the same as the earlier logit runs:
+`fe9a30a51d06f27d13bdedec8a9a26d8e1eb9fae5cf16e43abb0bc442668bace`.
+The chosen graph is scaling/logit; tuning was skipped. Copper's measured-CV
+candidate started at 16:34:22 UTC and is still composing; no paired conclusion
+is available yet.
+
+Ruthenium's remaining-refit run is still active. The harness recorded
+`final_fit_use_remaining_time='true'` and the API log explicitly allocated
+**2512.1 seconds** to final refit at 16:43:21 UTC. The 324 s CV cap was not
+changed. This verifies activation of the intended policy, not refit success
+or a quality improvement; those remain pending.
+
+Four completed Covertype component cells were independently recomputed from
+their saved NPZ probabilities and identical validation labels (104,583 rows,
+7 classes). All passed finite/range/normalization checks; maximum row-sum
+error was 6.67e-16. The remaining two cells are still pending.
+
+| Parameter source | Independently recomputed inner logloss |
+| --- | ---: |
+| Baseline | 0.3026504446866336 |
+| All candidate blocks | 0.16129716838364516 |
+| Only CatBoost block replaced | 0.30011858740622166 |
+| Only XGBoost block replaced | 0.31586872331841176 |
+
+Probability NPZ SHA-256, in the same order:
+
+- `f00e8167124aab0432ebfce3c28d4630d52732fe066bc500bbb05512f4c5eb75`
+- `167af842c0dee10d2bf69f4ba533432da419bc87d3ad20f0787dbdf4993aa2d0`
+- `c90838dbd7fb753c7223fd9f6e2273f62f645cf76aca9d0439bc86274e14ff96`
+- `839bdf148b8d48ad24c8300c8f5adcafd14202d8be6eb87d648e55a6bb7320e2`
+
+Neither the CatBoost-only nor XGBoost-only replacement explains the large
+all-block effect. Wait for LightGBM/logit cells before identifying a driver;
+these are still train-only diagnostics, not full AutoML benchmark gains.
+No new experiment was launched during this inspection: all three servers
+have active work, and the outstanding results determine the next hypothesis.
