@@ -1098,3 +1098,64 @@ observations, not400-tree evidence. Wait for the existing sequential candidate
 and verify its actual framework environment and initial graph before calling
 the intended horizon intervention active. Full fitted-round evidence remains
 distinct from an n_estimators setting. Copper remains intentionally unused.
+
+## Covertype5 control audited; real profile activation: 21:49 UTC
+
+Dysprosium baseline is COMPLETE; the original sequential queue started its
+candidate at **21:31:09 UTC**. Candidate benchmark PID1191404 and actual
+framework exec PID1191461 were confirmed alive at21:46. Read-only inspection
+of only PYTHONPATH and FEDOT_OPERATION_DEFAULTS_OVERLAY confirms the latter
+now reaches the actual exec process, pointing to this stage's candidate
+profile. The initial CV graph at21:39:22.088 explicitly contains LGBM
+`n_estimators:400`; the completed initial evaluation and trial0 retain it.
+This validates transport/graph activation, unlike the old fold4 repeats.
+It does not establish400 fitted rounds or an outer-test quality improvement.
+
+### Independently checked baseline
+
+- Logloss **0.1761394325581716**, job1899.3s, training1869.9s; both under3600s.
+  Score info is empty and rounded scoreboard agrees within1e-5.
+- Predictions have58101 rows and seven lexical class columns1..7. All
+  probabilities are finite and in[0,1], all truth/predicted labels belong to
+  those classes, maximum normalization error6.661338147750939e-16.
+- Prediction SHA:
+  `74321ae9697349451cfb4607cbe5b8b77abaee51730fd81fc519fb926d4936a9`.
+  Truth SHA (UTF8 label plus newline for each row):
+  `b4ecdd526e018e62d82d4bb954575ba0b8fae3771e51aec566ebbc6eedf4b940`.
+- History SHA:
+  `5b36521885d4db12a911c7533c75bf3e1c05d3824a66c65d8f17527024f54b9d`.
+  Final UID635cd00c-d417-43da-a37c-48dfcbeae53e exactly matches trial0 and
+  _tuning_result in canonical graph structure, parameters and edges. Both
+  final tuner and final pipeline log parameter dictionaries also match.
+  All four tuner entries have distinct evaluation timestamps and finite
+  fitness; none contains computation_time_in_seconds. Durations in the
+  preceding section come from log brackets, not evolutionary metadata.
+- Final pipeline fitted successfully at21:30:54.841,209.733s after model
+  generation finished. No refit-timeout fallback. A loky cleanup KeyError
+  occurred, but the job completed with valid predictions; it is not a fit
+  failure. Saved artifacts contain history/info, not a fitted-model pickle.
+
+### Live candidates and remaining checks
+
+Covertype candidate initial fit is logged as238.7s versus baseline212.5s;
+composition is skipped with five-fold estimate1193.587745s (baseline
+1062.527195s). Tuning still runs on two folds, now471s/evaluation and628s
+search versus526/701. Initial CV loss0.2277421901954615 completed in338.715s
+(21:39:22.088--21:45:00.803); trial0 is running. Thus search has not been
+disabled, but its allowance is smaller. Its sampled parameters differ from
+baseline: eventual outer comparison will be an end-to-end policy screen,
+not a fixed-parameter tree-count effect. Predictions, paired truth/class
+order, final fit, actual fitted-round evidence and total budget remain pending.
+
+Ruthenium fabert5 baseline is still ACTIVE at21:49, with the original queue,
+benchmark and framework processes alive; candidate has not STARTED. Initial
+tuner fitness and14 completed proposals remain invalid/timeout (bestinf at
+21:48:10.829). This is not infinite outer-test loss or a terminal job failure.
+No predictions/history are available yet; retain the selected-duration
+ambiguity documented above until UID/graph/cache provenance can be audited.
+
+All seven runtime entries on both hosts, and each started run's copied
+manifest, verify against the predeclared hashes at21:49. Sources remain
+9009ca2e on both sides. Only reports changed during this pass: no new jobs,
+restarts, archive/result edits, deployed/shared-runtime patches or PR changes.
+Continue the existing queues; no additional full series before these results.

@@ -179,3 +179,23 @@ evaluations have identical fitness but different log durations/parameters,
 so selected-duration provenance must not be inferred from fitness alone.
 Both frozen runtime manifests verify. No new jobs or code changes were made
 in this monitoring pass; continue the existing queues before further series.
+
+## Follow-up status: 2026-11-10 21:49 UTC
+
+Covertype fold5 baseline is COMPLETE and independently validated: logloss
+**0.1761394325581716**, job1899.3s / training1869.9s,58101x7 finite normalized
+probabilities, successful final refit without fallback. History's final graph,
+parameters and edges match the selected tuned graph; exact checksums and
+provenance are recorded in the budget hypothesis report.
+
+Its existing candidate started21:31:09. The400-tree profile now demonstrably
+reaches the actual framework exec process AND appears as n_estimators400 in
+the initial CV graph. Initial CV is finite at0.2277421901954615; composition
+is skipped and tuning continues with471s/evaluation,628s search. This confirms
+activation, not400 fitted rounds or final quality improvement; paired outer
+predictions and budget checks remain pending.
+
+Fabert5 baseline still runs with14 completed invalid/timeout proposals and
+best tuner fitnessinf; its metadata-patched candidate is queued, not started.
+Do not conflate tuner fitness with outer-test loss. Both runtime manifests
+remain intact. No jobs, experimental code, deployed sources or PR were changed.
