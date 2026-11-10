@@ -1036,3 +1036,21 @@ are confirmed; each candidate waits sequentially for its baseline. Do not
 duplicate these jobs. Actual candidate training activation and full-run
 outcomes remain pending; preflight constructor tests are not fitted-round or
 quality evidence. Copper is intentionally idle.
+
+## First live inspection of isolated pairs: 21:07 UTC
+
+Both original baseline queues, benchmark and framework processes are alive;
+neither baseline has COMPLETE/FAILED yet, and candidates have not STARTED.
+All seven entries in each runtime manifest verify against the frozen files.
+No predictions or history artifacts are available yet. Copper remains idle.
+No jobs were restarted, additional series launched or deployed sources edited.
+
+Ruthenium fabert5 initial fit took89.6s. Composition began at21:01:22.996,
+with CV reduced5->3,1296s composition allocation and778s per-candidate cap.
+The selected graph and metadata-based tuning allowance are not known yet.
+Dysprosium Covertype5 initial fit took212.5s; composition was skipped based
+on a1062.527195s five-fold estimate. Tuning began at21:05:07.748 with two
+folds,526s per evaluation and701s search, reserving time for final CV.
+These are baseline execution-path observations, not evidence of either
+candidate correction or a quality effect. Continue the existing monitor;
+do not duplicate the waiting candidates or infer400-tree activation early.
