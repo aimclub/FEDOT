@@ -57,6 +57,7 @@ class ApiParamsRepository:
             optimizer=None,
             collect_intermediate_metric=False,
             max_pipeline_fit_time=None,
+            final_fit_use_remaining_time=False,
             initial_assumption=None,
             preset=AUTO_PRESET_NAME,
             use_operations_cache=True,
@@ -82,6 +83,12 @@ class ApiParamsRepository:
         if invalid_keys:
             raise KeyError(f"Invalid key parameters {invalid_keys}")
         else:
+            final_refit = params.get('final_fit_use_remaining_time', False)
+            if isinstance(final_refit, str) and final_refit.lower() in ('true', 'false'):
+                final_refit = final_refit.lower() == 'true'
+            if not isinstance(final_refit, bool):
+                raise ValueError('final_fit_use_remaining_time must be boolean')
+            params['final_fit_use_remaining_time'] = final_refit
             missing_params = self.default_params.keys() - params.keys()
             for k in missing_params:
                 if (v := self.default_params[k]) is not None:

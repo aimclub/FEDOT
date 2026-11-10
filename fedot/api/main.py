@@ -1,5 +1,7 @@
 import logging
 from copy import deepcopy
+from datetime import timedelta
+from time import monotonic
 from typing import Any, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -99,6 +101,9 @@ class Fedot:
 
         composer_tuner_params: Additional optional parameters. See their documentation at the methods of
             :class:`~fedot.api.builder.FedotBuilder`.
+            Experimental ``final_fit_use_remaining_time=True`` separates final full-data refit from
+            ``max_pipeline_fit_time`` (which still limits CV fits). It uses the remaining finite
+            AutoML budget, retaining 5% for post-fit work. Defaults to ``False``.
     """
 
     def __init__(self,
@@ -139,6 +144,7 @@ class Fedot:
         self.current_pipeline: Optional[Pipeline] = None
         self.best_models: Sequence[Pipeline] = ()
         self.history: Optional[OptHistory] = None
+        self._fit_started_at: Optional[float] = None
 
         fedot_composer_timer.reset_timer()
 
@@ -160,6 +166,7 @@ class Fedot:
             :class:`Pipeline` object.
         """
 
+        self._fit_started_at = monotonic()
         MemoryAnalytics.start()
 
         self.target = target
@@ -630,6 +637,20 @@ class Fedot:
             )
         requirements = getattr(self.params, 'composer_requirements', None)
         time_constraint = getattr(requirements, 'max_graph_fit_time', None)
+        if getattr(self.params, 'data', {}).get('final_fit_use_remaining_time', False):
+            timeout = getattr(self.params, 'timeout', None)
+            started = getattr(self, '_fit_started_at', None)
+            if timeout is not None and timeout > 0 and started is not None:
+                # Opt-in: the CV per-fit cap is not the final-refit budget.
+                # Include data preparation/search/tuning in elapsed time and
+                # keep 5% of the total API budget for post-fit overhead.
+                remaining = timeout * 60 - (monotonic() - started)
+                seconds = remaining - max(5.0, timeout * 60 * 0.05)
+                if seconds < 1:
+                    raise TimeoutError('No AutoML budget remains for final pipeline refit')
+                time_constraint = timedelta(seconds=seconds)
+                self.log.info(f'Final refit uses remaining AutoML budget: {seconds:.1f} sec.; '
+                              'CV fit cap is unchanged.')
         self.current_pipeline.fit(
             full_train_not_preprocessed,
             time_constraint=time_constraint,

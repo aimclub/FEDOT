@@ -11,6 +11,10 @@ source_stage="$root/experiments/pr1467-5fbcaf16"
 diagnostics="$root/experiments/pr1467-diagnostics-20261109"
 series=${5:-multiclass-quality-20261110}
 [[ "$series" =~ ^[A-Za-z0-9_-]+$ ]]
+candidate_remaining_refit=${6:-false}
+[[ "$candidate_remaining_refit" =~ ^(true|false)$ ]]
+variants=${7:-'baseline candidate'}
+[[ "$variants" == 'baseline candidate' || "$variants" == candidate ]]
 stage="$diagnostics/$series"
 benchmark_python="$root/venvs/automlbenchmark/bin/python"
 framework_python="$root/automlbenchmark/frameworks/FEDOT/venv/bin/python"
@@ -30,7 +34,7 @@ export MPLCONFIGDIR="$XDG_CACHE_HOME/matplotlib" NUMBA_CACHE_DIR="$XDG_CACHE_HOM
 export JOBLIB_TEMP_FOLDER="$root/tmp"
 export OMP_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 MKL_NUM_THREADS=8
 cd "$stage"
-for variant in baseline candidate; do
+for variant in $variants; do
     code_root="$stage/$variant"
     test -f "$code_root/fedot/api/main.py"
     test -s "$stage/$variant.commit"
@@ -45,6 +49,10 @@ for variant in baseline candidate; do
     export PYTHONPATH="$diagnostics/vendor:$code_root:$source_stage/automlbenchmark"
     "$framework_python" -c 'import sys, fedot, golem, lightgbm, sklearn; print(sys.version); print(fedot.__file__); print(golem.__file__); print(lightgbm.__version__, sklearn.__version__)' >"$run/environment.txt"
     session="fedot.multiclass-quality-$variant.$task.fold$fold"
+    extra_args=()
+    if [[ "$variant" == candidate && "$candidate_remaining_refit" == true ]]; then
+        extra_args+=(--extra=f.final_fit_use_remaining_time=true)
+    fi
     set +e
     timeout --signal=TERM --kill-after=60s 7500s \
         "$benchmark_python" "$source_stage/automlbenchmark/runbenchmark.py" \
@@ -54,7 +62,7 @@ for variant in baseline candidate; do
         --extra="seed=$((104729 + 10#$fold))" --extra=f._portfolio=false \
         --extra=f.parallelization_mode=sequential --extra=f.n_jobs=8 \
         --extra=f.preset=best_quality --extra=f.with_tuning=true \
-        --extra=f.logging_level=10 >"$run/run.log" 2>&1
+        --extra=f.logging_level=10 "${extra_args[@]}" >"$run/run.log" 2>&1
     status=$?
     set -e
     score="$run/results/$session/scores/results.csv"

@@ -111,3 +111,50 @@ printing each result. Unlike full AMLB runs, this probe does not save its
 probability arrays, so these partial losses have not been independently
 recomputed from prediction artifacts. Wait for all eight cells before
 summarizing the factorial result or deciding the next experiment.
+
+## Completed follow-ups and next hypotheses: 16:25 UTC
+
+### Headroom pair: no quality gain
+
+The ruthenium candidate completed with independently recomputed logloss
+**0.8051071883489818**, 1034.9 s job / 892.6 s training. All 41,619 x 355
+probabilities pass finite/range/normalization checks (maximum error 8.44e-15).
+Prediction SHA-256:
+`ba685f7df7cc0521205a10b768ecdf4a20104ca6625892560b5a221b6c4d3353`.
+Loss differs from its paired control by only 1.24e-12. Both skip composition
+and tuning, both hit the 324 s final-refit cap and return their initial LGBM.
+The shorter duration alone does not establish a speed improvement.
+
+### Completed fixed-graph factorial
+
+All eight fits completed; parameter dictionaries were independently checked
+to differ only in leaf Hessian within each seed/source pair. The last cell
+(candidate parameters, seed104732, Hessian1) has inner loss
+**0.16285091880539448**, versus **0.16392230968462296** at Hessian0.001.
+Mean loss over the two seeds: baseline/candidate parameter sets
+**0.3025273926 / 0.1626097390** at Hessian0.001 and
+**0.3024586014 / 0.1628605977** at Hessian1. Parameter selection dominates in
+this train-only diagnostic; the Hessian effect is small and inconsistent.
+JSON SHA-256: `51b046f9c2baffad337ee777f3fc85fd114d31e93cd93a16096ac486b4e14324`.
+Raw probabilities were not saved by this completed version; no claim of
+independent probability-level recomputation is made for this probe.
+
+### Next bounded series (predeclared)
+
+- Ruthenium, stage `remaining-refit-20261110`, Dionis0: one new candidate
+  using `final_fit_use_remaining_time=true`, compared with the just-completed
+  caddb242 headroom control. Do not rerun that control. The new flag is opt-in,
+  default false; preserves the CV cap, uses elapsed wall time since API.fit
+  began, and reserves 5% of the API budget (minimum 5 s) for post-fit work.
+  The full AMLB 3600 s limit is unchanged. Hypothesis: the full-data fit can
+  finish when allowed to use otherwise idle budget. Record actual refit
+  success, graph, quality and total runtime; require another fold if promising.
+- Dysprosium, stage `covertype-components-20261110`: six fixed-graph train-only
+  fits, seed42, Hessian0.001 throughout. Two complete frozen parameter sets
+  plus four one-operation swaps (catboost/xgboost/lgbm/logit) into baseline.
+  No new parameter search. Hypothesis: isolate which parameter block drives
+  the earlier effect before proposing a general search-space change. Save
+  each probability array and labels for independent score recomputation.
+- Copper: leave the existing baseline/candidate budget queue running.
+
+Original PR, old archives and finished artifacts remain untouched.

@@ -8,6 +8,7 @@ import ast
 import json
 import random
 import time
+from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
@@ -48,12 +49,22 @@ def main(args):
 
     train, valid = input_data(rows_train), input_data(rows_valid)
     results = []
-    for seed in (42, 104732):
-        for label, log in [('baseline', args.baseline_log), ('candidate', args.candidate_log)]:
-            for weight in (0.001, 1.0):
+    parameter_sets = [('baseline', final_parameters(args.baseline_log)),
+                      ('candidate', final_parameters(args.candidate_log))]
+    if args.component_ablation:
+        baseline, candidate = parameter_sets[0][1], parameter_sets[1][1]
+        for operation in ('catboost', 'xgboost', 'lgbm', 'logit'):
+            parameters = deepcopy(baseline)
+            parameters[operation] = deepcopy(candidate[operation])
+            parameter_sets.append(('swap_' + operation, parameters))
+    seeds = (42,) if args.component_ablation else (42, 104732)
+    weights = (0.001,) if args.component_ablation else (0.001, 1.0)
+    for seed in seeds:
+        for label, frozen_parameters in parameter_sets:
+            for weight in weights:
                 random.seed(seed)
                 np.random.seed(seed)
-                parameters = final_parameters(log)
+                parameters = deepcopy(frozen_parameters)
                 parameters['lgbm']['min_child_weight'] = weight
                 for model in ('lgbm', 'xgboost', 'logit'):
                     parameters[model]['random_state'] = seed
@@ -74,6 +85,13 @@ def main(args):
                               seconds=time.monotonic() - started,
                               inner_logloss=log_loss(valid.target, probabilities),
                               parameters=parameters)
+                if args.save_predictions:
+                    prediction_path = args.output.with_name(f'{args.output.stem}-cell{len(results)}.npz')
+                    with prediction_path.open('xb') as stream:
+                        np.savez_compressed(stream, probabilities=probabilities,
+                                            truth=np.asarray(valid.target).ravel(),
+                                            classes=np.unique(train.target))
+                    result['predictions'] = prediction_path.name
                 results.append(result)
                 print(json.dumps(result), flush=True)
                 pipeline.unfit()
@@ -87,4 +105,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('data', 'baseline-log', 'candidate-log', 'output'):
         parser.add_argument('--' + name, type=Path, required=True)
+    parser.add_argument('--component-ablation', action='store_true')
+    parser.add_argument('--save-predictions', action='store_true')
     main(parser.parse_args())

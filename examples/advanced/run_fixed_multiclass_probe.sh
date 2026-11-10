@@ -3,6 +3,12 @@
 set -euo pipefail
 root=${1:?benchmark root}
 series=${2:?series}
+mode=${3:-factorial}
+[[ "$mode" == factorial || "$mode" == components ]]
+extra_args=(--save-predictions)
+if [[ "$mode" == components ]]; then
+    extra_args+=(--component-ablation)
+fi
 [[ "$root" == "/var/essdata/$(id -un)/fedot-amlb-official-1h8c" ]]
 [[ "$series" =~ ^[A-Za-z0-9_-]+$ ]]
 diagnostics="$root/experiments/pr1467-diagnostics-20261109"
@@ -36,6 +42,6 @@ timeout --signal=TERM --kill-after=60s 7200s "$framework_python" \
     "$code/examples/advanced/fixed_multiclass_graph_probe.py" \
     --data train.npz --baseline-log "$old/runs/baseline/Covertype-fold3-large/run.log" \
     --candidate-log "$old/runs/candidate/Covertype-fold3-large/run.log" \
-    --output fixed-graph.json >run.log 2>&1
+    --output fixed-graph.json "${extra_args[@]}" >run.log 2>&1
 sha256sum fixed-graph.json >COMPLETE
 date -u +%FT%TZ >"$stage/QUEUE_FINISHED"
