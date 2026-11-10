@@ -101,6 +101,32 @@ def test_history_serialization_keeps_individual_timings(metadata_types, tmp_path
     assert [x.metadata['computation_time_in_seconds'] for x in loaded.generations[0]] == [10, 20]
 
 
+def test_selected_budget_retains_slower_original_over_cached_duplicate(metadata_types, tmp_path):
+    from fedot.api.api_utils.assumptions.tuning_budget import (
+        measured_tuning_resources, selected_pipeline_fold_seconds)
+    from golem.core.optimisers.graph import OptGraph, OptNode
+    from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
+    Individual, graph = metadata_types
+    template = {'use_input_preprocessing': True}
+    original = Individual(graph(), metadata=template)
+    cached_duplicate = Individual(graph(), metadata=template)
+    unrelated = Individual(OptGraph(OptNode('rf')), metadata=template)
+    invalid_duplicate = Individual(graph(), metadata=template)
+    population = [original, cached_duplicate, unrelated, invalid_duplicate]
+    # The later cheap duplicate and unrelated evaluation must not replace the
+    # original's own timing. An invalid same-graph record cannot set the cap.
+    for individual, seconds, valid in zip(population, [155, 81, 71, 1000], [True, True, True, False]):
+        individual.set_evaluation_result(evaluation(individual, seconds, valid=valid))
+    history = OptHistory(default_save_dir=tmp_path)
+    history.add_to_history(population)
+    for recorded in (history, OptHistory.load(history.save())):
+        fold_seconds = selected_pipeline_fold_seconds(recorded, original.graph, 3)
+        assert fold_seconds == pytest.approx(155 / 3)
+        search, cap, folds = measured_tuning_resources(1682, fold_seconds, 3)
+        assert (search, cap, folds) == pytest.approx((1279, 201.5, 3))
+    assert template == {'use_input_preprocessing': True}
+
+
 def test_invalid_result_and_retry_do_not_pollute_template(metadata_types):
     Individual, graph = metadata_types
     template = {'use_input_preprocessing': True}

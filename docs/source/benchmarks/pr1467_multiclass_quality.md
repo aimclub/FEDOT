@@ -236,3 +236,29 @@ per-evaluation wall-time compliance claim. The first proposal still times
 out; outer quality, refit, total budget and saved-history provenance remain
 pending. Original-CV versus cached-duplicate timings are detailed in the
 budget hypothesis report. Runtime hashes verify; no jobs or code were changed.
+
+## Bounded follow-up cycle closed: 2026-11-10 22:52 UTC
+
+Fabert5 metadata pair is COMPLETE: both independently yield
+**1.0498586672813428** with byte-identical valid predictions. Candidate
+job3073.6s/training3039.3s versus baseline3224.2s/3198.1s; both successful
+final refits and all budgets pass. This is not an outer-quality gain.
+
+The COW fix is verified in saved history: original CatBoost154.99696s and
+cached duplicate81.56952s remain separate from last RF71.11488s. The maximum
+exact-match measurement correctly drives51.66565s/fold and201.496s evaluation
+allowance. Initial tuner fitness becomes finite, but all five proposals and
+the final check still time out; the tuner returns the initial graph. A finite
+returned-history fitness does not imply a successful final re-evaluation.
+
+A new no-training regression protects this original-versus-cached timing
+contract through serialization:8 metadata tests and25 budget/refit tests
+pass locally; the new test fails as expected on the old vendor. All three
+hosts are idle. Exact hashes/provenance are in the budget hypothesis report.
+
+The current bounded hypotheses are closed: metadata/transport correctness
+fixes stay isolated and experimental; the valid400-tree screen was negative;
+remaining-refit retains only its limited opt-in evidence. No general default,
+search-space or original-PR promotion follows. Further calibration would be
+a new prospectively designed study, not another repeat of these runs. The
+existing monitoring task was deleted; no new experiments were launched.

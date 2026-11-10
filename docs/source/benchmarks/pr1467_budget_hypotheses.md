@@ -1309,3 +1309,92 @@ CatBoost model. No fix is applied to the active source. Continue this queue
 until final refit, history, predictions and <=3600s job/train can be audited.
 The completed negative Covertype horizon screen is unchanged; no additional
 full series or general-default/PR promotion is justified in this pass.
+
+## Final metadata audit and bounded-cycle closure: 22:52 UTC
+
+Both fabert5 runs are COMPLETE. The candidate's probabilities are byte-identical
+to baseline, with independently recomputed logloss **1.0498586672813428**.
+Candidate job3073.6s/training3039.3s versus baseline3224.2s/3198.1s; all are
+under3600s. Both824x7 files have identical truth rows and column order0..6,
+finite probabilities in[0,1], maximum normalization error4.440892098500626e-16,
+valid labels and empty score info. No outer-quality gain or general speed
+improvement is claimed.
+
+Candidate prediction SHA is the same as baseline:
+`8cbeea281c764e353351bc742abcc425fd09ae592d26357dd6e623d535367d72`.
+Paired truth SHA remains
+`25e85d1d17bd64c4f2285e704dbfcac8cb5be03e798928376d5fc8f6fb5648f6`.
+Candidate history SHA:
+`9b4435800b3082a8f1a25d1e6fcf08fcd55bbc0fdd9ff135f141751133c45f16`.
+
+### Timing provenance correction confirmed
+
+All11 saved candidate evolutionary records retain distinct evaluation times,
+unlike baseline's14 overwritten records. final_choices selects the original
+CatBoost UID9557c4a7-50e7-4789-8c43-6d042e943a5e. Canonical nodes, parameters
+and edges match the returned _tuning_result; both final tuner and final
+pipeline log parameter dictionaries match. The two exact matching
+evolutionary records are:
+
+| Record | Metadata duration (s) | Evaluation timestamp | Log bracket (s) |
+| --- | ---: | --- | ---: |
+| Original CatBoost, UID9557c4a7 | 154.99696075357497 | 22:04:35.553634 | 154.352 |
+| Cached duplicate, UID105ce4e3-a663-40b4-8ac2-a6760b08dd26 | 81.5695218546316 | 22:17:24.892809 | 81.296 |
+
+The last RF has its own71.1148843113333s/timestamp22:18:36.007810, consistent
+with70.806s in the log, and no longer overwrites either CatBoost record.
+The unchanged maximum-over-exact-matches rule therefore gives
+154.99696075357497/3 = **51.66565358452499s/fold** and evaluation allowance
+1.3*154.99696075357497 = **201.49604897964747s** (logged201s). Tuner entries
+without duration metadata do not enter this maximum. This confirms the COW
+bookkeeping fix, not an improvement in final predictions.
+
+### Remaining tuning limitations, not hidden successes
+
+Initial tuner fitness is finite0.8644510262049153; its211.575s wall bracket
+still exceeds the201.496s allowance. All five proposals and the final check
+time out. The returned initial graph/fitness is stored in final history
+UID7325861b-4f5d-4ea1-9098-6be4140b3d26; that finite stored fitness does NOT
+mean the final re-evaluation succeeded. The log explicitly returns initial
+because the obtained metric is None. Final full-data refit itself succeeds
+at22:45:02.706,86.939s after model generation, without timeout fallback.
+A loky cleanup KeyError remains a cleanup issue, not a completed-fit failure.
+
+Read-only source inspection explains why this is not a hard wall-clock cap:
+PipelineObjectiveEvaluate checks remaining evaluation time before each fold
+and bounds its fit, but objective prediction and cleanup after the final fit
+are not preempted by an enclosing evaluation deadline. COW does not change
+that accounting, cache effects or the cost of new hyperparameters. Arbitrarily
+raising the multiplier after seeing these timeouts would require a new
+predeclared budget/regression study, not promotion of this screen.
+
+### No-training regression and stopping decision
+
+Added a cross-component regression in diagnostic test_runtime_contracts.py:
+an original graph155s, cheaper same-graph cached duplicate81s, unrelated71s,
+and invalid same-graph1000s must preserve155s as the budget source before
+and after history serialization. It exercises real Individual evaluation
+updates and the unchanged FEDOT budget helpers. All8 metadata tests pass
+locally against the existing isolated patched vendor (individual SHA1d4f11ca).
+The new test fails as intended against original vendor7b0d1de3: shared metadata
+incorrectly turns the valid graph's per-fold cost into333.333s rather than
+51.667s. The25 budget/measured-budget/final-refit tests also pass. No training,
+dependency installation, vendor rewrite or remote-source change was required;
+this new test was not inserted into any frozen source archive.
+
+At22:50 read-only process checks found no matching benchmark/framework/queue
+on copper, ruthenium or dysprosium. All predeclared bounded series are audited.
+The current hypothesis cycle is exhausted: retain the isolated metadata and
+transport correctness fixes, do not promote the negative400-tree screen,
+and retain remaining-refit as opt-in with its existing limited Dionis evidence.
+No broad defaults/search-space/PR1467 change is supported. This does not claim
+all future research is exhausted; a new calibration or uncached-cost policy
+would need its own train-only mechanism evidence and prospective protocol.
+No further full-run intervention is selected for this cycle.
+
+The existing recurring task
+`fedot-budget-hypotheses-20261110-monitor-v1` was deleted after the final audit,
+as requested when this bounded hypothesis set is exhausted. No duplicate
+scheduler was created. All old archives, results, deployed/shared sources,
+and user-untracked files remain intact; only this regression test and reports
+changed in the closing pass.
