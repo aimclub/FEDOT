@@ -601,3 +601,76 @@ Dysprosium's queue launched at **18:53:47 UTC**, ruthenium's at
 was active. Each has a new STARTED baseline and an exclusive queue; candidate
 waits for baseline. Copper's original Dionis2 baseline is still active at
 18:54 UTC and has not been restarted or changed.
+
+## Copper fold2 control verified; history provenance issue: 19:10 UTC
+
+Copper baseline `44262616` is COMPLETE. Independent batched recomputation
+gives outer-test logloss **0.8521750855647503**, job **2965.2 s**, training
+**2904.1 s**. All 41,619 x355 probabilities are finite, in [0,1], normalized
+(maximum row-sum error 8.89e-16); labels and class order are valid. The score
+matches the scoreboard to its printed precision. Prediction SHA-256:
+`7920d079098d2720c7a06e2aec126d120e17ab51d5c7c6ae9a6db3a9960b8d7e`.
+SHA-256 of UTF-8 truth labels joined with a trailing newline per row:
+`76e725fac8908419462d93a20509cfb696333a57d9198c06581fd392b68c55f1`.
+
+Composition evaluated both initial graphs with finite fitness: scaling/LGBM
+CV loss1.0774162188759064, scaling/logit0.8575016046202981. No infinite tuner
+fitness was produced: tuning was skipped as infeasible. Selected scaling/logit
+completed final refit at18:59:27 without fallback. The log contains a
+`multiprocessing.resource_tracker` cleanup KeyError for a loky semaphore;
+the job nevertheless completed and saved valid predictions. Do not describe
+the log as entirely error-free or interpret this cleanup warning as a fit
+timeout. Candidate automatically started **19:00:02 UTC**. Its harness true
+flag is confirmed; initial fit took398.7s and composition started19:07:52.
+There is no completed same-fold pair yet.
+
+### Exact selected graph matched, but shared metadata contaminates other graphs
+
+Saved `info/Dionis/2/history.json` SHA-256:
+`21f35fa8907f43ffa7ded6ede575bd370d32ef56d6cbd0e926e09a3ef40d4839`.
+The selected graph's operations, parameters and edges match `_tuning_result`
+and final_choices individual `a70ecd85-dc81-4a33-abaa-391c1d2945ba` exactly.
+Its recorded CV duration925.1078804610297s /5 = **185.02157609220595s/fold**,
+agreeing with the logged185.0. The log independently brackets logit evaluation
+at18:40:12.556--18:55:37.439 (924.883s, excluding dispatcher overhead).
+Measured tuning allocation74.3s and refit reserve498.2s led to skipping tuning.
+
+However, LGBM's separate history individual has the **same duration and
+evaluation timestamp**. Its own log brackets evaluation at
+18:17:35.811--18:40:12.305 (1356.494s), not925.1s. A read-only in-memory
+reproduction against the pinned server GOLEM confirms the cause:
+`EvoGraphOptimizer` creates individuals using the same
+`requirements.static_individual_metadata` dictionary; `Individual` retains
+that reference and `set_evaluation_result` updates it in place. Giving two
+such individuals10s and20s evaluations makes BOTH report20s and also writes
+20s into the static template. Mutation/crossover constructors also reuse the
+template. Individual source SHA-256:
+`7b0d1de39ad586774883025bc1c690ac1539634a9f71b43a249a059c123af527`.
+
+Thus exact graph matching alone does not establish duration provenance in
+these frozen runs. Here the chosen logit happened to be evaluated last, so
+its measured cost is corroborated independently; LGBM's metadata is wrong.
+For all subsequent active results, compare selected-graph timing with log
+boundaries and flag shared/colliding metadata. Do not retrospectively repair
+history files or claim the earlier runs are all affected in the same way.
+The existing unit tests for exact-ID matching did not cover shared metadata.
+
+Potential next correction, after evaluating the current pairs: isolate
+individual metadata when applying evaluation results (copy-on-write instead
+of mutating the shared static template), with regression tests for initial
+population, later offspring, sequential/parallel evaluation and serialized
+history. Any GOLEM correction must use a NEW immutable isolated vendor copy,
+record its hash and retain the existing vendor for all active runs; no global
+monkeypatch or in-place deployed fix. First prove the bookkeeping correction
+with cheap tests before deciding whether another full paired run is needed.
+No new training or deployed-code change was made during this inspection.
+
+### Horizon screening pairs remain active
+
+Ruthenium fabert4 baseline initial fit76.7s, composition entered18:56:36.
+Dysprosium Covertype4 baseline initial fit218.8s; composition was skipped
+(five-fold estimate1094.0s), but tuning started with two folds, a513s trial
+cap and683s search allowance. These are execution-path observations, not
+quality results. Both candidates remain queued. The shape of the Covertype
+end-to-end search is already different from the frozen five-node train-only
+probe, reinforcing why its inner losses are not full AMLB improvements.
