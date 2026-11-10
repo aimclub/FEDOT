@@ -674,3 +674,57 @@ cap and683s search allowance. These are execution-path observations, not
 quality results. Both candidates remain queued. The shape of the Covertype
 end-to-end search is already different from the frozen five-node train-only
 probe, reinforcing why its inner losses are not full AMLB improvements.
+
+## Horizon control completed on Covertype: 19:28 UTC
+
+Dysprosium baseline Covertype4 (`30142fca`, no defaults overlay) is COMPLETE.
+Independent recomputation yields outer-test logloss **0.1587776834879601**,
+job **1888.0 s**, training **1855.8 s**. All58,101 x7 probabilities are finite,
+bounded and normalized (maximum error6.67e-16); class columns are ordered
+1--7 and all truth/predicted labels are valid. Both durations are below3600s.
+Prediction SHA-256:
+`c46072f3ed6b7dda5c7e73d2ad3d94713b621351782eef41b8c220efcb6dacce`.
+Truth-label SHA-256 (UTF-8, newline after each label):
+`ec782fe1951ad22a62bf3c8fac5fd70e26850addd7c79be9b190add3e711c684`.
+
+Although composition was skipped, tuning did run on the initial five-node
+stack `scaling -> (catboost, xgboost, lgbm) -> logit`. Two trials completed.
+History fitness values and independently bracketed log durations are:
+
+| Evaluation | CV logloss | Log-bracketed duration (s) |
+| --- | ---: | ---: |
+| Initial graph | 0.3290292773165658 | 304.127 |
+| Trial0 | 0.23356965076812622 | 332.043 |
+| Trial1 | 0.19756742384484072 | 342.108 |
+| Final check | 0.19756742452165307 | 338.434 |
+
+All evaluations finished within the513s evaluation cap, with no invalid/inf
+fitness. Final refit succeeded at19:25:42 without fallback (about211s after
+tuning finished). A loky semaphore cleanup KeyError appears in the resource
+tracker; as in the copper control, it did not prevent valid completed output.
+
+Saved history SHA-256:
+`eea41dfc18f141f066ec1e333b378a1449d33b4f41d6ceb7d9c9903e5c7f3316`.
+The final result individual `16013ca6-16a9-41f5-8dd9-b60e77fb6b1d`
+matches `_tuning_result` in graph structure/parameters; all final operation
+parameters also match the final-graph log. Chosen LGBM learning_rate is
+0.13925650312807544, num_leaves253, min_data_in_leaf80; logit C7.023524726465261.
+These are new tuning proposals, not the frozen train-only graph parameters.
+The four tuner records have distinct timestamps and **no**
+`computation_time_in_seconds`; do not manufacture those durations from the
+history or conflate tuner records with the shared evolutionary metadata bug.
+There was no measured selected-graph composition-CV branch on this run.
+
+Candidate automatically STARTED at **19:25:56 UTC**; the queue and benchmark
+process are live. Its environment records the isolated overlay and effective
+`n_estimators=400`; profile SHA-256:
+`3707fa7def594cdefa9dfb27c82a941390259edfd9ad2ab774f868848e5781a0`.
+This confirms configuration, not400 fitted rounds or a completed improvement;
+inspect the candidate's graph/model evidence when available. Neither the
+baseline's score nor earlier train-only losses establish the paired effect.
+
+Copper's Dionis2 candidate remains in composition; ruthenium's fabert4
+baseline is still active. No jobs were restarted, no deployed code/results
+were edited and no additional series was launched. The monitoring log's
+96.7% disk-use number was checked against the actual run/tmp filesystem:
+`/var/essdata` is74% used with about249TiB available, not out of space.
