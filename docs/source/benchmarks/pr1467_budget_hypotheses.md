@@ -893,3 +893,35 @@ sequential/parallel/serialization metadata tests and an actual sanitized
 run_in_venv child probe before declaring the next bounded paired series.
 Neither correction is implemented or deployed in this inspection. General
 defaults and original PR1467 remain unchanged.
+
+## Live fabert repeat: 20:27 UTC
+
+Ruthenium candidate remains STARTED, with its original queue, benchmark and
+framework processes alive. There is no COMPLETE/FAILED marker, prediction
+file or serialized history yet. Source is still `30142fca`. Copper and
+dysprosium have both COMPLETE pairs and no benchmark/probe/queue process.
+No new run or deployed-code change was made during this inspection.
+
+The fabert initial fit took80.2s; evolutionary CV was explicitly reduced from
+five to three folds. Composition ended at20:13:06 after22.385min. The selected
+scaling/CatBoost graph had finite CV loss0.8871864530763364 and independently
+bracketed CV duration **127.762s** (19:56:11.353--19:58:19.115).
+Nevertheless, the measured branch logged **21.5s/fold**,1712.3s available for
+tuning and104.3s refit reserve, allocating **84s per three-fold evaluation**
+and1544s search. The last evolutionary LGBM evaluation took64.340s, consistent
+with the erroneous21.5s/fold scale, not with selected CatBoost's own timing.
+Confirm exact metadata sharing/graph matching in the saved history after
+completion; a matching timing scale alone is not proof of dictionary identity.
+
+At20:26:05 the tuner progress counter reached seven trials with best loss inf;
+initial fitness was also inf. The log contains timeout exceptions for the
+initial evaluation and all seven completed trial proposals. The occasional
+exception text saying only1--7seconds is not the configured overall CV cap:
+the API explicitly allocated84s, and the initial tuner evaluation spanned
+about97.3s including work around the timed fit. Do not report these partial
+CV failures as infinite outer-test loss or a failed completed job. Final
+refit, predictions and total budget compliance remain pending.
+
+The existing recurring monitor is retained. Finish this audit before the
+planned isolated metadata/transport corrections and any new full series;
+there is no reason to restart the active job or fill idle hosts prematurely.
