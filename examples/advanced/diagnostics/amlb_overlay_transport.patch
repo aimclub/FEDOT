@@ -1,0 +1,28 @@
+diff --git a/frameworks/FEDOT/__init__.py b/frameworks/FEDOT/__init__.py
+--- a/frameworks/FEDOT/__init__.py
++++ b/frameworks/FEDOT/__init__.py
+@@ -2,6 +2,7 @@ from amlb.data import Dataset, DatasetType
+ from amlb.utils import call_script_in_same_dir
+ from copy import deepcopy
+ 
++import os
+ 
+ def setup(*args, **kwargs):
+     call_script_in_same_dir(__file__, "setup.sh", *args, **kwargs)
+@@ -52,8 +53,15 @@ def run_fedot_tabular(dataset: Dataset, config: TaskConfig):
+         encoded_class_count=encoded_class_count,
+     )
+ 
++    # run_in_venv sanitizes its child environment. Forward only this opt-in
++    # profile; keep the caller's existing retained-variable list unchanged.
++    overlay_key = "FEDOT_OPERATION_DEFAULTS_OVERLAY"
++    overlay_env = (
++        {overlay_key: os.environ[overlay_key]} if overlay_key in os.environ else {}
++    )
+     return run_in_venv(
+-        __file__, "exec.py", input_data=data, dataset=dataset, config=config
++        __file__, "exec.py", input_data=data, dataset=dataset, config=config,
++        options=dict(env=overlay_env),
+     )
+ 
+ 

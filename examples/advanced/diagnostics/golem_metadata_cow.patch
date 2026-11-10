@@ -1,0 +1,15 @@
+diff --git a/golem/core/optimisers/opt_history_objects/individual.py b/golem/core/optimisers/opt_history_objects/individual.py
+--- a/golem/core/optimisers/opt_history_objects/individual.py
++++ b/golem/core/optimisers/opt_history_objects/individual.py
+@@ -48,7 +48,10 @@ class Individual:
+             return
+ 
+         self._set_fitness_and_graph(eval_result.fitness, eval_result.graph)
+-        self.metadata.update(eval_result.metadata)
++        # Initial individuals and offspring may share static metadata. Detach
++        # before adding evaluation-specific values, preserving the template.
++        super().__setattr__('metadata', {**self.metadata, **eval_result.metadata})
++
+ 
+     @property
+     def has_native_generation(self) -> bool:
