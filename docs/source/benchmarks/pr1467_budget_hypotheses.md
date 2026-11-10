@@ -925,3 +925,92 @@ refit, predictions and total budget compliance remain pending.
 The existing recurring monitor is retained. Finish this audit before the
 planned isolated metadata/transport corrections and any new full series;
 there is no reason to restart the active job or fill idle hosts prematurely.
+
+## Final fabert audit and isolated runtime corrections: 20:55 UTC
+
+The last fabert4 repeat is COMPLETE and its queue/framework processes exited.
+Independent loss is **1.1099874516424617**; predictions are byte-identical to
+baseline (`da53cdb4280aa9286adff3b273eadd9ed43d375f33ea64b426c159f5ddfcf39f`).
+All824 x7 probabilities are finite/bounded/normalized (4.45e-16 maximum error),
+paired labels and class order0--6 match. Job/training time **3262.3/3235.9s**
+is within3600s, versus baseline3207.8/3180.8s. Untuned scaling/CatBoost full
+refit succeeded at20:43:06, without a refit-timeout fallback. Tuning returned
+the initial graph after invalid initial/trial/final evaluations: sixteen
+recorded trial proposals have invalid fitness, not infinite outer-test loss.
+
+History SHA: `0546c821e3f68c54eb3e14ce4066429fb63cff3a47d04533c6424b05249638a9`.
+Exact selected graph match UID `f6ae887d-b095-41ed-b4f0-ab268b2cef61` has
+CV0.8871864530763364 but metadata64.58492215164006s, timestamp20:13:05.637538,
+shared by all11 recorded evolutionary individuals. This belongs to the last
+LGBM evaluation, not selected CatBoost's127.762s. The saved artifact therefore
+confirms the earlier timing-provenance diagnosis on this repeat too.
+
+### Cheap correction checks (no training)
+
+Diagnostic source `50dc0a9db483b85e00edcabbe4233b534e19d8fe`, archive SHA
+`0ed267eff40c7efdecdf658dd88c118dc2b27a9eb79bf7d0ecbe9943c8f0d178`, is tested
+in NEW ruthenium stage `runtime-contracts-20261110`. General FEDOT defaults,
+all previous archives, shared vendor/harness and original PR remain unchanged.
+
+- GOLEM patch replaces in-place metadata.update with a new merged dictionary
+  when applying GraphEvalResult. Static fields are retained; evaluation values
+  take precedence. This isolates top-level timing keys, not arbitrary nested
+  mutable metadata supplied by callers. No runtime monkeypatch is installed.
+- AMLB patch changes only FEDOT's tabular adapter to pass the opt-in overlay
+  through options.env. The shared caller and all retained-variable defaults
+  are unchanged. Timeseries and explicit node-parameter precedence are intact.
+- Seven metadata tests pass locally and on the isolated server vendor: shared
+  initial template, real mutation/crossover offspring constructors, spawned
+  evaluation results applied in the parent, history serialization, invalid
+  evaluation/retry, and fitness-only graph updates. On the old local vendor,
+  six tests fail for the reproduced corruption and the unchanged fitness-only
+  contract passes. Thirty-six local budget/refit/overlay regression tests pass.
+- Two real sanitized-boundary tests pass in benchmark-venv: tabular adapter ->
+  actual run_in_venv -> real framework-python child, with only training script
+  replaced by a no-fit constructor probe. Imported FEDOT path is checked;
+  native/profile constructors are100/400, explicit23 wins, regression defaults
+  are unchanged, TMPDIR/XDG_CACHE_HOME survive, unrelated sentinel is filtered.
+  Against the old harness, profile-off passes and profile-on fails precisely
+  because the overlay is absent in the child. This negative control reproduces
+  the actual missed boundary, unlike the old ordinary-subprocess test.
+
+New individual.py SHA:
+`1d4f11ca785b4cb60f33d717db08c649104054b5fabeab41771085309ff61cb0`.
+New FEDOT harness __init__.py SHA:
+`96dcc35e61a13c0f35c1d9b551e7bfd27992c280d1eb29b73af69e353ae14c2c`.
+Unchanged caller SHA remains44d71531; unchanged exec.py remains3b8958e4.
+The harness input has mixed CRLF/LF; ordinary git apply --check refused it,
+then --ignore-space-change --check passed and applied only to the new copy.
+The patch archive was not rewritten. The first combined server preflight had
+7 passes/2 import failures because framework-venv lacks openml; the transport
+tests then passed in benchmark-venv. Original failure logs are retained and
+no dependencies were installed. A local negative-control collection initially
+put site-packages before the standard library, exposing a stale typing module;
+correcting only PYTHONPATH produced the six expected assertion failures above.
+
+### Next bounded full series (declared before launch)
+
+1. Ruthenium `metadata-cow-fold5-20261110`, fabert5/small, seed104734: identical
+   FEDOT source, native100 trees, corrected isolated transport on BOTH sides,
+   final-refit flag false. Baseline uses an immutable copy of original vendor;
+   candidate differs only by metadata copy-on-write. Hypothesis: selected CV
+   timing retains its own provenance and gives feasible initial tuner fitness
+   instead of the demonstrated84s cap. Check actual log/history timing, cap,
+   trial failures, successful refit, predictions and <=3600s. Valid bookkeeping
+   does not guarantee every proposal finishes or quality improves.
+2. Dysprosium `horizon-transport-fold5-20261110`, Covertype5/large, seed104734:
+   both sides use corrected metadata and transport; only candidate enables
+   the400-tree profile. Native learning rate, tuning space, Hessian, deadlines,
+   final-refit false and all other settings remain unchanged. This is the
+   first valid full-run horizon screen, not a rerun/repair of fold4. Verify400
+   in actual initial graph and framework environment; constructor evidence
+   alone is not evidence that400 rounds were fitted under early stopping.
+
+Both are sequential1h8c pairs, portfoliofalse/best_quality/tuningtrue/n_jobs8,
+historyinfo. New runner isolated mode requires a pre-launch runtime hash
+manifest and records it for each run; overlays now fail fast in shared mode.
+Use the same frozen source for each pair, record its commit/archive before
+launch, and run the cheap contracts on each prepared host. No STARTED directory
+is reused. Interpret differing search graphs/proposals as end-to-end policy
+effects, not fixed-parameter ablations. Copper stays free; no additional
+regression dataset/default promotion is justified until these screens finish.

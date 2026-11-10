@@ -18,11 +18,32 @@ variants=${7:-'baseline candidate'}
 candidate_profile=${8:-none}
 [[ "$candidate_profile" == none || "$candidate_profile" == lgbm400 ]]
 stage="$diagnostics/$series"
+runtime_mode=${9:-shared}
+[[ "$runtime_mode" == shared || "$runtime_mode" == isolated ]]
+harness_root="$source_stage/automlbenchmark"
+if [[ "$runtime_mode" == isolated ]]; then
+    harness_root="$stage/harness"
+    # The manifest is prepared before launch and covers both immutable vendors
+    # and the isolated harness. A STARTED run never repairs runtime sources.
+    test -s "$stage/runtime.sha256"
+    for artifact in \
+        harness/frameworks/FEDOT/__init__.py harness/frameworks/FEDOT/exec.py \
+        harness/frameworks/shared/caller.py \
+        vendor/baseline/golem/core/optimisers/opt_history_objects/individual.py \
+        vendor/candidate/golem/core/optimisers/opt_history_objects/individual.py \
+        vendor/baseline/golem/core/tuning/tuner_interface.py \
+        vendor/candidate/golem/core/tuning/tuner_interface.py; do
+        grep -Fq "  $artifact" "$stage/runtime.sha256"
+    done
+    (cd "$stage" && sha256sum --check runtime.sha256)
+elif [[ "$candidate_profile" != none ]]; then
+    echo 'Defaults overlays require a validated isolated AMLB transport' >&2
+    exit 2
+fi
 benchmark_python="$root/venvs/automlbenchmark/bin/python"
 framework_python="$root/automlbenchmark/frameworks/FEDOT/venv/bin/python"
-test -f "$diagnostics/vendor/golem/core/tuning/tuner_interface.py"
 # Fail before creating run markers if a task belongs to another suite.
-grep -Fqx -- "- name: $task" "$source_stage/automlbenchmark/resources/benchmarks/$suite.yaml" || {
+grep -Fqx -- "- name: $task" "$harness_root/resources/benchmarks/$suite.yaml" || {
     echo "Task $task does not belong to suite $suite" >&2
     exit 2
 }
@@ -38,6 +59,12 @@ export OMP_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 MKL_NUM_THREADS=8
 cd "$stage"
 for variant in $variants; do
     code_root="$stage/$variant"
+    vendor_root="$diagnostics/vendor"
+    if [[ "$runtime_mode" == isolated ]]; then
+        vendor_root="$stage/vendor/$variant"
+        (cd "$stage" && sha256sum --check runtime.sha256)
+    fi
+    test -f "$vendor_root/golem/core/tuning/tuner_interface.py"
     test -f "$code_root/fedot/api/main.py"
     test -s "$stage/$variant.commit"
     run="$stage/runs/$variant/$task-fold$fold-$suite"
@@ -48,13 +75,20 @@ for variant in $variants; do
     fi
     date -u +%FT%TZ >"$run/STARTED"
     cp "$stage/$variant.commit" "$run/source.commit"
-    export PYTHONPATH="$diagnostics/vendor:$code_root:$source_stage/automlbenchmark"
+    export PYTHONPATH="$vendor_root:$code_root:$harness_root"
     unset FEDOT_OPERATION_DEFAULTS_OVERLAY
     if [[ "$variant" == candidate && "$candidate_profile" == lgbm400 ]]; then
         export FEDOT_OPERATION_DEFAULTS_OVERLAY="$code_root/examples/advanced/lgbm_400_defaults.json"
         test -s "$FEDOT_OPERATION_DEFAULTS_OVERLAY"
     fi
     "$framework_python" -c 'import sys, fedot, golem, lightgbm, sklearn; print(sys.version); print(fedot.__file__); print(golem.__file__); print(lightgbm.__version__, sklearn.__version__)' >"$run/environment.txt"
+    if [[ "$runtime_mode" == isolated ]]; then
+        cp "$stage/runtime.sha256" "$run/runtime.sha256"
+        sha256sum "$vendor_root/golem/core/optimisers/opt_history_objects/individual.py" \
+            "$harness_root/frameworks/FEDOT/__init__.py" \
+            "$harness_root/frameworks/FEDOT/exec.py" \
+            "$harness_root/frameworks/shared/caller.py" >>"$run/environment.txt"
+    fi
     "$framework_python" -c 'import os, hashlib; from pathlib import Path; from fedot.core.operations.operation_parameters import get_default_params; p=os.environ.get("FEDOT_OPERATION_DEFAULTS_OVERLAY"); print("operation_defaults_overlay:", p); print("overlay_sha256:", hashlib.sha256(Path(p).read_bytes()).hexdigest() if p else None); print("lgbm_effective_defaults:", get_default_params("lgbm"))' >>"$run/environment.txt"
     session="fedot.multiclass-quality-$variant.$task.fold$fold"
     extra_args=()
@@ -63,7 +97,7 @@ for variant in $variants; do
     fi
     set +e
     timeout --signal=TERM --kill-after=60s 7500s \
-        "$benchmark_python" "$source_stage/automlbenchmark/runbenchmark.py" \
+        "$benchmark_python" "$harness_root/runbenchmark.py" \
         FEDOT "$suite" 1h8c -m local -p 1 -s skip -i "$root/input" \
         -o "$run/results" -t "$task" -f "$fold" --session "$session" \
         --logging=console:info,app:debug,root:info \
