@@ -1159,3 +1159,106 @@ manifest, verify against the predeclared hashes at21:49. Sources remain
 9009ca2e on both sides. Only reports changed during this pass: no new jobs,
 restarts, archive/result edits, deployed/shared-runtime patches or PR changes.
 Continue the existing queues; no additional full series before these results.
+
+## Completed horizon screen and fabert control audit: 22:12 UTC
+
+### Covertype5: valid activation, negative end-to-end screen
+
+Both runs in dysprosium horizon-transport-fold5-20261110 are COMPLETE, with
+no matching queue/benchmark/framework processes remaining at22:06. Candidate
+predictions were independently recomputed and explicitly paired with baseline:
+identical58101 truth rows and CSV column order, classes1..7; finite probabilities
+in[0,1], maximum row-sum error6.661338147750939e-16. Score info is empty and
+rounded scoreboard agrees within1e-5.
+
+| Variant | Independent outer logloss | Job (s) | Training (s) |
+| --- | ---: | ---: | ---: |
+| Baseline native100 | 0.1761394325581716 | 1899.3 | 1869.9 |
+| Candidate opt-in400 | 0.20113041208684942 | 1769.5 | 1693.5 |
+
+Candidate outer loss is **14.188% higher** on this fold. Both budgets pass,
+but this screen does not justify a general400-tree default. Search remained
+enabled, with its allowance reduced701->628s and completed proposals2->1.
+Sampled/selected parameters differ: baseline retains its tuned stack, whereas
+candidate returns the initial stack because its single proposal is worse.
+Do not attribute the entire loss difference to fixed-parameter tree count or
+interpret the shorter job as a general speed improvement.
+
+Candidate CV: initial0.2277421901954615/338.715s; trial0
+0.22919309078613564/391.568s; final check of trial0
+0.22932524571838148/382.450s. All are finite and below471s. The final history
+UID99873727-ec0e-4f32-8a5e-d77937fca9bf records the RETURNED initial graph and
+fitness0.2277421901954615, not the rejected final-check fitness. Canonical
+parameters/edges match initial history and _tuning_result; final tuner and
+final-pipeline log parameters match too. This is the intended tuner recording
+contract, not evolutionary metadata corruption.
+
+Actual400 activation is supported by the previously inspected framework env,
+initial/final graph settings, and now explicit LGBM log messages
+"Did not meet early stopping. Best iteration is: [400]" during the initial
+CV first fold (between21:41:02.545 and21:41:30.330), trial0 first fold and
+its final-check first fold. Baseline initial CV first fold reports[100].
+These demonstrate fitted400 rounds for those CV fits. Missing terminal
+messages on other folds/full-data refit, and absence of a model pickle, mean
+their exact fitted-round counts remain unproven; do not extrapolate the
+observed count to every fit or rerun merely to recover that artifact.
+
+Candidate final pipeline fitted at22:01:46.541,230.870s after model generation;
+no refit-timeout fallback. A loky cleanup KeyError is not a fit failure.
+Candidate prediction SHA:
+`bf05da80cda83f9e37b33ddb4475b0312550b8985cb1c1e1a73b706c7d8b44cf`.
+Paired truth SHA remains
+`b4ecdd526e018e62d82d4bb954575ba0b8fae3771e51aec566ebbc6eedf4b940`.
+Candidate history SHA:
+`4f2623cfea35a42d604c4963120e8ca51b202800131d0493ce0ba52a39d64c49`.
+
+### Fabert5 baseline complete; metadata candidate active
+
+Ruthenium baseline independently checks at logloss **1.0498586672813428**,
+job3224.2s/training3198.1s,824x7 probabilities, lexical classes0..6, all finite
+and in[0,1], maximum row-sum error4.440892098500626e-16. Labels are valid,
+score info is empty, rounded score agrees, and both budgets pass. Final
+untuned CatBoost refit succeeds at21:52:59.375 (87.820s after model generation),
+without fallback. Initial tuner fitness, all15 proposals and final check are
+invalid/timeout; these are not an infinite outer-test loss. A cleanup KeyError
+does not invalidate this completed job.
+
+Prediction SHA:
+`8cbeea281c764e353351bc742abcc425fd09ae592d26357dd6e623d535367d72`.
+Truth SHA (UTF8 labels, newline each):
+`25e85d1d17bd64c4f2285e704dbfcac8cb5be03e798928376d5fc8f6fb5648f6`.
+History SHA:
+`2477c7e4f6128aa2780d1a11b9852e6aebe1a33ef0aed56853ebb0b7cf600d33`.
+
+Saved final_choices selects **80105052-e911-423a-b137-20e679d3a207**, native
+generation0, no parent operator: the original initial-assumption CatBoost.
+Its graph/parameters/edges match _tuning_result and final tuner/pipeline logs.
+The later equal-fitness individual **e666f475-642e-44ad-99ad-44a239d4a756** is
+a generation2 crossover offspring of that original and XGBoost, not the chosen
+UID. Its63.656s evaluation has explicit prediction-cache HITs for both fit
+and prediction on all three folds at21:18:05.994--21:18:55.832. Thus the
+later duration is cache-assisted, not a second cold training-time measurement.
+The initial CatBoost evaluation brackets118.926s as recorded above; saved
+graphs now carry resolved n_jobs8, although the initial bracket logs -1.
+
+All14 saved evolutionary individuals share the corrupt66.36177679151297s
+and timestamp21:23:26.401946, consistent with the last RF evaluation
+(66.097s log bracket), not the selected original's evaluation. Dividing that
+overwritten time by3 gives22.1205922638s/fold, explaining the86s tuner cap.
+Do not replace old history or treat cache-assisted CV as cold-fit cost.
+Correct metadata alone still does not guarantee feasibility for all proposals.
+
+The existing queue started the metadata-patched candidate at **21:53:13 UTC**.
+At22:06 its benchmark PID1204129 and framework exec PID1204171 are alive;
+PYTHONPATH points at stage-specific candidate vendor/source/harness and the
+overlay is absent, as required. Initial89.8s, CV5->3; composition started
+21:56:05.956 with1296s allocation/778s candidate cap. Saved candidate history,
+selected timing/cap, tuning outcome and paired outer predictions are pending.
+
+Both seven-entry runtime manifests reverified at22:06. No new jobs or code
+changes were made. Two read-only audit processes briefly waited in filesystem
+RPC I/O and subsequently completed; no benchmark was restarted. A fixed-line
+log parser encountered interleaved timeout stderr on fabert; parsing only
+named operation-parameter lines in the bounded final block then verified the
+match without modifying any artifact. Await the remaining metadata screen
+before deciding further bounded experiments; idle hosts remain unused.

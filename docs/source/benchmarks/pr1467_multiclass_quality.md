@@ -199,3 +199,29 @@ Fabert5 baseline still runs with14 completed invalid/timeout proposals and
 best tuner fitnessinf; its metadata-patched candidate is queued, not started.
 Do not conflate tuner fitness with outer-test loss. Both runtime manifests
 remain intact. No jobs, experimental code, deployed sources or PR were changed.
+
+## Follow-up status: 2026-11-10 22:12 UTC
+
+The correctly transported Covertype5 horizon pair is COMPLETE. Independent
+paired outer logloss is **0.1761394325581716 -> 0.20113041208684942**
+(14.188% worse); job/training times are1899.3/1869.9s ->1769.5/1693.5s.
+Both budgets pass, paired truth/class order matches, and all probabilities
+are finite and normalized. The candidate really activates400 trees, with
+explicit best-iteration400 evidence for three logged CV fits, but exact rounds
+of the full-data refit are not saved. Both final refits succeeded.
+
+Candidate performed one tuner proposal versus baseline's two and returned
+the initial stack after its proposal failed to improve CV. Different search
+parameters/outcomes prevent a fixed-parameter tree-count interpretation.
+This is a negative end-to-end screen, not evidence for promoting400 as a
+general default or a general speed claim. Checksums and timing are in the
+budget hypothesis report; the old confounded fold4 pairs remain separate.
+
+Fabert5 baseline is COMPLETE: independent logloss1.0498586672813428,
+job3224.2s/training3198.1s,824x7 valid probabilities and successful untuned
+CatBoost refit despite invalid initial/15trial/final tuner fitness. Saved
+history selects the original CatBoost UID, whereas the later equal-fitness
+offspring used cached predictions on all three folds. All14 evolutionary
+records still share the last RF's overwritten timing. The metadata-patched
+candidate started21:53:13 and remains in composition; its result is pending.
+No new runs, deployed/shared-source changes or PR/default promotion occurred.
