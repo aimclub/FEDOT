@@ -448,6 +448,15 @@ class FedotLightGBMClassificationImplementation(FedotLightGBMImplementation):
 
     def fit(self, input_data: InputData):
         self.classes_ = np.unique(np.array(input_data.target))
+        # Rare multiclass labels can produce tiny leaf Hessians and extreme
+        # Newton updates with LightGBM's 1e-3 default. Keep a conservative
+        # default for multiclass fits, but never replace an explicit value
+        # (including LightGBM's aliases). Binary fits retain the library default.
+        hessian_parameters = {'min_child_weight', 'min_sum_hessian_in_leaf',
+                              'min_sum_hessian', 'min_hessian', 'min_sum_hessian_per_leaf'}
+        if hessian_parameters.isdisjoint(self.model_params) and not is_multi_output_target(input_data):
+            weight = 1.0 if len(self.classes_) > 2 else 1e-3
+            self.model.set_params(min_child_weight=weight)
         return super().fit(input_data=input_data)
 
     def predict_proba(self, input_data: InputData):
