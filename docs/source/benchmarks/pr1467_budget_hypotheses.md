@@ -1014,3 +1014,25 @@ launch, and run the cheap contracts on each prepared host. No STARTED directory
 is reused. Interpret differing search graphs/proposals as end-to-end policy
 effects, not fixed-parameter ablations. Copper stays free; no additional
 regression dataset/default promotion is justified until these screens finish.
+
+Both new queues STARTED their baseline at **20:58:53 UTC**, after read-only
+process checks found no preceding benchmark/probe/queue. Each variant uses
+identical FEDOT source revision **9009ca2e337a7ab5845df3f65e8bb0db36d63a75**,
+archive SHA `084561f058e7006b999e1207d94c9ccdd16f58435b12417fb8410809885e081d`.
+FEDOT model files have no diff from30142fca. Seven metadata and two actual
+sanitized-launcher tests passed separately on each prepared host before
+launch. Full Python-source hash maps confirmed the sole harness difference
+from original is FEDOT/__init__.py; vendor baseline/candidate differ only in
+individual.py on ruthenium, and are identical patched copies on dysprosium.
+
+Runtime manifest SHA-256:
+
+- Ruthenium: `6fd39401424cddeae4f964d6a9c3225954aa3ccc42b51d5e5b647753b40ba006`.
+- Dysprosium: `5f99fb5eab769fc75ff63cd70d653dded97c9fe5273621fc6a7f152c3d1621d2`.
+
+The frozen runner's ninth argument is `isolated`; eighth is `none` for the
+metadata pair and `lgbm400` for the horizon pair. Queue and STARTED markers
+are confirmed; each candidate waits sequentially for its baseline. Do not
+duplicate these jobs. Actual candidate training activation and full-run
+outcomes remain pending; preflight constructor tests are not fitted-round or
+quality evidence. Copper is intentionally idle.
