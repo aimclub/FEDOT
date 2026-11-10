@@ -29,6 +29,18 @@ Runs are exclusive, immutable, and refuse to restart a STARTED directory.
    It is NOT a full FEDOT run or an AutoMLBenchmark score. Each model gets an
    explicit seed; stochastic execution and hardware can still affect timings.
 
+The first Covertype preparation stopped before any fit because OpenML marks
+its binary indicator columns as categorical. Preserve that FAILED run. A new
+stage `budget-hypotheses-probe-v2-20261110` explicitly accepts these columns
+only after checking that their outer-training values are numeric 0/1. No
+encoder is fitted; all factorial cells share this representation. The full
+AMLB runs on copper/ruthenium are unaffected and must not be restarted.
+
+Implementation verification before launch: 44 local tests passed (budget,
+LightGBM, multiclass headroom and native-limit restoration); 16 budget tests
+passed separately in each of the three server environments. The immutable
+full-run headroom candidate is `caddb242d09f64151ecc52f369240da7b9406923`.
+
 ## Timing implementation
 
 GOLEM `individual.metadata['computation_time_in_seconds']` measures the whole

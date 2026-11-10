@@ -27,11 +27,16 @@ def prepare(args):
     dataset = task.get_dataset()
     features, target, categorical, _ = dataset.get_data(
         target=task.target_name, dataset_format='array')
-    if any(categorical):
+    if any(categorical) and not args.allow_numeric_binary_categories:
         raise ValueError('This numerical-data diagnostic does not encode categorical features')
     train_indices, _ = task.get_train_test_split_indices(fold=args.fold)
     # Discard the outer test before fitting encoders or constructing inner splits.
     features = np.asarray(features[train_indices], dtype=np.float32)
+    if any(categorical):
+        # Covertype's nominal indicator columns already contain numeric 0/1.
+        # This explicit opt-in does not fit an encoder or inspect outer test.
+        if not np.isin(features[:, np.asarray(categorical, dtype=bool)], [0, 1]).all():
+            raise ValueError('Categorical columns must already be numeric binary indicators')
     target = LabelEncoder().fit_transform(np.asarray(target)[train_indices])
     with args.output.open('xb') as stream:
         np.savez_compressed(stream, features=features, target=target,
@@ -78,6 +83,7 @@ if __name__ == '__main__':
     preparation.add_argument('--task-id', type=int, required=True)
     preparation.add_argument('--fold', type=int, required=True)
     preparation.add_argument('--output', type=Path, required=True)
+    preparation.add_argument('--allow-numeric-binary-categories', action='store_true')
     fitting = subparsers.add_parser('fit')
     fitting.add_argument('--data', type=Path, required=True)
     fitting.add_argument('--output', type=Path, required=True)
