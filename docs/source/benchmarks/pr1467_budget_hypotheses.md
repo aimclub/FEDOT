@@ -263,3 +263,15 @@ Copper's measured-budget candidate remains active; do not duplicate it.
   space change and never evaluates outer-test labels.
 
 No general defaults or original PR code are changed by these new tests.
+
+Both new queues launched at **17:12:32 UTC**, after confirming the preceding
+queues and benchmark processes had exited. Ruthenium's immutable model is
+`95d90fdc64f8827f759471f5e70a8651daa48251` for both variants (archive SHA
+`dc0006103566b267f238adbe24176a2422e6e85e65e0848ab97e02fd4302e880`).
+Dysprosium's diagnostic revision is `113a8dc0c7ae17554fcf6f00f83e71cfbdada27a`
+(archive SHA `b4bdccaa60169ea4df14dae96dd2857b42329035a0aca4d206f4dd618a0cf51d`);
+its FEDOT model source is unchanged from 95d90fdc. Archive hashes and LF
+shell syntax were checked before launch. Fifteen focused local tests passed;
+remote preflight passed 10 tests on ruthenium and 12 on dysprosium, explicitly
+loading the diagnostic module by path to avoid installed-package shadowing.
+No model defaults were changed in the new diagnostic revision.
