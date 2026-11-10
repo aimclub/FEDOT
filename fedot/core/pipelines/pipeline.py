@@ -4,6 +4,7 @@ from os import PathLike
 from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import func_timeout
+import numpy as np
 from golem.core.dag.graph import Graph
 from golem.core.dag.graph_delegate import GraphDelegate
 from golem.core.dag.graph_node import GraphNode
@@ -216,7 +217,7 @@ class Pipeline(GraphDelegate, Serializable):
                 train_predicted = self._fit(input_data=copied_input_data,
                                             predictions_cache=predictions_cache, fold_id=fold_id)
             else:
-                temporarily_updated_nodes = self._set_default_native_fit_time_limits(time_constraint)
+                temporarily_updated_nodes = self._set_default_native_fit_time_limits(time_constraint, copied_input_data)
                 train_predicted = self._fit_with_time_limit(
                     input_data=copied_input_data, time=time_constraint, predictions_cache=predictions_cache,
                     fold_id=fold_id)
@@ -229,7 +230,8 @@ class Pipeline(GraphDelegate, Serializable):
 
         return train_predicted
 
-    def _set_default_native_fit_time_limits(self, time_constraint: timedelta) -> list:
+    def _set_default_native_fit_time_limits(self, time_constraint: timedelta,
+                                          input_data: Optional[InputData] = None) -> list:
         """Bound native boosting fits that otherwise ignore Python timeouts.
 
         ``func_timeout`` remains the pipeline-level guard, while native
@@ -253,9 +255,19 @@ class Pipeline(GraphDelegate, Serializable):
         if not boosting_nodes:
             return []
 
+        fit_fraction = _NATIVE_FIT_TIME_FRACTION
+        if (isinstance(input_data, InputData)
+                and input_data.task.task_type == TaskTypesEnum.classification
+                and input_data.target is not None
+                and np.asarray(input_data.target).size == len(input_data.idx)
+                and np.unique(input_data.target).size >= 100):
+            # Hundreds of class trees make train prediction/model conversion
+            # expensive after the native training callback has stopped. Leave
+            # more headroom inside the unchanged pipeline-level deadline.
+            fit_fraction = 0.65
         per_node_seconds = max(
             0.1,
-            total_seconds * _NATIVE_FIT_TIME_FRACTION / len(boosting_nodes),
+            total_seconds * fit_fraction / len(boosting_nodes),
         )
         updated_nodes = []
         for node in boosting_nodes:
