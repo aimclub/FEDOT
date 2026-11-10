@@ -62,6 +62,7 @@ for variant in $variants; do
         --extra="seed=$((104729 + 10#$fold))" --extra=f._portfolio=false \
         --extra=f.parallelization_mode=sequential --extra=f.n_jobs=8 \
         --extra=f.preset=best_quality --extra=f.with_tuning=true \
+        --extra=f._save_artifacts=info \
         --extra=f.logging_level=10 "${extra_args[@]}" >"$run/run.log" 2>&1
     status=$?
     set -e

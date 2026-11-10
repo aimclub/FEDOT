@@ -275,3 +275,65 @@ shell syntax were checked before launch. Fifteen focused local tests passed;
 remote preflight passed 10 tests on ruthenium and 12 on dysprosium, explicitly
 loading the diagnostic module by path to avoid installed-package shadowing.
 No model defaults were changed in the new diagnostic revision.
+
+## Interim inspection: 17:26 UTC
+
+### Copper measured-budget pair completed: no prediction gain
+
+Both variants are COMPLETE and no benchmark process remains. Candidate
+`6f05a1ae` has independently recomputed outer-test loss
+**0.8345753647977304**, job **2903.3 s**, training **2849.3 s**. Its
+41,619 x 355 probabilities pass finite/range/normalization checks (maximum
+error 1.12e-15), and the prediction file is byte-identical to the control:
+`fe9a30a51d06f27d13bdedec8a9a26d8e1eb9fae5cf16e43abb0bc442668bace`.
+Control job/training time was 2897.3/2840.5 s. No quality or speed improvement
+is established by this pair.
+
+The candidate did exercise the measured-budget branch. At 17:19:04 it logged
+**193.4 s per fold**, **135.5 s available for tuning**, **485.3 s refit reserve**,
+then skipped infeasible tuning rather than evaluating invalid tuner fitness.
+Initial LightGBM again hit the 324 s CV cap; scaling/logit had finite CV loss
+0.85957458, was selected, and completed final refit. Composition consumed
+37.398 minutes, leaving insufficient time for useful tuning. This pair does
+not show recovery of the earlier infinite-fitness tuning case: both variants
+skipped tuning, and neither tested a completed measured-budget tuning trial.
+
+Audit limitation: no serialized optimization history was saved by the frozen
+runner. The candidate run and stage contain no history artifact, so exact
+history-individual/graph-ID matching and its metadata duration cannot be
+independently reconstructed from artifacts. The log proves activation, and
+source/tests check matching logic, but these are not a substitute for the
+missing history. The **future-run** shell runner now requests the existing
+harness `_save_artifacts=info` facility to save history. No active/deployed
+runner is edited, and no completed run is repeated just to add artifacts.
+
+### Covertype parameter ablation: five of nine cells checked
+
+All five completed cells were independently recomputed from saved NPZ files;
+validation labels are identical (104,583 rows, seven classes), finite/range/
+normalization checks pass, and each named single-field variant changes only
+that field. All other model blocks, seeds and Hessian are identical.
+
+| Variant | Inner logloss | Fit + prediction (s) |
+| --- | ---: | ---: |
+| Baseline | 0.3026504446866336 | 154.62 |
+| Full LightGBM block | 0.16127422159202612 | 152.33 |
+| Only learning_rate: 0.02981574 -> 0.11400404 | 0.21095839154652385 | 149.80 |
+| Only num_leaves: 166 -> 252 | 0.2729749987622811 | 161.04 |
+| Only min_data_in_leaf: 10 -> 93 | 0.3035219087028718 | 153.83 |
+
+Learning rate is a substantial contributor, but alone does not reproduce the
+full block's effect. Wait for the remaining four fields before selecting a
+range or testing interactions. These remain train-only diagnostics, not full
+AutoML scores. NPZ SHA-256, in row order:
+
+- `f00e8167124aab0432ebfce3c28d4630d52732fe066bc500bbb05512f4c5eb75`
+- `aed65e95c86bcda85f7c8a4a21e92edf0b7a6885faebf9a4042454793ec477c5`
+- `87717991022d01678543b14165748c721f63a53aed66827de23886bdec75e322`
+- `38541d6eab3967b5219755397d388b66b8660cbdda48a3e6f74e9064a7ff9bf4`
+- `bbb80079011a1e0bea0ba78d0bf980608ff37385fd81f382d2539c656831ef0f`
+
+Ruthenium fold1 baseline remains active; its initial fit took 558.3 s and it
+skipped composition/tuning, like fold0. No paired fold1 score is available.
+Copper is free, but no new expensive run is started before the outstanding
+parameter/refit evidence determines a justified next test.
