@@ -225,3 +225,14 @@ offspring used cached predictions on all three folds. All14 evolutionary
 records still share the last RF's overwritten timing. The metadata-patched
 candidate started21:53:13 and remains in composition; its result is pending.
 No new runs, deployed/shared-source changes or PR/default promotion occurred.
+
+## Follow-up status: 2026-11-10 22:27 UTC
+
+Fabert5 metadata candidate is still ACTIVE, now in tuning. Measured selected
+CV increases from baseline22.1 to51.7s/fold, and the evaluation cap86->201s.
+Initial tuner fitness is finite0.8644510262049153, unlike baseline's inf.
+Its211.575s wall bracket exceeds the rounded cap, so this is not a strict
+per-evaluation wall-time compliance claim. The first proposal still times
+out; outer quality, refit, total budget and saved-history provenance remain
+pending. Original-CV versus cached-duplicate timings are detailed in the
+budget hypothesis report. Runtime hashes verify; no jobs or code were changed.

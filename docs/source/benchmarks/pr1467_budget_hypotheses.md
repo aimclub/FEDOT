@@ -1262,3 +1262,50 @@ log parser encountered interleaved timeout stderr on fabert; parsing only
 named operation-parameter lines in the bounded final block then verified the
 match without modifying any artifact. Await the remaining metadata screen
 before deciding further bounded experiments; idle hosts remain unused.
+
+## Metadata candidate enters tuning: 22:27 UTC
+
+Ruthenium fabert5 candidate remains ACTIVE, with the original queue1201131,
+benchmark1204129 and actual framework exec1204171 confirmed alive at22:26:47.
+There is no COMPLETE/FAILED marker, prediction file or saved history yet.
+All seven isolated runtime entries and the run manifest still match the
+predeclared hashes; source.commit remains9009ca2e. No new run or patch was made.
+
+Composition finished22:18:37.432 after22.52min. The tuner input is the same
+native scaling/CatBoost graph with CV fitness0.8644510262049153. Its measured
+branch now uses **51.7s/fold**,1681.9s tuning allocation and116.8s refit reserve,
+giving three folds, **201s/evaluation** and1279s search. Baseline used the
+corrupt22.1s/fold,86s/evaluation and1538s search.
+
+Candidate's original CatBoost CV log brackets22:02:00.557--22:04:34.909
+(154.352s). The approximately155.1s total implied by the rounded measured
+value is consistent with that evaluation plus overhead, not with the last
+RF's70.806s or the later cached CatBoost duplicate's81.296s. The duplicate
+brackets22:16:03.324--22:17:24.620 and has explicit fit/predict cache HITs on
+all three folds. This is encouraging timing-provenance evidence, but exact
+selected UID/metadata/graph validation must wait for saved history; do not
+infer it from equal fitness alone or substitute these log durations into old
+history.
+
+The unchanged budget helper takes the maximum valid duration over ALL exact
+graph matches in history, not solely final_choices. The final audit must
+therefore check each matching record and the maximum that drives the cap,
+as well as the selected UID; a cheaper cached duplicate should not supersede
+a preserved slower original measurement.
+
+Initial tuner CV is now **finite0.8644510262049153**, completing at22:22:09.364
+instead of baseline's invalid/inf initial fitness. Its wall-clock bracket
+22:18:37.789--22:22:09.364 is211.575s, above the rounded201s evaluation cap;
+do not report that it finished within201s. Timeout accounting/overhead and
+the final full-job budget remain separate checks. Trial0, changing CatBoost
+colsample_bylevel to0.40486423263023386, times out at22:25:42.104; trial1
+starts22:25:42.452 and is still running at inspection. The correction has
+not eliminated all tuning timeouts, and no outer-quality gain is known yet.
+
+One unsuccessful evolutionary XGBoost proposal reports an unseen category
+in column723 at22:11:52.846. The baseline already has the same error at
+21:14:18.699; it is not a new COW regression or a failure of the selected
+CatBoost model. No fix is applied to the active source. Continue this queue
+until final refit, history, predictions and <=3600s job/train can be audited.
+The completed negative Covertype horizon screen is unchanged; no additional
+full series or general-default/PR promotion is justified in this pass.
