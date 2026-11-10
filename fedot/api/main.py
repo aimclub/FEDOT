@@ -221,14 +221,30 @@ class Fedot:
                 # Final fit for obtained pipeline on full dataset
 
                 with fedot_composer_timer.launch_train_inference():
-                    if self.history and not self.history.is_empty() or not self.current_pipeline.is_fitted:
+                    if (self.history and not self.history.is_empty() or not self.current_pipeline.is_fitted
+                            or not self.api_composer.was_tuned):
+                        initial_state = None
                         try:
+                            # Initial assumptions are validated on a train/test split. If tuning
+                            # was skipped, fit the selected pipeline on all available training data.
+                            if not self.api_composer.was_tuned:
+                                if self.current_pipeline is self.api_composer.fitted_initial_assumption:
+                                    # Keep the original fit available for the bounded-fit fallback.
+                                    initial_state = (
+                                        [(node, node.fitted_operation) for node in self.current_pipeline.nodes],
+                                        self.current_pipeline.preprocessor,
+                                    )
+                                self.current_pipeline.unfit()
                             self._train_pipeline_on_full_dataset(
                                 recommendations_for_data,
                                 full_train_not_preprocessed,
                             )
                             self.log.message('Final pipeline was fitted')
                         except TimeoutError as error:
+                            if initial_state is not None:
+                                for node, fitted_operation in initial_state[0]:
+                                    node.fitted_operation = fitted_operation
+                                self.current_pipeline.preprocessor = initial_state[1]
                             if not self._restore_fitted_initial_assumption(error):
                                 raise
                     else:

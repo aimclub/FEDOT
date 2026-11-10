@@ -1,4 +1,5 @@
 import datetime
+from contextlib import nullcontext
 from types import SimpleNamespace
 from unittest.mock import Mock
 
@@ -65,6 +66,61 @@ def test_final_pipeline_fit_receives_composer_graph_time_limit():
         n_jobs=8,
     )
     model.data_processor.accept_and_apply_recommendations.assert_not_called()
+
+
+@pytest.mark.parametrize('was_tuned, fit_times_out', [(False, False), (True, False), (False, True)])
+def test_fitted_initial_pipeline_is_refitted_on_full_data_when_not_tuned(monkeypatch, was_tuned, fit_times_out):
+    """An initial assumption was fitted on a train/test split, not the complete data."""
+    model = Fedot.__new__(Fedot)
+    train_data = object()
+    pipeline = Mock(is_fitted=True)
+    original_fit = object()
+    original_preprocessor = object()
+    node = Mock(fitted_operation=original_fit)
+    pipeline.nodes = [node]
+    pipeline.preprocessor = original_preprocessor
+
+    def clear_fit():
+        node.fitted_operation = None
+        pipeline.preprocessor = None
+
+    pipeline.unfit.side_effect = clear_fit
+    model.params = SimpleNamespace(
+        data={}, n_jobs=1, get=Mock(return_value=False),
+        update_available_operations_by_preset=Mock(),
+    )
+    model.data_processor = Mock()
+    model.data_processor.define_data.return_value = train_data
+    model.api_composer = Mock(was_tuned=was_tuned, fitted_initial_assumption=pipeline)
+    model.api_composer.obtain_model.return_value = (pipeline, (pipeline,), None)
+    model._init_remote_if_necessary = Mock()
+    model._train_pipeline_on_full_dataset = Mock()
+    if fit_times_out:
+        model._train_pipeline_on_full_dataset.side_effect = TimeoutError('expired')
+    model.log = Mock()
+
+    monkeypatch.setattr('fedot.api.main.MemoryAnalytics.start', Mock())
+    monkeypatch.setattr('fedot.api.main.MemoryAnalytics.finish', Mock())
+    monkeypatch.setattr('fedot.api.main.fedot_composer_timer.launch_data_definition',
+                        lambda *args: nullcontext())
+    monkeypatch.setattr('fedot.api.main.fedot_composer_timer.launch_fitting', lambda: nullcontext())
+    monkeypatch.setattr('fedot.api.main.fedot_composer_timer.launch_train_inference', lambda: nullcontext())
+    merge_preprocessors = Mock(return_value=object())
+    monkeypatch.setattr('fedot.api.main.BasePreprocessor.merge_preprocessors', merge_preprocessors)
+    monkeypatch.setattr('fedot.api.main.graph_structure', Mock(return_value={}))
+
+    assert model.fit(train_data) is pipeline
+    if not was_tuned:
+        pipeline.unfit.assert_called_once_with()
+        model._train_pipeline_on_full_dataset.assert_called_once_with(None, train_data)
+        if fit_times_out:
+            assert node.fitted_operation is original_fit
+            assert model.best_models == (pipeline,)
+            model.log.warning.assert_called_once()
+            assert merge_preprocessors.call_args.kwargs['pipeline_preprocessor'] is original_preprocessor
+    else:
+        pipeline.unfit.assert_not_called()
+        model._train_pipeline_on_full_dataset.assert_not_called()
 
 
 def test_fitted_initial_assumption_is_restored_after_final_fit_timeout():
