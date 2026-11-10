@@ -400,3 +400,57 @@ both diagnostic modules were then loaded by their exact frozen paths.
 Both preflight logs are retained; no deployed source was edited and no
 training run was repeated. The queue was launched after confirming that the
 preceding probe and all benchmark processes on dysprosium had exited.
+
+## Second refit fold and partial horizon check: 18:06 UTC
+
+Ruthenium's Dionis1 pair is COMPLETE, with no remaining benchmark process.
+Candidate loss independently recomputed from predictions is
+**0.8093934665168628**, versus **0.8207629887502289** for baseline (1.385%
+lower). Job/training time is **1476.1/1342.1 s**, versus 1045.0/892.5 s.
+All 41,619 x355 probabilities are finite, bounded and normalized (max error
+8.66e-15). Candidate prediction SHA-256:
+`7a1b3b5686380332edb211768055cbcbae82c305aaf416696a54f7c93e932c3c`.
+The harness flag was true. Initial fit took 546.3 s; both variants skipped
+composition and tuning. The candidate allocated 2523.5 s to final refit at
+17:40:12, finished it at 17:53:19, and retained scaling/LightGBM with no
+fallback. Thus the refit mechanism and modest quality benefit replicate on
+two Dionis folds on this host, at increased runtime. This is not evidence of
+a general multi-dataset gain or behavior after expensive composition.
+
+Five of eight horizon cells on dysprosium have been independently checked
+from NPZ: identical validation labels, finite/range/normalization pass, only
+learning_rate/n_estimators differ, requested and fitted parameters agree.
+All five models selected the last allowed iteration.
+
+| Learning rate | Trees | Inner logloss | Fit + prediction (s) |
+| --- | ---: | ---: | ---: |
+| 0.029815738804900536 | 100 | 0.3026504446866336 | 158.14 |
+| 0.06 | 100 | 0.2517127128261797 | 159.24 |
+| 0.10 | 100 | 0.21875727484530932 | 156.37 |
+| 0.15 | 100 | 0.19356271699303704 | 156.57 |
+| 0.029815738804900536 | 400 | 0.19274855201231036 | 203.93 |
+
+The baseline learning rate improves substantially with more trees, supporting
+underfitting at the 100-tree horizon. The remaining three 400-tree cells are
+still pending; do not select a policy from this partial grid.
+NPZ SHA-256, in row order:
+
+- `f00e8167124aab0432ebfce3c28d4630d52732fe066bc500bbb05512f4c5eb75`
+- `bd324f379edf64ee76437ab137108d213c1dba509b32d9cecfc693f0ce197cd0`
+- `65efd55ee66682ec79cbe4d99bd1b0371523e13e3f66e6aafc8e7b1db516ff4d`
+- `6b3d10cc3a73bb133d65cb9fa263b7651652433251415d6ece68b39dcce25157`
+- `dd79e5b5680f38d908ee2dc021eaf5454ec241710800d6adfd4f8232b24dcb5c`
+
+### Next bounded refit check (declared before launch)
+
+Copper, new stage `remaining-refit-fold2-20261110`: Dionis fold2,
+seed104731, sequential baseline/candidate under unchanged 1h8c conditions.
+Both use identical FEDOT source (model unchanged from 95d90fdc); only the
+candidate enables remaining-time final refit. Both request history artifacts
+using the newer diagnostic runner. Hypothesis: a refit policy that works when
+composition is skipped also stays within budget and avoids harmful fallback
+after search. Copper previously ran composition on fold0, but this is not
+guaranteed for fold2; inspect actual execution before attributing an effect.
+Compare the new same-host pair only, not copper versus ruthenium as an
+ablation. No old control is repeated. Ruthenium is free for the subsequent
+Covertype validation when its complete range check is available.
