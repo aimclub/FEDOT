@@ -1,8 +1,48 @@
 """Bound cross-validation trials without disabling hyperparameter tuning."""
 
+from math import isfinite
+from numbers import Real
 from typing import Optional, Tuple
 
 from fedot.core.constants import MINIMAL_SECONDS_FOR_TUNING
+
+
+def selected_pipeline_fold_seconds(history, pipeline, cv_folds) -> Optional[float]:
+    """Read measured CV wall time for this exact graph, in seconds.
+
+    GOLEM individual metadata includes fit, prediction and preprocessing for
+    the entire CV. Pipeline.computation_time is a different, minute-valued fit
+    timer and must not be used here. Ignore invalid and unrelated individuals.
+    """
+    if history is None or not cv_folds or cv_folds < 2:
+        return None
+    generations = getattr(history, 'generations', None)
+    if not isinstance(generations, (list, tuple)):
+        return None
+    durations = []
+    for generation in generations:
+        for individual in generation:
+            if not individual.fitness.valid or individual.graph.descriptive_id != pipeline.descriptive_id:
+                continue
+            seconds = individual.metadata.get('computation_time_in_seconds')
+            if isinstance(seconds, Real) and not isinstance(seconds, bool) and isfinite(seconds) and seconds > 0:
+                durations.append(float(seconds) / cv_folds)
+    return max(durations) if durations else None
+
+
+def measured_tuning_resources(available_seconds: float, fold_seconds: float,
+                              cv_folds: int) -> Optional[Tuple[float, float, int]]:
+    """Budget initial CV, at least one trial, final CV, with 30% headroom.
+
+    The caller reserves full-data refit separately. None means *skip tuning*,
+    not fall back to an unbounded tuner. Keep at least two validation folds.
+    """
+    for folds in range(min(cv_folds, 3), 1, -1):
+        evaluation = 1.3 * fold_seconds * folds
+        if 3 * evaluation + MINIMAL_SECONDS_FOR_TUNING <= available_seconds:
+            # Reserve an in-flight trial overrun and the final CV check.
+            return available_seconds - 2 * evaluation, evaluation, folds
+    return None
 
 
 def bounded_composition_resources(total_seconds: float, composing_seconds: float,

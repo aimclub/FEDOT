@@ -9,7 +9,9 @@ fold=${4:?fold}
 [[ "$suite" =~ ^(small|medium|large)$ && "$task" =~ ^[A-Za-z0-9_.-]+$ && "$fold" =~ ^[0-9]$ ]]
 source_stage="$root/experiments/pr1467-5fbcaf16"
 diagnostics="$root/experiments/pr1467-diagnostics-20261109"
-stage="$diagnostics/multiclass-quality-20261110"
+series=${5:-multiclass-quality-20261110}
+[[ "$series" =~ ^[A-Za-z0-9_-]+$ ]]
+stage="$diagnostics/$series"
 benchmark_python="$root/venvs/automlbenchmark/bin/python"
 framework_python="$root/automlbenchmark/frameworks/FEDOT/venv/bin/python"
 test -f "$diagnostics/vendor/golem/core/tuning/tuner_interface.py"

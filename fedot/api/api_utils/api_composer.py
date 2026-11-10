@@ -9,7 +9,10 @@ from golem.core.tuning.simultaneous import SimultaneousTuner
 
 from fedot.api.api_utils.assumptions.assumptions_handler import AssumptionsHandler
 from fedot.api.api_utils.assumptions.memory_safety import bounded_population_size, memory_safe_operations
-from fedot.api.api_utils.assumptions.tuning_budget import bounded_composition_resources, bounded_tuning_resources
+from fedot.api.api_utils.assumptions.tuning_budget import (
+    bounded_composition_resources, bounded_tuning_resources,
+    measured_tuning_resources, selected_pipeline_fold_seconds,
+)
 from fedot.api.api_utils.params import ApiParams
 from fedot.api.api_utils.presets import OperationsPreset
 from fedot.api.time import ApiTime
@@ -251,6 +254,28 @@ class ApiComposer:
             self.timer.assumption_fit_spend_time_single_fold.total_seconds(),
             self.params.composer_requirements.cv_folds,
             complex_pipeline=isinstance(pipeline_gp_composed, Pipeline) and len(pipeline_gp_composed.nodes) >= 4)
+
+        cv_folds = self.params.composer_requirements.cv_folds
+        measured_fold = selected_pipeline_fold_seconds(history, pipeline_gp_composed, cv_folds)
+        measured_budget = False
+        if (measured_fold is not None and measured_fold * cv_folds >= 45
+                and self.timer.timedelta_automl is not None):
+            # Replace the initial-model estimate, rather than subtracting a
+            # second final-CV reserve from ApiTime's already reserved budget.
+            initial_seconds = self.timer.assumption_fit_spend_time_single_fold.total_seconds()
+            refit_reserve = 1.3 * max(initial_seconds, measured_fold * cv_folds / (cv_folds - 1))
+            available = max(0, self.timer.timedelta_automl.total_seconds()
+                            - self.timer.composing_spend_time.total_seconds()
+                            - initial_seconds - refit_reserve)
+            bounds = measured_tuning_resources(available, measured_fold, cv_folds)
+            measured_budget = True
+            self.log.info(f'Measured selected-graph CV: {measured_fold:.1f} sec. per fold; '
+                          f'{available:.1f} sec. for tuning; {refit_reserve:.1f} sec. reserved for refit.')
+            if bounds is None:
+                self.log.info('Skipping tuning: insufficient time for initial CV, one trial and final CV '
+                              'of the selected graph with at least two folds.')
+                self.was_tuned = False
+                return pipeline_gp_composed
         
         if bounds is not None:
             search_seconds, evaluation_seconds, folds = bounds
@@ -264,7 +289,7 @@ class ApiComposer:
 
         tuner = builder.build(train_data)
 
-        if self.timer.have_time_for_tuning():
+        if measured_budget or self.timer.have_time_for_tuning():
             # Tune all nodes in the pipeline
             with self.timer.launch_tuning():
                 self.was_tuned = False
