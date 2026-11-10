@@ -13,6 +13,11 @@ stage="$diagnostics/multiclass-quality-20261110"
 benchmark_python="$root/venvs/automlbenchmark/bin/python"
 framework_python="$root/automlbenchmark/frameworks/FEDOT/venv/bin/python"
 test -f "$diagnostics/vendor/golem/core/tuning/tuner_interface.py"
+# Fail before creating run markers if a task belongs to another suite.
+grep -Fqx -- "- name: $task" "$source_stage/automlbenchmark/resources/benchmarks/$suite.yaml" || {
+    echo "Task $task does not belong to suite $suite" >&2
+    exit 2
+}
 exec 8>"$stage/queue.lock"
 flock -n 8 || { echo 'Queue already active'; exit 7; }
 export TMPDIR="$root/tmp" TMP="$root/tmp" TEMP="$root/tmp"
@@ -27,7 +32,7 @@ for variant in baseline candidate; do
     code_root="$stage/$variant"
     test -f "$code_root/fedot/api/main.py"
     test -s "$stage/$variant.commit"
-    run="$stage/runs/$variant/$task-fold$fold"
+    run="$stage/runs/$variant/$task-fold$fold-$suite"
     mkdir -p "$run"
     if [[ -e "$run/STARTED" ]]; then
         echo "Refusing to repeat existing run: $run"

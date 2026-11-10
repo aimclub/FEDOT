@@ -55,3 +55,10 @@ regression, nor does it resolve the infinite CV fitness symptom.
   selected graphs, tuning fitness and errors before drawing conclusions.
 - One fold per task is screening evidence only. Require further folds and
   regression checks before proposing this default for the original PR.
+
+The initial Covertype invocation mistakenly requested the `medium` suite.
+Both commands stopped with `Incorrect task name: Covertype` before training;
+their failure logs are retained. The corrected invocation uses `large` and
+separate suite-qualified run directories. The runner now validates membership
+before creating `STARTED`. The actual model-source comparison remains parent
+`2667e5df` versus candidate `0bbb1fe5`; later runner-only changes do not alter it.
