@@ -9,5 +9,6 @@ from .evaluation_contracts import (
     PipelineValidator, RetryPolicy, RetryableEvaluationError, ValidationResult,
 )
 from .objective_serialization import init_backward_serialize_compat
+from .oof_objective_eval import PipelineOOFObjectiveEvaluate
 
 init_backward_serialize_compat()

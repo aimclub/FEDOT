@@ -23,6 +23,7 @@ class ChunkedEnsembleConfig:
     ensemble_params: Dict[str, Any] = field(default_factory=dict)
     batch_size: int = 10000
     min_successful_chunks: int = 1
+    reuse_previous_best_initial_population: bool = False
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -32,6 +33,7 @@ class ChunkedEnsembleConfig:
             'ensemble_params': self.ensemble_params,
             'batch_size': self.batch_size,
             'min_successful_chunks': self.min_successful_chunks,
+            'reuse_previous_best_initial_population': self.reuse_previous_best_initial_population,
         }
 
 

@@ -15,6 +15,7 @@ class ChunkedEnsembleConfigSchema(Schema):
     ensemble_params = fields.Dict(keys=fields.Str(), values=fields.Raw(), load_default=lambda: {})
     batch_size = PositiveInt(load_default=10000)
     min_successful_chunks = PositiveInt(load_default=1)
+    reuse_previous_best_initial_population = fields.Bool(load_default=False)
 
     @validates('validation_size')
     def validate_validation_size(self, value: float) -> None:

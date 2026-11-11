@@ -9,6 +9,7 @@ from fedot.core.data.bridges.tensor_to_input_rules import (
     resolve_input_idx,
 )
 from fedot.core.data.common.enums import StateEnum
+from fedot.core.data.tensor_data.contracts import TensorDataContractError
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -63,6 +64,14 @@ def test_resolve_input_idx_infers_range_from_features_length():
     result = resolve_input_idx(idx=None, features=features)
 
     assert np.array_equal(result, np.array([0, 1, 2]))
+
+
+@pytest.mark.unit
+def test_resolve_input_idx_rejects_non_sample_idx():
+    features = np.array([[1, 2], [3, 4], [5, 6]])
+
+    with pytest.raises(TensorDataContractError, match='one label per sample'):
+        resolve_input_idx(idx=np.array([0, 1]), features=features)
 
 
 @pytest.mark.unit
