@@ -38,7 +38,7 @@
 			"output_type": "[DataTypesEnum.table]",
 			"accepted_node_types": ["primary"],
 			"forbidden_node_types": "[]",
-			"strategies": ["fedot.core.operations.evaluation.common_preprocessing", "FedotPreprocessingStrategy"],
+			"strategies": ["fedot.core.operations.strategies.data_operations.common_preprocessing", "PreprocessingDataOperationStrategy"],
 			"tags": ["sklearn"],
 			"description": "Implementations of OneHot encoding (etc.) from scikit-learn framework"},
 		"dimension_transformation": {
@@ -94,8 +94,8 @@
 			],
 			"forbidden_node_types": "[]",
 			"strategies": [
-				"fedot.core.operations.evaluation.text",
-				"FedotTextPreprocessingStrategy"
+				"fedot.core.operations.strategies.data_operations.text",
+				"TextCleaningStrategy"
 			],
 			"tags": [
 				"text",
@@ -109,8 +109,8 @@
 			"input_type": "[DataTypesEnum.text]",
 			"output_type": "[DataTypesEnum.table]",
 			"strategies": [
-				"fedot.core.operations.evaluation.text",
-				"SkLearnTextVectorizeStrategy"
+				"fedot.core.operations.strategies.data_operations.text",
+				"SklearnTextVectorizationStrategy"
 			],
 			"tags": [
 				"text",
@@ -127,8 +127,8 @@
 			"input_type": "[DataTypesEnum.text]",
 			"output_type": "[DataTypesEnum.table]",
 			"strategies": [
-				"fedot.core.operations.evaluation.text",
-				"GensimTextVectorizeStrategy"
+				"fedot.core.operations.strategies.data_operations.text",
+				"PretrainedEmbeddingStrategy"
 			],
 			"tags": [
 				"text",

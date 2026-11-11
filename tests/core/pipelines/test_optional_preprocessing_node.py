@@ -5,9 +5,7 @@ import torch
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
 from fedot.core.operations.data_operation import DataOperation
-from fedot.core.operations.evaluation.optional_preprocessing import (
-    TensorOptionalPreprocessingStrategy,
-)
+from fedot.core.operations.strategies.data_operations.optional import OptionalPreprocessingStrategy
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -65,7 +63,7 @@ def test_pipeline_node_wires_optional_preprocessing_operation_and_strategy():
     )
     assert isinstance(
         node.operation._eval_strategy,
-        TensorOptionalPreprocessingStrategy,
+        OptionalPreprocessingStrategy,
     )
 
 

@@ -9,8 +9,10 @@ import spectrum
 import torch
 from MKLpy.algorithms import FHeuristic, RMKL, MEMO, CKA, PWMK
 from dask_ml.decomposition import TruncatedSVD as DaskSVD
-from fedot.core.operations.evaluation.operation_implementations.models.boostings_implementations import \
-    FedotCatBoostRegressionImplementation, FedotCatBoostClassificationImplementation
+from fedot.core.operations.implementations.models.boosting import (
+    FedotCatBoostRegressionImplementation,
+    FedotCatBoostClassificationImplementation,
+)
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.metrics_repository import ClassificationMetricsEnum, RegressionMetricsEnum

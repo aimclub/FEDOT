@@ -1,5 +1,5 @@
 from fedot.core.operations.data_operation import DataOperation
-from fedot.core.operations.evaluation.extensions import ExtensionTransformStrategy
+from fedot.core.operations.strategies.extensions import ExtensionTransformStrategy
 from fedot.core.operations.extension_model import ExtensionOperationMixin
 
 

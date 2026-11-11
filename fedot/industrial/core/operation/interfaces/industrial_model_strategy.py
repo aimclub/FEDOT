@@ -3,8 +3,8 @@ from typing import Optional
 
 import numpy as np
 from fedot.core.data.input_data.data import InputData, OutputData
-from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
-from fedot.core.operations.evaluation.time_series import FedotTsForecastingStrategy
+from fedot.core.operations.strategies.base import EvaluationStrategy
+from fedot.core.operations.strategies.models.forecasting import ForecastingStrategy
 from fedot.core.operations.operation_parameters import OperationParameters
 
 from fedot.industrial.core.models.nn.network_impl.forecasting_model.deep_tcn import TCNModel
@@ -58,7 +58,7 @@ class FedotNNRegressionStrategy(FedotNNClassificationStrategy):
         self.multi_dim_dispatcher.params_for_fit = params
 
 
-class FedotNNTimeSeriesStrategy(FedotTsForecastingStrategy):
+class FedotNNTimeSeriesStrategy(ForecastingStrategy):
     __operations_by_types = {
         'patch_tst_model': PatchTSTModel,
         'nbeats_model': NBeatsModel,

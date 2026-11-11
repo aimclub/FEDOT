@@ -7,8 +7,7 @@ import pytest
 
 from fedot.core.data.input_data.data import InputData
 from fedot.core.data.split.data_split import train_test_data_setup
-from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_filters import \
-    LinearRegRANSACImplementation
+from fedot.core.operations.implementations.data_operations.sklearn_filters import LinearRegRANSACImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline

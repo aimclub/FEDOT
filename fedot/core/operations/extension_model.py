@@ -1,4 +1,4 @@
-from fedot.core.operations.evaluation.extensions import ExtensionModelStrategy
+from fedot.core.operations.strategies.extensions import ExtensionModelStrategy
 from fedot.core.operations.model import Model
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.operation_types_repository import OperationMetaInfo

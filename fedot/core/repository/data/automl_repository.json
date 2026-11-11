@@ -10,7 +10,7 @@
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
-        "fedot.core.operations.evaluation.automl",
+        "fedot.core.operations.strategies.automl",
         "TPOTAutoMLClassificationStrategy"
       ],
       "tags": [
@@ -28,7 +28,7 @@
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
-        "fedot.core.operations.evaluation.automl",
+        "fedot.core.operations.strategies.automl",
         "TPOTAutoMLRegressionStrategy"
       ],
       "tags": [
@@ -46,7 +46,7 @@
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
-        "fedot.core.operations.evaluation.automl",
+        "fedot.core.operations.strategies.automl",
         "H2OAutoMLRegressionStrategy"
       ],
       "tags": [
@@ -64,7 +64,7 @@
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
-        "fedot.core.operations.evaluation.automl",
+        "fedot.core.operations.strategies.automl",
         "H2OAutoMLClassificationStrategy"
       ],
       "tags": [

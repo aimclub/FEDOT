@@ -9,8 +9,8 @@
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
-        "fedot.core.operations.evaluation.classification",
-        "FedotClassificationStrategy"
+        "fedot.core.operations.strategies.models.adapters",
+        "AdapterClassificationStrategy"
       ],
       "tags": [
         "ml",
@@ -27,8 +27,8 @@
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
-        "fedot.core.operations.evaluation.regression",
-        "FedotRegressionStrategy"
+        "fedot.core.operations.strategies.models.adapters",
+        "AdapterRegressionStrategy"
       ],
       "tags": [
         "ml",
@@ -45,8 +45,8 @@
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
-        "fedot.core.operations.evaluation.classification",
-        "SkLearnClassificationStrategy"
+        "fedot.core.operations.strategies.models.sklearn",
+        "SklearnClassificationStrategy"
       ],
       "tags": [
         "ml",
@@ -63,8 +63,8 @@
       "input_type": "[DataTypesEnum.tabular]",
       "output_type": "[DataTypesEnum.tabular]",
       "strategies": [
-        "fedot.core.operations.evaluation.simple_classification",
-        "SimpleClassificationStrategy"
+        "fedot.core.operations.strategies.models.neural",
+        "NeuralTabularClassificationStrategy"
       ],
       "tags": [
         "ml",
@@ -72,6 +72,25 @@
         "neural"
       ],
       "tasks": "[TaskTypesEnum.classification]"
+    },
+    "simple_regr": {
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "Lightweight regression models for TensorData runtime",
+      "forbidden_node_types": "[]",
+      "input_type": "[DataTypesEnum.tabular]",
+      "output_type": "[DataTypesEnum.tabular]",
+      "strategies": [
+        "fedot.core.operations.strategies.models.neural",
+        "NeuralTabularRegressionStrategy"
+      ],
+      "tags": [
+        "ml",
+        "torch",
+        "neural"
+      ],
+      "tasks": "[TaskTypesEnum.regression]"
     },
     "sklearn_clust": {
       "accepted_node_types": [
@@ -82,8 +101,8 @@
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
-        "fedot.core.operations.evaluation.clustering",
-        "SkLearnClusteringStrategy"
+        "fedot.core.operations.strategies.models.sklearn",
+        "SklearnClusteringStrategy"
       ],
       "tags": [
         "ml",
@@ -100,8 +119,8 @@
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
-        "fedot.core.operations.evaluation.regression",
-        "SkLearnRegressionStrategy"
+        "fedot.core.operations.strategies.models.sklearn",
+        "SklearnRegressionStrategy"
       ],
       "tags": [
         "ml",
@@ -119,7 +138,7 @@
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
-        "fedot.core.operations.evaluation.boostings",
+        "fedot.core.operations.strategies.models.boosting",
         "BoostingClassificationStrategy"
       ],
       "tags": [
@@ -138,7 +157,7 @@
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
-        "fedot.core.operations.evaluation.boostings",
+        "fedot.core.operations.strategies.models.boosting",
         "BoostingRegressionStrategy"
       ],
       "tags": [
@@ -157,7 +176,7 @@
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
-        "fedot.core.operations.evaluation.foundational",
+        "fedot.core.operations.strategies.models.foundation",
         "TabPFNClassificationStrategy"
       ],
       "tags": [
@@ -178,7 +197,7 @@
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
-        "fedot.core.operations.evaluation.foundational",
+        "fedot.core.operations.strategies.models.foundation",
         "TabPFNRegressionStrategy"
       ],
       "tags": [
@@ -199,7 +218,7 @@
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
-        "fedot.core.operations.evaluation.foundational",
+        "fedot.core.operations.strategies.models.foundation",
         "TabICLClassificationStrategy"
       ],
       "tags": [
@@ -220,7 +239,7 @@
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
-        "fedot.core.operations.evaluation.foundational",
+        "fedot.core.operations.strategies.models.foundation",
         "TabICLRegressionStrategy"
       ],
       "tags": [
@@ -232,13 +251,57 @@
       ],
       "tasks": "[TaskTypesEnum.regression]"
     },
+    "tensor_tabular_class": {
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "Experimental TensorData-only tabular neural classification models",
+      "forbidden_node_types": "[]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.strategies.models.neural",
+        "NeuralTabularClassificationStrategy"
+      ],
+      "tags": [
+        "ml",
+        "neural",
+        "non_linear",
+        "non-default",
+        "tensor-only",
+        "cpu"
+      ],
+      "tasks": "[TaskTypesEnum.classification]"
+    },
+    "tensor_tabular_regr": {
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "Experimental TensorData-only tabular neural regression models",
+      "forbidden_node_types": "[]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.strategies.models.neural",
+        "NeuralTabularRegressionStrategy"
+      ],
+      "tags": [
+        "ml",
+        "neural",
+        "non_linear",
+        "non-default",
+        "tensor-only",
+        "cpu"
+      ],
+      "tasks": "[TaskTypesEnum.regression]"
+    },
     "ts_model": {
       "description": "Implementations of the time series models",
       "input_type": "[DataTypesEnum.ts]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
-        "fedot.core.operations.evaluation.time_series",
-        "FedotTsForecastingStrategy"
+        "fedot.core.operations.strategies.models.forecasting",
+        "ForecastingStrategy"
       ],
       "tags": [
         "time_series"
@@ -250,7 +313,7 @@
       "input_type": "[DataTypesEnum.ts, DataTypesEnum.table, DataTypesEnum.text]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
-        "fedot.core.operations.evaluation.custom",
+        "fedot.core.operations.strategies.models.custom",
         "CustomModelStrategy"
       ],
       "tags": [

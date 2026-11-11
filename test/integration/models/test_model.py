@@ -16,15 +16,13 @@ from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.data.multimodal.supplementary_data import SupplementaryData
 from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
-from fedot.core.operations.evaluation.operation_implementations.data_operations.features_reducing import (
-    PCAImplementation,
+from fedot.core.operations.implementations.data_operations.features_reducing import PCAImplementation
+from fedot.core.operations.implementations.models.estimator_adapters import LDAImplementation
+from fedot.core.operations.implementations.models.forecasting.naive import (
+    NaiveAverageForecastImplementation,
+    RepeatLastValueImplementation,
 )
-from fedot.core.operations.evaluation.operation_implementations.models.discriminant_analysis import \
-    LDAImplementation
-from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.naive import \
-    NaiveAverageForecastImplementation, RepeatLastValueImplementation
-from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
-    GLMImplementation
+from fedot.core.operations.implementations.models.forecasting.statsmodels import GLMImplementation
 from fedot.core.operations.model import Model
 from fedot.core.operations.operation_parameters import get_default_params, OperationParameters
 from fedot.core.pipelines.node import PipelineNode

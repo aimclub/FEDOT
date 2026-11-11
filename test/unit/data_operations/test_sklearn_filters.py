@@ -3,8 +3,7 @@ from unittest.mock import Mock
 import numpy as np
 
 from fedot.core.data.data import InputData
-from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_filters import \
-    NonLinearRegRANSACImplementation
+from fedot.core.operations.implementations.data_operations.sklearn_filters import NonLinearRegRANSACImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum

@@ -8,8 +8,9 @@ from typing import Dict, List, Optional, TYPE_CHECKING, Union
 
 from golem.core.log import default_log
 
-from fedot.core.operations.evaluation.operation_implementations.data_operations.topological.topological_backend import \
-    TOPOLOGICAL_BACKEND_AVAILABLE
+from fedot.core.operations.implementations.data_operations.topological.topological_backend import (
+    TOPOLOGICAL_BACKEND_AVAILABLE,
+)
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.json_evaluation import import_enums_from_str, import_strategy_from_str, read_field
 from fedot.core.repository.operation_query import (
@@ -28,7 +29,7 @@ from fedot.extensions.operation_rules import get_extension_operation_names, shou
 EXTRA_TS_INSTALLED = TOPOLOGICAL_BACKEND_AVAILABLE
 
 if TYPE_CHECKING:
-    from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
+    from fedot.core.operations.strategies.base import EvaluationStrategy
 
 AVAILABLE_REPO_NAMES = [kind.value for kind in RepositoryKind]
 

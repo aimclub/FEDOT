@@ -5,7 +5,7 @@ import torch
 
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.operations.data_operation import DataOperation
-from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
+from fedot.core.operations.strategies.base import EvaluationStrategy
 from fedot.core.operations.model import Model
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -44,6 +44,15 @@ def test_replace_features_in_tensor_data_clears_predict(tensor_data):
         [[10.0, 20.0], [30.0, 40.0]]))
     assert result.predict is None
     assert torch.equal(result.target, tensor_data.target)
+
+
+@pytest.mark.unit
+def test_tensor_data_to_moves_prediction_with_model_runtime_fields(tensor_data):
+    moved = tensor_data.to('cpu')
+
+    assert moved.features.device.type == 'cpu'
+    assert moved.target.device.type == 'cpu'
+    assert moved.predict.device.type == 'cpu'
 
 
 @pytest.mark.unit

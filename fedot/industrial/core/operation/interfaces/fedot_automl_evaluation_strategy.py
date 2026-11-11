@@ -1,7 +1,7 @@
 from typing import Optional
 
 from fedot.core.data.input_data.data import InputData, OutputData
-from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
+from fedot.core.operations.strategies.base import EvaluationStrategy
 from fedot.core.operations.operation_parameters import OperationParameters
 
 from fedot.industrial.core.architecture.abstraction.client import use_default_fedot_client

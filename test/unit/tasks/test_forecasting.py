@@ -10,10 +10,8 @@ from sklearn.metrics import mean_absolute_error
 from fedot.core.composer.metrics import root_mean_squared_error
 from fedot.core.data.input_data.data import InputData
 from fedot.core.data.split.data_split import train_test_data_setup
-from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.arima import \
-    ARIMAImplementation
-from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
-    AutoRegImplementation
+from fedot.core.operations.implementations.models.forecasting.arima import ARIMAImplementation
+from fedot.core.operations.implementations.models.forecasting.statsmodels import AutoRegImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline

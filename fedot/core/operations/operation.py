@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.data.tensor_data.tensor_data import TensorData
-from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
+from fedot.core.operations.strategies.base import EvaluationStrategy
 from fedot.core.operations.hyperparameters_preprocessing import HyperparametersPreprocessor
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.operation_types_repository import OperationMetaInfo

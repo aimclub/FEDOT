@@ -4,12 +4,12 @@ import pytest
 from test.unit.common_tests import is_predict_ignores_target
 from test.unit.tasks.test_classification import get_image_classification_data
 
-from fedot.core.operations.evaluation.operation_implementations.models.keras import (
+from fedot.core.operations.implementations.models.keras import (
     FedotCNNImplementation,
     check_input_array,
     create_deep_cnn,
     fit_cnn,
-    predict_cnn
+    predict_cnn,
 )
 
 try:
