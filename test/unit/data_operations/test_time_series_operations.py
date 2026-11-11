@@ -6,10 +6,10 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.optimisers.objective import MetricsObjective, PipelineObjectiveEvaluateWithTensorData
-from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import (
+from fedot.core.operations.implementations.data_operations.ts_transformations import (
     _sparse_matrix,
     prepare_target,
-    ts_to_table
+    ts_to_table,
 )
 from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.data.split.data_split import train_test_data_setup

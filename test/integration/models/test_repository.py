@@ -3,9 +3,10 @@ import os
 
 import pytest
 
-from fedot.core.operations.evaluation.classification import SkLearnClassificationStrategy
-from fedot.core.operations.evaluation.operation_implementations.data_operations.topological.topological_backend import \
-    TOPOLOGICAL_BACKEND_AVAILABLE
+from fedot.core.operations.strategies.models.sklearn import SklearnClassificationStrategy
+from fedot.core.operations.implementations.data_operations.topological.topological_backend import (
+    TOPOLOGICAL_BACKEND_AVAILABLE,
+)
 from fedot.core.repository.json_evaluation import import_enums_from_str, \
     import_strategy_from_str, read_field
 from fedot.core.repository.operation_types_repository import (OperationTypesRepository,
@@ -68,7 +69,7 @@ def test_eval_strategy_str():
     strategies_json = model_metadata['strategies']
 
     strategy = import_strategy_from_str(strategies_json)
-    assert strategy is SkLearnClassificationStrategy
+    assert strategy is SklearnClassificationStrategy
 
 
 def test_read_field():

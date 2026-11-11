@@ -3,7 +3,7 @@ from copy import deepcopy, copy
 from typing import Optional
 
 from fedot.core.data.input_data.data import InputData, OutputData
-from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
+from fedot.core.operations.implementations.base import ModelImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace

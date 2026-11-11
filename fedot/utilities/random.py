@@ -1,7 +1,6 @@
 from typing import Optional, Union
 
-from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import \
-    DataOperationImplementation, ModelImplementation
+from fedot.core.operations.implementations.base import DataOperationImplementation, ModelImplementation
 from fedot.core.utils import RandomStateHandler
 
 

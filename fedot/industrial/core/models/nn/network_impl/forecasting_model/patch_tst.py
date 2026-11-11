@@ -6,8 +6,9 @@ import torch
 import torch.utils.data as data
 from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.data.split.data_split import train_test_data_setup
-from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
-    transform_features_and_target_into_lagged
+from fedot.core.operations.implementations.data_operations.ts_transformations import (
+    transform_features_and_target_into_lagged,
+)
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams

@@ -1,14 +1,27 @@
-from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import \
-    LabelEncodingImplementation, OneHotEncodingImplementation
-from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_filters import \
-    IsolationForestClassImplementation, IsolationForestRegImplementation
-from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_selectors import \
-    LinearClassFSImplementation, NonLinearClassFSImplementation
-from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import *
-from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
-    ExogDataTransformationImplementation
-from fedot.core.operations.evaluation.operation_implementations.models.knn import FedotKnnClassImplementation, \
-    FedotKnnRegImplementation
+from fedot.core.operations.implementations.data_operations.categorical_encoders import (
+    LabelEncodingImplementation,
+    OneHotEncodingImplementation,
+)
+from fedot.core.operations.implementations.data_operations.sklearn_filters import (
+    IsolationForestClassImplementation,
+    IsolationForestRegImplementation,
+)
+from fedot.core.operations.implementations.data_operations.sklearn_selectors import (
+    LinearClassFSImplementation,
+    NonLinearClassFSImplementation,
+)
+from fedot.core.operations.implementations.data_operations.features_reducing import (
+    FastICAImplementation,
+    PCAImplementation,
+)
+from fedot.core.operations.implementations.data_operations.sklearn_transformations import PolyFeaturesImplementation
+from fedot.core.operations.implementations.data_operations.ts_transformations import (
+    ExogDataTransformationImplementation,
+)
+from fedot.core.operations.implementations.models.estimator_adapters import (
+    KnnClassificationAdapter,
+    KnnRegressionAdapter,
+)
 from sklearn.ensemble import AdaBoostRegressor, GradientBoostingRegressor, RandomForestRegressor
 from sklearn.linear_model import (
     LinearRegression as SklearnLinReg,
@@ -141,11 +154,11 @@ TEMPORARY_EXCLUDED = {
         'rfr': RandomForestRegressor,
         'adareg': AdaBoostRegressor,
         'linear': SklearnLinReg,
-        'knnreg': FedotKnnRegImplementation,
+        'knnreg': KnnRegressionAdapter,
     },
     'SKLEARN_CLF_MODELS': {'bernb': SklearnBernoulliNB,
                            'multinb': SklearnMultinomialNB,
-                           'knn': FedotKnnClassImplementation
+                           'knn': KnnClassificationAdapter
                            },
     'NEURAL_MODELS': {
         # linear_dummy_model

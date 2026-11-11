@@ -9,15 +9,16 @@ from examples.simple.time_series_forecasting.gapfilling import generate_syntheti
 from fedot.core.data.input_data.data import InputData
 from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.data.multimodal.supplementary_data import SupplementaryData
-from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_imbalanced_class import \
-    ResampleImplementation
-from fedot.core.operations.evaluation.operation_implementations.data_operations. \
-    sklearn_transformations import ImputationImplementation, PolyFeaturesImplementation
-from fedot.core.operations.evaluation.operation_implementations.data_operations.features_reducing import (
-    PCAImplementation,
+from fedot.core.operations.implementations.data_operations.resampling import ResampleImplementation
+from fedot.core.operations.implementations.data_operations.sklearn_transformations import (
+    ImputationImplementation,
+    PolyFeaturesImplementation,
 )
-from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
-    CutImplementation, LaggedTransformationImplementation
+from fedot.core.operations.implementations.data_operations.features_reducing import PCAImplementation
+from fedot.core.operations.implementations.data_operations.ts_transformations import (
+    CutImplementation,
+    LaggedTransformationImplementation,
+)
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline

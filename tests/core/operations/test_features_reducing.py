@@ -6,19 +6,17 @@ import torch
 
 from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
 from fedot.core.operations.data_operation import DataOperation
-from fedot.core.operations.evaluation.abstract_node import TensorDataOperationImplementation
-from fedot.core.operations.evaluation.operation_implementations.data_operations.features_reducing import (
+from fedot.core.operations.implementations.base import TensorDataOperationImplementation
+from fedot.core.operations.implementations.data_operations.features_reducing import (
     PCAImplementation,
     TruncatedSVDImplementation,
 )
-from fedot.core.operations.evaluation.operation_implementations.rules import (
-    SpectrumNComponentsMethod,
-)
-from fedot.core.operations.evaluation.operation_implementations.schema import (
+from fedot.core.operations.implementations.data_operations.rules import SpectrumNComponentsMethod
+from fedot.core.operations.implementations.data_operations.schema import (
     validate_pca_params,
     validate_truncated_svd_params,
 )
-from fedot.core.operations.evaluation.operation_implementations.tools import (
+from fedot.core.operations.implementations.data_operations.tools import (
     broken_stick_expectations,
     default_components_budget,
     n_components_from_broken_stick,
@@ -26,7 +24,7 @@ from fedot.core.operations.evaluation.operation_implementations.tools import (
     n_components_from_mle,
     resolve_spectrum_n_components,
 )
-from fedot.core.operations.evaluation.tensor_transform import TensorTransformStrategy
+from fedot.core.operations.strategies.data_operations.projection import ProjectionDataOperationStrategy
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
@@ -349,7 +347,7 @@ def test_pipeline_node_wires_pca_tensor_strategy():
         params=node.parameters,
         n_samples_data=40,
     )
-    assert isinstance(node.operation._eval_strategy, TensorTransformStrategy)
+    assert isinstance(node.operation._eval_strategy, ProjectionDataOperationStrategy)
 
 
 @pytest.mark.unit
@@ -529,7 +527,7 @@ def test_truncated_svd_strategy_fit_is_reproducible(train_td):
     original_seed = RandomStateHandler.MODEL_FITTING_SEED
     RandomStateHandler.MODEL_FITTING_SEED = 7
     try:
-        strategy = TensorTransformStrategy(
+        strategy = ProjectionDataOperationStrategy(
             'truncated_svd', OperationParameters(n_components=3),
         )
         first = strategy.fit(train_td)

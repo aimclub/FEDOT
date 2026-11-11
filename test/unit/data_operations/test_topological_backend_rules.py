@@ -1,7 +1,9 @@
 import pytest
 
-from fedot.core.operations.evaluation.operation_implementations.data_operations.topological. \
-    topological_backend_rules import TopologicalBackend, resolve_topological_backend
+from fedot.core.operations.implementations.data_operations.topological.topological_backend_rules import (
+    TopologicalBackend,
+    resolve_topological_backend,
+)
 
 
 @pytest.mark.parametrize(('gph_available', 'ripser_available', 'expected_backend'),

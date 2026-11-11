@@ -7,7 +7,7 @@ import numpy as np
 from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.data.multimodal.multi_modal import MultiModalData
-from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table
+from fedot.core.operations.implementations.data_operations.ts_transformations import ts_to_table
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum

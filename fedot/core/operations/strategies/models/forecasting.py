@@ -1,0 +1,91 @@
+import warnings
+from typing import Optional
+from fedot.core.data.input_data.data import InputData, OutputData
+from fedot.core.operations.strategies.base import EvaluationStrategy
+from fedot.core.operations.implementations.models.forecasting.arima import (
+    ARIMAImplementation,
+    STLForecastARIMAImplementation,
+)
+from fedot.core.operations.implementations.models.forecasting.cgru import CGRUImplementation, CLSTMImplementation
+from fedot.core.operations.implementations.models.forecasting.naive import (
+    RepeatLastValueImplementation,
+    NaiveAverageForecastImplementation,
+)
+from fedot.core.operations.implementations.models.forecasting.poly import PolyfitImplementation
+from fedot.core.operations.implementations.models.forecasting.statsmodels import (
+    AutoRegImplementation,
+    GLMImplementation,
+    ExpSmoothingImplementation,
+)
+from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.utilities.random import ImplementationRandomStateHandler
+
+warnings.filterwarnings('ignore', category=UserWarning)
+
+
+class ForecastingStrategy(EvaluationStrategy):
+    """
+    This class defines the certain classical models implementation for time
+    series forecasting (e.g. AR, ARIMA)
+
+    Args:
+        operation_type: str type of the operation defined in operation or
+            data operation repositories
+        params: hyperparameters to fit the model with
+    """
+
+    _operations_by_types = {
+        'arima': ARIMAImplementation,
+        'ar': AutoRegImplementation,
+        'stl_arima': STLForecastARIMAImplementation,
+        'ets': ExpSmoothingImplementation,
+        'cgru': CGRUImplementation,
+        'clstm': CLSTMImplementation,
+        'polyfit': PolyfitImplementation,
+        'glm': GLMImplementation,
+        'locf': RepeatLastValueImplementation,
+        'ts_naive_average': NaiveAverageForecastImplementation
+    }
+
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
+        super().__init__(operation_type, params)
+        self.operation = self._convert_to_operation(operation_type)
+
+    def fit(self, train_data: InputData):
+        """
+        This method is used for operation training with the data provided
+        :param InputData train_data: data used for operation training
+        :return: trained model
+        """
+        warnings.filterwarnings("ignore", category=RuntimeWarning)
+        model = self.operation(self.params_for_fit)
+
+        with ImplementationRandomStateHandler(implementation=model):
+            model.fit(train_data)
+        return model
+
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
+        """
+        This method used for prediction of the target data during predict stage.
+
+        :param trained_operation: trained operation object
+        :param predict_data: data to predict
+        :return OutputData: passed data with new predicted target
+        """
+
+        prediction = trained_operation.predict(predict_data)
+        converted = self._convert_to_output(prediction, predict_data)
+        return converted
+
+    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
+        """
+        This method used for prediction of the target data during fit stage.
+
+        :param trained_operation: trained operation object
+        :param predict_data: data to predict
+        :return OutputData: passed data with new predicted target
+        """
+
+        prediction = trained_operation.predict_for_fit(predict_data)
+        converted = self._convert_to_output(prediction, predict_data)
+        return converted

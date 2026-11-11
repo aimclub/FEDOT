@@ -2,21 +2,35 @@ from enum import Enum
 from itertools import chain
 
 from dask_ml.decomposition import PCA as DaskKernelPCA
-from fedot.core.operations.evaluation.operation_implementations.data_operations.decompose import \
-    DecomposerClassImplementation
-from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_filters import \
-    IsolationForestClassImplementation, IsolationForestRegImplementation
-from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_imbalanced_class import \
-    ResampleImplementation
-from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import *
-from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
-    ExogDataTransformationImplementation, GaussianFilterImplementation, TsSmoothingImplementation
-from fedot.core.operations.evaluation.operation_implementations.models.boostings_implementations import \
-    FedotCatBoostRegressionImplementation, FedotCatBoostClassificationImplementation
-from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.arima import \
-    STLForecastARIMAImplementation
-from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
-    AutoRegImplementation, ExpSmoothingImplementation
+from fedot.core.operations.implementations.data_operations.decompose import DecomposerClassImplementation
+from fedot.core.operations.implementations.data_operations.sklearn_filters import (
+    IsolationForestClassImplementation,
+    IsolationForestRegImplementation,
+)
+from fedot.core.operations.implementations.data_operations.resampling import ResampleImplementation
+from fedot.core.operations.implementations.data_operations.features_reducing import (
+    KernelPCAImplementation,
+    PCAImplementation,
+)
+from fedot.core.operations.implementations.data_operations.sklearn_transformations import (
+    ImputationImplementation,
+    NormalizationImplementation,
+    ScalingImplementation,
+)
+from fedot.core.operations.implementations.data_operations.ts_transformations import (
+    ExogDataTransformationImplementation,
+    GaussianFilterImplementation,
+    TsSmoothingImplementation,
+)
+from fedot.core.operations.implementations.models.boosting import (
+    FedotCatBoostRegressionImplementation,
+    FedotCatBoostClassificationImplementation,
+)
+from fedot.core.operations.implementations.models.forecasting.arima import STLForecastARIMAImplementation
+from fedot.core.operations.implementations.models.forecasting.statsmodels import (
+    AutoRegImplementation,
+    ExpSmoothingImplementation,
+)
 from lightgbm.sklearn import LGBMClassifier, LGBMRegressor
 from sklearn.ensemble import ExtraTreesRegressor, GradientBoostingClassifier, \
     RandomForestClassifier

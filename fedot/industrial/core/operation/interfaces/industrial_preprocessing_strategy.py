@@ -5,7 +5,8 @@ from typing import Optional, Union, Callable
 
 import numpy as np
 from fedot.core.data.input_data.data import InputData, OutputData
-from fedot.core.operations.evaluation.evaluation_interfaces import convert_to_multivariate_model, EvaluationStrategy
+from fedot.core.operations.strategies.models.sklearn import convert_to_multivariate_model
+from fedot.core.operations.strategies.base import EvaluationStrategy
 from fedot.core.utils import is_multi_output_target
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum

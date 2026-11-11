@@ -7,7 +7,7 @@
       ],
       "forbidden_node_types": "[]",
       "strategies": [
-        "fedot.core.operations.evaluation.data_source",
+        "fedot.core.operations.strategies.sources",
         "DataSourceStrategy"
       ],
       "tags": [
@@ -25,8 +25,8 @@
       ],
       "forbidden_node_types": "[]",
       "strategies": [
-        "fedot.core.operations.evaluation.common_preprocessing",
-        "FedotPreprocessingStrategy"
+        "fedot.core.operations.strategies.data_operations.common_preprocessing",
+        "PreprocessingDataOperationStrategy"
       ],
       "tags": [
         "sklearn"
@@ -42,8 +42,8 @@
       ],
       "forbidden_node_types": "[]",
       "strategies": [
-        "fedot.core.operations.evaluation.optional_preprocessing",
-        "TensorOptionalPreprocessingStrategy"
+        "fedot.core.operations.strategies.data_operations.optional",
+        "OptionalPreprocessingStrategy"
       ],
       "tags": [
         "optional_preprocessing"
@@ -59,8 +59,8 @@
       ],
       "forbidden_node_types": "[]",
       "strategies": [
-        "fedot.core.operations.evaluation.tensor_transform",
-        "TensorTransformStrategy"
+        "fedot.core.operations.strategies.data_operations.projection",
+        "ProjectionDataOperationStrategy"
       ],
       "tags": [
         "tensor",
@@ -77,8 +77,8 @@
       ],
       "forbidden_node_types": "[]",
       "strategies": [
-        "fedot.core.operations.evaluation.common_preprocessing",
-        "FedotPreprocessingStrategy"
+        "fedot.core.operations.strategies.data_operations.common_preprocessing",
+        "PreprocessingDataOperationStrategy"
       ],
       "tags": [
         "sklearn"
@@ -94,8 +94,8 @@
       ],
       "forbidden_node_types": "[]",
       "strategies": [
-        "fedot.core.operations.evaluation.common_preprocessing",
-        "FedotPreprocessingStrategy"
+        "fedot.core.operations.strategies.data_operations.common_preprocessing",
+        "PreprocessingDataOperationStrategy"
       ],
       "tags": [
         "sklearn"
@@ -111,8 +111,8 @@
       ],
       "forbidden_node_types": "[]",
       "strategies": [
-        "fedot.core.operations.evaluation.common_preprocessing",
-        "FedotPreprocessingStrategy"
+        "fedot.core.operations.strategies.data_operations.common_preprocessing",
+        "PreprocessingDataOperationStrategy"
       ],
       "tags": [
         "sklearn"
@@ -128,8 +128,8 @@
       ],
       "forbidden_node_types": "[]",
       "strategies": [
-        "fedot.core.operations.evaluation.regression",
-        "FedotRegressionPreprocessingStrategy"
+        "fedot.core.operations.strategies.data_operations.preprocessing",
+        "RegressionDataOperationStrategy"
       ],
       "tags": [
         "sklearn"
@@ -145,8 +145,8 @@
       ],
       "forbidden_node_types": "[]",
       "strategies": [
-        "fedot.core.operations.evaluation.classification",
-        "FedotClassificationPreprocessingStrategy"
+        "fedot.core.operations.strategies.data_operations.preprocessing",
+        "ClassificationDataOperationStrategy"
       ],
       "tags": [
         "sklearn"
@@ -162,8 +162,8 @@
       ],
       "forbidden_node_types": "[]",
       "strategies": [
-        "fedot.core.operations.evaluation.time_series",
-        "FedotTsTransformingStrategy"
+        "fedot.core.operations.strategies.data_operations.time_series",
+        "TimeSeriesDataOperationStrategy"
       ],
       "tags": [
         "time_series"
@@ -179,8 +179,8 @@
       ],
       "forbidden_node_types": "[]",
       "strategies": [
-        "fedot.core.operations.evaluation.time_series",
-        "FedotTsTransformingStrategy"
+        "fedot.core.operations.strategies.data_operations.time_series",
+        "TimeSeriesDataOperationStrategy"
       ],
       "tags": [
         "time_series"
@@ -196,8 +196,8 @@
       ],
       "forbidden_node_types": "[]",
       "strategies": [
-        "fedot.core.operations.evaluation.text",
-        "FedotTextPreprocessingStrategy"
+        "fedot.core.operations.strategies.data_operations.text",
+        "TextCleaningStrategy"
       ],
       "tags": [
         "text",
@@ -211,8 +211,8 @@
       "input_type": "[DataTypesEnum.text]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
-        "fedot.core.operations.evaluation.text",
-        "SkLearnTextVectorizeStrategy"
+        "fedot.core.operations.strategies.data_operations.text",
+        "SklearnTextVectorizationStrategy"
       ],
       "tags": [
         "text",
@@ -229,8 +229,8 @@
       "input_type": "[DataTypesEnum.text]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
-        "fedot.core.operations.evaluation.text",
-        "GensimTextVectorizeStrategy"
+        "fedot.core.operations.strategies.data_operations.text",
+        "PretrainedEmbeddingStrategy"
       ],
       "tags": [
         "text",

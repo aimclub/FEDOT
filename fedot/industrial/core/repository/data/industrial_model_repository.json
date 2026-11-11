@@ -63,8 +63,8 @@
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
-        "fedot.core.operations.evaluation.clustering",
-        "SkLearnClusteringStrategy"
+        "fedot.core.operations.strategies.models.sklearn",
+        "SklearnClusteringStrategy"
       ],
       "tags": [
         "ml",
@@ -109,7 +109,7 @@
       "input_type": "[DataTypesEnum.ts, DataTypesEnum.table, DataTypesEnum.text]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
-        "fedot.core.operations.evaluation.custom",
+        "fedot.core.operations.strategies.models.custom",
         "CustomModelStrategy"
       ],
       "tags": [

@@ -4,8 +4,9 @@ from typing import Optional
 import numpy as np
 import torch
 from fedot.core.data.input_data.data import InputData
-from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
-    transform_features_and_target_into_lagged
+from fedot.core.operations.implementations.data_operations.ts_transformations import (
+    transform_features_and_target_into_lagged,
+)
 from fedot.core.operations.operation_parameters import OperationParameters
 from torch import nn
 

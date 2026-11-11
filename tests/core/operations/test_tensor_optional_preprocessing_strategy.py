@@ -5,9 +5,7 @@ import torch
 from fedot.core.data.common.enums import StateEnum
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
-from fedot.core.operations.evaluation.optional_preprocessing import (
-    TensorOptionalPreprocessingStrategy,
-)
+from fedot.core.operations.strategies.data_operations.optional import OptionalPreprocessingStrategy
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -57,7 +55,7 @@ def test_td() -> TensorData:
 
 @pytest.mark.unit
 def test_fit_returns_fitted_tabular_service_with_default_strategy(train_td):
-    strategy = TensorOptionalPreprocessingStrategy(
+    strategy = OptionalPreprocessingStrategy(
         'optional_preprocessing',
         OperationParameters(use_cache=False),
     )
@@ -85,7 +83,7 @@ def test_fit_selects_ts_service_for_time_series_data():
         backend_name='cpu',
         data_type='time_series',
     )
-    strategy = TensorOptionalPreprocessingStrategy(
+    strategy = OptionalPreprocessingStrategy(
         'optional_preprocessing',
         OperationParameters(strategy={PreprocessingStepEnum.imputation: None}),
     )
@@ -97,7 +95,7 @@ def test_fit_selects_ts_service_for_time_series_data():
 
 @pytest.mark.unit
 def test_fit_uses_explicit_strategy(train_td):
-    strategy = TensorOptionalPreprocessingStrategy(
+    strategy = OptionalPreprocessingStrategy(
         'optional_preprocessing',
         OperationParameters(
             strategy={
@@ -120,7 +118,7 @@ def test_fit_uses_explicit_strategy(train_td):
 
 @pytest.mark.unit
 def test_fit_with_auto_false_and_no_strategy_builds_empty_plan(train_td):
-    strategy = TensorOptionalPreprocessingStrategy(
+    strategy = OptionalPreprocessingStrategy(
         'optional_preprocessing',
         OperationParameters(auto=False),
     )
@@ -141,7 +139,7 @@ def test_fit_with_auto_false_and_no_strategy_builds_empty_plan(train_td):
 
 @pytest.mark.unit
 def test_fit_passes_use_cache_to_service(train_td):
-    strategy = TensorOptionalPreprocessingStrategy(
+    strategy = OptionalPreprocessingStrategy(
         'optional_preprocessing',
         OperationParameters(
             use_cache=False,
@@ -156,7 +154,7 @@ def test_fit_passes_use_cache_to_service(train_td):
 
 @pytest.mark.unit
 def test_predict_applies_fitted_handlers_without_refit(train_td, test_td):
-    strategy = TensorOptionalPreprocessingStrategy(
+    strategy = OptionalPreprocessingStrategy(
         'optional_preprocessing',
         OperationParameters(
             use_cache=False,
@@ -182,7 +180,7 @@ def test_predict_for_fit_matches_predict_invariant(train_td):
     If optional preprocessing later adds leakage-prone steps, replace this
     invariant with an explicit predict_for_fit implementation and update the test.
     """
-    strategy = TensorOptionalPreprocessingStrategy(
+    strategy = OptionalPreprocessingStrategy(
         'optional_preprocessing',
         OperationParameters(
             use_cache=False,
@@ -209,7 +207,7 @@ def test_fit_raises_for_unsupported_data_type():
         idx=np.array([0, 1]),
         target=np.array([0, 1]),
     )
-    strategy = TensorOptionalPreprocessingStrategy('optional_preprocessing')
+    strategy = OptionalPreprocessingStrategy('optional_preprocessing')
 
     with pytest.raises(FedotValidationError, match='Optional preprocessing is not supported'):
         strategy.fit(unsupported)
@@ -217,7 +215,7 @@ def test_fit_raises_for_unsupported_data_type():
 
 @pytest.mark.unit
 def test_fit_uses_flat_imputation_and_scaling_params(train_td):
-    strategy = TensorOptionalPreprocessingStrategy(
+    strategy = OptionalPreprocessingStrategy(
         'optional_preprocessing',
         OperationParameters(
             auto=False,
@@ -322,7 +320,7 @@ def test_fit_uses_flat_imputation_and_scaling_params(train_td):
     ],
 )
 def test_build_optional_strategy_flat_knob_variants(train_td, params, expected):
-    from fedot.core.operations.evaluation.optional_preprocessing_strategy_builder import (
+    from fedot.core.operations.strategies.data_operations.optional_config import (
         OptionalStrategySpec,
         build_optional_strategy_from_node_params,
     )
@@ -371,7 +369,7 @@ def test_build_optional_strategy_flat_knob_variants(train_td, params, expected):
     ],
 )
 def test_build_optional_strategy_flat_knob_variants_for_ts(params, expected):
-    from fedot.core.operations.evaluation.optional_preprocessing_strategy_builder import (
+    from fedot.core.operations.strategies.data_operations.optional_config import (
         OptionalStrategySpec,
         build_optional_strategy_from_node_params,
     )
@@ -389,9 +387,7 @@ def test_build_optional_strategy_flat_knob_variants_for_ts(params, expected):
 
 @pytest.mark.unit
 def test_build_optional_strategy_rejects_unknown_flat_method(train_td):
-    from fedot.core.operations.evaluation.optional_preprocessing_strategy_builder import (
-        build_optional_strategy_from_node_params,
-    )
+    from fedot.core.operations.strategies.data_operations.optional_config import build_optional_strategy_from_node_params
 
     with pytest.raises(FedotValidationError, match='Unsupported imputation_method'):
         build_optional_strategy_from_node_params(
@@ -402,9 +398,7 @@ def test_build_optional_strategy_rejects_unknown_flat_method(train_td):
 
 @pytest.mark.unit
 def test_build_optional_strategy_rejects_flat_method_from_other_data_type(train_td):
-    from fedot.core.operations.evaluation.optional_preprocessing_strategy_builder import (
-        build_optional_strategy_from_node_params,
-    )
+    from fedot.core.operations.strategies.data_operations.optional_config import build_optional_strategy_from_node_params
 
     with pytest.raises(FedotValidationError, match='Unsupported imputation_method'):
         build_optional_strategy_from_node_params(
@@ -426,9 +420,7 @@ def test_build_optional_strategy_rejects_flat_method_from_other_data_type(train_
 
 @pytest.mark.unit
 def test_build_optional_strategy_rejects_unknown_step(train_td):
-    from fedot.core.operations.evaluation.optional_preprocessing_strategy_builder import (
-        build_optional_strategy_from_node_params,
-    )
+    from fedot.core.operations.strategies.data_operations.optional_config import build_optional_strategy_from_node_params
 
     with pytest.raises(FedotValidationError, match='Unknown optional preprocessing step'):
         build_optional_strategy_from_node_params(
@@ -439,9 +431,7 @@ def test_build_optional_strategy_rejects_unknown_step(train_td):
 
 @pytest.mark.unit
 def test_build_optional_strategy_rejects_step_from_other_data_type(train_td):
-    from fedot.core.operations.evaluation.optional_preprocessing_strategy_builder import (
-        build_optional_strategy_from_node_params,
-    )
+    from fedot.core.operations.strategies.data_operations.optional_config import build_optional_strategy_from_node_params
 
     with pytest.raises(FedotValidationError, match='Unknown optional preprocessing step'):
         build_optional_strategy_from_node_params(
@@ -463,9 +453,7 @@ def test_build_optional_strategy_rejects_step_from_other_data_type(train_td):
 
 @pytest.mark.unit
 def test_build_optional_strategy_rejects_unknown_method(train_td):
-    from fedot.core.operations.evaluation.optional_preprocessing_strategy_builder import (
-        build_optional_strategy_from_node_params,
-    )
+    from fedot.core.operations.strategies.data_operations.optional_config import build_optional_strategy_from_node_params
 
     with pytest.raises(FedotValidationError, match='Unsupported method'):
         build_optional_strategy_from_node_params(
@@ -476,7 +464,7 @@ def test_build_optional_strategy_rejects_unknown_method(train_td):
 
 @pytest.mark.unit
 def test_build_optional_strategy_validates_explicit_override(train_td):
-    from fedot.core.operations.evaluation.optional_preprocessing_strategy_builder import (
+    from fedot.core.operations.strategies.data_operations.optional_config import (
         OptionalStrategySpec,
         build_optional_strategy_from_node_params,
     )

@@ -5,7 +5,7 @@ from sklearn.metrics import roc_auc_score as roc_auc, mean_squared_error, r2_sco
 
 from fedot.core.data.input_data.data import InputData
 from fedot.core.data.split.data_split import train_test_data_setup
-from fedot.core.operations.evaluation.text import SkLearnTextVectorizeStrategy
+from fedot.core.operations.strategies.data_operations.text import SklearnTextVectorizationStrategy
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -27,7 +27,7 @@ def test_vectorize_tfidf_strategy():
                           target=[0, 1, 0], data_type=DataTypesEnum.text,
                           task=Task(TaskTypesEnum.classification))
 
-    vectorizer = SkLearnTextVectorizeStrategy(operation_type='tfidf',
+    vectorizer = SklearnTextVectorizationStrategy(operation_type='tfidf',
                                               params=None)
 
     vectorizer_fitted = vectorizer.fit(train_data)

@@ -367,7 +367,7 @@ def extract_subtree_root(root_operation_id: int, pipeline_template: PipelineTemp
 
 
 def load_h2o(path_to_operation, log):
-    from fedot.core.operations.evaluation.automl import H2OSerializationWrapper
+    from fedot.core.operations.strategies.automl import H2OSerializationWrapper
     try:
         return H2OSerializationWrapper.load_operation(path_to_operation)
     except EnvironmentError as e:

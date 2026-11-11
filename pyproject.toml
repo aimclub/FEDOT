@@ -97,9 +97,11 @@ profilers = [
     "objgraph==3.5.0",
     "memory_profiler==0.61.0",
 ]
+# CUDA 12.x stack for Backend("gpu"), cuML model engines, and GPU tests.
 gpu = [
     "cupy-cuda12x==13.5.1",
     "cudf-cu12==25.8.0",
+    "cuml-cu12==25.8.0",
 ]
 
 [project.urls]

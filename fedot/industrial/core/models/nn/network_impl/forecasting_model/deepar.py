@@ -7,8 +7,9 @@ import torch.optim as optim
 import torch.optim.lr_scheduler as lr_scheduler
 import torch.utils.data as data
 from fedot.core.data.input_data.data import InputData, OutputData
-from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
-    transform_features_and_target_into_lagged
+from fedot.core.operations.implementations.data_operations.ts_transformations import (
+    transform_features_and_target_into_lagged,
+)
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams

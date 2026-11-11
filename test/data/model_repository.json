@@ -6,7 +6,7 @@
 	  "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
 	  "accepted_node_types": ["any"],
 	  "forbidden_node_types": "[]",
-	  "strategies": ["fedot.core.operations.evaluation.classification", "SkLearnClassificationStrategy"],
+	  "strategies": ["fedot.core.operations.strategies.models.sklearn", "SklearnClassificationStrategy"],
 	  "tags": ["ml", "sklearn"],
 	  "description": "Implementations of the classification models from scikit-learn framework"
 	},
@@ -16,7 +16,7 @@
 	  "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
 	  "accepted_node_types": ["any"],
 	  "forbidden_node_types": "[]",
-	  "strategies": ["fedot.core.operations.evaluation.classification", "FedotClassificationStrategy"],
+	  "strategies": ["fedot.core.operations.strategies.models.adapters", "AdapterClassificationStrategy"],
 	  "tags": ["ml", "custom"],
 	  "description": "Implementations of the custom classification models"
 	},
@@ -26,7 +26,7 @@
 	  "output_type": "[DataTypesEnum.table]",
 	  "accepted_node_types": ["any"],
 	  "forbidden_node_types": "[]",
-	  "strategies": ["fedot.core.operations.evaluation.regression", "SkLearnRegressionStrategy"],
+	  "strategies": ["fedot.core.operations.strategies.models.sklearn", "SklearnRegressionStrategy"],
 	  "tags": ["ml", "sklearn", "composition"],
 	  "description": "Implementations of the regression models from scikit-learn framework"
 	},
@@ -36,7 +36,7 @@
 	  "output_type": "[DataTypesEnum.table]",
 	  "accepted_node_types": ["any"],
 	  "forbidden_node_types": "[]",
-	  "strategies": ["fedot.core.operations.evaluation.clustering", "SkLearnClusteringStrategy"],
+	  "strategies": ["fedot.core.operations.strategies.models.sklearn", "SklearnClusteringStrategy"],
 	  "tags": ["ml", "sklearn"],
 	  "description": "Implementations of the clustering models from scikit-learn framework"
 	},
@@ -53,7 +53,7 @@
 	  "input_type": "[DataTypesEnum.text]",
 	  "output_type": "[DataTypesEnum.table]",
 	  "forbidden_node_types": ["secondary"],
-	  "strategies": ["fedot.core.operations.evaluation.text", "SkLearnTextVectorizeStrategy"],
+	  "strategies": ["fedot.core.operations.strategies.data_operations.text", "SklearnTextVectorizationStrategy"],
 	  "tags": ["nlp", "non-default"],
 	  "description": "Text classification"
 	},
@@ -61,7 +61,7 @@
 	  "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]",
 	  "input_type": "[DataTypesEnum.ts, DataTypesEnum.multi_ts]",
 	  "output_type": "[DataTypesEnum.table]",
-	  "strategies": ["fedot.core.operations.evaluation.time_series", "FedotTsForecastingStrategy"],
+	  "strategies": ["fedot.core.operations.strategies.models.forecasting", "ForecastingStrategy"],
 	  "tags": ["time_series"],
 	  "description": "Implementations of the time series models"
 	},
@@ -69,7 +69,7 @@
 		"description": "Implementations of the models specified by user with external code source",
 		"input_type": "[DataTypesEnum.ts, DataTypesEnum.table, DataTypesEnum.text]",
 		"output_type": "[DataTypesEnum.table]",
-		"strategies": ["fedot.core.operations.evaluation.custom","CustomModelStrategy"],
+		"strategies": ["fedot.core.operations.strategies.models.custom","CustomModelStrategy"],
 		"tags": ["non-default"],
 		"tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting, TaskTypesEnum.classification, TaskTypesEnum.clustering]"
 	}

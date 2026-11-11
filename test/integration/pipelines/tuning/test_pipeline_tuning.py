@@ -14,8 +14,7 @@ from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_ridg
     ts_polyfit_ridge_pipeline
 from fedot.core.data.input_data.data import InputData
 from fedot.core.data.split.data_split import train_test_data_setup
-from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
-    GLMImplementation
+from fedot.core.operations.implementations.models.forecasting.statsmodels import GLMImplementation
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder

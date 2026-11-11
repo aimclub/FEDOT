@@ -3,10 +3,13 @@ import golem.core.tuning.optuna_tuner as OptunaImpl
 from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.api_params_repository import ApiParamsRepository
 from fedot.core.data.merge.data_merger import ImageDataMerger, TSDataMerger, DataMerger
-from fedot.core.operations.evaluation.operation_implementations.data_operations.topological.fast_topological_extractor \
-    import TopologicalFeaturesImplementation
-from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
-    LaggedImplementation, TsSmoothingImplementation
+from fedot.core.operations.implementations.data_operations.topological.fast_topological_extractor import (
+    TopologicalFeaturesImplementation,
+)
+from fedot.core.operations.implementations.data_operations.ts_transformations import (
+    LaggedImplementation,
+    TsSmoothingImplementation,
+)
 from fedot.core.operations.operation import Operation
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluateWithTensorData
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
