@@ -2,141 +2,185 @@ import os
 from typing import Optional
 
 import numpy as np
-import pandas as pd
-from catboost import CatBoostClassifier, CatBoostRegressor, Pool
+import torch
+from catboost import CatBoostClassifier, CatBoostRegressor, FeaturesData, Pool
 from lightgbm import LGBMClassifier, LGBMRegressor
-from lightgbm import early_stopping as lgbm_early_stopping
 from matplotlib import pyplot as plt
+from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
 from xgboost import XGBClassifier, XGBRegressor
-from sklearn.multioutput import MultiOutputRegressor, MultiOutputClassifier
 
-from fedot.core.data.input_data.data import InputData
-from fedot.core.data.split.data_split import train_test_data_setup
+from fedot.core.backend.backend import Backend
+from fedot.core.backend.array_conversions import as_numpy, as_torch
+from fedot.core.data.prepared_data.prepared_data import PreparedData
+from fedot.core.data.split.data_split import train_test_tensor_data_setup
+from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.operations.implementations.base import ModelImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
-from fedot.core.utils import default_fedot_data_dir, is_multi_output_target
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.utils import default_fedot_data_dir, is_multi_output_target
+from fedot.preprocessing.methods.categorical_encoding import LabelEncoder
 
 
-class FedotXGBoostImplementation(ModelImplementation):
-    __operation_params = ['n_jobs', 'use_eval_set']
+class BoostingImplementation(ModelImplementation):
+    """Shared TensorData preparation; numerical work stays in Torch until the library boundary."""
+
+    _operation_params = ('n_jobs', 'use_eval_set', 'enable_categorical')
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
-
-        self.check_and_update_params()
-
-        self.model_params = {k: v for k, v in self.params.to_dict(
-        ).items() if k not in self.__operation_params}
+        self.model_params = {key: value for key, value in self.params.to_dict().items()
+                             if key not in self._operation_params}
         self.model = None
         self.features_names = None
         self.classes_ = None
+        self._categorical_idx = []
+        self._category_encoder = LabelEncoder()
 
-    def fit(self, input_data: InputData):
-        self.features_names = input_data.features_names
+    def _training_data(self, data: TensorData):
+        self.features_names = data.features_names
+        self.classes_ = torch.unique(data.target) if data.task.task_type == TaskTypesEnum.classification else None
+        if not self.params.get('use_eval_set') or is_multi_output_target(data):
+            return data, None
+        train, evaluation = train_test_tensor_data_setup(data, stratify=True)
+        if (data.task.task_type == TaskTypesEnum.classification
+                and not torch.isin(torch.unique(train.target), torch.unique(evaluation.target)).all()):
+            return data, None
+        return train, evaluation
 
-        if self.params.get('enable_categorical'):
-            input_data = input_data.get_not_encoded_data()
+    def prepare_categorical_features(self, features, *, fit: bool = False):
+        """Use the source encoder's vocabulary; unknown categories remain missing for the library."""
+        prepared = PreparedData(features=features.copy())
+        # Original strings live in a host sidecar, independent of the feature tensor device.
+        with Backend().override('cpu'):
+            if fit:
+                self._category_encoder.fit(prepared, list(range(features.shape[1])))
+            encoded = self._category_encoder.transform(prepared).features.astype(np.float32)
+        for column, unknown in self._category_encoder.unknown_labels_.items():
+            encoded[encoded[:, column] == unknown, column] = np.nan
+        return encoded
 
-        if check_eval_set_condition(input_data, self.params):
-            train_input, eval_input = train_test_data_setup(input_data)
-
-            X_train, y_train = convert_to_dataframe(
-                train_input, identify_cats=self.params.get(
-                    'enable_categorical')
-            )
-
-            X_eval, y_eval = convert_to_dataframe(
-                eval_input, identify_cats=self.params.get('enable_categorical')
-            )
-
-            self.model.eval_metric = self.set_eval_metric(self.classes_)
-
-            self.model.fit(
-                X=X_train, y=y_train,
-                eval_set=[(X_eval, y_eval)],
-                verbose=self.model_params['verbosity']
-            )
-        else:
-            # Disable parameter used for eval_set
-            if bool(self.params.get('early_stopping_rounds')):
-                self.model.early_stopping_rounds = None
-                self.params.update(early_stopping_rounds=None)
-
-            # Training model without splitting on train and eval
-            X_train, y_train = convert_to_dataframe(
-                input_data, identify_cats=self.params.get('enable_categorical')
-            )
-            self.model.fit(
-                X=X_train, y=y_train,
-                verbose=self.model_params['verbosity']
-            )
-
-        return self.model
-
-    def predict(self, input_data: InputData):
-        if self.params.get('enable_categorical'):
-            input_data = input_data.get_not_encoded_data()
-
-        X, _ = convert_to_dataframe(
-            input_data, self.params.get('enable_categorical'))
-        prediction = self.model.predict(X)
-
-        return prediction
-
-    def check_and_update_params(self):
-        early_stopping_rounds = self.params.get('early_stopping_rounds')
-        use_eval_set = self.params.get('use_eval_set')
-
-        if isinstance(early_stopping_rounds, int) and not use_eval_set:
-            self.params.update(early_stopping_rounds=False)
-
-        booster = self.params.get('booster')
-        enable_categorical = self.params.get('enable_categorical')
-
-        if booster == 'gblinear' and enable_categorical:
-            self.params.update(enable_categorical=False)
-
-        if booster == 'gbtree' and enable_categorical:
-            self.params.update(enable_categorical=False)
-
-    def get_feature_importance(self) -> list:
-        return self.model.features_importances_
-
-    def plot_feature_importance(self, importance_type='weight'):
-        model_output = self.model.get_booster().get_score()
-        features_names = self.features_names
-        plot_feature_importance(features_names, model_output.values())
+    def _feature_tensor(self, data: TensorData, *, fit: bool = False):
+        if not self.params.get('enable_categorical'):
+            if fit:
+                self._categorical_idx = []
+            return data.features
+        original = data.get_not_encoded_data()
+        width = original.numerical_features.shape[1]
+        if fit:
+            self.features_names = original.features_names
+            self._categorical_idx = list(range(width, width + original.categorical_features.shape[1]))
+        if original.categorical_features.shape[1] == 0:
+            return original.numerical_features
+        encoded = self.prepare_categorical_features(original.categorical_features, fit=fit)
+        categories = as_torch(encoded, device=data.device, dtype=data.features.dtype)
+        return torch.cat((original.numerical_features, categories), dim=1)
 
     @staticmethod
-    def set_eval_metric(n_classes):
-        if n_classes is None:  # if n_classes is None -> regression
-            eval_metric = 'rmse'
-        elif len(n_classes) < 3:  # if n_classes < 3 -> bin class
-            eval_metric = 'auc'
-        else:  # else multiclass
-            eval_metric = 'mlogloss'
+    def _target_tensor(data: TensorData):
+        target = data.target
+        return target.reshape(-1) if target.ndim == 2 and target.shape[1] == 1 else target
 
-        return eval_metric
+    def _prepare_target(self, data: TensorData):
+        return as_numpy(self._target_tensor(data))
+
+    @staticmethod
+    def _prepare_prediction(prediction, data: TensorData):
+        if isinstance(prediction, list):
+            return torch.stack([as_torch(part, device=data.device) for part in prediction], dim=1)
+        return as_torch(prediction, device=data.device)
+
+    def predict(self, data: TensorData) -> torch.Tensor:
+        return self._prepare_prediction(self.model.predict(self._prepare_features(data)), data)
+
+    def predict_proba(self, data: TensorData) -> torch.Tensor:
+        return self._prepare_prediction(self.model.predict_proba(self._prepare_features(data)), data)
+
+
+class FedotXGBoostImplementation(BoostingImplementation):
+    _operation_params = ('n_jobs', 'use_eval_set')
+
+    @property
+    def _model_device(self) -> torch.device:
+        return torch.device((self.model.get_params().get('device') or 'cpu').replace('gpu', 'cuda'))
+
+    def _prepare_features(self, data: TensorData, *, fit: bool = False):
+        features = self._feature_tensor(data, fit=fit)
+        if fit:
+            types = ['c' if pos in self._categorical_idx else 'q' for pos in range(features.shape[1])]
+            self.model.set_params(feature_types=types)
+        return as_torch(features, device=self._model_device, contiguous=True)
+
+    def _prepare_target(self, data: TensorData):
+        return as_torch(self._target_tensor(data), device=self._model_device, contiguous=True)
+
+    def _predict(self, data: TensorData, *, probabilities: bool) -> torch.Tensor:
+        features = self._prepare_features(data)
+        if not features.is_cuda or self.model.booster == 'gblinear':
+            method = self.model.predict_proba if probabilities else self.model.predict
+            return self._prepare_prediction(method(features), data)
+
+        booster = self.model.get_booster()
+        best_iteration = booster.attr('best_iteration')
+        iterations = (0, int(best_iteration) + 1) if best_iteration is not None else (0, 0)
+        softmax = probabilities and self.model.objective == 'multi:softmax'
+        prediction = booster.inplace_predict(features, iteration_range=iterations, missing=self.model.missing,
+                                             predict_type='margin' if softmax else 'value')
+        prediction = as_torch(prediction)
+        if self.classes_ is not None:
+            if probabilities:
+                if softmax:
+                    prediction = prediction.softmax(dim=1)
+                elif prediction.ndim == 1:
+                    prediction = torch.stack((1 - prediction, prediction), dim=1)
+            elif prediction.ndim > 1 and self.model.n_classes_ != 2:
+                prediction = prediction.argmax(dim=1)
+            elif prediction.ndim > 1 and prediction.shape[1] != 1:
+                # Match sklearn's multilabel output, including its float64 dtype.
+                prediction = (prediction > .5).to(torch.float64)
+            elif self.model.objective == 'multi:softmax':
+                prediction = prediction.to(torch.int32)
+            else:
+                prediction = (prediction > .5).to(torch.int64)
+        return as_torch(prediction, device=data.device)
+
+    def predict(self, data: TensorData) -> torch.Tensor:
+        return self._predict(data, probabilities=False)
+
+    def predict_proba(self, data: TensorData) -> torch.Tensor:
+        return self._predict(data, probabilities=True)
+
+    def fit(self, data: TensorData):
+        train, evaluation = self._training_data(data)
+        features = self._prepare_features(train, fit=True)
+        target = self._prepare_target(train)
+        if evaluation is not None:
+            self.model.eval_metric = self.set_eval_metric(self.classes_)
+            eval_set = [(self._prepare_features(evaluation), self._prepare_target(evaluation))]
+        else:
+            self.model.early_stopping_rounds = None
+            self.params.update(early_stopping_rounds=None)
+            eval_set = None
+        self.model.fit(features, target, eval_set=eval_set, verbose=self.model_params['verbosity'])
+        return self.model
+
+    @staticmethod
+    def set_eval_metric(classes):
+        if classes is None:
+            return 'rmse'
+        return 'auc' if len(classes) < 3 else 'mlogloss'
+
+    def get_feature_importance(self) -> list:
+        return self.model.feature_importances_
+
+    def plot_feature_importance(self, importance_type='weight'):
+        scores = self.model.get_booster().get_score(importance_type=importance_type)
+        plot_feature_importance(list(scores), list(scores.values()))
 
 
 class FedotXGBoostClassificationImplementation(FedotXGBoostImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.model = XGBClassifier(**self.model_params)
-
-    def fit(self, input_data: InputData):
-        self.classes_ = np.unique(np.array(input_data.target))
-        return super().fit(input_data=input_data)
-
-    def predict_proba(self, input_data: InputData):
-        if self.params.get('enable_categorical'):
-            input_data = input_data.get_not_encoded_data()
-
-        X, _ = convert_to_dataframe(
-            input_data, self.params.get('enable_categorical'))
-        prediction = self.model.predict_proba(X)
-        return prediction
 
 
 class FedotXGBoostRegressionImplementation(FedotXGBoostImplementation):
@@ -145,137 +189,42 @@ class FedotXGBoostRegressionImplementation(FedotXGBoostImplementation):
         self.model = XGBRegressor(**self.model_params)
 
 
-class FedotLightGBMImplementation(ModelImplementation):
-    __operation_params = ['n_jobs', 'use_eval_set', 'enable_categorical']
+class FedotLightGBMImplementation(BoostingImplementation):
+    def _prepare_features(self, data: TensorData, *, fit: bool = False):
+        return as_numpy(self._feature_tensor(data, fit=fit))
 
-    def __init__(self, params: Optional[OperationParameters] = None):
-        super().__init__(params)
-
-        self.check_and_update_params()
-
-        self.model_params = {k: v for k, v in self.params.to_dict(
-        ).items() if k not in self.__operation_params}
-        self.model = None
-        self.features_names = None
-        self.classes_ = None
-
-    def fit(self, input_data: InputData):
-        self.features_names = input_data.features_names
-
-        if self.params.get('enable_categorical'):
-            input_data = input_data.get_not_encoded_data()
-
-        if check_eval_set_condition(input_data, self.params):
-            train_input, eval_input = train_test_data_setup(input_data)
-
-            X_train, y_train = convert_to_dataframe(
-                train_input, identify_cats=self.params.get(
-                    'enable_categorical')
-            )
-
-            X_eval, y_eval = convert_to_dataframe(
-                eval_input, identify_cats=self.params.get('enable_categorical')
-            )
-
-            eval_metric = self.set_eval_metric(self.classes_)
-            callbacks = self.update_callbacks()
-
-            self.model.fit(
-                X=X_train, y=y_train,
-                eval_set=[(X_eval, y_eval)], eval_metric=eval_metric,
-                callbacks=callbacks
-            )
+    def fit(self, data: TensorData):
+        train, evaluation = self._training_data(data)
+        features = self._prepare_features(train, fit=True)
+        target = self._prepare_target(train)
+        if evaluation is not None:
+            self.model.fit(features, target,
+                           eval_set=[(self._prepare_features(evaluation), self._prepare_target(evaluation))],
+                           eval_metric=self.set_eval_metric(self.classes_), categorical_feature=self._categorical_idx)
         else:
-            # Disable parameter used for eval_set
-            if bool(self.params.get('early_stopping_rounds')):
-                self.model._other_params.update(early_stopping_rounds=None)
-                self.params.update(early_stopping_rounds=None)
-
-            if is_multi_output_target(input_data):
-                self._convert_to_multi_output_model(input_data)
-
-            # Training model without splitting on train and eval
-            X_train, y_train = convert_to_dataframe(
-                input_data, identify_cats=self.params.get('enable_categorical')
-            )
-            self.model.fit(X_train, y_train)
-
-        return self.model
-
-    def predict(self, input_data: InputData):
-        if self.params.get('enable_categorical'):
-            input_data = input_data.get_not_encoded_data()
-
-        X, _ = convert_to_dataframe(
-            input_data, identify_cats=self.params.get('enable_categorical'))
-        prediction = self.model.predict(X)
-
-        return prediction
-
-    def check_and_update_params(self):
-        early_stopping_rounds = self.params.get('early_stopping_rounds')
-        use_eval_set = self.params.get('use_eval_set')
-
-        if isinstance(early_stopping_rounds, int) and not use_eval_set:
+            self.model.set_params(early_stopping_rounds=None)
             self.params.update(early_stopping_rounds=None)
-
-    def update_callbacks(self) -> list:
-        callback = []
-
-        esr = self.params.get('early_stopping_rounds')
-        if isinstance(esr, int):
-            lgbm_early_stopping(esr, verbose=self.params.get('verbose'))
-
-        return callback
+            if is_multi_output_target(data):
+                wrapper = (MultiOutputClassifier if data.task.task_type == TaskTypesEnum.classification
+                           else MultiOutputRegressor)
+                self.model = wrapper(self.model)
+            self.model.fit(features, target, categorical_feature=self._categorical_idx)
+        return self.model
 
     @staticmethod
-    def set_eval_metric(n_classes):
-        if n_classes is None:  # if n_classes is None -> regression
-            eval_metric = ''
-
-        elif len(n_classes) < 3:  # if n_classes < 3 -> bin class
-            eval_metric = 'binary_logloss'
-
-        else:  # else multiclass
-            eval_metric = 'multi_logloss'
-
-        return eval_metric
+    def set_eval_metric(classes):
+        if classes is None:
+            return ''
+        return 'binary_logloss' if len(classes) < 3 else 'multi_logloss'
 
     def plot_feature_importance(self):
-        plot_feature_importance(self.features_names,
-                                self.model.feature_importances_)
-
-    def _convert_to_multi_output_model(self, input_data: InputData):
-        if input_data.task.task_type == TaskTypesEnum.classification:
-            multiout_func = MultiOutputClassifier
-        elif input_data.task.task_type in [TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]:
-            multiout_func = MultiOutputRegressor
-        else:
-            raise ValueError(
-                f"For task type '{input_data.task.task_type}' MultiOutput wrapper is not supported")
-
-        self.model = multiout_func(self.model)
-
-        return self.model
+        plot_feature_importance(self.features_names, self.model.feature_importances_)
 
 
 class FedotLightGBMClassificationImplementation(FedotLightGBMImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.model = LGBMClassifier(**self.model_params)
-
-    def fit(self, input_data: InputData):
-        self.classes_ = np.unique(np.array(input_data.target))
-        return super().fit(input_data=input_data)
-
-    def predict_proba(self, input_data: InputData):
-        if self.params.get('enable_categorical'):
-            input_data = input_data.get_not_encoded_data()
-
-        X, _ = convert_to_dataframe(
-            input_data, self.params.get('enable_categorical'))
-        prediction = self.model.predict_proba(X)
-        return prediction
 
 
 class FedotLightGBMRegressionImplementation(FedotLightGBMImplementation):
@@ -284,113 +233,67 @@ class FedotLightGBMRegressionImplementation(FedotLightGBMImplementation):
         self.model = LGBMRegressor(**self.model_params)
 
 
-class FedotCatBoostImplementation(ModelImplementation):
-    __operation_params = ['n_jobs', 'use_eval_set', 'enable_categorical']
-
+class FedotCatBoostImplementation(BoostingImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
+        self.params.update(thread_count=self.params.get('n_jobs'))
+        self.model_params['thread_count'] = self.params.get('n_jobs')
 
-        self.check_and_update_params()
+    def prepare_categorical_features(self, features, *, fit: bool = False):
+        """CatBoost requires strings/integers; normalized missing categories become the string nan."""
+        return features.astype(str).astype(object)
 
-        self.model_params = {k: v for k, v in self.params.to_dict(
-        ).items() if k not in self.__operation_params}
-        self.model = None
-        self.features_names = None
-
-    def fit(self, input_data: InputData):
-        self.features_names = input_data.features_names
-
+    def _prepare_features(self, data: TensorData, *, with_target: bool = False):
         if self.params.get('enable_categorical'):
-            input_data = input_data.get_not_encoded_data()
-
-        if check_eval_set_condition(input_data, self.params):
-            # TODO: Using this method for tuning
-            train_input, eval_input = train_test_data_setup(input_data)
-
-            train_input = self.convert_to_pool(
-                train_input, identify_cats=self.params.get('enable_categorical'))
-            eval_input = self.convert_to_pool(
-                eval_input, identify_cats=self.params.get('enable_categorical'))
-
-            self.model.fit(X=train_input, eval_set=eval_input)
+            original = data.get_not_encoded_data()
+            numerical = as_numpy(original.numerical_features, dtype=np.float32)
+            categories = self.prepare_categorical_features(original.categorical_features)
+            width = numerical.shape[1]
+            names = original.features_names
+            features = FeaturesData(num_feature_data=numerical if numerical.shape[1] else None,
+                                    cat_feature_data=categories if categories.shape[1] else None,
+                                    num_feature_names=names[:width] if names is not None else None,
+                                    cat_feature_names=names[width:] if names is not None else None)
+            names = None
         else:
-            # Disable parameter used for eval_set
-            if bool(self.params.get('use_best_model')):
-                self.model._init_params.update(use_best_model=False)
-                self.params.update(use_best_model=False)
+            features = as_numpy(data.features)
+            names = data.features_names
+        return Pool(features, label=self._prepare_target(data) if with_target else None,
+                    feature_names=names)
 
-            # Training model without splitting on train and eval
-            train_input = self.convert_to_pool(
-                input_data, identify_cats=self.params.get('enable_categorical')
-            )
-            self.model.fit(X=train_input)
-
+    def fit(self, data: TensorData):
+        train, evaluation = self._training_data(data)
+        train_pool = self._prepare_features(train, with_target=True)
+        self.features_names = train_pool.get_feature_names()
+        if evaluation is not None:
+            self.model.fit(train_pool, eval_set=self._prepare_features(evaluation, with_target=True))
+        else:
+            for name in ('early_stopping_rounds', 'od_wait', 'od_type', 'od_pval'):
+                self.model._init_params.pop(name, None)
+            self.model._init_params['use_best_model'] = False
+            self.params.update(use_best_model=False)
+            self.model.fit(train_pool)
         return self.model
 
-    def predict(self, input_data: InputData):
-        if self.params.get('enable_categorical'):
-            input_data = input_data.get_not_encoded_data()
-
-        prediction = self.model.predict(input_data.features)
-
-        return prediction
-
-    def check_and_update_params(self):
-        n_jobs = self.params.get('n_jobs')
-        self.params.update(thread_count=n_jobs)
-
-        use_best_model = self.params.get('use_best_model')
-        early_stopping_rounds = self.params.get('early_stopping_rounds')
-        use_eval_set = self.params.get('use_eval_set')
-
-        if (use_best_model or isinstance(early_stopping_rounds, int)) and not use_eval_set:
-            self.params.update(use_best_model=False,
-                               early_stopping_rounds=False)
-
-    @staticmethod
-    def convert_to_pool(data: Optional[InputData], identify_cats: bool):
-        return Pool(
-            data=data.features,
-            label=data.target,
-            cat_features=data.categorical_idx if identify_cats else None,
-            feature_names=data.features_names.tolist(
-            ) if data.features_names is not None else None
-        )
-
     def save_model(self, model_name: str = 'catboost'):
-        save_path = os.path.join(
-            default_fedot_data_dir(), f'catboost/{model_name}.cbm')
+        save_path = os.path.join(default_fedot_data_dir(), f'catboost/{model_name}.cbm')
         self.model.save_model(save_path, format='cbm')
 
     def load_model(self, path):
-        self.model = CatBoostClassifier()
+        self.model = type(self.model)()
         self.model.load_model(path)
 
-    def get_feature_importance(self) -> (list, list):
-        """ Return feature importance -> (feature_id (string), feature_importance (float)) """
+    def get_feature_importance(self):
         return self.model.get_feature_importance(prettified=True)
 
     def plot_feature_importance(self):
-        plot_feature_importance(self.model.feature_names_,
-                                self.model.feature_importances_)
+        plot_feature_importance(self.model.feature_names_, self.model.feature_importances_)
 
 
 class FedotCatBoostClassificationImplementation(FedotCatBoostImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.model = CatBoostClassifier(**self.model_params)
-        self.classes_ = None
-
-    def fit(self, input_data: InputData):
-        self.classes_ = np.unique(np.array(input_data.target))
-        return super().fit(input_data=input_data)
-
-    def predict_proba(self, input_data: InputData):
-        if self.params.get('enable_categorical'):
-            input_data = input_data.get_not_encoded_data()
-
-        prediction = self.model.predict_proba(input_data.features)
-        return prediction
 
 
 class FedotCatBoostRegressionImplementation(FedotCatBoostImplementation):
@@ -400,65 +303,11 @@ class FedotCatBoostRegressionImplementation(FedotCatBoostImplementation):
 
 
 def plot_feature_importance(feature_names, feature_importance):
-    fi = pd.DataFrame(index=feature_names)
-    fi['importance'] = feature_importance
-
-    fi.loc[fi['importance'] > 0.1].sort_values('importance').plot(
-        kind='barh', figsize=(16, 9), title='Feature Importance')
-
+    importance = np.asarray(list(feature_importance))
+    names = np.asarray(feature_names if feature_names is not None else np.arange(len(importance)))
+    selected = np.flatnonzero(importance > .1)
+    selected = selected[np.argsort(importance[selected])]
+    plt.figure(figsize=(16, 9))
+    plt.barh(names[selected], importance[selected])
+    plt.title('Feature Importance')
     plt.show()
-
-
-def convert_to_dataframe(data: Optional[InputData], identify_cats: bool):
-    """
-    Converts InputData data class to DataFrame.
-    """
-    features = pd.DataFrame(data=data.features)
-
-    if data.target is not None and data.target.size > 0:
-        if not is_multi_output_target(data):
-            target = np.ravel(data.target[:features.shape[0]])
-        else:
-            target = data.target
-    else:
-        # TODO: temp workaround in case data.target is set to None intentionally
-        #  for test.integration.models.test_model.check_predict_correct
-        target = np.zeros(len(data.features))
-
-    if identify_cats and data.categorical_idx is not None:
-        for col in features.columns[data.categorical_idx]:
-            features[col] = features[col].astype('category')
-
-    if data.numerical_idx is not None:
-        for col in features.columns[data.numerical_idx]:
-            features[col] = features[col].astype('float')
-
-    target = pd.DataFrame(target)
-
-    return features, target
-
-
-def check_eval_set_condition(input_data: InputData, params: OperationParameters) -> bool:
-    """
-    Checks the model training condition with eval_set.
-    """
-    is_using_eval_set = bool(params.get('use_eval_set'))
-    if not is_using_eval_set or is_multi_output_target(input_data):
-        return False
-
-    # No special conditions for regression task
-    if input_data.task.task_type == TaskTypesEnum.regression:
-        return True
-
-    # For classification task check
-    # if all classes presented in train_set are also presented in eval_set
-    if input_data.task.task_type == TaskTypesEnum.classification:
-        train_input, eval_input = train_test_data_setup(input_data)
-        train_classes = np.unique(train_input.target)
-        eval_classes = np.unique(eval_input.target)
-        all_classes_present_in_eval = np.all(
-            np.isin(train_classes, eval_classes))
-        if all_classes_present_in_eval:
-            return True
-
-    return False

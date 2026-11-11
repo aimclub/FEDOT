@@ -73,6 +73,15 @@ class ModelImplementation(ABC):
         self.params = params or OperationParameters()
         self.is_multi_target: bool = False
 
+    def prepare_categorical_features(self, features, *, fit: bool = False):
+        """Adapt the original categorical block, without statistical imputation.
+
+        Implementations override this only for library-specific requirements
+        (for example CatBoost's string representation of missing categories).
+        Encoders learn their vocabulary only when fit is True.
+        """
+        return features
+
     @abstractmethod
     def fit(self, input_data: InputData):
         """ Method fit model on a dataset
@@ -145,12 +154,10 @@ class TensorDataOperationImplementation(ABC):
     Mirror of :class:`DataOperationImplementation` for the ``TensorData`` path:
     one searchable operation / node with ``fit`` + ``transform``.
 
-    Fit-graph vs predict-graph behaviour is owned by
-    :class:`~fedot.core.operations.strategies.base.EvaluationStrategy.predict_for_fit`
-    (see :class:`~fedot.core.operations.strategies.data_operations.projection.ProjectionDataOperationStrategy`),
-    not by a second method on this contract. Override strategy-level
-    ``predict_for_fit`` only when fit-stage transform must differ (leakage-prone
-    ops); until then it delegates to ``transform`` via ``predict``.
+    Strategies call ``transform_for_fit`` while fitting the graph and
+    ``transform`` during inference. The default fit-stage transformation is
+    identical to inference; override it for training-only filtering, resampling
+    or target-dependent transformations.
     """
 
     def __init__(self, params: Optional[OperationParameters] = None):
@@ -166,6 +173,10 @@ class TensorDataOperationImplementation(ABC):
     def transform(self, data: TensorData) -> TensorData:
         """Apply the fitted operation."""
         raise AbstractMethodNotImplementError()
+
+    def transform_for_fit(self, data: TensorData) -> TensorData:
+        """Transform training data for downstream nodes without refitting."""
+        return self.transform(data)
 
     def get_params(self) -> OperationParameters:
         """Detached params snapshot for node updates (does not share mutable state).

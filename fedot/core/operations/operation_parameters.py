@@ -9,6 +9,12 @@ from fedot.core.operations.operation_parameter_rules import (
 from fedot.core.repository.default_params_repository import DefaultOperationParamsRepository
 
 
+_PARAMETER_ALIASES_BY_OPERATION = {
+    'catboost': (('early_stopping_rounds', 'od_wait'),),
+    'catboostreg': (('early_stopping_rounds', 'od_wait'),),
+}
+
+
 class OperationParameters:
     """Stores parameters for models and data operations implementations and records what parameters were changed.
     Uses operation_type to set default parameters from default_parameters_repository if a parameter was not passed
@@ -34,7 +40,8 @@ class OperationParameters:
     def from_operation_type(operation_type: str, **parameters):
         default_parameters = get_default_params(operation_type)
         parameters = merge_operation_default_params(
-            default_parameters, parameters)
+            default_parameters, parameters,
+            _PARAMETER_ALIASES_BY_OPERATION.get(operation_type.split('/')[0], ()))
         return OperationParameters(**parameters)
 
     def update(self, **params):

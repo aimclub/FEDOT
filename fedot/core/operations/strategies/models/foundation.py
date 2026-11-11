@@ -2,7 +2,7 @@ import importlib.util
 import logging
 from typing import Optional
 
-from fedot.core.data.input_data.data import InputData, OutputData
+from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.operations.strategies.base import EvaluationStrategy
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -21,7 +21,7 @@ def is_package_available(package_name: str) -> bool:
 
 
 def check_data_size(
-        data: InputData,
+        data: TensorData,
         device: str = "auto",
         max_samples: int = 1000,
         max_features: int = 500,
@@ -61,7 +61,7 @@ class BaseFoundationalStrategy(EvaluationStrategy):
             logging.log(100, self._error_message)
             raise ModuleNotFoundError(self._error_message)
 
-    def fit(self, train_data: InputData):
+    def fit(self, train_data: TensorData):
         self._raise_if_not_available()
 
         check_data_size(
@@ -80,33 +80,32 @@ class BaseFoundationalStrategy(EvaluationStrategy):
 
         return operation_implementation
 
-    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
+    def predict(self, trained_operation, predict_data: TensorData) -> TensorData:
         raise NotImplementedError()
 
 
 class BaseFoundationalClassificationStrategy(BaseFoundationalStrategy):
-    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
+    def predict(self, trained_operation, predict_data: TensorData) -> TensorData:
         self._raise_if_not_available()
 
         if self.output_mode == 'labels':
-            output = trained_operation.predict(predict_data)
+            prediction = trained_operation.predict(predict_data)
         elif self.output_mode in ['probs', 'full_probs', 'default']:
-            n_classes = len(trained_operation.classes_)
-            output = trained_operation.predict_proba(predict_data)
-            if n_classes < 2:
+            prediction = trained_operation.predict_proba(predict_data)
+            if len(trained_operation.classes_) < 2:
                 raise ValueError('Data set contain only 1 target class. Please reformat your data.')
-            if n_classes == 2 and self.output_mode != 'full_probs' and len(output.predict.shape) > 1:
-                output.predict = output.predict[:, 1]
+            if prediction.shape[-1] == 2 and self.output_mode != 'full_probs':
+                prediction = prediction[..., 1]
         else:
-            raise ValueError(f'Output model {self.output_mode} is not supported')
-
-        return output
+            raise ValueError(f'Output mode {self.output_mode!r} is not supported')
+        return self._replace_predict_in_tensor_data(prediction, predict_data)
 
 
 class BaseFoundationalRegressionStrategy(BaseFoundationalStrategy):
-    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
+    def predict(self, trained_operation, predict_data: TensorData) -> TensorData:
         self._raise_if_not_available()
-        return trained_operation.predict(predict_data)
+        prediction = trained_operation.predict(predict_data)
+        return self._replace_predict_in_tensor_data(prediction, predict_data)
 
 
 class TabPFNStrategy(BaseFoundationalStrategy):

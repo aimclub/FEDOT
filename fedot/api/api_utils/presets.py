@@ -54,7 +54,7 @@ class OperationsPreset:
             return available_operations
 
         excluded = ['mlp', 'svc', 'svr', 'arima', 'exog_ts', 'text_clean',
-                    'lda', 'qda', 'lgbm', 'one_hot_encoding', 'polyfit',
+                    'lda', 'qda', 'lgbm', 'polyfit',
                     'resample', 'stl_arima']
         excluded_tree = []
 

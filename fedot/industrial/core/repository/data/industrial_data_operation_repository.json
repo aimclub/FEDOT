@@ -382,15 +382,6 @@
 			"meta": "dimension_transformation",
 			"tags": ["non_linear", "dimensionality_transforming", "non_applicable_for_ts", "feature_engineering"]
 		},
-		"one_hot_encoding": {
-			"meta": "sklearn_categorical",
-			"tags": ["encoding", "categorical", "dimensionality_transforming", "non_applicable_for_ts", "non-default"]
-		},
-		"label_encoding": {
-			"meta": "sklearn_categorical",
-			"presets": ["fast_train", "*tree"],
-			"tags": ["encoding", "categorical", "non-default", "non_applicable_for_ts"]
-		},
 		"ransac_lin_reg": {
 			"meta": "regression_preprocessing",
 			"presets": ["fast_train", "*tree"],

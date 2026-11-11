@@ -77,7 +77,7 @@ def pipeline_with_incorrect_task_type():
 
 
 def pipeline_with_only_data_operations():
-    first = PipelineNode(operation_type='one_hot_encoding')
+    first = PipelineNode(operation_type='optional_preprocessing')
     second = PipelineNode(operation_type='scaling', nodes_from=[first])
     final = PipelineNode(operation_type='ransac_lin_reg', nodes_from=[second])
 
@@ -141,7 +141,7 @@ def pipeline_with_incorrect_parent_number_for_decompose():
     return pipeline
 
 
-def pipeline_with_incorrect_parents_position_for_decompose():
+def pipeline_with_feature_parent_first_for_decompose():
     """ Pipeline structure:
          scaling
     logit                       rf
@@ -318,21 +318,13 @@ def test_only_non_lagged_operations_are_primary():
 def test_has_two_parents_for_decompose_operations():
     incorrect_pipeline = pipeline_with_incorrect_parent_number_for_decompose()
 
-    with pytest.raises(Exception) as exc:
-        assert has_no_conflicts_in_decompose(incorrect_pipeline)
-
-    assert str(
-        exc.value) == f'{PIPELINE_ERROR_PREFIX} Two parents for decompose node were expected, but 1 were given'
+    with pytest.raises(ValueError, match='exactly two'):
+        has_no_conflicts_in_decompose(incorrect_pipeline)
 
 
-def test_decompose_parents_has_wright_positions():
-    incorrect_pipeline = pipeline_with_incorrect_parents_position_for_decompose()
-
-    with pytest.raises(Exception) as exc:
-        assert has_no_conflicts_in_decompose(incorrect_pipeline)
-
-    assert str(
-        exc.value) == f'{PIPELINE_ERROR_PREFIX} For decompose operation Model as first parent is required'
+def test_decompose_accepts_feature_parent_first():
+    pipeline = pipeline_with_feature_parent_first_for_decompose()
+    assert has_no_conflicts_in_decompose(pipeline)
 
 
 def test_decompose_operation_remove_in_pipeline():
@@ -386,7 +378,7 @@ def test_data_sources_validation():
 
 
 def test_custom_validation():
-    incorrect_pipeline = pipeline_with_incorrect_parents_position_for_decompose()
+    incorrect_pipeline = pipeline_with_incorrect_parent_number_for_decompose()
 
     assert verify_pipeline(incorrect_pipeline, rules=[has_no_cycle])
 

@@ -7,8 +7,10 @@ from copy import deepcopy
 from collections import Counter
 
 import cloudpickle
+import numpy as np
 
-from fedot.core.backend.backend import Backend, torch_to_xp
+from fedot.core.backend.backend import Backend
+from fedot.core.backend.array_conversions import torch_to_xp
 from fedot.core.caching.cacher import Cacher
 from fedot.core.caching.cache_loader import Loader
 from fedot.core.caching.hasher import Hasher
@@ -58,6 +60,13 @@ def _apply_handler(data, handler, indices, step, *, fit):
                 target_data, indices) if fit else handler.transform(target_data)
             data.target = result.features
         return data
+    if (step.value if hasattr(step, 'value') else step) == PreprocessingStepEnum.encoding.value:
+        categories = data.features[:, indices]
+        categories = categories.get() if hasattr(categories, 'get') else categories
+        categories = np.array(categories, dtype=object, copy=True)
+        data.categorical_features = (categories if data.categorical_features is None else
+                                     np.hstack((data.categorical_features, categories)))
+        data.categorical_source_idx.extend(data.idx_mapping[pos] for pos in indices)
     previous_mapping = dict(data.idx_mapping)
     data.new_cols_dict = None
     result = handler.fit_transform(
@@ -97,7 +106,7 @@ class PreparationRuntime:
         data_type = params['data_type']
         data_type_name = data_type.value if hasattr(data_type, 'value') else str(data_type)
         plan_hash = stable_hash(
-            {'plan_hash': Hasher.hash(plan), 'data_type': data_type_name},
+            {'plan_hash': Hasher.hash(plan), 'data_type': data_type_name, 'categorical_storage': 1},
             digest_size=16,
         )
         cacher = Cacher(use_cache=use_cache)
@@ -123,10 +132,11 @@ class PreparationRuntime:
             indices = list(range(target.shape[1])) if is_target else _feature_indices(
                 step, prepared.idx_mapping)
             handler = mapping[step.step][step.method](**step.step_args)
+            sources = () if is_target else tuple(prepared.idx_mapping[pos] for pos in indices)
             prepared = _apply_handler(
                 prepared, handler, indices, step.step, fit=True)
             fitted_steps.append(FittedPreparationStep(
-                step.step.value, tuple(indices), cloudpickle.dumps(handler)))
+                step.step.value, tuple(indices), cloudpickle.dumps(handler), sources))
             service._cache_fitted_model(
                 cacher=cacher, input_hash=raw_hash, model=handler,
                 operation_hash=plan_hash, step_order=order, step_name=step.step.value,
@@ -191,6 +201,7 @@ class PreparationRuntime:
             raise TensorDataContractError(
                 'missing_preparation', 'trace_uuid', 'fitted handler set is incomplete')
         fitted = []
+        source_mapping = dict(schema.mapping)
         for ref in references:
             step = plan.steps[ref.step_order]
             handler = Loader.load(ref.model_path, kind='preprocessing_model')
@@ -198,8 +209,14 @@ class PreparationRuntime:
                 raise TensorDataContractError(
                     'missing_preparation', 'trace_uuid', 'fitted handler is unavailable')
             indices = ref.features_idx if ref.features_idx is not None else step.features_idx
+            is_target = step.step == PreprocessingStepEnum.target_encoding
+            sources = () if is_target else tuple(source_mapping[pos] for pos in indices)
             fitted.append(FittedPreparationStep(step.step.value,
-                          tuple(indices), cloudpickle.dumps(handler)))
+                          tuple(indices), cloudpickle.dumps(handler), sources))
+            if not is_target and getattr(handler, 'new_cols_dict', None):
+                new_cols = handler.new_cols_dict
+                width = len(source_mapping) - len(indices) + sum(new_cols.values())
+                source_mapping = _updated_mapping(source_mapping, indices, width, new_cols)
         return PreparationState(schema, tuple(fitted), cloudpickle.dumps(plan), stage.operation_hash,
                                 Backend().name, stage.input_hash)
 
@@ -208,8 +225,10 @@ def prepared_column_metadata(schema, state, mapping, width):
     """Final feature labels and categorical ownership, in output order."""
     categorical_sources = set(schema.categorical)
     for step in state.plan.steps:
-        if step.step != PreprocessingStepEnum.target_encoding:
+        if step.step == PreprocessingStepEnum.encoding:
             categorical_sources.update(step.features_idx)
+        elif step.step != PreprocessingStepEnum.target_encoding:
+            categorical_sources.difference_update(step.features_idx)
     categorical = [pos for pos, source in sorted(
         mapping.items()) if source in categorical_sources]
     numerical = [pos for pos in range(width) if pos not in categorical]

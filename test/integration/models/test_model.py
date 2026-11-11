@@ -422,8 +422,10 @@ def test_lda_model_fit_with_incorrect_data():
     train the LDA model with default parameters correctly.
     """
     lda_data = get_lda_incorrect_data()
+    tensor_data = TensorDataCreator.create(
+        lda_data.features, backend_name='cpu', target=lda_data.target, task=lda_data.task, use_cache=False)
     lda_model = LDAImplementation()
-    lda_model.fit(lda_data)
+    lda_model.fit(tensor_data)
     params = lda_model.get_params()
 
     assert 'solver' in params.changed_parameters.keys()
@@ -557,7 +559,7 @@ def test_operations_are_fast():
     data_lengths = tuple(map(int, np.logspace(2.2, 4, 6)))
     reference_operations = ['rf', 'rfr']
     to_skip = ['custom', 'decompose', 'class_decompose', 'kmeans',
-               'resample', 'one_hot_encoding'] + reference_operations
+               'resample'] + reference_operations
     reference_time = (float('inf'), ) * len(data_lengths)
     # tries for time measuring
     attempt = 2

@@ -120,4 +120,5 @@ class VarianceThreshold(AbstractPreprocessingHandler):
             raise RuntimeError("VarianceThreshold is not fitted yet.")
 
         data.features = data.features[:, self.support_mask]
+        data.retained_idx = self.support_mask.nonzero(as_tuple=True)[0].cpu().tolist()
         return data

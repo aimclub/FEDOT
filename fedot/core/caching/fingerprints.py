@@ -6,10 +6,10 @@ import numpy as np
 import torch
 
 from fedot.core.backend.backend import Backend
+from fedot.core.backend.array_conversions import as_numpy, as_torch
 from fedot.core.data.tensor_data import TensorData
 from fedot.core.caching.normalization import _stable_bytes, normalize_for_hash, stable_hash
 from fedot.core.caching.sampling import sample_row_positions
-from fedot.core.common.tools import to_numpy
 
 
 def _blake_hash_bytes(data: bytes, digest_size: int = 16) -> str:
@@ -24,7 +24,7 @@ def _array_to_bytes(array: Any) -> bytes:
     Numeric arrays are hashed by raw contiguous bytes. Object arrays are routed
     through canonical JSON to support strings/categories/mixed values.
     """
-    array = to_numpy(array)
+    array = as_numpy(array)
 
     if array.dtype.hasobject:
         return _stable_bytes(array.tolist())
@@ -43,9 +43,7 @@ def _tensor_to_bytes(tensor: torch.Tensor) -> bytes:
     if tensor.is_sparse:
         tensor = tensor.to_dense()
 
-    tensor = tensor.cpu().contiguous()
-
-    return tensor.numpy().tobytes()
+    return as_numpy(tensor.contiguous()).tobytes()
 
 
 def _tensor_shape(x: Optional[torch.Tensor]) -> Optional[tuple[int, ...]]:
@@ -91,10 +89,13 @@ def build_tensordata_metadata(td: TensorData) -> dict[str, Any]:
         "features_dtype": _tensor_dtype(td.features),
         "target_shape": _tensor_shape(td.target),
         "target_dtype": _tensor_dtype(td.target),
+        "predict_shape": _tensor_shape(td.predict),
+        "predict_dtype": _tensor_dtype(td.predict),
         "categorical_idx": td.categorical_idx,
         "numerical_idx": td.numerical_idx,
         "features_names": td.features_names,
         "idx_mapping": td.idx_mapping,
+        "categorical_source_idx": td.categorical_source_idx,
         "ts_orientation": td.ts_orientation,
         "ts_terms_idx": td.ts_terms_idx,
         "ts_forecast_horizon": td.ts_forecast_horizon,
@@ -146,7 +147,7 @@ def get_hash_tensordata(
     digest_size: int = 16,
 ) -> str:
     """
-    Hash `TensorData` metadata and sampled feature rows.
+    Hash TensorData metadata, sampled features/predictions and complete target.
 
     Args:
         td: Prepared tensor data container.
@@ -171,9 +172,18 @@ def get_hash_tensordata(
     )
 
     if row_positions:
-        index = torch.as_tensor(row_positions, device=features.device, dtype=torch.long)
+        index = as_torch(row_positions, device=features.device, dtype=torch.long)
         sample = features.index_select(dim=0, index=index)
         h.update(_tensor_to_bytes(sample))
+        if td.categorical_features is not None:
+            h.update(_array_to_bytes(td.categorical_features[row_positions]))
+
+    if td.predict is not None:
+        prediction = as_torch(td.predict)
+        prediction_rows = sample_row_positions(shape=tuple(prediction.shape), dtype=prediction.dtype,
+                                               min_rows=min_rows, max_rows=max_rows)
+        index = as_torch(prediction_rows, device=prediction.device, dtype=torch.long)
+        h.update(_tensor_to_bytes(prediction.index_select(0, index)))
 
     target = td.target
     if target is not None:
@@ -212,6 +222,8 @@ def get_model_attributes(
     The class path is always included so unfitted handlers/classes of different
     types do not collapse to the same hash.
     """
+    from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
+
     exclude_fields = exclude_fields or DEFAULT_EXCLUDED_MODEL_FIELDS
     cls = model if inspect.isclass(model) else model.__class__
 
@@ -228,7 +240,8 @@ def get_model_attributes(
         if key in exclude_fields or key.startswith("__"):
             continue
 
-        attributes[key] = normalize_for_hash(value)
+        attributes[key] = (get_model_attributes(value, exclude_fields)
+                           if isinstance(value, AbstractPreprocessingHandler) else normalize_for_hash(value))
 
     model_state["attributes"] = attributes
     return model_state
@@ -279,7 +292,7 @@ def ndarray_state_fingerprint(array: Any, digest_size: int = 16) -> dict[str, An
     Returns:
         JSON-compatible array fingerprint.
     """
-    array = to_numpy(array)
+    array = as_numpy(array)
     return {
         "kind": "ndarray",
         "shape": tuple(int(dim) for dim in array.shape),

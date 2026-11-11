@@ -1,12 +1,14 @@
-from itertools import chain
 from typing import Optional
 
 import numpy as np
+import torch
 
 from joblib import Parallel, delayed
 
-from fedot.core.data.input_data.data import InputData, OutputData
-from fedot.core.operations.implementations.base import DataOperationImplementation
+from fedot.core.backend.array_conversions import as_numpy, as_torch
+from fedot.core.data.tensor_data.tensor_data import TensorData
+from fedot.core.operations.implementations.base import TensorDataOperationImplementation
+from fedot.core.operations.implementations.data_operations.tools import replace_projected_features
 from fedot.core.operations.implementations.data_operations.topological.topological_backend import (
     ripser,
     TOPOLOGICAL_BACKEND_AVAILABLE,
@@ -14,7 +16,7 @@ from fedot.core.operations.implementations.data_operations.topological.topologic
 from fedot.core.operations.operation_parameters import OperationParameters
 
 
-class TopologicalFeaturesImplementation(DataOperationImplementation):
+class TopologicalFeaturesImplementation(TensorDataOperationImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.window_size_as_share = params.get('window_size_as_share')
@@ -26,7 +28,7 @@ class TopologicalFeaturesImplementation(DataOperationImplementation):
         self._shape = len(self.quantiles)
         self._window_size = None
 
-    def fit(self, input_data: InputData):
+    def fit(self, input_data: TensorData):
         self._window_size = int(
             input_data.features.shape[1] * self.window_size_as_share)
         self._window_size = max(self._window_size, 2)
@@ -35,27 +37,21 @@ class TopologicalFeaturesImplementation(DataOperationImplementation):
         self._window_size = max(self._window_size, 1)
         return self
 
-    def transform(self, input_data: InputData) -> OutputData:
+    def transform(self, input_data: TensorData) -> TensorData:
         if not TOPOLOGICAL_BACKEND_AVAILABLE:
             raise ModuleNotFoundError("Install topological dependencies with 'pip install fedot[extra]'")
         features = input_data.features
+        signals = torch.stack([features[i:i + 2, ::self.stride].mean(dim=0)
+                               for i in range(0, features.shape[0], 2)])
+        windows = as_numpy(signals.unfold(1, self._window_size, 1))
         with Parallel(n_jobs=self.n_jobs, prefer='processes') as parallel:
-            topological_features = parallel(delayed(self._extract_features)
-                                            (np.mean(
-                                                features[i:i + 2, ::self.stride], axis=0))
-                                            for i in range(0, features.shape[0], 2))
-        if len(topological_features) * 2 < features.shape[0]:
-            topological_features.append(topological_features[-1])
-        result = np.array(
-            list(chain(*zip(topological_features, topological_features))))
-        if result.shape[0] > features.shape[0]:
-            result = result[:-1, :]
-        np.nan_to_num(result, copy=False, nan=0, posinf=0, neginf=0)
-        return result
+            topological_features = parallel(delayed(self._extract_features)(window) for window in windows)
+        result = as_torch(np.stack(topological_features), device=input_data.device)
+        result = result.repeat_interleave(2, dim=0)[:features.shape[0]]
+        result = torch.nan_to_num(result, nan=0, posinf=0, neginf=0)
+        return replace_projected_features(input_data, result)
 
-    def _extract_features(self, x):
-        x_sliced = np.array([x[i:self._window_size + i]
-                            for i in range(x.shape[0] - self._window_size + 1)])
+    def _extract_features(self, x_sliced):
         x_processed = ripser(x_sliced,
                              maxdim=self.max_homology_dimension,
                              coeff=2,

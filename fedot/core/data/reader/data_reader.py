@@ -150,6 +150,8 @@ def from_pandas(
     Returns:
         DataReaderResult: Array values from ``get_values_from_df`` and column names.
     """
+    if not hasattr(features, 'columns'):
+        features = features.to_frame()
 
     cols = features.columns
     features_names = np.asarray(

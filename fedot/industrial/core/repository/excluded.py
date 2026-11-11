@@ -1,7 +1,3 @@
-from fedot.core.operations.implementations.data_operations.categorical_encoders import (
-    LabelEncodingImplementation,
-    OneHotEncodingImplementation,
-)
 from fedot.core.operations.implementations.data_operations.sklearn_filters import (
     IsolationForestClassImplementation,
     IsolationForestRegImplementation,
@@ -14,7 +10,7 @@ from fedot.core.operations.implementations.data_operations.features_reducing imp
     FastICAImplementation,
     PCAImplementation,
 )
-from fedot.core.operations.implementations.data_operations.sklearn_transformations import PolyFeaturesImplementation
+from fedot.core.operations.implementations.data_operations.tabular import PolyFeaturesImplementation
 from fedot.core.operations.implementations.data_operations.ts_transformations import (
     ExogDataTransformationImplementation,
 )
@@ -134,9 +130,6 @@ TEMPORARY_EXCLUDED = {
                             'fast_ica': FastICAImplementation,
                             'poly_features': PolyFeaturesImplementation,
                             'exog_ts': ExogDataTransformationImplementation,
-                            # categorical encoding
-                            'one_hot_encoding': OneHotEncodingImplementation,
-                            'label_encoding': LabelEncodingImplementation
                             },
     'FORECASTING_PREPROC': {'exog_ts': ExogDataTransformationImplementation},
     'INDUSTRIAL_PREPROC_MODEL': {

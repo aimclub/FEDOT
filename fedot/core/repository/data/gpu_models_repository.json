@@ -62,8 +62,8 @@
     },
     "tabpfn_gpu_class": {
       "tasks": "[TaskTypesEnum.classification]",
-      "input_type": "[DataTypesEnum.table]",
-      "output_type": "[DataTypesEnum.table]",
+      "input_type": "[DataTypesEnum.tabular]",
+      "output_type": "[DataTypesEnum.tabular]",
       "accepted_node_types": [
         "any"
       ],
@@ -74,6 +74,7 @@
         "TabPFNClassificationStrategy"
       ],
       "tags": [
+        "tensor-only",
         "neural",
         "non_linear",
         "tabpfn",
@@ -83,8 +84,8 @@
     },
     "tabpfn_gpu_regr": {
       "tasks": "[TaskTypesEnum.regression]",
-      "input_type": "[DataTypesEnum.table]",
-      "output_type": "[DataTypesEnum.table]",
+      "input_type": "[DataTypesEnum.tabular]",
+      "output_type": "[DataTypesEnum.tabular]",
       "accepted_node_types": [
         "any"
       ],
@@ -95,6 +96,7 @@
         "TabPFNRegressionStrategy"
       ],
       "tags": [
+        "tensor-only",
         "neural",
         "non_linear",
         "tabpfn",
@@ -104,8 +106,8 @@
     },
     "tabicl_gpu_class": {
       "tasks": "[TaskTypesEnum.classification]",
-      "input_type": "[DataTypesEnum.table]",
-      "output_type": "[DataTypesEnum.table]",
+      "input_type": "[DataTypesEnum.tabular]",
+      "output_type": "[DataTypesEnum.tabular]",
       "accepted_node_types": [
         "any"
       ],
@@ -116,6 +118,7 @@
         "TabICLClassificationStrategy"
       ],
       "tags": [
+        "tensor-only",
         "neural",
         "non_linear",
         "tabicl",
@@ -125,8 +128,8 @@
     },
     "tabicl_gpu_regr": {
       "tasks": "[TaskTypesEnum.regression]",
-      "input_type": "[DataTypesEnum.table]",
-      "output_type": "[DataTypesEnum.table]",
+      "input_type": "[DataTypesEnum.tabular]",
+      "output_type": "[DataTypesEnum.tabular]",
       "accepted_node_types": [
         "any"
       ],
@@ -137,6 +140,7 @@
         "TabICLRegressionStrategy"
       ],
       "tags": [
+        "tensor-only",
         "neural",
         "non_linear",
         "tabicl",

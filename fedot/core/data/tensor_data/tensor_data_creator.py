@@ -31,6 +31,8 @@ class TensorDataCreator:
 
     def __init__(self):
         self.spec = None
+        self.categorical_features = None
+        self.categorical_source_idx = []
 
     def obligatory_preprocess(self):
         schema = prepare_source(self.spec)
@@ -63,6 +65,8 @@ class TensorDataCreator:
                 trace_uuid=self.spec.trace_uuid or prepared.trace_uuid, preparation_state=state,
             )
         self.spec.idx_mapping = prepared.idx_mapping
+        self.categorical_features = prepared.categorical_features
+        self.categorical_source_idx = prepared.categorical_source_idx
         self.spec.features, self.spec.target = transform_to_tensor(
             prepared.features, prepared.target, self.spec.ts_init_shape)
         self.spec.features_names, self.spec.categorical_idx, self.spec.numerical_idx = prepared_column_metadata(
@@ -124,6 +128,7 @@ class TensorDataCreator:
             ts_terms_idx=self.spec.ts_terms_idx, ts_forecast_horizon=self.spec.ts_forecast_horizon,
             ts_init_shape=self.spec.ts_init_shape, dataloader_kwargs=self.spec.dataloader_kwargs,
             trace_uuid=self.spec.trace_uuid, preparation_state=self.spec.preparation_state,
+            categorical_features=self.categorical_features, categorical_source_idx=self.categorical_source_idx,
         )
 
     def to_backend(self, tensor_data: TensorData) -> TensorData:

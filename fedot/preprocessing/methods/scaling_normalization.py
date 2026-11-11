@@ -31,7 +31,8 @@ class StandartScaling(AbstractPreprocessingHandler):
         Compute mean and std for selected columns (ignoring NaNs).
         """
         self.features_idx = features_idx
-        selected = data.features[:, self.features_idx]
+        indices = torch.as_tensor(self.features_idx, device=data.features.device, dtype=torch.long)
+        selected = data.features[:, indices]
 
         if self.with_mean or self.with_std:
             mask = ~torch.isnan(selected)
@@ -73,15 +74,16 @@ class StandartScaling(AbstractPreprocessingHandler):
         if self.features_idx is None:
             raise RuntimeError("ScalingImplementation is not fitted yet.")
 
-        selected = data.features[:, self.features_idx]
+        indices = torch.as_tensor(self.features_idx, device=data.features.device, dtype=torch.long)
+        selected = data.features[:, indices]
 
         if self.with_mean and self.mean_values is not None:
-            selected = selected - self.mean_values
+            selected = selected - self.mean_values.to(selected)
 
         if self.with_std and self.scale_values is not None:
-            selected = selected / self.scale_values
+            selected = selected / self.scale_values.to(selected)
 
-        data.features[:, self.features_idx] = selected
+        data.features[:, indices] = selected
         return data
 
 
@@ -97,8 +99,11 @@ class MinMaxNormalization(AbstractPreprocessingHandler):
     with ones.
     """
 
-    def __init__(self, feature_range: tuple[float, float] = (0.0, 1.0)):
+    def __init__(self, feature_range: tuple[float, float] = (0.0, 1.0), clip: bool = False):
         """Initialize `MinMaxNormalization`."""
+        if feature_range[0] >= feature_range[1]:
+            raise ValueError('feature_range minimum must be smaller than its maximum.')
+        self.clip = clip
         self.min_range = feature_range[0]
         self.max_range = feature_range[1]
 
@@ -140,12 +145,15 @@ class MinMaxNormalization(AbstractPreprocessingHandler):
             raise RuntimeError(
                 "NormalizationImplementation is not fitted yet.")
 
-        selected = data.features[:, self.features_idx]
+        indices = torch.as_tensor(self.features_idx, device=data.features.device, dtype=torch.long)
+        selected = data.features[:, indices]
 
         # X_scaled = (X - min) * scale + min_range
-        selected = (selected - self.data_min) * self.scale + self.min_range
+        selected = (selected - self.data_min.to(selected)) * self.scale.to(selected) + self.min_range
+        if self.clip:
+            selected = selected.clamp(self.min_range, self.max_range)
 
-        data.features[:, self.features_idx] = selected
+        data.features[:, indices] = selected
         return data
 
 

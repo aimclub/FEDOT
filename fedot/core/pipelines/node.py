@@ -12,9 +12,8 @@ from golem.serializers.serializer import register_serializable
 from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.data.tensor_data.tensor_data import TensorData
-from fedot.core.data.merge.data_merger import DataMerger, TensorDataMerger
+from fedot.core.pipelines.tensor_input import prepare_tensor_input
 from fedot.core.operations.factory import OperationFactory
-from fedot.core.operations.model import Model
 from fedot.core.operations.operation import Operation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.pipeline_node_rules import (
@@ -200,10 +199,7 @@ class PipelineNode(LinkedGraphNode):
             tensor_data: TensorData,
             predictions_cache: Optional[PredictionsCache] = None,
             fold_id: Optional[int] = None) -> TensorData:
-        """Runs training process in the node on TensorData.
-
-        Slice 1 supports only primary nodes without parents (e.g. single predefined model).
-        """
+        """Prepare TensorData from parents and train or reuse the node operation."""
         self.log.debug(
             f'Trying to fit pipeline node with operation: {self.operation} on TensorData')
         tensor_data = self._get_tensor_data(
@@ -324,12 +320,7 @@ class PipelineNode(LinkedGraphNode):
             predictions_cache=predictions_cache,
             fold_id=fold_id,
         )
-        secondary_input = TensorDataMerger(
-            parent_results,
-            parent_is_models=[isinstance(parent.operation, Model)
-                              for parent in parent_nodes],
-        ).merge()
-        return secondary_input
+        return prepare_tensor_input(self.operation.operation_type, parent_nodes, parent_results)
 
     def _nodes_from_with_fixed_order(self):
         """Sorts :attr:`nodes_from` (if exists) by the nodes unique id

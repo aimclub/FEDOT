@@ -1,10 +1,21 @@
 from typing import Dict, Iterable, Tuple
 
 
-def merge_operation_default_params(default_parameters: Dict, passed_parameters: Dict) -> Dict:
+def merge_operation_default_params(default_parameters: Dict, passed_parameters: Dict,
+                                   alias_groups: Iterable[Tuple[str, ...]] = ()) -> Dict:
+    """Merge defaults after removing aliases overridden by explicit parameters."""
+    defaults = dict(default_parameters or {})
+    passed = dict(passed_parameters or {})
+    for aliases in alias_groups:
+        explicit = [name for name in aliases if name in passed]
+        if len(explicit) > 1:
+            raise ValueError(f'Pass only one parameter from the alias group: {", ".join(aliases)}')
+        if explicit:
+            for name in aliases:
+                defaults.pop(name, None)
     return {
-        **dict(default_parameters or {}),
-        **dict(passed_parameters or {}),
+        **defaults,
+        **passed,
     }
 
 

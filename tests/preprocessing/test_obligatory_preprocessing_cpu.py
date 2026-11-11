@@ -12,8 +12,26 @@ from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.prepared_data.prepared_data import PreparedData
 from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 from fedot.preprocessing.methods.categorical_encoding import LabelEncoder
-from fedot.preprocessing.planner.obligatory_planner import get_encoding_steps
+from fedot.preprocessing.planner.obligatory_planner import force_categorical_determination, get_encoding_steps
 from fedot.preprocessing.tools.preprocessor_types import EncodingMethodEnum, EmbeddingMethodEnum
+
+
+@pytest.mark.unit
+def test_low_cardinality_numeric_object_features_are_categorical():
+    """Recover categorical codes from a mixed-type NumPy object array."""
+    low_cardinality = np.tile(np.arange(3), 5)
+    binary = np.tile(np.arange(2), 8)[:15]
+    high_cardinality = np.arange(15)
+    features = np.column_stack((low_cardinality, binary, high_cardinality)).astype(object)
+
+    assert force_categorical_determination(features) == [0]
+
+
+@pytest.mark.unit
+def test_all_unique_numeric_object_features_remain_numerical():
+    features = np.array([[7.0], [2.0], [9.0], [4.0]], dtype=object)
+
+    assert force_categorical_determination(features) == []
 
 
 @pytest.mark.unit
@@ -683,7 +701,7 @@ def test_create_predict_uses_train_obligatory_trace_without_target_split():
     train = np.array([
         [1.0, "A", 10.0, 0],
         [2.0, "B", 20.0, 1],
-        [3.0, "A", 30.0, 0],
+        [1.0, "A", 10.0, 0],
     ], dtype=object)
     test = np.array([
         [4.0, "B", 40.0],
@@ -773,7 +791,7 @@ def test_create_fit_predict_without_tensor_cache_keeps_trace_and_models(isolated
     train = np.array([
         [1.0, "A", 0.0],
         [2.0, "B", 1.0],
-        [3.0, "A", 0.0],
+        [1.0, "A", 0.0],
     ], dtype=object)
     test = np.array([
         [4.0, "B"],

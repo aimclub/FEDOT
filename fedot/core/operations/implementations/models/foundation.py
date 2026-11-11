@@ -2,8 +2,10 @@ import os
 from typing import Optional
 
 import numpy as np
+import torch
 
-from fedot.core.data.input_data.data import InputData, OutputData
+from fedot.core.backend.array_conversions import as_numpy, as_torch
+from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.operations.implementations.base import ModelImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.utils import default_fedot_data_dir
@@ -24,37 +26,30 @@ class BaseFoundationalImplementation(ModelImplementation):
         self.model = None
         self.classes_ = None
 
-    def _preprocess_fit_data(self, input_data: InputData) -> InputData:
-        return input_data
+    def _prepare_features(self, data: TensorData, *, fit: bool = False):
+        # Public fit/predict APIs use CPU NumPy/sklearn preprocessing even on GPU.
+        return as_numpy(data.features)
 
-    def _preprocess_predict_data(self, input_data: InputData) -> InputData:
-        return input_data
-
-    def fit(self, input_data: InputData):
-        input_data = self._preprocess_fit_data(input_data)
-        self.model.fit(X=input_data.features, y=input_data.target)
+    def fit(self, input_data: TensorData):
+        features = self._prepare_features(input_data, fit=True)
+        target = input_data.target
+        if target.ndim == 2 and target.shape[1] == 1:
+            target = target.reshape(-1)
+        self.model.fit(X=features, y=as_numpy(target))
         return self.model
 
-    def predict(self, input_data: InputData) -> OutputData:
-        input_data = self._preprocess_predict_data(input_data)
-        prediction = self.model.predict(input_data.features)
-        return self._convert_to_output(
-            input_data=input_data,
-            predict=prediction
-        )
+    def predict(self, input_data: TensorData) -> torch.Tensor:
+        prediction = self.model.predict(self._prepare_features(input_data))
+        return as_torch(prediction, device=input_data.device)
 
-    def predict_proba(self, input_data: InputData):
-        input_data = self._preprocess_predict_data(input_data)
-        prediction = self.model.predict_proba(input_data.features)
-        return self._convert_to_output(
-            input_data=input_data,
-            predict=prediction
-        )
+    def predict_proba(self, input_data: TensorData) -> torch.Tensor:
+        prediction = self.model.predict_proba(self._prepare_features(input_data))
+        return as_torch(prediction, device=input_data.device)
 
 
 class BaseFoundationalClassificationImplementation(BaseFoundationalImplementation):
-    def fit(self, input_data: InputData):
-        self.classes_ = np.unique(np.array(input_data.target))
+    def fit(self, input_data: TensorData):
+        self.classes_ = torch.unique(input_data.target)
         return super().fit(input_data=input_data)
 
 
@@ -88,16 +83,27 @@ class FedotTabPFNImplementation(BaseFoundationalImplementation):
         elif model_path is not None:
             os.environ["TABPFN_MODEL_CACHE_DIR"] = model_path
 
-    def _preprocess_fit_data(self, input_data: InputData) -> InputData:
-        self.model.categorical_features_indices = input_data.categorical_idx
-        if self.params.get('enable_categorical'):
-            return input_data.get_not_encoded_data()
-        return input_data
+    def _prepare_features(self, data: TensorData, *, fit: bool = False):
+        if not self.params.get('enable_categorical'):
+            if fit:
+                self.model.categorical_features_indices = data.categorical_idx
+            return super()._prepare_features(data, fit=fit)
 
-    def _preprocess_predict_data(self, input_data: InputData) -> InputData:
-        if self.params.get('enable_categorical'):
-            return input_data.get_not_encoded_data()
-        return input_data
+        original = data.get_not_encoded_data()
+        numerical = as_numpy(original.numerical_features)
+        categories = original.categorical_features
+        n_numerical, n_categorical = numerical.shape[1], categories.shape[1]
+        if fit:
+            # Restoration puts categories after numerical columns, unlike OHE layout.
+            self.model.categorical_features_indices = list(range(n_numerical, n_numerical + n_categorical))
+        if n_categorical == 0:
+            return numerical
+        # Host strings require a mixed array at the library boundary. Keep missing
+        # values intact: optional TensorData imputation has already decided their policy.
+        features = np.empty((len(data.features), n_numerical + n_categorical), dtype=object)
+        features[:, :n_numerical] = numerical
+        features[:, n_numerical:] = categories
+        return features
 
 
 class FedotTabPFNClassificationImplementation(

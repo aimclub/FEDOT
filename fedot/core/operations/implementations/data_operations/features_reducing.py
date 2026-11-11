@@ -1,15 +1,14 @@
-from typing import Optional, Union
+from typing import Optional
 
 import numpy as np
-import pandas as pd
 from sklearn.decomposition import FastICA, KernelPCA, PCA
 import torch
 
 from fedot.core.constants import PCA_MIN_THRESHOLD_TS
-from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.tensor_data.tools import flatten_if_needed
-from fedot.core.operations.implementations.base import DataOperationImplementation, TensorDataOperationImplementation
+from fedot.core.backend.array_conversions import as_numpy, as_torch
+from fedot.core.operations.implementations.base import TensorDataOperationImplementation
 from fedot.core.operations.implementations.data_operations.rules import is_spectrum_n_components_method
 from fedot.core.operations.implementations.data_operations.schema import (
     validate_pca_params,
@@ -25,7 +24,6 @@ from fedot.core.operations.implementations.data_operations.tools import (
 )
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.preprocessing.data_types import TYPE_TO_ID
 
 
 class PCAImplementation(TensorDataOperationImplementation):
@@ -288,7 +286,7 @@ class TruncatedSVDImplementation(TensorDataOperationImplementation):
         return replace_projected_features(data, projected)
 
 
-class ComponentAnalysisImplementation(DataOperationImplementation):
+class ComponentAnalysisImplementation(TensorDataOperationImplementation):
     """
     Class for applying PCA and kernel PCA models from sklearn
 
@@ -302,7 +300,7 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         self.number_of_features = None
         self.number_of_samples = None
 
-    def fit(self, input_data: InputData) -> PCA:
+    def fit(self, input_data: TensorData) -> PCA:
         """
         The method trains the PCA model
 
@@ -313,8 +311,7 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
             trained PCA model (optional output)
         """
 
-        self.number_of_samples, self.number_of_features = np.array(
-            input_data.features).shape
+        self.number_of_samples, self.number_of_features = flatten_if_needed(input_data.features).shape
 
         if self.number_of_features > 1:
             self.check_and_correct_params(
@@ -333,7 +330,7 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
 
         return self.pca
 
-    def transform(self, input_data: InputData) -> OutputData:
+    def transform(self, input_data: TensorData) -> TensorData:
         """
         Method for transformation tabular data using PCA
 
@@ -352,16 +349,15 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
 
         # Update features
         transformed_features = self.postprocess_input(transformed_features)
-        output_data = self._convert_to_output(input_data, transformed_features)
-        self.update_column_types(output_data)
-        return output_data
+        return replace_projected_features(
+            input_data, as_torch(transformed_features, device=input_data.device))
 
     @staticmethod
-    def preprocess_input(input_data: InputData) -> Union[np.ndarray, pd.DataFrame]:
-        return input_data.features
+    def preprocess_input(input_data: TensorData) -> np.ndarray:
+        return as_numpy(flatten_if_needed(input_data.features))
 
     @staticmethod
-    def postprocess_input(transformed_features: Union[np.ndarray, pd.DataFrame]) -> Union[np.ndarray, pd.DataFrame]:
+    def postprocess_input(transformed_features: np.ndarray) -> np.ndarray:
         return transformed_features
 
     def check_and_correct_params(self, is_ts_data: bool = False):
@@ -374,11 +370,9 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
             if n_components > self.number_of_features:
                 self.params.update(n_components=self.number_of_features)
         elif n_components == 'mle':
-            from dask_ml.decomposition import PCA as DaskPCA
-
             # Check that n_samples correctly map with n_features
             if self.number_of_samples < self.number_of_features:
-                if not isinstance(self.pca, DaskPCA):
+                if not isinstance(self, DaskPCAImplementation):
                     self.params.update(n_components=0.5)
                 else:
                     self.params.update(n_components=None)
@@ -387,21 +381,6 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
                 n_components=PCA_MIN_THRESHOLD_TS / self.number_of_features)
 
         self.pca.set_params(**self.params.to_dict())
-
-    @staticmethod
-    def update_column_types(output_data: OutputData) -> OutputData:
-        """
-        Update column types after applying PCA operations
-        """
-
-        predict = np.asarray(output_data.predict)
-        n_cols = 1 if predict.ndim <= 1 else predict.shape[1]
-
-        if output_data.supplementary_data.col_type_ids is None:
-            output_data.supplementary_data.col_type_ids = {}
-        output_data.supplementary_data.col_type_ids['features'] = np.array(
-            [TYPE_TO_ID[float]] * n_cols)
-        return output_data
 
 
 class DaskPCAImplementation(ComponentAnalysisImplementation):
@@ -424,13 +403,11 @@ class DaskPCAImplementation(ComponentAnalysisImplementation):
         self.number_of_features = None
 
     @staticmethod
-    def preprocess_input(input_data: InputData) -> Union[np.ndarray, pd.DataFrame]:
+    def preprocess_input(input_data: TensorData) -> np.ndarray:
         import dask.array as da
         from dask_ml.utils import check_array
 
-        features = input_data.features
-        if isinstance(input_data.features, pd.DataFrame):
-            features = features.values
+        features = as_numpy(flatten_if_needed(input_data.features))
         features = check_array(features, accept_sparse=True, dtype=None)
         if not isinstance(features, da.Array):
             features = da.array(features)

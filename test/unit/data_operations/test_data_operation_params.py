@@ -4,8 +4,10 @@ from unittest.mock import Mock
 import numpy as np
 import pandas as pd
 import pytest
+import torch
 
 from fedot.core.data.input_data.data import InputData
+from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.operations.implementations.data_operations.sklearn_filters import LinearRegRANSACImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
@@ -77,7 +79,8 @@ def test_ransac_with_invalid_params_fit_correctly():
 
     data = InputData.from_csv(data_path)
     train, test = train_test_data_setup(data)
-    train.task.task_type = TaskTypesEnum.regression
+    train = TensorData(features=torch.as_tensor(train.features), target=torch.as_tensor(train.target),
+                       idx=train.idx, task=Task(TaskTypesEnum.regression), data_type=DataTypesEnum.tabular)
     ransac_pipeline = get_rasnac_pipeline()
     ransac_pipeline.fit(train)
     predicted = ransac_pipeline.predict(train)
@@ -88,9 +91,9 @@ def test_ransac_with_invalid_params_fit_correctly():
 
 def test_ransac_handles_linear_algebra_error():
     """RANSAC should fall back to unfiltered data when its inner estimator cannot fit."""
-    data = InputData(idx=np.arange(5),
-                     features=np.arange(5).reshape(-1, 1),
-                     target=np.arange(5),
+    data = TensorData(idx=torch.arange(5),
+                     features=torch.arange(5.).reshape(-1, 1),
+                     target=torch.arange(5.),
                      task=Task(TaskTypesEnum.regression),
                      data_type=DataTypesEnum.table)
     implementation = LinearRegRANSACImplementation(OperationParameters(residual_threshold=0.1))
@@ -99,10 +102,10 @@ def test_ransac_handles_linear_algebra_error():
     fitted_operation = implementation.fit(data)
     transformed_data = implementation.transform_for_fit(data)
 
-    assert fitted_operation is implementation.operation
+    assert fitted_operation is implementation
     assert implementation.operation.fit.call_count == implementation.max_iter
     assert implementation.operation.inlier_mask_ is None
-    np.testing.assert_array_equal(transformed_data.predict, data.features)
+    torch.testing.assert_close(transformed_data.features, data.features)
 
 
 def test_params_filter_with_non_default():

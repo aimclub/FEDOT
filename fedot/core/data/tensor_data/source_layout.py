@@ -5,7 +5,8 @@ from numbers import Integral
 import numpy as np
 import torch
 
-from fedot.core.backend.backend import Backend, torch_to_xp
+from fedot.core.backend.backend import Backend
+from fedot.core.backend.array_conversions import torch_to_xp
 from fedot.core.data.common.enums import StateEnum, TSOrientationEnum
 from fedot.core.data.tensor_data.contracts import (
     FeatureSchema, TensorDataContractError, as_list, column_indices,

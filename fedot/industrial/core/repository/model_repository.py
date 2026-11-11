@@ -12,7 +12,7 @@ from fedot.core.operations.implementations.data_operations.features_reducing imp
     KernelPCAImplementation,
     PCAImplementation,
 )
-from fedot.core.operations.implementations.data_operations.sklearn_transformations import (
+from fedot.core.operations.implementations.data_operations.tabular import (
     ImputationImplementation,
     NormalizationImplementation,
     ScalingImplementation,

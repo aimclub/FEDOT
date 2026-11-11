@@ -6,15 +6,16 @@
       ],
       "description": "Implementations of the custom classification models",
       "forbidden_node_types": "[]",
-      "input_type": "[DataTypesEnum.table]",
-      "output_type": "[DataTypesEnum.table]",
+      "input_type": "[DataTypesEnum.tabular]",
+      "output_type": "[DataTypesEnum.tabular]",
       "strategies": [
         "fedot.core.operations.strategies.models.adapters",
         "AdapterClassificationStrategy"
       ],
       "tags": [
         "ml",
-        "custom"
+        "custom",
+        "tensor-only"
       ],
       "tasks": "[TaskTypesEnum.classification]"
     },
@@ -24,17 +25,28 @@
       ],
       "description": "Implementations of the custom regression models",
       "forbidden_node_types": "[]",
-      "input_type": "[DataTypesEnum.table]",
-      "output_type": "[DataTypesEnum.table]",
+      "input_type": "[DataTypesEnum.tabular]",
+      "output_type": "[DataTypesEnum.tabular]",
       "strategies": [
         "fedot.core.operations.strategies.models.adapters",
         "AdapterRegressionStrategy"
       ],
       "tags": [
         "ml",
-        "custom"
+        "custom",
+        "tensor-only"
       ],
       "tasks": "[TaskTypesEnum.regression]"
+    },
+    "keras_class": {
+      "accepted_node_types": ["any"],
+      "description": "Legacy TensorFlow/Keras classification models",
+      "forbidden_node_types": "[]",
+      "input_type": "[DataTypesEnum.image]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": ["fedot.core.operations.strategies.models.keras", "KerasClassificationStrategy"],
+      "tags": ["ml", "custom"],
+      "tasks": "[TaskTypesEnum.classification]"
     },
     "sklearn_class": {
       "accepted_node_types": [
@@ -42,15 +54,16 @@
       ],
       "description": "Implementations of the classification models from scikit-learn framework",
       "forbidden_node_types": "[]",
-      "input_type": "[DataTypesEnum.table]",
-      "output_type": "[DataTypesEnum.table]",
+      "input_type": "[DataTypesEnum.tabular]",
+      "output_type": "[DataTypesEnum.tabular]",
       "strategies": [
         "fedot.core.operations.strategies.models.sklearn",
         "SklearnClassificationStrategy"
       ],
       "tags": [
         "ml",
-        "sklearn"
+        "sklearn",
+        "tensor-only"
       ],
       "tasks": "[TaskTypesEnum.classification]"
     },
@@ -98,15 +111,16 @@
       ],
       "description": "Implementations of the clustering models from scikit-learn framework",
       "forbidden_node_types": "[]",
-      "input_type": "[DataTypesEnum.table]",
-      "output_type": "[DataTypesEnum.table]",
+      "input_type": "[DataTypesEnum.tabular]",
+      "output_type": "[DataTypesEnum.tabular]",
       "strategies": [
         "fedot.core.operations.strategies.models.sklearn",
         "SklearnClusteringStrategy"
       ],
       "tags": [
         "ml",
-        "sklearn"
+        "sklearn",
+        "tensor-only"
       ],
       "tasks": "[TaskTypesEnum.clustering]"
     },
@@ -116,8 +130,8 @@
       ],
       "description": "Implementations of the regression models from scikit-learn framework",
       "forbidden_node_types": "[]",
-      "input_type": "[DataTypesEnum.table]",
-      "output_type": "[DataTypesEnum.table]",
+      "input_type": "[DataTypesEnum.tabular]",
+      "output_type": "[DataTypesEnum.tabular]",
       "strategies": [
         "fedot.core.operations.strategies.models.sklearn",
         "SklearnRegressionStrategy"
@@ -125,7 +139,8 @@
       "tags": [
         "ml",
         "sklearn",
-        "composition"
+        "composition",
+        "tensor-only"
       ],
       "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]"
     },
@@ -173,13 +188,14 @@
       ],
       "description": "TabPFN implementations for classification problems",
       "forbidden_node_types": "[]",
-      "input_type": "[DataTypesEnum.table]",
-      "output_type": "[DataTypesEnum.table]",
+      "input_type": "[DataTypesEnum.tabular]",
+      "output_type": "[DataTypesEnum.tabular]",
       "strategies": [
         "fedot.core.operations.strategies.models.foundation",
         "TabPFNClassificationStrategy"
       ],
       "tags": [
+        "tensor-only",
         "neural",
         "non_linear",
         "tabpfn",
@@ -194,13 +210,14 @@
       ],
       "description": "TabPFN implementations for regression problems",
       "forbidden_node_types": "[]",
-      "input_type": "[DataTypesEnum.table]",
-      "output_type": "[DataTypesEnum.table]",
+      "input_type": "[DataTypesEnum.tabular]",
+      "output_type": "[DataTypesEnum.tabular]",
       "strategies": [
         "fedot.core.operations.strategies.models.foundation",
         "TabPFNRegressionStrategy"
       ],
       "tags": [
+        "tensor-only",
         "neural",
         "non_linear",
         "tabpfn",
@@ -215,13 +232,14 @@
       ],
       "description": "TabICL implementations for classification problems",
       "forbidden_node_types": "[]",
-      "input_type": "[DataTypesEnum.table]",
-      "output_type": "[DataTypesEnum.table]",
+      "input_type": "[DataTypesEnum.tabular]",
+      "output_type": "[DataTypesEnum.tabular]",
       "strategies": [
         "fedot.core.operations.strategies.models.foundation",
         "TabICLClassificationStrategy"
       ],
       "tags": [
+        "tensor-only",
         "neural",
         "non_linear",
         "tabicl",
@@ -236,13 +254,14 @@
       ],
       "description": "TabICL implementations for regression problems",
       "forbidden_node_types": "[]",
-      "input_type": "[DataTypesEnum.table]",
-      "output_type": "[DataTypesEnum.table]",
+      "input_type": "[DataTypesEnum.tabular]",
+      "output_type": "[DataTypesEnum.tabular]",
       "strategies": [
         "fedot.core.operations.strategies.models.foundation",
         "TabICLRegressionStrategy"
       ],
       "tags": [
+        "tensor-only",
         "neural",
         "non_linear",
         "tabicl",
@@ -677,7 +696,7 @@
       ]
     },
     "cnn": {
-      "meta": "custom_class",
+      "meta": "keras_class",
       "tags": [
         "deep", "non-default", "non_linear"
       ],

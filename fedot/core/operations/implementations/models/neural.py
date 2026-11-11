@@ -15,6 +15,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
+from fedot.core.backend.array_conversions import as_numpy, as_torch
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.operations.implementations.base import ModelImplementation
 from fedot.core.operations.operation_parameters import OperationParameters

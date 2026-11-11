@@ -82,7 +82,7 @@ def run_river_composer_experiment(file_path, init_pipeline, file_to_save,
                                       'scaling', 'ransac_lin_reg', 'rfe_lin_reg',
                                       'pca', 'ransac_non_lin_reg',
                                       'rfe_non_lin_reg', 'normalization']
-    available_primary_operations = ['one_hot_encoding']
+    available_primary_operations = ['scaling']
     metric_function = RegressionMetricsEnum.MAE
     # Report arrays
     obtained_pipelines = []
@@ -157,8 +157,7 @@ def run_river_composer_experiment(file_path, init_pipeline, file_to_save,
 
 if __name__ == '__main__':
     # Define pipeline to start composing with it
-    node_encoder = PipelineNode('one_hot_encoding')
-    node_rans = PipelineNode('ransac_lin_reg', nodes_from=[node_encoder])
+    node_rans = PipelineNode('ransac_lin_reg')
     node_scaling = PipelineNode('scaling', nodes_from=[node_rans])
     node_final = PipelineNode('linear', nodes_from=[node_scaling])
 

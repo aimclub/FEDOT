@@ -15,8 +15,10 @@ def preparation_identity(data: TensorData) -> str:
         'schema': state.schema, 'plan_hash': state.plan_hash,
         'plan_state': sha256(state.plan_state).hexdigest(),
         'backend': state.backend_name, 'input_hash': state.input_hash,
-        'steps': tuple((step.step, step.indices, sha256(step.handler_state).hexdigest())
+        'steps': tuple((step.step, step.indices, step.source_indices, sha256(step.handler_state).hexdigest())
                        for step in state.steps),
+        'categorical_steps': tuple((step.indices, step.source_indices, sha256(step.handler_state).hexdigest())
+                                   for step in state.encoding_steps),
     })
 
 

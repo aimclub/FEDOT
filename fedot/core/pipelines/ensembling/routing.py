@@ -6,6 +6,7 @@ from typing import Any, Optional, Sequence
 import numpy as np
 import torch
 
+from fedot.core.backend.array_conversions import as_numpy, as_torch
 from fedot.core.data.input_data.data import InputData
 from fedot.core.data.multimodal.multi_modal import MultiModalData
 
@@ -138,10 +139,10 @@ class ConstrainedGatingRouter:
         ).to(device)
         optimizer = torch.optim.AdamW(model.parameters(), lr=float(self.lr), weight_decay=float(self.weight_decay))
 
-        x = torch.as_tensor(x_np, dtype=torch.float32, device=device)
-        prior = torch.as_tensor(prior_weights, dtype=torch.float32, device=device)
-        pred = torch.as_tensor(predictions, dtype=torch.float32, device=device)
-        y = torch.as_tensor(target, dtype=torch.float32, device=device)
+        x = as_torch(x_np, dtype=torch.float32, device=device)
+        prior = as_torch(prior_weights, dtype=torch.float32, device=device)
+        pred = as_torch(predictions, dtype=torch.float32, device=device)
+        y = as_torch(target, dtype=torch.float32, device=device)
 
         n_samples = x.shape[0]
         batch_size = max(1, min(int(self.batch_size), int(n_samples)))
@@ -170,8 +171,8 @@ class ConstrainedGatingRouter:
 
         x_np = self._standardize(np.asarray(features, dtype=np.float32))
         with torch.no_grad():
-            logits = self.model(torch.as_tensor(x_np, dtype=torch.float32, device=self.device_))
-            return torch.softmax(logits, dim=1).detach().cpu().numpy()
+            logits = self.model(as_torch(x_np, dtype=torch.float32, device=self.device_))
+            return as_numpy(torch.softmax(logits, dim=1))
 
     def _standardize(self, features: np.ndarray) -> np.ndarray:
         return (features - self.input_mean_) / self.input_scale_

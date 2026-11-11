@@ -4,6 +4,7 @@ from typing import List, Iterable, Union, Optional
 import numpy as np
 import torch
 
+from fedot.core.backend.array_conversions import as_numpy, as_torch
 from golem.core.log import default_log
 from golem.utilities.data_structures import are_same_length
 
@@ -12,6 +13,7 @@ from fedot.core.data.input_data.data import OutputData, InputData
 from fedot.core.data.merge.rules import TensorMergeInputPlan, plan_tensor_merge_input
 from fedot.core.data.merge.supplementary_data_merger import SupplementaryDataMerger
 from fedot.core.data.schemas import validate_tensor_data_merge_data_type
+from fedot.core.data.tensor_data.row_operations import common_row_indices, row_positions, take_rows
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.repository.dataset_types import DataTypesEnum
 
@@ -176,7 +178,8 @@ class TensorDataMerger:
     ``predict`` is cleared.
     """
 
-    def __init__(self, outputs: List[TensorData], parent_is_models: Optional[List[bool]] = None):
+    def __init__(self, outputs: List[TensorData], parent_is_models: Optional[List[bool]] = None,
+                 main_output_index: Optional[int] = None):
         if not outputs:
             raise ValueError('No TensorData outputs to merge')
         if parent_is_models is not None and len(parent_is_models) != len(outputs):
@@ -189,7 +192,8 @@ class TensorDataMerger:
                 output.predict is not None, parent_is_model)
             for output, parent_is_model in zip(outputs, roles)
         ]
-        self.main_output = self._find_main_output(outputs)
+        self.main_output = (self._find_main_output(outputs) if main_output_index is None
+                            else outputs[main_output_index])
         self.data_type = DataMerger.get_datatype_for_merge(
             output.data_type for output in outputs)
         validate_tensor_data_merge_data_type(self.data_type)
@@ -197,14 +201,74 @@ class TensorDataMerger:
 
     def merge(self) -> TensorData:
         merged_features = self.merge_features(self.find_common_features())
-
+        metadata = self._categorical_metadata(merged_features)
         return replace(
             self.main_output,
             idx=self.common_indices,
             features=merged_features,
             target=self.merge_target(),
             predict=None,
+            fingerprint=None,
+            **metadata,
         )
+
+    def aligned_output(self, index: int) -> TensorData:
+        """Return one parent's row-aligned data with its own feature metadata."""
+        output = self.outputs[index]
+        return replace(output, idx=self.common_indices,
+                       features=self._select_common(output, output.features),
+                       predict=self._select_common(output, output.predict),
+                       target=self._select_common(output, output.target),
+                       categorical_features=self._select_common(output, output.categorical_features),
+                       fingerprint=None)
+
+    def _categorical_metadata(self, merged_features):
+        # Current feature-column metadata describes tabular matrices. Preserve
+        # the existing layout for deferred multidimensional TS/image runtime.
+        if merged_features.ndim != 2 and not any(output.categorical_features is not None for output in self.outputs):
+            return {}
+        if len(self.outputs) == 1 and not self.input_plans[0].use_predict:
+            return {'categorical_features': self._select_common(
+                self.main_output, self.main_output.categorical_features)}
+
+        # Branches may represent the same original source differently (for
+        # example with/without imputation). Give each branch its own source IDs.
+        mapping, categorical, values, source_ids = {}, [], [], []
+        encoding_steps = []
+        offset, next_source = 0, 0
+        for output, plan in zip(self.outputs, self.input_plans):
+            tensor = self._merge_input(output, plan)
+            width = tensor.reshape(tensor.shape[0], -1).shape[1]
+            if plan.use_predict:
+                sources = dict(enumerate(range(width)))
+                cats = []
+            else:
+                sources = output.idx_mapping or dict(enumerate(range(width)))
+                cats = list(output.categorical_idx)
+            identifiers = {source: next_source + i for i, source in enumerate(dict.fromkeys(sources.values()))}
+            next_source += len(identifiers)
+            mapping.update({offset + pos: identifiers[source] for pos, source in sources.items()})
+            categorical.extend(offset + pos for pos in cats)
+            active = {sources[pos] for pos in cats}
+            for col, source in enumerate(output.categorical_source_idx):
+                if not plan.use_predict and source in active:
+                    values.append(self._select_common(output, output.categorical_features[:, col:col + 1]))
+                    source_ids.append(identifiers[source])
+            if not plan.use_predict and output.preparation_state is not None:
+                for fitted in output.preparation_state.encoding_steps:
+                    selected = [(index, identifiers[source]) for index, source in
+                                zip(fitted.indices, fitted.source_indices) if source in active]
+                    if selected:
+                        encoding_steps.append(replace(fitted, indices=tuple(index for index, _ in selected),
+                                                      source_indices=tuple(source for _, source in selected)))
+            offset += width
+        state = self.main_output.preparation_state
+        if state is not None:
+            state = replace(state, categorical_steps=tuple(encoding_steps))
+        return dict(idx_mapping=mapping, categorical_idx=categorical,
+                    numerical_idx=[pos for pos in range(merged_features.shape[1]) if pos not in categorical],
+                    categorical_features=np.hstack(values) if values else None,
+                    categorical_source_idx=source_ids, features_names=None, preparation_state=state)
 
     def _find_common_indices(self):
         idx_list = [output.idx for output in self.outputs]
@@ -213,8 +277,15 @@ class TensorDataMerger:
                 [output.features for output in self.outputs])
             return self.main_output.idx
 
-        common_indices = find_common_elements(
-            *[np.asarray(idx) for idx in idx_list])
+        tensor_labels = any(isinstance(idx, torch.Tensor) for idx in idx_list)
+        numeric_labels = all(isinstance(idx, torch.Tensor) or np.asarray(idx).dtype.kind in 'biuf'
+                             for idx in idx_list)
+        if tensor_labels and numeric_labels:
+            common_indices = common_row_indices(
+                [as_torch(idx, device=self.main_output.device) for idx in idx_list])
+        else:
+            common_indices = find_common_elements(
+                *[as_numpy(idx) for idx in idx_list])
         if len(common_indices) == 0:
             raise ValueError(
                 'There are no common indices for TensorData outputs')
@@ -244,13 +315,18 @@ class TensorDataMerger:
     def merge_features(features: List[torch.Tensor]) -> torch.Tensor:
         return torch.cat(features, dim=-1)
 
-    def _select_common(self, output: TensorData, tensor: torch.Tensor) -> torch.Tensor:
-        if self.common_indices is None or output.idx is None:
+    def _select_common(self, output: TensorData, tensor):
+        if tensor is None or self.common_indices is None or output.idx is None:
             return tensor
-        index_mask = np.isin(np.asarray(output.idx), self.common_indices)
-        tensor_mask = torch.as_tensor(
-            index_mask, dtype=torch.bool, device=tensor.device)
-        return tensor[tensor_mask]
+        if isinstance(self.common_indices, torch.Tensor):
+            labels = as_torch(output.idx, device=self.common_indices.device)
+            return take_rows(tensor, row_positions(labels, self.common_indices))
+        labels = output.idx.detach().cpu().tolist() if isinstance(output.idx, torch.Tensor) else list(output.idx)
+        positions = {label: pos for pos, label in enumerate(labels)}
+        index = [positions[label] for label in self.common_indices]
+        if isinstance(tensor, torch.Tensor):
+            index = as_torch(index, dtype=torch.long, device=tensor.device)
+        return tensor[index]
 
     @staticmethod
     def _check_equal_rows(tensors: List[torch.Tensor]):
