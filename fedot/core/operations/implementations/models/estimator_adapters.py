@@ -163,3 +163,38 @@ class QDAImplementation(DiscriminantAnalysisImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.model = QuadraticDiscriminantAnalysis(**self.params.to_dict())
+
+
+class ExplainableBoostingClassifierAdapter:
+    """Keep numeric class labels intact at the InterpretML boundary."""
+
+    def __init__(self, **params):
+        from interpret.glassbox import ExplainableBoostingClassifier
+        self.implementation = ExplainableBoostingClassifier(**params)
+
+    @property
+    def random_state(self):
+        return self.implementation.random_state
+
+    @random_state.setter
+    def random_state(self, value):
+        self.implementation.random_state = value
+
+    def fit(self, features, target):
+        # InterpretML converts floating labels to strings; use integer codes
+        # internally and expose the original numeric classes to the strategy.
+        self.classes_, encoded = np.unique(target, return_inverse=True)
+        self.implementation.fit(features, encoded)
+        return self
+
+    def predict(self, features):
+        return self.classes_[self.implementation.predict(features)]
+
+    def predict_proba(self, features):
+        return self.implementation.predict_proba(features)
+
+
+class ExplainableBoostingRegressorAdapter:
+    def __new__(cls, **params):
+        from interpret.glassbox import ExplainableBoostingRegressor
+        return ExplainableBoostingRegressor(**params)

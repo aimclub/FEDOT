@@ -28,6 +28,10 @@ from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 from fedot.core.backend.array_conversions import as_numpy, as_torch
 from fedot.core.data.tensor_data.tensor_data import TensorData
+from fedot.core.operations.implementations.models.estimator_adapters import (
+    ExplainableBoostingClassifierAdapter,
+    ExplainableBoostingRegressorAdapter,
+)
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.operations.strategies.base import EvaluationStrategy
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
@@ -88,6 +92,9 @@ class SklearnClassificationStrategy(SklearnModelStrategy):
         'dt': DecisionTreeClassifier,
         'rf': RandomForestClassifier,
         'mlp': MLPClassifier,
+        'extra_trees': ExtraTreesClassifier,
+        'hist_gb': HistGradientBoostingClassifier,
+        'ebm': ExplainableBoostingClassifierAdapter,
     }
 
     def predict(self, trained_operation, predict_data: TensorData) -> TensorData:
@@ -129,6 +136,9 @@ class SklearnRegressionStrategy(SklearnModelStrategy):
         'lasso': SklearnLassoReg,
         'svr': SklearnSVR,
         'sgdr': SklearnSGD,
+        'hist_gbreg': HistGradientBoostingRegressor,
+        'ebmreg': ExplainableBoostingRegressorAdapter,
+        'mlpreg': MLPRegressor,
     }
 
 
