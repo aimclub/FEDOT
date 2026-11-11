@@ -19,6 +19,19 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 pytestmark = pytest.mark.unit
 
 
+@pytest.mark.skipif(not torch.cuda.is_available(), reason='CUDA is unavailable')
+@pytest.mark.parametrize('explicit_idx', [False, True])
+def test_cuda_creator_places_tensor_idx_on_feature_device_before_validation(explicit_idx):
+    pytest.importorskip('cudf')
+    idx = torch.arange(8) + 100 if explicit_idx else None
+    data = create_data(np.arange(24, dtype=np.float32).reshape(8, 3), target=np.arange(8) % 2,
+                       idx=idx, task=Task(TaskTypesEnum.classification), backend='cuda:0', use_cache=False)
+    assert data.idx.device == data.features.device == torch.device('cuda:0')
+    torch.testing.assert_close(data.idx.cpu(), idx if explicit_idx else torch.arange(8))
+    if explicit_idx:
+        assert idx.device == torch.device('cpu')
+
+
 def test_boolean_sample_mask_reduces_all_non_sample_axes():
     values = torch.ones((3, 2, 4))
     values[1, 1, 2] = torch.nan

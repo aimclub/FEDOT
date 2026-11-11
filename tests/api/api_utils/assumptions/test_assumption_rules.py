@@ -75,7 +75,6 @@ def test_parse_preset_spec_extracts_stable_and_modification_flags():
     assert spec.modification == '*tree'
     assert spec.use_stable is True
     assert spec.use_auto is False
-    assert spec.use_gpu is False
 
 
 def test_merge_exclude_and_finalize_operations_are_deterministic():

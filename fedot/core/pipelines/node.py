@@ -133,7 +133,8 @@ class PipelineNode(LinkedGraphNode):
 
     def update_params(self):
         """Updates :attr:`custom_params` with changed parameters"""
-        new_params = self.fitted_operation.get_params()
+        execution = getattr(self.fitted_operation, '_fedot_execution', None)
+        new_params = execution.params if execution is not None else self.fitted_operation.get_params()
         changed_parameters = new_params.changed_parameters
         updated_parameters = merge_node_parameters(
             self.parameters, changed_parameters)
@@ -204,6 +205,10 @@ class PipelineNode(LinkedGraphNode):
             f'Trying to fit pipeline node with operation: {self.operation} on TensorData')
         tensor_data = self._get_tensor_data(
             tensor_data=tensor_data, parent_operation='fit')
+
+        if self.fitted_operation is not None and not self.operation.is_execution_compatible(
+                self.fitted_operation, tensor_data):
+            self.fitted_operation = None
 
         if self.fitted_operation is None:
             with Timer() as t:

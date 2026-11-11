@@ -15,7 +15,6 @@ class BaseFoundationalImplementation(ModelImplementation):
     _excluded_model_params = [
         'max_samples',
         'max_features',
-        'device'
     ]
 
     def __init__(self, params: Optional[OperationParameters] = None):

@@ -1,13 +1,16 @@
 from abc import abstractmethod
+from contextlib import nullcontext
 from dataclasses import replace
 from typing import Optional
 import warnings
 
+import torch
 from golem.core.log import default_log
 
 from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.operations.operation_execution_rules import OperationExecutionResolution
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import get_operation_type_from_id
 from fedot.utilities.custom_errors import AbstractMethodNotImplementError
@@ -29,12 +32,26 @@ class EvaluationStrategy:
         self.params_for_fit = params or OperationParameters()
         self.operation_id = operation_type
         self.output_mode = False
+        self.execution: Optional[OperationExecutionResolution] = None
 
         self.log = default_log(self)
 
     @property
     def operation_type(self):
         return get_operation_type_from_id(self.operation_id)
+
+    def configure_execution(self, execution: OperationExecutionResolution):
+        self.execution = execution
+
+    def prepare_execution_params(self, params: OperationParameters, device: torch.device) -> OperationParameters:
+        """Translate the selected device to library parameters when an implementation needs it."""
+        return params
+
+    def execution_context(self):
+        """Keep CUDA calls on the selected GPU, including restored estimators."""
+        if self.execution is not None and self.execution.device.type == 'cuda':
+            return torch.cuda.device(self.execution.device)
+        return nullcontext()
 
     @abstractmethod
     def fit(self, train_data: InputData):

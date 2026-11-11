@@ -6,7 +6,6 @@ from fedot.core.operations.strategies.models.cuml import (
     CuMLModelStrategy,
     _validate_cuml_environment,
     adapt_cuml_parameters,
-    validate_cuml_tensor_operation,
 )
 
 
@@ -61,6 +60,13 @@ def test_cuml_kmeans_keeps_historical_two_cluster_default():
 
 
 @pytest.mark.unit
+@pytest.mark.parametrize('name', ['knn', 'knnreg'])
+def test_cuml_knn_keeps_the_meaning_of_sklearn_distance_power(name):
+    assert adapt_cuml_parameters(name, {'p': 1})['metric'] == 'minkowski'
+    assert adapt_cuml_parameters(name, {'p': 1, 'metric': 'cosine'})['metric'] == 'cosine'
+
+
+@pytest.mark.unit
 @pytest.mark.parametrize(
     ('installed', 'system', 'release', 'cuda_available', 'message'),
     [
@@ -95,7 +101,4 @@ def test_cuml_environment_accepts_native_linux_with_cuda(monkeypatch):
 
 @pytest.mark.unit
 def test_low_level_sgd_solver_is_not_exposed_as_tensordata_model():
-    with pytest.raises(ValueError, match='low-level solver'):
-        validate_cuml_tensor_operation('sgd')
-
-    validate_cuml_tensor_operation('logit')
+    assert 'sgd' not in CuMLModelStrategy._operations_by_types

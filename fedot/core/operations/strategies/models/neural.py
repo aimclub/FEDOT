@@ -3,6 +3,7 @@ from typing import Optional
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.operations.implementations.models.neural import TorchLinearClassifier
 from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.operations.operation_execution import prepare_device_params
 from fedot.core.operations.schemas import validate_classification_output_mode
 from fedot.core.operations.strategies.base import EvaluationStrategy
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -13,6 +14,9 @@ class NeuralTabularStrategy(EvaluationStrategy):
     """Shared TensorData contract for tabular neural model implementations."""
 
     _operations_by_types = {}
+
+    def prepare_execution_params(self, params, device):
+        return prepare_device_params(params, device)
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         self.operation_impl = self._convert_to_operation(operation_type)

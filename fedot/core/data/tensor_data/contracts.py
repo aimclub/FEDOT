@@ -163,12 +163,12 @@ def validate_sample_index(idx, count: int):
             'row_alignment', 'idx', f'expected {count} one-dimensional row labels')
 
 
-def sample_index(idx, count: int):
+def sample_index(idx, count: int, device=None):
     """Own row labels without interpreting numeric labels as positions."""
     if idx is None:
-        return torch.arange(count, dtype=torch.int64)
+        return torch.arange(count, dtype=torch.int64, device=device)
     if isinstance(idx, torch.Tensor):
-        result = idx.detach().clone()
+        result = idx.detach().to(device=device, copy=True)
     else:
         result = np.array(idx, copy=True)
     validate_sample_index(result, count)

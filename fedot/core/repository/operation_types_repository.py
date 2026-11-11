@@ -4,7 +4,7 @@ from functools import lru_cache
 import os
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Dict, List, Optional, TYPE_CHECKING, Union
+from typing import Dict, List, Optional, Tuple, TYPE_CHECKING, Type, Union
 
 from golem.core.log import default_log
 
@@ -13,6 +13,9 @@ from fedot.core.operations.implementations.data_operations.topological.topologic
 )
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.json_evaluation import import_enums_from_str, import_strategy_from_str, read_field
+from fedot.core.repository.operation_implementation import (
+    OperationImplementationInfo, StrategyReference, parse_operation_implementations,
+)
 from fedot.core.repository.operation_query import (
     OperationQuery,
     RepositoryKind,
@@ -32,6 +35,7 @@ if TYPE_CHECKING:
     from fedot.core.operations.strategies.base import EvaluationStrategy
 
 AVAILABLE_REPO_NAMES = [kind.value for kind in RepositoryKind]
+StrategyType = Union[Type['EvaluationStrategy'], StrategyReference]
 
 
 @dataclass
@@ -40,13 +44,13 @@ class OperationMetaInfo:
     input_types: List[DataTypesEnum]
     output_types: List[DataTypesEnum]
     task_type: List[TaskTypesEnum]
-    supported_strategies: Union['EvaluationStrategy',
-                                Dict[str, 'EvaluationStrategy']]
+    supported_strategies: Optional[Union[StrategyType, Dict[TaskTypesEnum, StrategyType]]]
     allowed_positions: List[str]
     tags: Optional[List[str]] = None
     presets: Optional[List[str]] = None
+    implementations: Tuple[OperationImplementationInfo, ...] = ()
 
-    def current_strategy(self, task: TaskTypesEnum) -> Optional['EvaluationStrategy']:
+    def current_strategy(self, task: TaskTypesEnum) -> Optional[Type['EvaluationStrategy']]:
         """
         Gets available processing strategies depending on the selected task
 
@@ -58,8 +62,10 @@ class OperationMetaInfo:
         """
 
         if isinstance(self.supported_strategies, dict):
-            return self.supported_strategies.get(task, None)
-        return self.supported_strategies
+            strategy = self.supported_strategies.get(task, None)
+        else:
+            strategy = self.supported_strategies
+        return strategy.load() if isinstance(strategy, StrategyReference) else strategy
 
 
 def run_once(function):
@@ -217,7 +223,7 @@ class OperationTypesRepository:
 
             # Get available strategies for obtained metadata
             supported_strategies = OperationTypesRepository.get_strategies_by_metadata(
-                metadata)
+                metadata, lazy=bool(properties.get('implementations')))
 
             accepted_node_types = read_field(
                 metadata, 'accepted_node_types', ['any'])
@@ -247,13 +253,15 @@ class OperationTypesRepository:
                                           supported_strategies=supported_strategies,
                                           allowed_positions=allowed_positions,
                                           tags=tags,
-                                          presets=presets)
+                                          presets=presets,
+                                          implementations=parse_operation_implementations(
+                                              properties, metadata_json, task_types))
             operations_list.append(operation)
 
         return operations_list
 
     @staticmethod
-    def get_strategies_by_metadata(metadata: dict) -> Union['EvaluationStrategy', Dict[str, 'EvaluationStrategy']]:
+    def get_strategies_by_metadata(metadata: dict, lazy: bool = False):
         """
         Obtains strategy instance by the metadata
 
@@ -265,15 +273,16 @@ class OperationTypesRepository:
         """
         strategies_json = metadata['strategies']
         if isinstance(strategies_json, list):
-            supported_strategies = import_strategy_from_str(strategies_json)
+            supported_strategies = (StrategyReference(*strategies_json) if lazy else
+                                    import_strategy_from_str(strategies_json))
         elif isinstance(strategies_json, dict):
             supported_strategies = {}
             for strategy_dct_key, strategy_str_value in strategies_json.items():
                 # Convert string into class path for import
-                import_path = import_enums_from_str(strategy_dct_key)
-                strategy_class = import_strategy_from_str(strategy_str_value)
-
-                supported_strategies.update({import_path: strategy_class})
+                strategy_class = (StrategyReference(*strategy_str_value) if lazy else
+                                  import_strategy_from_str(strategy_str_value))
+                for task_type in import_enums_from_str(strategy_dct_key):
+                    supported_strategies[task_type] = strategy_class
         else:
             raise TypeError('strategies are of unknown type')
         return supported_strategies

@@ -23,7 +23,7 @@ def print_models_info(task_name):
             info_lst = [
                 f"Model name - '{model.id}'",
                 f"Available hyperparameters to optimize with tuner - {hyperparameters}",
-                f"Strategy implementation - {model.current_strategy(task)}",
+                f"Strategy implementation - {_strategy_info(model, task)}",
                 f"Model implementation - {implementation_info}\n"
             ]
             print('\n'.join(info_lst))
@@ -46,7 +46,7 @@ def print_data_operations_info(task_name):
         info_lst = [
             f"Data operation name - '{operation.id}'",
             f"Available hyperparameters to optimize with tuner - {hyperparameters}",
-            f"Strategy implementation - {operation.current_strategy(task)}",
+            f"Strategy implementation - {_strategy_info(operation, task)}",
             f"Operation implementation - {implementation_info}\n"
         ]
         print('\n'.join(info_lst))
@@ -77,12 +77,23 @@ def _filter_operations_by_type(repository, task):
 
 def _get_implementation_info(operation, task) -> str:
     """Return implementation metadata without instantiating regular operations."""
+    if operation.implementations:
+        return _strategy_info(operation, task)
     strategy = operation.current_strategy(task)
     operation_type = get_operation_type_from_id(operation.id)
     implementations = getattr(strategy, '_operations_by_types', {})
     if operation_type in implementations:
         return str(implementations[operation_type])
     return strategy(operation.id).implementation_info
+
+
+def _strategy_info(operation, task):
+    if operation.implementations:
+        return {variant.id: {'strategy': f'{reference.module}.{reference.name}',
+                             'devices': [device.value for device in variant.devices]}
+                for variant in operation.implementations
+                if (reference := variant.strategy_for_task(task or operation.task_type[0])) is not None}
+    return operation.current_strategy(task)
 
 
 def operations_for_task(task_name: str):

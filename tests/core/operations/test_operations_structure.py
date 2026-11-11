@@ -17,7 +17,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize('catalogue', ['model_repository', 'data_operation_repository', 'gpu_models_repository'])
+@pytest.mark.parametrize('catalogue', ['model_repository', 'data_operation_repository'])
 def test_catalogue_strategy_references_resolve_to_canonical_classes(catalogue):
     repository = Path(__file__).resolve().parents[3] / 'fedot/core/repository/data'
     metadata = json.loads((repository / f'{catalogue}.json').read_text())['metadata']

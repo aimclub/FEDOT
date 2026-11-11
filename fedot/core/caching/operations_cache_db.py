@@ -75,7 +75,7 @@ class OperationsCacheDB(BaseCacheDB):
                     x) if x is not None else None for (x,) in retrieved]
                 return retrieved
 
-    def add_operations(self, uid_val_lst: List[Tuple[str, 'IOperation']]):
+    def add_operations(self, uid_val_lst: List[Tuple[str, 'IOperation']], overwrite: bool = False):
         """
         Adds operation score to DB table via its uid
 
@@ -96,7 +96,7 @@ class OperationsCacheDB(BaseCacheDB):
                         )
                     pickled.append((uid, sqlite3.Binary(serialized)))
                 cur.executemany(
-                    f'INSERT OR IGNORE INTO {self._main_table} VALUES (?, ?);', pickled)
+                    f'INSERT OR {"REPLACE" if overwrite else "IGNORE"} INTO {self._main_table} VALUES (?, ?);', pickled)
 
     def _init_db(self):
         """

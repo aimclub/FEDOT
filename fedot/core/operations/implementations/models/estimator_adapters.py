@@ -43,7 +43,7 @@ class KNeighborsImplementation(SklearnModelAdapter):
         """Keep the historical correction for a training set smaller than k."""
         n_neighbors = self.model.n_neighbors
         if n_neighbors > len(input_data.features):
-            new_k_value = max(1, round(len(input_data.features) / 2))
+            new_k_value = correct_n_neighbors(n_neighbors, len(input_data.features))
             self.params.update(n_neighbors=new_k_value)
             self.model = model_impl(**self.params.to_dict())
             self.log.info(f'n_neighbors of K-nn model was changed from {n_neighbors} to {new_k_value}')
@@ -75,6 +75,12 @@ class KnnRegressionAdapter(KNeighborsImplementation):
     def fit(self, train_data: TensorData):
         self.check_and_correct_k_value(train_data, KNeighborsRegressor)
         return super().fit(train_data)
+
+
+def correct_n_neighbors(n_neighbors: int, n_samples: int) -> int:
+    value = round(n_neighbors)
+    value = 1 if value == 0 else value
+    return max(1, round(n_samples / 2)) if value > n_samples else value
 
 
 def round_n_neighbors(params: dict) -> dict:

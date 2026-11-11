@@ -20,7 +20,6 @@ class PresetSpec:
     modification: Optional[str]
     use_auto: bool
     use_stable: bool
-    use_gpu: bool
 
 
 _REQUIRED_SOURCE_OPERATIONS = {
@@ -81,7 +80,8 @@ def parse_preset_spec(preset_name: Optional[str]) -> PresetSpec:
     modification = None
     use_auto = AUTO_PRESET_NAME in requested_preset
     use_stable = 'stable' in requested_preset
-    use_gpu = 'gpu' in requested_preset
+    if 'gpu' in requested_preset:
+        raise ValueError('The gpu preset has been removed. Use a regular preset and create TensorData on CUDA.')
 
     if '*' in base_preset:
         base_name, suffix = base_preset.split('*', 1)
@@ -97,7 +97,6 @@ def parse_preset_spec(preset_name: Optional[str]) -> PresetSpec:
         modification=modification,
         use_auto=use_auto,
         use_stable=use_stable,
-        use_gpu=use_gpu,
     )
 
 

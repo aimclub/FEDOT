@@ -3,6 +3,7 @@ from collections import UserDict
 from copy import deepcopy, copy
 from dataclasses import dataclass
 from typing import Any, Dict, Optional, Union
+import torch
 
 from golem.core.log import LoggerAdapter, default_log
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
@@ -19,6 +20,7 @@ from fedot.api.api_utils.api_params_rules import (
     should_update_available_operations,
 )
 from fedot.api.api_utils.presets import OperationsPreset
+from fedot.core.utils import is_multi_output_target
 from fedot.api.api_utils.schemas import validate_creation_trace
 from fedot.api.api_utils.tensor_data_config import resolve_tensor_data_config
 from fedot.core.data.common.enums import StateEnum
@@ -66,6 +68,8 @@ class ApiParams(UserDict):
         self.composer_requirements = None
         self.graph_generation_params = None
         self.optimizer_params = None
+        self._execution_device = torch.device('cpu')
+        self._execution_multi_output = False
 
     def prepare_creation(
         self,
@@ -99,14 +103,19 @@ class ApiParams(UserDict):
 
     def update_available_operations_by_preset(self, data: Union[InputData, TensorData]):
         """ Updates available_operations by preset and data type"""
-        # TODO romankuklo: update presets according to backend (cpu/gpu)
+        if isinstance(data, TensorData):
+            self._execution_device = data.device
+            self._execution_multi_output = is_multi_output_target(data)
         preset = self.get('preset')
         if should_update_available_operations(preset):
             preset_operations = OperationsPreset(
                 task=self.task, preset_name=preset)
-            # TODO romankuklo: create a new data_operation_repository.json for TD
             self.data = preset_operations.composer_params_based_on_preset(
-                self.data, data.data_type)
+                self.data, data.data_type, data_device=self._execution_device,
+                multi_output=self._execution_multi_output)
+        elif self.get('available_operations') is not None:
+            self['available_operations'] = OperationsPreset(self.task, preset).filter_available_operations(
+                self['available_operations'], self._execution_device, self._execution_multi_output)
 
     def accept_and_apply_recommendations(self, input_data: Union[InputData, MultiModalData, TensorData],
                                          recommendations: Dict):
@@ -139,7 +148,7 @@ class ApiParams(UserDict):
 
         self.pop('available_operations', None)
         self.data = preset_operations.composer_params_based_on_preset(
-            self.data, data_type)
+            self.data, data_type, data_device=self._execution_device, multi_output=self._execution_multi_output)
 
     def _get_task_with_params(self, problem: str, task_params: Optional[TaskParams] = None) -> Task:
         """ Creates Task from problem name and task_params"""
@@ -170,7 +179,8 @@ class ApiParams(UserDict):
         # define available operations
         if not self.get('available_operations'):
             available_operations = OperationsPreset(
-                self.task, preset).filter_operations_by_preset()
+                self.task, preset).filter_operations_by_preset(
+                    data_device=self._execution_device, multi_output=self._execution_multi_output)
             self['available_operations'] = available_operations
 
         primary_operations, secondary_operations = \

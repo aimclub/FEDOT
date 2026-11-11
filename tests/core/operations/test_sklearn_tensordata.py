@@ -38,7 +38,7 @@ def test_repository_uses_one_sklearn_family(strategy_class):
     repository = OperationTypesRepository('model')
     for operation in strategy_class._operations_by_types:
         info = repository.operation_info_by_id(operation)
-        assert info.supported_strategies is strategy_class
+        assert info.current_strategy(info.task_type[0]) is strategy_class
         assert 'tensor-only' in info.tags
 
 

@@ -93,3 +93,19 @@ RFE может удалить часть dummy columns, а enable_categorical в
 - [ ] Для decompose при фильтрации классов до первоначального fit согласовать получение полного
   fitted class order от producer. Текущий vocabulary сохраняется при fit самого decomposer и не
   сужается на последующих subsets; несовпадение первоначальных осей выдаёт явную ошибку.
+
+
+### Единый каталог CPU/GPU (11 ноября)
+
+- [ ] Согласовать пространства тюнинга с выбранным исполнением. CatBoost GPU не принимает rsm/
+  colsample_bylevel для обычных classification/regression objectives, border_count ограничен сильнее;
+  max_leaves зависит также от grow_policy. Не скрывать это удалением заданных параметров в адаптере.
+  Аналогично проверить общие пространства sklearn/cuML и библиотечные ограничения GPU.
+  Небольшое исправление уже сделано: cuML KNN получает metric=minkowski, чтобы p=1 не игнорировался.
+- [ ] Сравнить RF sklearn/cuML на одинаковых данных/параметрах и нескольких seeds: в обновлённом примере
+  make_moons(n_samples=1000, noise=0.1, random_state=137), split seed=137 получены roc_auc_pen около
+  0.999 CPU и 0.931 CUDA. Это одиночный smoke, не оценка общего качества; причину различия ещё не установили.
+  Проверить library defaults, разбиения/квантили, критерий, ограничения и feature sampling до предпочтений.
+- [ ] Отдельно проверить multi-GPU, CUDA_VISIBLE_DEVICES и соответствие OpenCL gpu_device_id устройству
+  CUDA у LightGBM. На одной RTX 4080 SUPER device_type=gpu работает, CUDA-enabled build отсутствует.
+  Не считать GPU fit гарантией GPU inference: сохранить штатное поведение библиотеки и измерять обе стадии.

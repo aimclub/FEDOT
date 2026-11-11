@@ -14,9 +14,12 @@ from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.operations.strategies.base import EvaluationStrategy
 from fedot.core.operations.hyperparameters_preprocessing import HyperparametersPreprocessor
 from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.operations.operation_execution import FittedOperationExecution, discover_execution_environment
+from fedot.core.operations.operation_execution_rules import resolve_operation_execution
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
+from fedot.core.utils import is_multi_output_target
 from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 
 
@@ -33,6 +36,7 @@ class Operation:
         self.operation_type = operation_type
 
         self._eval_strategy = None
+        self._fitted_execution = None
         self.operations_repo: Optional[OperationTypesRepository] = None
         self.fitted_operation = None
 
@@ -51,12 +55,15 @@ class Operation:
             .correct(params.to_dict())
         params_for_fit = OperationParameters.from_operation_type(
             self.operation_type, **params_for_fit)
+        execution = kwargs.get('execution')
         try:
-            self._eval_strategy = \
-                _eval_strategy_for_task(self.operation_type,
-                                        task.task_type,
-                                        self.operations_repo)(self.operation_type,
-                                                              params_for_fit)
+            strategy_type = (execution.strategy.load() if execution is not None else
+                             _eval_strategy_for_task(self.operation_type, task.task_type, self.operations_repo))
+            self._eval_strategy = strategy_type(self.operation_type, params_for_fit)
+            if execution is not None:
+                self._eval_strategy.configure_execution(execution)
+                self._eval_strategy.params_for_fit = self._eval_strategy.prepare_execution_params(
+                    self._eval_strategy.params_for_fit.copy(), execution.device)
         except Exception as ex:
             self.log.error(f'Can not find evaluation strategy because of {ex}')
             raise ex
@@ -90,13 +97,20 @@ class Operation:
             fold_id: Optional[int] = None,
             descriptive_id: Optional[str] = None) -> Tuple[Any, TensorData]:
         """Trains the operation on TensorData and returns the node output."""
+        execution = self.resolve_execution(data) if self.metadata.implementations else None
         self._init(
             data.task,
             params=params,
             n_samples_data=data.features.shape[0],
+            execution=execution,
         )
 
-        self.fitted_operation = self._eval_strategy.fit(train_data=data)
+        with self._eval_strategy.execution_context():
+            self.fitted_operation = self._eval_strategy.fit(train_data=data)
+        if execution is not None:
+            self._fitted_execution = FittedOperationExecution(
+                execution, self._eval_strategy.params_for_fit.copy())
+            self.fitted_operation._fedot_execution = self._fitted_execution
 
         output = self.predict_for_fit(
             fitted_operation=self.fitted_operation,
@@ -104,8 +118,22 @@ class Operation:
             params=params,
             predictions_cache=predictions_cache,
             fold_id=fold_id,
+            descriptive_id=descriptive_id,
         )
         return self.fitted_operation, output
+
+    def resolve_execution(self, data: TensorData):
+        metadata = self.metadata
+        environment = discover_execution_environment(metadata.implementations, data.device)
+        return resolve_operation_execution(metadata, data.task.task_type, data.device, environment,
+                                           multi_output=is_multi_output_target(data))
+
+    def is_execution_compatible(self, fitted_operation, data: TensorData) -> bool:
+        """A cached fit may be reused only for the same selected execution."""
+        if not self.metadata.implementations:
+            return True
+        state = getattr(fitted_operation, '_fedot_execution', None)
+        return state is not None and state.resolution == self.resolve_execution(data)
 
     def _is_tensor_transform_operation(self) -> bool:
         from fedot.core.operations.data_operation import DataOperation
@@ -167,12 +195,18 @@ class Operation:
                  predictions_cache: Optional[PredictionsCache] = None,
                  fold_id: Optional[int] = None,
                  descriptive_id: Optional[str] = None) -> TensorData:
-        self._init(
-            data.task,
-            output_mode=output_mode,
-            params=params,
-            n_samples_data=data.features.shape[0],
-        )
+        state = getattr(fitted_operation, '_fedot_execution', None)
+        if state is not None:
+            if self._eval_strategy is None or self._fitted_execution is not state:
+                self._eval_strategy = state.resolution.strategy.load()(self.operation_type, state.params.copy())
+                self._eval_strategy.configure_execution(state.resolution)
+                self._fitted_execution = state
+            self._eval_strategy.output_mode = output_mode
+            descriptive_id = f'{descriptive_id}|execution={state.resolution.cache_key}|output_device={data.device}'
+        elif self.metadata.implementations:
+            raise ValueError(f'Fitted operation {self.operation_type!r} has no execution metadata; refit it.')
+        else:
+            self._init(data.task, output_mode=output_mode, params=params, n_samples_data=data.features.shape[0])
 
         result_data = None
 
@@ -182,14 +216,15 @@ class Operation:
 
         # TODO @romankuklo: change with new cache implementation (if/else)
         if result_data is None:
-            if is_fit_stage:
-                result_data = self._eval_strategy.predict_for_fit(
-                    trained_operation=fitted_operation,
-                    predict_data=data)
-            else:
-                result_data = self._eval_strategy.predict(
-                    trained_operation=fitted_operation,
-                    predict_data=data)
+            with self._eval_strategy.execution_context():
+                if is_fit_stage:
+                    result_data = self._eval_strategy.predict_for_fit(
+                        trained_operation=fitted_operation,
+                        predict_data=data)
+                else:
+                    result_data = self._eval_strategy.predict(
+                        trained_operation=fitted_operation,
+                        predict_data=data)
             if isinstance(data, TensorData):
                 result_data = self._wrap_tensor_operation_result(result_data, data)
 
@@ -207,7 +242,7 @@ class Operation:
         return {
             k: v
             for k, v in sorted(vars(self).items())
-            if k not in ['log', 'operations_repo', '_eval_strategy', 'fitted_operation']
+            if k not in ['log', 'operations_repo', '_eval_strategy', '_fitted_execution', 'fitted_operation']
         }
 
 

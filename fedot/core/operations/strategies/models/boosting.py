@@ -40,6 +40,9 @@ class BoostingStrategy(EvaluationStrategy):
             raise ValueError(
                 f'Impossible to obtain Boosting Strategy for {operation_type}')
 
+    def prepare_execution_params(self, params, device):
+        return self.operation_impl.prepare_execution_params(params, device)
+
     def fit(self, train_data: TensorData):
         if train_data.task.task_type == TaskTypesEnum.ts_forecasting:
             raise ValueError(
