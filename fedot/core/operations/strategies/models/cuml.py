@@ -8,6 +8,7 @@ import torch
 from fedot.core.backend.array_conversions import as_cupy, as_torch
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.operations.implementations.models.estimator_adapters import correct_n_neighbors
 from fedot.core.operations.strategies.base import EvaluationStrategy
 from fedot.utilities.random import ImplementationRandomStateHandler
 
@@ -22,7 +23,7 @@ try:
     )
     from cuml.naive_bayes import BernoulliNB, MultinomialNB
     from cuml.neighbors import KNeighborsClassifier, KNeighborsRegressor
-    from cuml.solvers import CD, SGD
+    from cuml.solvers import CD
     from cuml.svm import SVC
 except (ImportError, ModuleNotFoundError):
     warn_requirement('cupy / cuml', 'cuml-cu12')
@@ -44,7 +45,6 @@ class CuMLModelStrategy(EvaluationStrategy):
             'svc': SVC,
             'knn': KNeighborsClassifier,
             'knnreg': KNeighborsRegressor,
-            'sgd': SGD,
             'multinb': MultinomialNB,
             'bernb': BernoulliNB,
             'elasticnet': ElasticNet,
@@ -66,11 +66,11 @@ class CuMLModelStrategy(EvaluationStrategy):
 
     def fit(self, train_data: TensorData):
         """Fit a cuML estimator and keep TensorData transfers device-to-device."""
-        validate_cuml_tensor_operation(self.operation_type)
-
         features, device = self._features_to_cuml(train_data.features, self.dtype)
-        target = self._target_to_cuml(train_data.target, self.dtype, device)
         parameters = adapt_cuml_parameters(self.operation_type, self.params_for_fit.to_dict())
+        if self.operation_type in {'knn', 'knnreg'}:
+            parameters['n_neighbors'] = correct_n_neighbors(parameters.get('n_neighbors', 5), len(train_data.features))
+            self.params_for_fit.update(n_neighbors=parameters['n_neighbors'])
         operation_implementation = self.operation_impl(**parameters)
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', category=RuntimeWarning)
@@ -78,12 +78,13 @@ class CuMLModelStrategy(EvaluationStrategy):
                 if self.operation_type == 'kmeans':
                     operation_implementation.fit(features)
                 else:
+                    target = self._target_to_cuml(train_data.target, self.dtype, device)
                     operation_implementation.fit(features, target)
         return operation_implementation
 
-    @staticmethod
-    def _features_to_cuml(features: torch.Tensor, dtype: torch.dtype):
-        device = features.device if features.is_cuda else torch.device('cuda')
+    def _features_to_cuml(self, features: torch.Tensor, dtype: torch.dtype):
+        device = (self.execution.device if self.execution is not None else
+                  features.device if features.is_cuda else torch.device('cuda'))
         features = as_torch(features, device=device, dtype=dtype, contiguous=True)
         return as_cupy(features), device
 
@@ -125,18 +126,12 @@ def adapt_cuml_parameters(operation_type: str, parameters: Mapping[str, Any]) ->
         adapted.setdefault('linesearch_max_iter', 200)
     if operation_type == 'svc':
         adapted['probability'] = True
+    if operation_type in {'knn', 'knnreg'}:
+        adapted.setdefault('metric', 'minkowski')
     if operation_type == 'kmeans':
         adapted.setdefault('n_clusters', 2)
     adapted['output_type'] = 'cupy'
     return adapted
-
-
-def validate_cuml_tensor_operation(operation_type: str):
-    """Reject the historical solver alias without a model contract."""
-    if operation_type == 'sgd':
-        raise ValueError(
-            f'cuML operation {operation_type!r} is a low-level solver and has no TensorData model contract'
-        )
 
 
 class CuMLClassificationStrategy(CuMLModelStrategy):

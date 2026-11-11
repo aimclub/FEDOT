@@ -16,6 +16,7 @@ from fedot.core.data.split.data_split import train_test_tensor_data_setup
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.operations.implementations.base import ModelImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.operations.operation_execution import prepare_device_params
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.utils import default_fedot_data_dir, is_multi_output_target
 from fedot.preprocessing.methods.categorical_encoding import LabelEncoder
@@ -98,6 +99,13 @@ class BoostingImplementation(ModelImplementation):
 
 class FedotXGBoostImplementation(BoostingImplementation):
     _operation_params = ('n_jobs', 'use_eval_set')
+
+    @staticmethod
+    def prepare_execution_params(params, device):
+        params = prepare_device_params(params, device)
+        if device.type == 'cuda' and params.get('tree_method', 'auto') == 'auto':
+            params.update(tree_method='hist')
+        return params
 
     @property
     def _model_device(self) -> torch.device:
@@ -190,6 +198,20 @@ class FedotXGBoostRegressionImplementation(FedotXGBoostImplementation):
 
 
 class FedotLightGBMImplementation(BoostingImplementation):
+    @staticmethod
+    def prepare_execution_params(params, device):
+        key = 'device' if 'device' in params.keys() and 'device_type' not in params.keys() else 'device_type'
+        requested = params.get(key)
+        allowed = {'gpu', 'cuda'} if device.type == 'cuda' else {'cpu'}
+        if requested is not None and requested not in allowed:
+            raise ValueError(f'LightGBM {key}={requested!r} conflicts with selected execution {str(device)!r}.')
+        params.update(**{key: requested or ('gpu' if device.type == 'cuda' else 'cpu')})
+        if device.type == 'cuda':
+            if params.get('gpu_device_id', device.index) != device.index:
+                raise ValueError('LightGBM gpu_device_id must match the selected TensorData device.')
+            params.update(gpu_device_id=device.index)
+        return params
+
     def _prepare_features(self, data: TensorData, *, fit: bool = False):
         return as_numpy(self._feature_tensor(data, fit=fit))
 
@@ -234,6 +256,18 @@ class FedotLightGBMRegressionImplementation(FedotLightGBMImplementation):
 
 
 class FedotCatBoostImplementation(BoostingImplementation):
+    @staticmethod
+    def prepare_execution_params(params, device):
+        task_type = 'GPU' if device.type == 'cuda' else 'CPU'
+        if params.get('task_type', task_type) != task_type:
+            raise ValueError(f'CatBoost task_type conflicts with selected execution {str(device)!r}.')
+        params.update(task_type=task_type)
+        if device.type == 'cuda':
+            if str(params.get('devices', device.index)) != str(device.index):
+                raise ValueError('CatBoost devices must match the selected TensorData device.')
+            params.update(devices=str(device.index))
+        return params
+
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.params.update(thread_count=self.params.get('n_jobs'))

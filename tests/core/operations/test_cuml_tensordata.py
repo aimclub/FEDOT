@@ -117,7 +117,9 @@ def test_cuml_cpu_tensordata_predictions_return_to_cpu():
     assert prediction.predict.shape == (len(data.features), 2)
 
 
-@pytest.mark.parametrize('task_type', [TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering])
+@pytest.mark.parametrize('task_type', [
+    TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering,
+])
 def test_cuml_strategies_have_no_inputdata_runtime(task_type):
     from fedot.core.operations.strategies.models.cuml import CuMLClassificationStrategy
     from fedot.core.operations.strategies.models.cuml import CuMLClusteringStrategy
@@ -140,13 +142,9 @@ def test_cuml_strategies_have_no_inputdata_runtime(task_type):
 
 def test_cuml_model_runs_in_tensordata_pipeline():
     data = _tensor_data(TaskTypesEnum.classification)
-    OperationTypesRepository.assign_repo('model', 'gpu_models_repository.json')
-    try:
-        pipeline = Pipeline(PipelineNode('logit'))
-        pipeline.fit(data)
-        prediction = pipeline.predict(data, output_mode='full_probs')
-    finally:
-        OperationTypesRepository.assign_repo('model', 'model_repository.json')
+    pipeline = Pipeline(PipelineNode('logit'))
+    pipeline.fit(data)
+    prediction = pipeline.predict(data, output_mode='full_probs')
 
     assert isinstance(prediction, TensorData)
     assert prediction.predict.device.type == 'cuda'
@@ -155,14 +153,10 @@ def test_cuml_model_runs_in_tensordata_pipeline():
 
 def test_tensor_data_operation_feeds_cuml_model_without_leaving_cuda():
     data = _tensor_data(TaskTypesEnum.classification)
-    OperationTypesRepository.assign_repo('model', 'gpu_models_repository.json')
-    try:
-        model_node = PipelineNode('logit', nodes_from=[PipelineNode('pca')])
-        pipeline = Pipeline(model_node)
-        pipeline.fit(data)
-        prediction = pipeline.predict(data, output_mode='full_probs')
-    finally:
-        OperationTypesRepository.assign_repo('model', 'model_repository.json')
+    model_node = PipelineNode('logit', nodes_from=[PipelineNode('pca')])
+    pipeline = Pipeline(model_node)
+    pipeline.fit(data)
+    prediction = pipeline.predict(data, output_mode='full_probs')
 
     assert isinstance(prediction, TensorData)
     assert prediction.predict.device.type == 'cuda'

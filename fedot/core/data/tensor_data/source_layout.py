@@ -106,7 +106,7 @@ def prepare_source(spec):
     if names is not None and (len(names) != width or len(set(names)) != width):
         raise TensorDataContractError(
             'invalid_names', 'features_names', f'expected {width} unique feature names')
-    idx = sample_index(spec.idx, len(features))
+    idx = sample_index(spec.idx, len(features), device=Backend().device)
     categorical = column_indices(
         spec.categorical_idx, width, names, 'categorical_idx')
     numerical = column_indices(

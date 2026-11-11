@@ -98,25 +98,27 @@ def test_classification_modes_preserve_labels_and_metadata(operation, n_classes)
         assert inference.predict is None
 
 
-@pytest.mark.parametrize('base_operation', list(STRATEGIES))
-@pytest.mark.parametrize('gpu_alias', [False, True])
-def test_aliases_share_implementations_keep_parameters_and_tensor_pipeline(base_operation, gpu_alias):
-    operation = base_operation + ('_gpu' if gpu_alias else '')
-    regression = base_operation.endswith('reg')
+@pytest.mark.parametrize('operation', list(STRATEGIES))
+@pytest.mark.parametrize('device', ['cpu', 'cuda:2'])
+def test_one_model_id_prepares_device_and_preserves_parameters(operation, device):
+    regression = operation.endswith('reg')
     data = make_data(regression)
     data.target = data.target[:, None]
     params = parameters(operation)
     before = params.to_dict()
-    strategy = STRATEGIES[base_operation](operation, params)
+    strategy = STRATEGIES[operation](operation, params)
+    strategy.params_for_fit = strategy.prepare_execution_params(params.copy(), torch.device(device))
     fitted = strategy.fit(data)
 
-    assert fitted.model.params['device'] == ('cuda' if gpu_alias else 'cpu')
+    assert fitted.model.params['device'] == device
     assert fitted.model.target.shape == (12,)
     assert 'max_samples' not in fitted.model.params
     assert 'max_features' not in fitted.model.params
     assert params.to_dict() == before
-    assert strategy.operation_impl is STRATEGIES[base_operation]._operations_by_types[base_operation]
-    if not gpu_alias:
+    expected_limit = (10000 if device.startswith('cuda') else 1000) if operation.startswith('tabpfn') else (
+        30000 if device.startswith('cuda') else 5000)
+    assert strategy.params_for_fit.get('max_samples') == expected_limit
+    if device == 'cpu':
         node = PipelineNode(operation)
         node.parameters = before
         pipeline = Pipeline(node)
@@ -124,6 +126,7 @@ def test_aliases_share_implementations_keep_parameters_and_tensor_pipeline(base_
         output = pipeline.predict(replace(data, target=None))
         assert isinstance(output, TensorData)
         assert output.predict.shape == (12,)
+        assert node.fitted_operation.model.params['device'] == 'cpu'
 
 
 @pytest.mark.parametrize('operation', ['tabpfn', 'tabpfnreg'])

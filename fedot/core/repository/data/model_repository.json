@@ -1,6 +1,7 @@
 {
   "metadata": {
     "custom_class": {
+      "requires": ["sklearn"],
       "accepted_node_types": [
         "any"
       ],
@@ -20,6 +21,7 @@
       "tasks": "[TaskTypesEnum.classification]"
     },
     "custom_regr": {
+      "requires": ["sklearn"],
       "accepted_node_types": [
         "any"
       ],
@@ -60,12 +62,61 @@
         "fedot.core.operations.strategies.models.sklearn",
         "SklearnClassificationStrategy"
       ],
+      "requires": ["sklearn"],
       "tags": [
         "ml",
         "sklearn",
         "tensor-only"
       ],
       "tasks": "[TaskTypesEnum.classification]"
+    },
+    "cuml_class": {
+      "strategies": [
+        "fedot.core.operations.strategies.models.cuml",
+        "CuMLClassificationStrategy"
+      ],
+      "platforms": [
+        "linux"
+      ],
+      "requires": [
+        "cuml",
+        "cupy"
+      ],
+      "tasks": "[TaskTypesEnum.classification]",
+      "input_type": "[DataTypesEnum.tabular]",
+      "output_type": "[DataTypesEnum.tabular]",
+      "accepted_node_types": [
+        "any"
+      ],
+      "tags": [
+        "ml",
+        "cuML",
+        "tensor-only"
+      ]
+    },
+    "cuml_clust": {
+      "tasks": "[TaskTypesEnum.clustering]",
+      "input_type": "[DataTypesEnum.tabular]",
+      "output_type": "[DataTypesEnum.tabular]",
+      "accepted_node_types": [
+        "any"
+      ],
+      "strategies": [
+        "fedot.core.operations.strategies.models.cuml",
+        "CuMLClusteringStrategy"
+      ],
+      "tags": [
+        "ml",
+        "cuML",
+        "tensor-only"
+      ],
+      "platforms": [
+        "linux"
+      ],
+      "requires": [
+        "cuml",
+        "cupy"
+      ]
     },
     "simple_class": {
       "accepted_node_types": [
@@ -106,6 +157,7 @@
       "tasks": "[TaskTypesEnum.regression]"
     },
     "sklearn_clust": {
+      "requires": ["sklearn"],
       "accepted_node_types": [
         "any"
       ],
@@ -136,6 +188,7 @@
         "fedot.core.operations.strategies.models.sklearn",
         "SklearnRegressionStrategy"
       ],
+      "requires": ["sklearn"],
       "tags": [
         "ml",
         "sklearn",
@@ -143,6 +196,30 @@
         "tensor-only"
       ],
       "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]"
+    },
+    "cuml_regr": {
+      "strategies": [
+        "fedot.core.operations.strategies.models.cuml",
+        "CuMLRegressionStrategy"
+      ],
+      "platforms": [
+        "linux"
+      ],
+      "requires": [
+        "cuml",
+        "cupy"
+      ],
+      "tasks": "[TaskTypesEnum.regression]",
+      "input_type": "[DataTypesEnum.tabular]",
+      "output_type": "[DataTypesEnum.tabular]",
+      "accepted_node_types": [
+        "any"
+      ],
+      "tags": [
+        "ml",
+        "cuML",
+        "tensor-only"
+      ]
     },
     "boosting_class": {
       "accepted_node_types": [
@@ -344,6 +421,13 @@
   "operations": {
     "adareg": {
       "meta": "sklearn_regr",
+      "implementations": {
+        "sklearn": {
+          "meta": "sklearn_regr",
+          "devices": ["cpu"],
+          "supports_multi_output": true
+        }
+      },
       "presets": ["fast_train", "ts", "*tree"],
       "tags": [
         "boosting",
@@ -394,6 +478,17 @@
     },
     "bernb": {
       "meta": "sklearn_class",
+      "implementations": {
+        "sklearn": {
+          "meta": "sklearn_class",
+          "devices": ["cpu"],
+          "supports_multi_output": true
+        },
+        "cuml": {
+          "meta": "cuml_class",
+          "devices": ["cuda"]
+        }
+      },
       "presets": ["fast_train"],
       "tags": [
         "deprecated",
@@ -405,6 +500,14 @@
     },
     "catboost": {
       "meta": "boosting_class",
+      "implementations": {
+        "catboost": {
+          "meta": "boosting_class",
+          "devices": ["cpu", "cuda"],
+          "requires": ["catboost"],
+          "supports_multi_output": true
+        }
+      },
       "presets": ["*tree"],
       "tags": [
         "simple", "boosting"
@@ -412,6 +515,14 @@
     },
     "catboostreg": {
       "meta": "boosting_regr",
+      "implementations": {
+        "catboost": {
+          "meta": "boosting_regr",
+          "devices": ["cpu", "cuda"],
+          "requires": ["catboost"],
+          "supports_multi_output": true
+        }
+      },
       "presets": ["*tree"],
       "tags": [
         "simple", "boosting"
@@ -419,6 +530,13 @@
     },
     "dt": {
       "meta": "sklearn_class",
+      "implementations": {
+        "sklearn": {
+          "meta": "sklearn_class",
+          "devices": ["cpu"],
+          "supports_multi_output": true
+        }
+      },
       "presets": ["fast_train", "*tree"],
       "tags": [
         "deprecated",
@@ -430,6 +548,13 @@
     },
     "dtreg": {
       "meta": "sklearn_regr",
+      "implementations": {
+        "sklearn": {
+          "meta": "sklearn_regr",
+          "devices": ["cpu"],
+          "supports_multi_output": true
+        }
+      },
       "presets": ["fast_train", "ts", "*tree"],
       "tags": [
         "deprecated",
@@ -440,6 +565,13 @@
     },
     "gbr": {
       "meta": "sklearn_regr",
+      "implementations": {
+        "sklearn": {
+          "meta": "sklearn_regr",
+          "devices": ["cpu"],
+          "supports_multi_output": true
+        }
+      },
       "presets": ["*tree"],
       "tags": [
         "deprecated",
@@ -451,11 +583,34 @@
     },
     "kmeans": {
       "meta": "sklearn_clust",
+      "implementations": {
+        "sklearn": {
+          "meta": "sklearn_clust",
+          "devices": ["cpu"],
+          "supports_multi_output": true
+        },
+        "cuml": {
+          "meta": "cuml_clust",
+          "devices": ["cuda"],
+          "supports_multi_output": true
+        }
+      },
       "presets": ["fast_train"],
       "tags": ["linear"]
     },
     "knn": {
       "meta": "custom_class",
+      "implementations": {
+        "sklearn": {
+          "meta": "custom_class",
+          "devices": ["cpu"],
+          "supports_multi_output": true
+        },
+        "cuml": {
+          "meta": "cuml_class",
+          "devices": ["cuda"]
+        }
+      },
       "presets": ["fast_train"],
       "tags": [
         "simple",
@@ -465,6 +620,17 @@
     },
     "knnreg": {
       "meta": "custom_regr",
+      "implementations": {
+        "sklearn": {
+          "meta": "custom_regr",
+          "devices": ["cpu"],
+          "supports_multi_output": true
+        },
+        "cuml": {
+          "meta": "cuml_regr",
+          "devices": ["cuda"]
+        }
+      },
       "presets": ["fast_train", "ts"],
       "tags": [
         "simple",
@@ -474,6 +640,17 @@
     },
     "lasso": {
       "meta": "sklearn_regr",
+      "implementations": {
+        "sklearn": {
+          "meta": "sklearn_regr",
+          "devices": ["cpu"],
+          "supports_multi_output": true
+        },
+        "cuml": {
+          "meta": "cuml_regr",
+          "devices": ["cuda"]
+        }
+      },
       "presets": ["fast_train", "ts"],
       "tags": [
         "simple",
@@ -483,6 +660,12 @@
     },
     "lda": {
       "meta": "custom_class",
+      "implementations": {
+        "sklearn": {
+          "meta": "custom_class",
+          "devices": ["cpu"]
+        }
+      },
       "presets": ["fast_train"],
       "tags": [
         "deprecated", "discriminant", "linear", "correct_params", "non-default"
@@ -490,12 +673,28 @@
     },
     "lgbm": {
       "meta": "boosting_class",
+      "implementations": {
+        "lightgbm": {
+          "meta": "boosting_class",
+          "devices": ["cpu", "cuda"],
+          "requires": ["lightgbm"],
+          "supports_multi_output": true
+        }
+      },
       "tags": [
         "tree", "non_linear", "boosting"
       ]
     },
     "lgbmreg": {
       "meta": "boosting_regr",
+      "implementations": {
+        "lightgbm": {
+          "meta": "boosting_regr",
+          "devices": ["cpu", "cuda"],
+          "requires": ["lightgbm"],
+          "supports_multi_output": true
+        }
+      },
       "presets": ["*tree"],
       "tags": [
         "tree", "non_multi", "non_linear", "boosting"
@@ -503,6 +702,17 @@
     },
     "linear": {
       "meta": "sklearn_regr",
+      "implementations": {
+        "sklearn": {
+          "meta": "sklearn_regr",
+          "devices": ["cpu"],
+          "supports_multi_output": true
+        },
+        "cuml": {
+          "meta": "cuml_regr",
+          "devices": ["cuda"]
+        }
+      },
       "presets": ["fast_train", "ts"],
       "tags": [
         "simple", "linear", "interpretable"
@@ -510,6 +720,17 @@
     },
     "logit": {
       "meta": "sklearn_class",
+      "implementations": {
+        "sklearn": {
+          "meta": "sklearn_class",
+          "devices": ["cpu"],
+          "supports_multi_output": true
+        },
+        "cuml": {
+          "meta": "cuml_class",
+          "devices": ["cuda"]
+        }
+      },
       "presets": ["fast_train"],
       "tags": [
         "simple",
@@ -520,6 +741,13 @@
     },
     "torch_linear": {
       "meta": "simple_class",
+      "implementations": {
+        "torch": {
+          "meta": "simple_class",
+          "devices": ["cpu", "cuda"],
+          "requires": ["torch"]
+        }
+      },
       "presets": ["fast_train"],
       "tags": [
         "simple",
@@ -531,6 +759,13 @@
     },
     "mlp": {
       "meta": "sklearn_class",
+      "implementations": {
+        "sklearn": {
+          "meta": "sklearn_class",
+          "devices": ["cpu"],
+          "supports_multi_output": true
+        }
+      },
       "tags": [
         "deprecated",
         "neural",
@@ -539,6 +774,17 @@
     },
     "multinb": {
       "meta": "sklearn_class",
+      "implementations": {
+        "sklearn": {
+          "meta": "sklearn_class",
+          "devices": ["cpu"],
+          "supports_multi_output": true
+        },
+        "cuml": {
+          "meta": "cuml_class",
+          "devices": ["cuda"]
+        }
+      },
       "presets": ["fast_train"],
       "tags": [
         "deprecated",
@@ -550,6 +796,12 @@
     },
     "qda": {
       "meta": "custom_class",
+      "implementations": {
+        "sklearn": {
+          "meta": "custom_class",
+          "devices": ["cpu"]
+        }
+      },
       "presets": ["fast_train"],
       "tags": [
         "deprecated",
@@ -560,16 +812,49 @@
     },
     "rf": {
       "meta": "sklearn_class",
+      "implementations": {
+        "sklearn": {
+          "meta": "sklearn_class",
+          "devices": ["cpu"],
+          "supports_multi_output": true
+        },
+        "cuml": {
+          "meta": "cuml_class",
+          "devices": ["cuda"]
+        }
+      },
       "presets": ["fast_train", "*tree"],
       "tags": ["tree", "non_linear"]
     },
     "rfr": {
       "meta": "sklearn_regr",
+      "implementations": {
+        "sklearn": {
+          "meta": "sklearn_regr",
+          "devices": ["cpu"],
+          "supports_multi_output": true
+        },
+        "cuml": {
+          "meta": "cuml_regr",
+          "devices": ["cuda"]
+        }
+      },
       "presets": ["fast_train", "*tree"],
       "tags": ["tree", "non_linear"]
     },
     "ridge": {
       "meta": "sklearn_regr",
+      "implementations": {
+        "sklearn": {
+          "meta": "sklearn_regr",
+          "devices": ["cpu"],
+          "supports_multi_output": true
+        },
+        "cuml": {
+          "meta": "cuml_regr",
+          "devices": ["cuda"]
+        }
+      },
       "presets": ["fast_train", "ts"],
       "tags": [
         "simple",
@@ -591,6 +876,13 @@
     },
     "sgdr": {
       "meta": "sklearn_regr",
+      "implementations": {
+        "sklearn": {
+          "meta": "sklearn_regr",
+          "devices": ["cpu"],
+          "supports_multi_output": true
+        }
+      },
       "presets": ["fast_train", "ts"],
       "tags": [
         "deprecated", "non_multi", "non_linear"
@@ -657,6 +949,17 @@
     },
     "svc": {
       "meta": "custom_class",
+      "implementations": {
+        "sklearn": {
+          "meta": "custom_class",
+          "devices": ["cpu"],
+          "supports_multi_output": true
+        },
+        "cuml": {
+          "meta": "cuml_class",
+          "devices": ["cuda"]
+        }
+      },
       "tags": [
         "deprecated",
         "no_prob",
@@ -666,6 +969,13 @@
     },
     "svr": {
       "meta": "sklearn_regr",
+      "implementations": {
+        "sklearn": {
+          "meta": "sklearn_regr",
+          "devices": ["cpu"],
+          "supports_multi_output": true
+        }
+      },
       "tags": [
         "deprecated",
         "non_multi",
@@ -674,6 +984,13 @@
     },
     "treg": {
       "meta": "sklearn_regr",
+      "implementations": {
+        "sklearn": {
+          "meta": "sklearn_regr",
+          "devices": ["cpu"],
+          "supports_multi_output": true
+        }
+      },
       "presets": ["*tree"],
       "tags": [
         "tree",
@@ -683,6 +1000,14 @@
     },
     "xgboost": {
       "meta": "boosting_class",
+      "implementations": {
+        "xgboost": {
+          "meta": "boosting_class",
+          "devices": ["cpu", "cuda"],
+          "requires": ["xgboost"],
+          "supports_multi_output": true
+        }
+      },
       "presets": ["*tree"],
       "tags": [
         "tree", "non_linear", "boosting"
@@ -690,6 +1015,14 @@
     },
     "xgboostreg": {
       "meta": "boosting_regr",
+      "implementations": {
+        "xgboost": {
+          "meta": "boosting_regr",
+          "devices": ["cpu", "cuda"],
+          "requires": ["xgboost"],
+          "supports_multi_output": true
+        }
+      },
       "presets": ["*tree"],
       "tags": [
         "tree", "non_multi", "non_linear", "boosting"
@@ -712,19 +1045,112 @@
 	},
     "tabpfn": {
       "meta": "tabpfn_class",
+      "implementations": {
+        "tabpfn": {
+          "meta": "tabpfn_class",
+          "devices": ["cpu", "cuda"],
+          "requires": ["tabpfn"]
+        }
+      },
       "tags": ["non_auto"]
     },
     "tabpfnreg": {
       "meta": "tabpfn_regr",
+      "implementations": {
+        "tabpfn": {
+          "meta": "tabpfn_regr",
+          "devices": ["cpu", "cuda"],
+          "requires": ["tabpfn"]
+        }
+      },
       "tags": ["non_auto"]
     },
     "tabicl": {
       "meta": "tabicl_class",
+      "implementations": {
+        "tabicl": {
+          "meta": "tabicl_class",
+          "devices": ["cpu", "cuda"],
+          "requires": ["tabicl"]
+        }
+      },
       "tags": ["non_auto"]
     },
     "tabiclreg": {
       "meta": "tabicl_regr",
+      "implementations": {
+        "tabicl": {
+          "meta": "tabicl_regr",
+          "devices": ["cpu", "cuda"],
+          "requires": ["tabicl"]
+        }
+      },
       "tags": ["non_auto"]
+    },
+    "cd": {
+      "meta": "cuml_regr",
+      "implementations": {
+        "cuml": {
+          "meta": "cuml_regr",
+          "devices": [
+            "cuda"
+          ]
+        }
+      },
+      "presets": [],
+      "tags": [
+        "linear",
+        "non_multi"
+      ]
+    },
+    "elasticnet": {
+      "meta": "cuml_regr",
+      "implementations": {
+        "cuml": {
+          "meta": "cuml_regr",
+          "devices": [
+            "cuda"
+          ]
+        }
+      },
+      "presets": [],
+      "tags": [
+        "linear",
+        "non_multi"
+      ]
+    },
+    "mbsgdcregr": {
+      "meta": "cuml_regr",
+      "implementations": {
+        "cuml": {
+          "meta": "cuml_regr",
+          "devices": [
+            "cuda"
+          ]
+        }
+      },
+      "presets": [],
+      "tags": [
+        "linear",
+        "non_multi"
+      ]
+    },
+    "minibatchsgd": {
+      "meta": "cuml_class",
+      "implementations": {
+        "cuml": {
+          "meta": "cuml_class",
+          "devices": [
+            "cuda"
+          ]
+        }
+      },
+      "presets": [],
+      "tags": [
+        "no_prob",
+        "linear",
+        "non_multi"
+      ]
     }
   }
 }

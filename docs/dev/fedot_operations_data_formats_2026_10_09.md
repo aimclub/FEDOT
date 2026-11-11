@@ -17,6 +17,10 @@ TensorData-only адаптация новых моделей сохранена 
 CNN отделён в KerasClassificationStrategy с прежним InputData-контрактом.
 Затем TabPFN/TabICL и их четыре GPU-aliases перенесены на TensorData; границы библиотек — в разделе 2.10.
 
+Уточнение от 11 ноября: CPU/GPU-каталоги объединены. Один ID на модель; варианты выбираются по
+устройству TensorData, платформе, зависимостям и multi-output и закрепляются при fit. GPU-пресет,
+старый GPU JSON и `_gpu` aliases удалены. Текущий статус — в разделах 3 и 7.1.
+
 ## 1. Как читать карту
 
 Формат здесь означает контейнер на границе стратегии/реализации, а не библиотеку
@@ -51,13 +55,12 @@ targets, всех output modes, TS или комбинаций узлов. В и
 
 | Каталог | Число записей | Что покрыто |
 | --- | ---: | --- |
-| [model_repository.json](../../fedot/core/repository/data/model_repository.json) | 62 | Основные модели |
-| [gpu_models_repository.json](../../fedot/core/repository/data/gpu_models_repository.json) | 21 | cuML, GPU-алиасы foundational моделей и неработающий solver alias |
+| [model_repository.json](../../fedot/core/repository/data/model_repository.json) | 66 | Общие логические модели CPU/GPU; 54 TensorData с вариантами |
 | [data_operation_repository.json](../../fedot/core/repository/data/data_operation_repository.json) | 37 | Зарегистрированные data operations после удаления encoder nodes |
 | [automl_repository.json](../../fedot/core/repository/data/automl_repository.json) | 4 | H2O/TPOT wrappers |
 
-Всего **124 записей каталогов**, не 124 уникальных алгоритмов: ID вроде `rf`, `linear`,
-`kmeans` повторяются в обычном и GPU-каталогах с разными стратегиями.
+Всего **107 записей в трёх каталогах**; варианты CPU/GPU находятся внутри одной записи модели.
+У 54 TensorData-моделей описаны 66 вариантов исполнения; у 38 моделей есть CUDA-вариант.
 Динамические extensions описаны отдельно в разделе 6.
 
 ## 2. Основные модели — model_repository.json
@@ -280,18 +283,20 @@ Callbacks получают idx/features/target/params, но wrapper возвра
 | --- | --- | --- |
 | `custom` | `CustomModelImplementation` | InputData |
 
-## 3. GPU-каталог — gpu_models_repository.json
+## 3. GPU-варианты общего model_repository.json
 
-Здесь ID вроде `logit`/`rf` означают другие реализации, чем в основном каталоге.
-`preset='gpu'` выбирает repository/strategy; он не переносит любую обычную модель на GPU.
+Одна логическая модель может иметь sklearn CPU и cuML CUDA варианты. CUDA-вход выбирает допустимый
+CUDA-вариант, иначе CPU; CPU-вход выбирает CPU. `cd`, `elasticnet`, `mbsgdcregr`, `minibatchsgd` пока
+имеют только cuML-вариант и недоступны для CPU-входа. Неработающий low-level `sgd` alias удалён.
 
 Общая cuML база: [cuml.py](../../fedot/core/operations/strategies/models/cuml.py).
-Адаптация параметров, выбор dtype, проверка окружения и запрет solver aliases находятся в общей стратегии.
+Адаптация параметров, выбор dtype и проверка окружения находятся в общей стратегии.
 Mapping estimator-классов расположен в `strategies/models/cuml.py`, а не в отдельных model wrappers.
 
 После последнего перевода cuML принимает только TensorData. CUDA Torch → CuPy → cuML
-и CuPy → Torch используют DLPack. CPU TensorData копируется на CUDA для обучения;
-предсказание возвращается на исходный CPU. Требуются native Linux, RAPIDS и CUDA;
+и CuPy → Torch используют DLPack. При fit selector направляет CPU-вход в CPU-вариант;
+при predict уже обученный cuML estimator использует закреплённую CUDA, даже если новые данные на CPU,
+а результат возвращается на устройство входа. Требуются native Linux, RAPIDS и CUDA;
 WSL текущая проверка окружения отклоняет.
 
 ### 3.1. cuML classification
@@ -310,7 +315,6 @@ WSL текущая проверка окружения отклоняет.
 | `multinb` | `cuml.naive_bayes.MultinomialNB` | TensorData |
 | `bernb` | `cuml.naive_bayes.BernoulliNB` | TensorData |
 | `minibatchsgd` | `cuml.linear_model.MBSGDClassifier` | TensorData |
-| `sgd` | `cuml.solvers.SGD` — low-level solver; fit явно отклоняется | Нет рабочего fit-контракта |
 
 ### 3.2. cuML regression
 
@@ -339,18 +343,20 @@ Target не требуется.
 | --- | --- | --- |
 | `kmeans` | `cuml.cluster.KMeans` | TensorData |
 
-### 3.4. Foundational GPU aliases
+### 3.4. Foundational CPU/GPU под общими ID
 
 Те же [foundational strategies](../../fedot/core/operations/strategies/models/foundation.py) и [foundational implementations](../../fedot/core/operations/implementations/models/foundation.py), что в разделе 2.10.
 
-GPU alias не меняет контейнерный контракт. Эти четыре строки не являются cuML-моделями.
+У этих моделей один вариант с devices=[cpu,cuda], это не cuML. Стратегия передаёт конкретное device.
+max_samples=None выбирает прежний cap: TabPFN CPU/CUDA 1000/10000, TabICL 5000/30000;
+явный числовой override сохраняется. GPU aliases удалены.
 
 | ID | Стратегия | Реализация | Формат |
 | --- | --- | --- | --- |
-| `tabpfn_gpu` | `TabPFNClassificationStrategy` | `FedotTabPFNClassificationImplementation` | TensorData |
-| `tabpfnreg_gpu` | `TabPFNRegressionStrategy` | `FedotTabPFNRegressionImplementation` | TensorData |
-| `tabicl_gpu` | `TabICLClassificationStrategy` | `FedotTabICLClassificationImplementation` | TensorData |
-| `tabiclreg_gpu` | `TabICLRegressionStrategy` | `FedotTabICLRegressionImplementation` | TensorData |
+| `tabpfn` | `TabPFNClassificationStrategy` | `FedotTabPFNClassificationImplementation` | TensorData |
+| `tabpfnreg` | `TabPFNRegressionStrategy` | `FedotTabPFNRegressionImplementation` | TensorData |
+| `tabicl` | `TabICLClassificationStrategy` | `FedotTabICLClassificationImplementation` | TensorData |
+| `tabiclreg` | `TabICLRegressionStrategy` | `FedotTabICLRegressionImplementation` | TensorData |
 
 ## 4. Data operations — data_operation_repository.json
 
@@ -532,19 +538,19 @@ ID, factories, задачи, типы данных и backend определяю
 
 ### 7.1. Сводка именно по operation runtime
 
-Обновлено 11 ноября после переноса decompose. Это число записей каталога с контейнерным
+Обновлено 11 ноября после переноса decompose и объединения CPU/GPU. Это число записей каталога с контейнерным
 TensorData-контрактом, а не число native GPU algorithms и не результат полного search acceptance.
 
 | Каталог | TensorData-контракт | Остальное |
 | --- | ---: | --- |
-| Основные модели | 50 | 10 TS-моделей, Keras CNN и legacy custom wrapper остаются InputData-oriented |
-| GPU модели | 20: 16 cuML + 4 foundation aliases | 1 отвергаемый low-level SGD solver alias |
+| Общие модели CPU/GPU | 54 | 10 TS-моделей, Keras CNN и legacy custom wrapper остаются InputData-oriented |
 | Data operations | 25 | 7 TS transforms, legacy TS imputation и 4 текстовые операции |
 | AutoML | 0 | 4 wrappers H2O/TPOT остаются InputData-oriented |
 
 Основные tabular classification/regression семейства и KMeans уже перенесены. CPU sklearn/library
-boundaries сохраняются там, где это необходимо. GPU-варианты объединяются следующим отдельным этапом;
-для его начала не требуется предварительно переносить отложенные TS/image/text семейства.
+boundaries сохраняются там, где это необходимо. GPU-варианты объединены; обычные пресеты сохранены,
+доступность дополнительно фильтруется перед поиском. Execution-зависимые пространства тюнинга,
+предпочтения и отложенные TS/image/text семейства остаются отдельными задачами.
 
 ### 7.2. Общие границы, которые объясняют статусы
 
@@ -590,7 +596,7 @@ boundaries сохраняются там, где это необходимо. GP
 
 Основа аудита — JSON metadata → конкретная strategy → estimator/implementation →
 output converter. Исходный аудит охватывал 126 записей; после удаления двух legacy encoder nodes
-в четырёх каталогах 124 записи. Таблицы runtime обновлялись при переносе семейств; текущая сводка
+в четырёх каталогах тогда было 124 записи (историческое число; сейчас 107 в трёх). Таблицы runtime обновлялись при переносе семейств; текущая сводка
 на 11 ноября приведена в разделе 7.1. Формат не определялся только по type hints.
 
 В этом проходе дополнительно выполнены CPU smoke checks для семи legacy моделей и

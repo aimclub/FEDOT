@@ -32,7 +32,13 @@ class OperationsCache(BaseCache):
                 for node in ensure_wrapped_in_sequence(nodes)
                 if node.fitted_operation is not None
             ]
-            self._db.add_operations(mapped)
+            legacy = [(uid, fitted) for uid, fitted in mapped if not hasattr(fitted, '_fedot_execution')]
+            selected = [(uid, fitted) for uid, fitted in mapped if hasattr(fitted, '_fedot_execution')]
+            if legacy:
+                self._db.add_operations(legacy)
+            if selected:
+                # A refit after an execution mismatch must replace the incompatible cached state.
+                self._db.add_operations(selected, overwrite=True)
         except Exception as ex:
             self._handle_db_error(ex, 'Nodes can not be saved')
 

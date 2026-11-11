@@ -30,10 +30,8 @@ from examples.benchmark.run_openml_foundational import (  # noqa: E402
     _require_openml,
     _to_xy_split,
 )
-from fedot.core.data.bridges.tensor_to_input import tensordata_to_input_data  # noqa: E402
 from fedot.core.pipelines.node import PipelineNode  # noqa: E402
 from fedot.core.pipelines.pipeline import Pipeline  # noqa: E402
-from fedot.core.repository.operation_types_repository import OperationTypesRepository  # noqa: E402
 from fedot.preprocessing.service.tabular_optional_service import OptionalTabularService  # noqa: E402
 from fedot.preprocessing.tools.preprocessor_types import PreprocessingStepEnum  # noqa: E402
 
@@ -92,30 +90,25 @@ def _build_pipeline(operation: str) -> Pipeline:
 
 
 def _run_pipeline(engine: str, operation: str, problem: str, train_data, test_data):
-    repository = 'gpu_models_repository.json' if engine == 'cuml' else 'model_repository.json'
-    OperationTypesRepository.assign_repo('model', repository)
-    try:
-        pipeline = _build_pipeline(operation)
-        _synchronize(engine)
-        started = time.perf_counter()
-        pipeline.fit(train_data)
-        if problem == 'classification':
-            labels = pipeline.predict(test_data, output_mode='labels').predict
-            probabilities = pipeline.predict(test_data, output_mode='full_probs').predict
-            result = (_to_numpy(labels), _to_numpy(probabilities))
-        else:
-            prediction = pipeline.predict(test_data, output_mode='default').predict
-            result = _to_numpy(prediction)
-        _synchronize(engine)
-        elapsed = time.perf_counter() - started
-    finally:
-        OperationTypesRepository.assign_repo('model', 'model_repository.json')
+    pipeline = _build_pipeline(operation)
+    _synchronize(engine)
+    started = time.perf_counter()
+    pipeline.fit(train_data)
+    if problem == 'classification':
+        labels = pipeline.predict(test_data, output_mode='labels').predict
+        probabilities = pipeline.predict(test_data, output_mode='full_probs').predict
+        result = (_to_numpy(labels), _to_numpy(probabilities))
+    else:
+        prediction = pipeline.predict(test_data, output_mode='default').predict
+        result = _to_numpy(prediction)
+    _synchronize(engine)
+    elapsed = time.perf_counter() - started
     return result, elapsed
 
 
 def _prepare_engine_data(engine: str, train_tensor_data, test_tensor_data):
     if engine == 'cpu':
-        return tensordata_to_input_data(train_tensor_data), tensordata_to_input_data(test_tensor_data), 0.0
+        return train_tensor_data.to('cpu'), test_tensor_data.to('cpu'), 0.0
 
     started = time.perf_counter()
     train_data = copy.deepcopy(train_tensor_data).to('cuda')

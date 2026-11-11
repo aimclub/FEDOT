@@ -8,6 +8,7 @@ from fedot.api.api_utils.assumptions.assumption_rules import (
     parse_preset_spec,
 )
 from fedot.api.time import ApiTime
+from fedot.core.operations.operation_execution import filter_available_operations
 from fedot.core.constants import BEST_QUALITY_PRESET_NAME, \
     FAST_TRAIN_PRESET_NAME, AUTO_PRESET_NAME
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -27,7 +28,8 @@ class OperationsPreset:
         # Is there a modification in preset or not
         self.modification_using = False
 
-    def composer_params_based_on_preset(self, api_params: dict, data_type: Optional[DataTypesEnum] = None) -> dict:
+    def composer_params_based_on_preset(self, api_params: dict, data_type: Optional[DataTypesEnum] = None,
+                                        data_device=None, multi_output: bool = False) -> dict:
         """ Return composer parameters dictionary with appropriate operations
         based on defined preset
         """
@@ -39,10 +41,17 @@ class OperationsPreset:
         if self.preset_name is not None and api_params.get('available_operations') is None:
             available_operations = self.filter_operations_by_preset(data_type)
             updated_params['available_operations'] = available_operations
+        elif self.preset_name is not None:
+            parse_preset_spec(self.preset_name)
+
+        if data_device is not None and updated_params.get('available_operations') is not None:
+            updated_params['available_operations'] = self.filter_available_operations(
+                updated_params['available_operations'], data_device, multi_output)
 
         return updated_params
 
-    def filter_operations_by_preset(self, data_type: Optional[DataTypesEnum] = None):
+    def filter_operations_by_preset(self, data_type: Optional[DataTypesEnum] = None,
+                                    data_device=None, multi_output: bool = False):
         """ Filter operations by preset, remove "heavy" operations and save
         appropriate ones
         """
@@ -51,7 +60,8 @@ class OperationsPreset:
         if preset_spec.use_auto:
             available_operations = get_operations_for_task(
                 self.task, data_type, mode='all')
-            return available_operations
+            return (self.filter_available_operations(available_operations, data_device, multi_output)
+                    if data_device is not None else available_operations)
 
         excluded = ['mlp', 'svc', 'svr', 'arima', 'exog_ts', 'text_clean',
                     'lda', 'qda', 'lgbm', 'polyfit',
@@ -59,35 +69,42 @@ class OperationsPreset:
         excluded_tree = []
 
         self.modification_using = preset_spec.modification is not None
-        if preset_spec.use_gpu:
-            repository = OperationTypesRepository().assign_repo(
-                'model', 'gpu_models_repository.json')
-            available_operations = repository.suitable_operation(
-                task_type=self.task.task_type, data_type=data_type)
-        else:
-            base_operations = get_operations_for_task(
+        base_operations = get_operations_for_task(
+            self.task,
+            data_type,
+            mode='all',
+            preset=preset_spec.base_preset,
+        )
+        if self.modification_using:
+            mod_operations = get_operations_for_task(
                 self.task,
                 data_type,
                 mode='all',
-                preset=preset_spec.base_preset,
+                preset=preset_spec.modification,
             )
-            if self.modification_using:
-                mod_operations = get_operations_for_task(
-                    self.task,
-                    data_type,
-                    mode='all',
-                    preset=preset_spec.modification,
-                )
-                available_operations = list(
-                    merge_preset_operations(base_operations, mod_operations))
-            else:
-                available_operations = base_operations
+            available_operations = list(merge_preset_operations(base_operations, mod_operations))
+        else:
+            available_operations = base_operations
 
         if preset_spec.use_stable:
             available_operations = list(
                 exclude_operations(available_operations, excluded))
 
-        return finalize_operations(available_operations, excluded_tree)
+        available_operations = finalize_operations(available_operations, excluded_tree)
+        return (self.filter_available_operations(available_operations, data_device, multi_output)
+                if data_device is not None else available_operations)
+
+    def filter_available_operations(self, operation_names, data_device, multi_output: bool = False):
+        repository = OperationTypesRepository('all')
+        metadata = {operation.id: operation for operation in repository.operations}
+        known = [metadata[name] for name in operation_names if name in metadata]
+        available = {operation.id for operation in filter_available_operations(
+            known, self.task.task_type, data_device, multi_output)}
+        # Extension operations have their own capabilities; keep their existing query path.
+        result = [name for name in operation_names if name not in metadata or name in available]
+        if operation_names and not result:
+            raise ValueError(f'No operations are available for TensorData on {data_device}.')
+        return result
 
     @staticmethod
     def new_operations_without_heavy(excluded_operations, available_operations) -> list:
