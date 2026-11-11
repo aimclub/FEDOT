@@ -112,6 +112,15 @@ class Operation:
 
         return isinstance(self, DataOperation)
 
+    def _wrap_tensor_operation_result(self, prediction, data: TensorData) -> TensorData:
+        if isinstance(prediction, TensorData):
+            return prediction
+        if isinstance(prediction, OutputData):
+            prediction = prediction.predict
+        if self._is_tensor_transform_operation():
+            return EvaluationStrategy._replace_features_in_tensor_data(prediction, data)
+        return EvaluationStrategy._replace_predict_in_tensor_data(prediction, data)
+
     def predict(self,
                 fitted_operation,
                 data: TensorData,
@@ -181,6 +190,8 @@ class Operation:
                 result_data = self._eval_strategy.predict(
                     trained_operation=fitted_operation,
                     predict_data=data)
+            if isinstance(data, TensorData):
+                result_data = self._wrap_tensor_operation_result(result_data, data)
 
         if predictions_cache is not None:
             predictions_cache.save_node_prediction(

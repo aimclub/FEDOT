@@ -12,9 +12,7 @@ from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.composer.composer import Composer
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.pipeline_composer_requirements import (
-    PipelineComposerRequirements,
-)
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.composer.schemas import validate_parallelization_mode
 from fedot.core.utils import default_fedot_data_dir
 from fedot.core.optimisers.objective.data_source_context import ComposerTensorDataSourceContext
@@ -47,17 +45,27 @@ class GPComposer(Composer):
 
         self.best_models: Collection[Pipeline] = ()
 
-    def compose_pipeline(self, data: Union[TensorData, ComposerTensorDataSourceContext]):
+    def compose_pipeline(
+        self,
+        data: Union[TensorData, ComposerTensorDataSourceContext],
+        data_source_context: Optional[ComposerTensorDataSourceContext] = None,
+    ):
         """Concrete Composer facade for the current TensorData boundary."""
         if isinstance(data, TensorData):
-            data = build_internal_composer_tensor_data_source_context(data, self.composer_requirements.cv_folds)
-        if not isinstance(data, ComposerTensorDataSourceContext):
+            train_data = data
+            data_source_context = data_source_context or build_internal_composer_tensor_data_source_context(
+                data, self.composer_requirements.cv_folds)
+        else:
+            train_data = None
+            data_source_context = data
+        if not isinstance(data_source_context, ComposerTensorDataSourceContext):
             raise TypeError('compose_pipeline requires TensorData or ComposerTensorDataSourceContext')
-        return self.compose_pipeline_with_tensor_data(data)
+        return self.compose_pipeline_with_tensor_data(data_source_context, train_data=train_data)
 
     def compose_pipeline_with_tensor_data(
         self,
         data_source_context: ComposerTensorDataSourceContext,
+        train_data: Optional[TensorData] = None,
     ) -> Union[Pipeline, Sequence[Pipeline]]:
         parallelization_mode = validate_parallelization_mode(
             self.composer_requirements.parallelization_mode)
@@ -78,7 +86,9 @@ class GPComposer(Composer):
             validation_blocks=data_source_context.validation_blocks,
             eval_n_jobs=n_jobs_for_evaluation,
             retry_policy=hooks.retry_policy, validator=hooks.validator,
-            expected_folds=hooks.expected_folds, cache_namespace=hooks.cache_namespace))
+            expected_folds=hooks.expected_folds, cache_namespace=hooks.cache_namespace,
+            evaluation_mode=self.composer_requirements.evaluation_mode,
+            tensor_data=train_data, cv_folds=self.composer_requirements.cv_folds))
         objective_function = objective_evaluator.evaluate
 
         # Define callback for computing intermediate metrics if needed

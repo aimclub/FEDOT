@@ -120,6 +120,9 @@ class EvaluationStrategy:
         Returns: prediction as :obj:`OutputData`
         """
 
+        if isinstance(predict_data, TensorData):
+            return EvaluationStrategy._replace_predict_in_tensor_data(prediction, predict_data)
+
         if not isinstance(prediction, OutputData):
             # Wrap prediction as OutputData
             converted = OutputData(idx=predict_data.idx,
