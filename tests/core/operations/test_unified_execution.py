@@ -33,7 +33,7 @@ def environment(catalogue, platform=ExecutionPlatform.linux):
 
 def test_all_migrated_models_have_explicit_devices_and_one_catalogue(catalogue):
     migrated = [item for item in catalogue.values() if item.implementations]
-    assert len(migrated) == 37
+    assert len(migrated) == 54
     assert all(variant.devices for item in migrated for variant in item.implementations)
     assert not any(name.endswith('_gpu') for name in catalogue)
     assert not Path(create_repository_path('gpu_models_repository.json')).exists()
@@ -70,7 +70,7 @@ def test_windows_does_not_select_cuml_but_can_select_other_cuda_models(catalogue
         item = catalogue[name]
         result = resolve_operation_execution(item, item.task_type[0], torch.device('cuda:0'), snapshot)
         assert result.device.type == 'cpu'
-    for name in ('torch_linear', 'xgboost', 'catboost', 'tabpfn'):
+    for name in ('torch_mlp', 'xgboost', 'catboost', 'tabpfn'):
         item = catalogue[name]
         result = resolve_operation_execution(item, item.task_type[0], torch.device('cuda:0'), snapshot)
         assert result.device.type == 'cuda'
@@ -85,7 +85,10 @@ def test_single_target_models_are_unavailable_for_multioutput(catalogue, name):
 
 @pytest.mark.parametrize('name,key,cpu_value,cuda_value', [
     ('torch_linear', 'device', 'cpu', 'cuda:2'),
-                ('tabpfn', 'device', 'cpu', 'cuda:2'),
+    ('tabm', 'device', 'cpu', 'cuda:2'),
+    ('ft_transformer', 'device', 'cpu', 'cuda:2'),
+    ('realmlp', 'device', 'cpu', 'cuda:2'),
+    ('tabpfn', 'device', 'cpu', 'cuda:2'),
     ('tabiclreg', 'device', 'cpu', 'cuda:2'),
     ('xgboost', 'device', 'cpu', 'cuda:2'),
     ('lgbm', 'device_type', 'cpu', 'gpu'),

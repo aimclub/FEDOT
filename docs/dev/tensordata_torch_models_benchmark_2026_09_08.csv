@@ -1,0 +1,15 @@
+dataset,problem,train_rows,test_rows,features,operation,device,epochs,metric,metric_value,seconds,reference
+bank-marketing,classification,40689,4522,16,logit,cpu,,roc_auc,0.8508893399,5.726,sklearn
+bank-marketing,classification,40689,4522,16,mlp,cpu,,roc_auc,0.8927286267,4.227,sklearn
+bank-marketing,classification,40689,4522,16,torch_linear,cpu,50,roc_auc,0.9046677622,6.344,native_torch
+bank-marketing,classification,40689,4522,16,torch_linear,cuda,50,roc_auc,0.9034960519,9.712,native_torch
+bank-marketing,classification,40689,4522,16,torch_mlp,cpu,50,roc_auc,0.9274595381,6.064,native_torch
+bank-marketing,classification,40689,4522,16,torch_mlp,cuda,50,roc_auc,0.9261723138,2.160,native_torch
+diamonds,regression,48546,5394,9,linear,cpu,,rmse,1133.0865478859,5.092,sklearn
+diamonds,regression,48546,5394,9,mlpreg,cpu,,rmse,655.7197514044,112.219,sklearn_pre_runner_fix
+diamonds,regression,48546,5394,9,torch_linear_reg,cpu,exact,rmse,1133.1668566456,0.369,native_torch
+diamonds,regression,48546,5394,9,torch_linear_reg,cuda,exact,rmse,1133.4306330782,0.411,native_torch
+diamonds,regression,48546,5394,9,torch_mlp_reg,cpu,50,rmse,518.8318308951,19.241,native_torch
+diamonds,regression,48546,5394,9,torch_mlp_reg,cuda,50,rmse,517.6783810920,6.549,native_torch
+MiniBooNE,classification,117057,13007,50,torch_mlp,cpu,30,roc_auc,0.9790498213,19.287,native_torch
+MiniBooNE,classification,117057,13007,50,torch_mlp,cuda,30,roc_auc,0.9791202835,15.491,native_torch

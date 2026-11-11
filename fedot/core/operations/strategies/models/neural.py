@@ -1,7 +1,20 @@
 from typing import Optional
 
 from fedot.core.data.tensor_data.tensor_data import TensorData
-from fedot.core.operations.implementations.models.neural import TorchLinearClassifier
+from fedot.core.operations.implementations.models.neural import (
+    FTTransformerClassifier,
+    FTTransformerRegressor,
+    RealMLPClassifier,
+    RealMLPRegressor,
+    ResNetClassifier,
+    ResNetRegressor,
+    TabMClassifier,
+    TabMRegressor,
+    TorchLinearClassifier,
+    TorchLinearRegressor,
+    TorchMLPClassifier,
+    TorchMLPRegressor,
+)
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.operations.operation_execution import prepare_device_params
 from fedot.core.operations.schemas import validate_classification_output_mode
@@ -32,6 +45,11 @@ class NeuralTabularStrategy(EvaluationStrategy):
 class NeuralTabularClassificationStrategy(NeuralTabularStrategy):
     _operations_by_types = {
         'torch_linear': TorchLinearClassifier,
+        'torch_mlp': TorchMLPClassifier,
+        'tabm': TabMClassifier,
+        'ft_transformer': FTTransformerClassifier,
+        'tab_resnet': ResNetClassifier,
+        'realmlp': RealMLPClassifier,
     }
 
     def predict(self, trained_operation, predict_data: TensorData):
@@ -50,6 +68,12 @@ class NeuralTabularClassificationStrategy(NeuralTabularStrategy):
 
 class NeuralTabularRegressionStrategy(NeuralTabularStrategy):
     _operations_by_types = {
+        'torch_linear_reg': TorchLinearRegressor,
+        'torch_mlp_reg': TorchMLPRegressor,
+        'tabmreg': TabMRegressor,
+        'ft_transformerreg': FTTransformerRegressor,
+        'tab_resnetreg': ResNetRegressor,
+        'realmlpreg': RealMLPRegressor,
     }
 
     def predict(self, trained_operation, predict_data: TensorData):

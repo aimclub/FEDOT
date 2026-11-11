@@ -581,6 +581,78 @@
         "non-default"
       ]
     },
+    "hist_gb": {
+      "meta": "sklearn_class",
+      "implementations": {
+        "sklearn": {
+          "meta": "sklearn_class",
+          "devices": ["cpu"],
+          "supports_multi_output": true
+        }
+      },
+      "presets": ["*tree"],
+      "tags": [
+        "tree",
+        "non_linear",
+        "boosting",
+        "non-default"
+      ]
+    },
+    "hist_gbreg": {
+      "meta": "sklearn_regr",
+      "implementations": {
+        "sklearn": {
+          "meta": "sklearn_regr",
+          "devices": ["cpu"],
+          "supports_multi_output": true
+        }
+      },
+      "presets": ["*tree"],
+      "tags": [
+        "tree",
+        "non_multi",
+        "non_linear",
+        "boosting",
+        "non-default"
+      ]
+    },
+    "ebm": {
+      "meta": "sklearn_class",
+      "implementations": {
+        "sklearn": {
+          "meta": "sklearn_class",
+          "devices": ["cpu"],
+          "requires": ["sklearn", "interpret"],
+          "supports_multi_output": true
+        }
+      },
+      "presets": ["*tree"],
+      "tags": [
+        "interpretable",
+        "boosting",
+        "non_linear",
+        "non-default"
+      ]
+    },
+    "ebmreg": {
+      "meta": "sklearn_regr",
+      "implementations": {
+        "sklearn": {
+          "meta": "sklearn_regr",
+          "devices": ["cpu"],
+          "requires": ["sklearn", "interpret"],
+          "supports_multi_output": true
+        }
+      },
+      "presets": ["*tree"],
+      "tags": [
+        "interpretable",
+        "boosting",
+        "non_multi",
+        "non_linear",
+        "non-default"
+      ]
+    },
     "kmeans": {
       "meta": "sklearn_clust",
       "implementations": {
@@ -757,6 +829,56 @@
         "non_multi"
       ]
     },
+    "torch_linear_reg": {
+      "meta": "simple_regr",
+      "implementations": {
+        "torch": {
+          "meta": "simple_regr",
+          "devices": ["cpu", "cuda"],
+          "requires": ["torch"]
+        }
+      },
+      "presets": ["fast_train"],
+      "tags": [
+        "simple",
+        "linear",
+        "neural",
+        "torch",
+        "non_multi"
+      ]
+    },
+    "torch_mlp": {
+      "meta": "simple_class",
+      "implementations": {
+        "torch": {
+          "meta": "simple_class",
+          "devices": ["cpu", "cuda"],
+          "requires": ["torch"]
+        }
+      },
+      "tags": [
+        "neural",
+        "non_linear",
+        "torch",
+        "non_multi"
+      ]
+    },
+    "torch_mlp_reg": {
+      "meta": "simple_regr",
+      "implementations": {
+        "torch": {
+          "meta": "simple_regr",
+          "devices": ["cpu", "cuda"],
+          "requires": ["torch"]
+        }
+      },
+      "tags": [
+        "neural",
+        "non_linear",
+        "torch",
+        "non_multi"
+      ]
+    },
     "mlp": {
       "meta": "sklearn_class",
       "implementations": {
@@ -770,6 +892,23 @@
         "deprecated",
         "neural",
         "non_linear"
+      ]
+    },
+    "mlpreg": {
+      "meta": "sklearn_regr",
+      "implementations": {
+        "sklearn": {
+          "meta": "sklearn_regr",
+          "devices": ["cpu"],
+          "supports_multi_output": true
+        }
+      },
+      "tags": [
+        "deprecated",
+        "neural",
+        "non_multi",
+        "non_linear",
+        "non-default"
       ]
     },
     "multinb": {
@@ -825,6 +964,18 @@
       },
       "presets": ["fast_train", "*tree"],
       "tags": ["tree", "non_linear"]
+    },
+    "extra_trees": {
+      "meta": "sklearn_class",
+      "implementations": {
+        "sklearn": {
+          "meta": "sklearn_class",
+          "devices": ["cpu"],
+          "supports_multi_output": true
+        }
+      },
+      "presets": ["fast_train", "*tree"],
+      "tags": ["tree", "non_linear", "non-default"]
     },
     "rfr": {
       "meta": "sklearn_regr",
@@ -1043,6 +1194,94 @@
           "non-default"
         ]
 	},
+    "tabm": {
+      "meta": "tensor_tabular_class",
+      "implementations": {
+        "torch": {
+          "meta": "tensor_tabular_class",
+          "devices": ["cpu", "cuda"],
+          "requires": ["torch", "tabm"]
+        }
+      },
+      "tags": ["tabm", "tensor-only"]
+    },
+    "tabmreg": {
+      "meta": "tensor_tabular_regr",
+      "implementations": {
+        "torch": {
+          "meta": "tensor_tabular_regr",
+          "devices": ["cpu", "cuda"],
+          "requires": ["torch", "tabm"]
+        }
+      },
+      "tags": ["tabm", "tensor-only"]
+    },
+    "realmlp": {
+      "meta": "tensor_tabular_class",
+      "implementations": {
+        "torch": {
+          "meta": "tensor_tabular_class",
+          "devices": ["cpu", "cuda"],
+          "requires": ["torch", "pytabkit"]
+        }
+      },
+      "tags": ["realmlp", "tensor-only"]
+    },
+    "realmlpreg": {
+      "meta": "tensor_tabular_regr",
+      "implementations": {
+        "torch": {
+          "meta": "tensor_tabular_regr",
+          "devices": ["cpu", "cuda"],
+          "requires": ["torch", "pytabkit"]
+        }
+      },
+      "tags": ["realmlp", "tensor-only"]
+    },
+    "ft_transformer": {
+      "meta": "tensor_tabular_class",
+      "implementations": {
+        "torch": {
+          "meta": "tensor_tabular_class",
+          "devices": ["cpu", "cuda"],
+          "requires": ["torch", "rtdl_revisiting_models"]
+        }
+      },
+      "tags": ["ft-transformer", "tensor-only"]
+    },
+    "ft_transformerreg": {
+      "meta": "tensor_tabular_regr",
+      "implementations": {
+        "torch": {
+          "meta": "tensor_tabular_regr",
+          "devices": ["cpu", "cuda"],
+          "requires": ["torch", "rtdl_revisiting_models"]
+        }
+      },
+      "tags": ["ft-transformer", "tensor-only"]
+    },
+    "tab_resnet": {
+      "meta": "tensor_tabular_class",
+      "implementations": {
+        "torch": {
+          "meta": "tensor_tabular_class",
+          "devices": ["cpu", "cuda"],
+          "requires": ["torch", "rtdl_revisiting_models"]
+        }
+      },
+      "tags": ["resnet", "tensor-only"]
+    },
+    "tab_resnetreg": {
+      "meta": "tensor_tabular_regr",
+      "implementations": {
+        "torch": {
+          "meta": "tensor_tabular_regr",
+          "devices": ["cpu", "cuda"],
+          "requires": ["torch", "rtdl_revisiting_models"]
+        }
+      },
+      "tags": ["resnet", "tensor-only"]
+    },
     "tabpfn": {
       "meta": "tabpfn_class",
       "implementations": {
