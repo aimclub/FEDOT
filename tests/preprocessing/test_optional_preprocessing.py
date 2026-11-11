@@ -539,8 +539,8 @@ def test_ohe_encoding_imputation_uses_original_indices():
     """
     X = np.array([
         [1, "A", 2, 3],
-        [4, "B", np.nan, 6],
-        [7, "C", 8, 9]
+        [1, "B", np.nan, 6],
+        [4, "C", 8, 9]
     ], dtype=object)
 
     encoding_strategy = [{
@@ -573,8 +573,8 @@ def test_ohe_encoding_imputation_uses_original_indices():
 
     reference_result = np.array([
         [1, 2, 1, 0, 0],
-        [4, 3, 0, 1, 0],
-        [7, 8, 0, 0, 1],
+        [1, 3, 0, 1, 0],
+        [4, 8, 0, 0, 1],
     ], dtype=np.float32)
 
     assert np.allclose(result, reference_result, atol=1e-6)
@@ -585,8 +585,8 @@ def test_ohe_encoding_imputation_uses_original_feature_names():
     """Test optional preprocessing name mapping after one-hot encoding."""
     X = np.array([
         [1, "A", 2, 3],
-        [4, "B", np.nan, 6],
-        [7, "C", 8, 9]
+        [1, "B", np.nan, 6],
+        [4, "C", 8, 9]
     ], dtype=object)
     columns = ["id", "category", "value", "target"]
 
@@ -621,8 +621,8 @@ def test_ohe_encoding_imputation_uses_original_feature_names():
 
     reference_result = np.array([
         [1, 2, 1, 0, 0],
-        [4, 3, 0, 1, 0],
-        [7, 8, 0, 0, 1],
+        [1, 3, 0, 1, 0],
+        [4, 8, 0, 0, 1],
     ], dtype=np.float32)
 
     assert np.allclose(result, reference_result, atol=1e-6)

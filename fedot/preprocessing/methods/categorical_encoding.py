@@ -1,5 +1,7 @@
 from typing import Sequence
 
+import numpy as np
+
 from fedot.core.backend.backend import Backend
 from fedot.core.data.prepared_data.prepared_data import PreparedData
 from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
@@ -13,10 +15,12 @@ How to add a new categorical encoder
    GPU (CuPy).
 2. Implement the methods expected by the preprocessing pipeline:
    `fit(data, categorical_idx)`, `transform(data)`, and (optionally) `fit_transform(data, categorical_idx)`.
-3. Add a new enum value to `EncodingStrategyEnum` in `fedot/preprocessing/preprocessor_types.py`.
-   The value must be a unique string, for example `my_strategy = "my_strategy"`.
-4. Add a mapping entry in `fedot/core/repository/preprocessor_mapping.py`:
-   extend `ENCODER_MAPPING` with `EncodingStrategyEnum.my_strategy: MyEncoder`.
+3. To support previously unseen optional-imputation constants, implement
+   `encode_imputation_value(column_idx, fill_value)`: encode the category used to
+   fill a missing value, using the fitted vocabulary of that source column.
+4. Add a new enum value to `EncodingMethodEnum` in `fedot/preprocessing/tools/preprocessor_types.py`.
+5. Register the handler in `PREPROCESSING_OBLIGATORY_MAPPING` in
+   `fedot/preprocessing/tools/methods_mapping.py`.
 """
 
 
@@ -75,6 +79,20 @@ class LabelEncoder(AbstractPreprocessingHandler):
             self.unknown_labels_[idx] = float(categories.size)
 
         return self
+
+    def encode_imputation_value(self, column_idx: int, fill_value) -> np.ndarray:
+        """Return the fitted label code for a categorical imputation replacement.
+
+        ``column_idx`` is the column position used when fitting this encoder;
+        ``fill_value`` is the original category to put in place of a missing value.
+        Return a one-element NumPy array. An unseen category uses the learned
+        unknown ID; a missing replacement stays NaN. The vocabulary is unchanged.
+        """
+        categories = self.categories_[column_idx]
+        categories = categories.get() if hasattr(categories, 'get') else categories
+        matches = np.flatnonzero(categories == fill_value)
+        code = float(matches[0]) if len(matches) else self.unknown_labels_[column_idx]
+        return np.array([np.nan if fill_value is None or fill_value != fill_value else code])
 
     def transform(self, data: PreparedData) -> PreparedData:
         """
@@ -219,14 +237,34 @@ class OneHotEncoder(AbstractPreprocessingHandler):
             categories = xp.unique(valid_values)
             self.categories_[idx] = categories
 
-            self.new_cols_dict[idx] = int(categories.size)
+            # Keep an all-missing source addressable for later imputation and
+            # native categorical models, even without an observed vocabulary.
+            self.new_cols_dict[idx] = max(1, int(categories.size))
 
-            end = start + int(categories.size)
+            end = start + self.new_cols_dict[idx]
             self.feature_slices_[idx] = slice(start, end)
             start = end
 
         self.n_output_features_ = start
         return self
+
+    def encode_imputation_value(self, column_idx: int, fill_value) -> np.ndarray:
+        """Return the fitted one-hot vector for a categorical imputation replacement.
+
+        ``column_idx`` is the column position used when fitting this encoder;
+        ``fill_value`` is the original category to put in place of a missing value.
+        Return a NumPy vector of the existing block width. An unseen category
+        produces zeros; a missing replacement produces NaNs. No columns are added.
+        """
+        categories = self.categories_[column_idx]
+        categories = categories.get() if hasattr(categories, 'get') else categories
+        pattern = np.zeros(self.new_cols_dict[column_idx])
+        matches = np.flatnonzero(categories == fill_value)
+        if fill_value is None or fill_value != fill_value:
+            pattern[:] = np.nan
+        elif len(matches):
+            pattern[matches[0]] = 1
+        return pattern
 
     def transform(self, data: PreparedData) -> PreparedData:
         """
@@ -254,6 +292,7 @@ class OneHotEncoder(AbstractPreprocessingHandler):
             nan_mask = column != column
 
             if categories.size == 0:
+                encoded[~nan_mask, feature_slice] = 0
                 continue
 
             block = (column.reshape(-1, 1) ==

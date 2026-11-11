@@ -12,14 +12,32 @@
       ],
       "tags": [
         "non-default",
-        "data_source"
+        "data_source",
+        "tensor-only"
       ],
       "description": "Implementations of data sources in multi-modal pipelines"
     },
-    "custom_preprocessing": {
-      "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering, TaskTypesEnum.ts_forecasting]",
+    "legacy_ts_imputation": {
+      "tasks": "[TaskTypesEnum.ts_forecasting]",
       "input_type": "[DataTypesEnum.table, DataTypesEnum.ts]",
       "output_type": "[DataTypesEnum.table, DataTypesEnum.ts]",
+      "accepted_node_types": [
+        "any"
+      ],
+      "forbidden_node_types": "[]",
+      "strategies": [
+        "fedot.core.operations.strategies.data_operations.time_series",
+        "TimeSeriesDataOperationStrategy"
+      ],
+      "tags": [
+        "sklearn"
+      ],
+      "description": "Legacy InputData imputation retained for the deferred time-series runtime"
+    },
+    "custom_preprocessing": {
+      "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering, TaskTypesEnum.ts_forecasting]",
+      "input_type": "[DataTypesEnum.tabular]",
+      "output_type": "[DataTypesEnum.tabular]",
       "accepted_node_types": [
         "any"
       ],
@@ -29,16 +47,16 @@
         "PreprocessingDataOperationStrategy"
       ],
       "tags": [
-        "sklearn"
+        "tensor-only"
       ],
-      "description": "Implementations of the preprocessing from scikit-learn framework"
+      "description": "TensorData feature operations; implementations own numerical backends"
     },
     "tensor_optional_preprocessing": {
       "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering, TaskTypesEnum.ts_forecasting]",
       "input_type": "[DataTypesEnum.table, DataTypesEnum.ts]",
       "output_type": "[DataTypesEnum.table, DataTypesEnum.ts]",
       "accepted_node_types": [
-        "primary"
+        "any"
       ],
       "forbidden_node_types": "[]",
       "strategies": [
@@ -50,28 +68,10 @@
       ],
       "description": "TensorData optional preprocessing via OptionalService (imputation, scaling, etc.)"
     },
-    "tensor_dimension_transformation": {
-      "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering, TaskTypesEnum.ts_forecasting]",
-      "input_type": "[DataTypesEnum.table]",
-      "output_type": "[DataTypesEnum.table]",
-      "accepted_node_types": [
-        "any"
-      ],
-      "forbidden_node_types": "[]",
-      "strategies": [
-        "fedot.core.operations.strategies.data_operations.projection",
-        "ProjectionDataOperationStrategy"
-      ],
-      "tags": [
-        "tensor",
-        "feature_reduction"
-      ],
-      "description": "TensorData dimensionality / feature-engineering transforms (e.g. PCA, TruncatedSVD)"
-    },
     "custom_ts_preprocessing": {
       "tasks": "[TaskTypesEnum.ts_forecasting]",
-      "input_type": "[DataTypesEnum.table]",
-      "output_type": "[DataTypesEnum.table]",
+      "input_type": "[DataTypesEnum.tabular]",
+      "output_type": "[DataTypesEnum.tabular]",
       "accepted_node_types": [
         "any"
       ],
@@ -81,31 +81,14 @@
         "PreprocessingDataOperationStrategy"
       ],
       "tags": [
-        "sklearn"
+        "tensor-only"
       ],
-      "description": "Implementations of the preprocessing from scikit-learn framework"
-    },
-    "sklearn_categorical": {
-      "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering]",
-      "input_type": "[DataTypesEnum.table]",
-      "output_type": "[DataTypesEnum.table]",
-      "accepted_node_types": [
-        "primary"
-      ],
-      "forbidden_node_types": "[]",
-      "strategies": [
-        "fedot.core.operations.strategies.data_operations.common_preprocessing",
-        "PreprocessingDataOperationStrategy"
-      ],
-      "tags": [
-        "sklearn"
-      ],
-      "description": "Implementations of OneHot encoding (etc.) from scikit-learn framework"
+      "description": "TensorData feature operations; implementations own numerical backends"
     },
     "dimension_transformation": {
       "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering, TaskTypesEnum.ts_forecasting]",
-      "input_type": "[DataTypesEnum.table]",
-      "output_type": "[DataTypesEnum.table]",
+      "input_type": "[DataTypesEnum.tabular]",
+      "output_type": "[DataTypesEnum.tabular]",
       "accepted_node_types": [
         "any"
       ],
@@ -115,11 +98,11 @@
         "PreprocessingDataOperationStrategy"
       ],
       "tags": [
-        "sklearn"
+        "tensor-only"
       ],
-      "description": "Implementations of the dimensionality transformation operations (e.g. PCA) from scikit-learn framework"
+      "description": "TensorData feature operations; implementations own numerical backends"
     },
-    "regression_preprocessing": {
+    "regression_data_operations": {
       "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]",
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
@@ -128,15 +111,15 @@
       ],
       "forbidden_node_types": "[]",
       "strategies": [
-        "fedot.core.operations.strategies.data_operations.preprocessing",
-        "RegressionDataOperationStrategy"
+        "fedot.core.operations.strategies.data_operations.common_preprocessing",
+        "PreprocessingDataOperationStrategy"
       ],
       "tags": [
-        "sklearn"
+        "tensor-only"
       ],
-      "description": "Implementations of the feature selection operations and robust data filtering from scikit-learn framework for regression task"
+      "description": "TensorData supervised preprocessing; implementations own numerical backends"
     },
-    "classification_preprocessing": {
+    "classification_data_operations": {
       "tasks": "[TaskTypesEnum.classification]",
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
@@ -145,13 +128,13 @@
       ],
       "forbidden_node_types": "[]",
       "strategies": [
-        "fedot.core.operations.strategies.data_operations.preprocessing",
-        "ClassificationDataOperationStrategy"
+        "fedot.core.operations.strategies.data_operations.common_preprocessing",
+        "PreprocessingDataOperationStrategy"
       ],
       "tags": [
-        "sklearn"
+        "tensor-only"
       ],
-      "description": "Implementations of the feature selection operations and robust data filtering from scikit-learn framework for classification task"
+      "description": "TensorData supervised preprocessing; implementations own numerical backends"
     },
     "custom_time_series_to_table_transformation": {
       "tasks": "[TaskTypesEnum.ts_forecasting]",
@@ -339,7 +322,7 @@
       ]
     },
     "simple_imputation": {
-      "meta": "custom_preprocessing",
+      "meta": "legacy_ts_imputation",
       "presets": [
         "fast_train",
         "*tree"
@@ -352,7 +335,7 @@
       ]
     },
     "pca": {
-      "meta": "tensor_dimension_transformation",
+      "meta": "dimension_transformation",
       "presets": [
         "fast_train",
         "ts",
@@ -368,7 +351,7 @@
       ]
     },
     "truncated_svd": {
-      "meta": "tensor_dimension_transformation",
+      "meta": "dimension_transformation",
       "presets": [
         "fast_train",
         "ts",
@@ -437,31 +420,8 @@
         "feature_engineering"
       ]
     },
-    "one_hot_encoding": {
-      "meta": "sklearn_categorical",
-      "tags": [
-        "encoding",
-        "categorical",
-        "dimensionality_transforming",
-        "non_applicable_for_ts",
-        "non-default"
-      ]
-    },
-    "label_encoding": {
-      "meta": "sklearn_categorical",
-      "presets": [
-        "fast_train",
-        "*tree"
-      ],
-      "tags": [
-        "encoding",
-        "categorical",
-        "non-default",
-        "non_applicable_for_ts"
-      ]
-    },
     "ransac_lin_reg": {
-      "meta": "regression_preprocessing",
+      "meta": "regression_data_operations",
       "presets": [
         "*tree"
       ],
@@ -470,11 +430,12 @@
         "linear",
         "filtering",
         "correct_params",
-        "non_applicable_for_ts"
+        "non_applicable_for_ts",
+        "sklearn"
       ]
     },
     "ransac_non_lin_reg": {
-      "meta": "regression_preprocessing",
+      "meta": "regression_data_operations",
       "presets": [
         "*tree"
       ],
@@ -483,58 +444,65 @@
         "non_linear",
         "filtering",
         "correct_params",
-        "non_applicable_for_ts"
+        "non_applicable_for_ts",
+        "sklearn"
       ]
     },
     "isolation_forest_reg": {
-      "meta": "regression_preprocessing",
+      "meta": "regression_data_operations",
       "tags": [
         "non_linear",
         "filtering",
-        "non_applicable_for_ts"
+        "non_applicable_for_ts",
+        "sklearn"
       ]
     },
     "isolation_forest_class": {
-      "meta": "classification_preprocessing",
+      "meta": "classification_data_operations",
       "tags": [
         "non_linear",
-        "filtering"
+        "filtering",
+        "sklearn"
       ]
     },
     "rfe_lin_reg": {
-      "meta": "regression_preprocessing",
+      "meta": "regression_data_operations",
       "tags": [
         "linear",
         "feature_selection",
         "non_applicable_for_ts",
         "non-default",
-        "non_applicable_for_ts"
+        "non_applicable_for_ts",
+        "sklearn"
       ]
     },
     "rfe_non_lin_reg": {
-      "meta": "regression_preprocessing",
+      "meta": "regression_data_operations",
       "tags": [
         "non_linear",
         "feature_selection",
         "non_applicable_for_ts",
         "non-default",
-        "non_applicable_for_ts"
+        "non_applicable_for_ts",
+        "sklearn"
       ]
     },
     "rfe_lin_class": {
-      "meta": "classification_preprocessing",
+      "meta": "classification_data_operations",
       "tags": [
         "linear",
         "feature_selection",
-        "non-default"
+        "non-default",
+        "sklearn"
       ]
     },
     "rfe_non_lin_class": {
-      "meta": "classification_preprocessing",
+      "meta": "classification_data_operations",
       "tags": [
         "non_linear",
         "feature_selection",
-        "non-default"
+        "non-default",
+        "sklearn"
       ]
     },
     "lagged": {
@@ -655,7 +623,7 @@
       ]
     },
     "decompose": {
-      "meta": "regression_preprocessing",
+      "meta": "regression_data_operations",
       "presets": [
         "fast_train",
         "ts",
@@ -667,7 +635,7 @@
       ]
     },
     "class_decompose": {
-      "meta": "classification_preprocessing",
+      "meta": "classification_data_operations",
       "presets": [
         "fast_train",
         "*tree"
@@ -678,7 +646,7 @@
       ]
     },
     "resample": {
-      "meta": "classification_preprocessing",
+      "meta": "classification_data_operations",
       "tags": [
         "imbalanced"
       ]

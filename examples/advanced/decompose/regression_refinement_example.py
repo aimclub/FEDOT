@@ -21,8 +21,7 @@ warnings.filterwarnings('ignore')
 
 def get_refinement_pipeline():
     """ Create five-level pipeline with decompose operation """
-    node_encoding = PipelineNode('one_hot_encoding')
-    node_scaling = PipelineNode('scaling', nodes_from=[node_encoding])
+    node_scaling = PipelineNode('scaling')
     node_lasso = PipelineNode('lasso', nodes_from=[node_scaling])
     node_decompose = PipelineNode('decompose', nodes_from=[
                                   node_scaling, node_lasso])
@@ -35,8 +34,7 @@ def get_refinement_pipeline():
 
 
 def get_non_refinement_pipeline():
-    node_encoding = PipelineNode('one_hot_encoding')
-    node_scaling = PipelineNode('scaling', nodes_from=[node_encoding])
+    node_scaling = PipelineNode('scaling')
 
     node_lasso = PipelineNode('lasso', nodes_from=[node_scaling])
     node_dtreg = PipelineNode('dtreg', nodes_from=[node_scaling])

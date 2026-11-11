@@ -4,12 +4,13 @@ from inspect import signature
 from typing import Optional, Union, Callable
 
 import numpy as np
+from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
 from fedot.core.data.input_data.data import InputData, OutputData
-from fedot.core.operations.strategies.models.sklearn import convert_to_multivariate_model
 from fedot.core.operations.strategies.base import EvaluationStrategy
 from fedot.core.utils import is_multi_output_target
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.repository.operation_types_repository import get_operation_type_from_id, OperationTypesRepository
 from fedot.utilities.random import ImplementationRandomStateHandler
 from pymonad.either import Either
@@ -22,6 +23,17 @@ from fedot.industrial.core.repository.model_repository import FEDOT_PREPROC_MODE
 
 # from fedot.industrial.core.architecture.preprocessing.data_convertor import TensorConverter
 import torch
+
+
+def _fit_multi_output_model(model, train_data: InputData):
+    """Keep Industrial's InputData adaptation local to its legacy runtime."""
+    if train_data.task.task_type == TaskTypesEnum.classification:
+        wrapper = MultiOutputClassifier
+    elif train_data.task.task_type in (TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting):
+        wrapper = MultiOutputRegressor
+    else:
+        raise ValueError(f"For task type '{train_data.task.task_type}' MultiOutput wrapper is not supported")
+    return wrapper(model).fit(train_data.features, train_data.target)
 
 
 class MultiDimPreprocessingStrategy(EvaluationStrategy):
@@ -181,7 +193,7 @@ class MultiDimPreprocessingStrategy(EvaluationStrategy):
                 data.features, data.target) if not_fedot_input_data else
             self.operation_condition.operation_implementation.fit(data),
             right_function=lambda data:
-            convert_to_multivariate_model(self.operation_condition.operation_implementation, data))
+            _fit_multi_output_model(self.operation_condition.operation_implementation, data))
         operation_implementation = operation_implementation if model_multi_adaptation \
             else self.operation_condition.operation_implementation
         return operation_implementation

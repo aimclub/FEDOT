@@ -1,49 +1,52 @@
 from typing import Callable, Optional
 
 import numpy as np
+import torch
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis, QuadraticDiscriminantAnalysis
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 from sklearn.svm import SVC
 
+from fedot.core.backend.array_conversions import as_numpy, as_torch
+from fedot.core.data.tensor_data.tensor_data import TensorData
+from fedot.core.utils import is_multi_output_target
 from fedot.core.operations.implementations.base import ModelImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 
 
-class KNeighborsImplementation(ModelImplementation):
+class SklearnModelAdapter(ModelImplementation):
+    """Common CPU-estimator boundary; all public predictions are Torch tensors."""
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.model = None
 
-    def predict(self, input_data):
-        """ Method for making prediction
+    def fit(self, train_data: TensorData):
+        self.is_multi_target = is_multi_output_target(train_data)
+        self.model.fit(as_numpy(train_data.features), as_numpy(train_data.target))
+        return self.model
 
-        :param input_data: data with features to process
-        """
-        prediction = self.model.predict(input_data.features)
+    def predict(self, input_data: TensorData) -> torch.Tensor:
+        prediction = self.model.predict(as_numpy(input_data.features))
+        return as_torch(prediction, device=input_data.device)
 
-        return prediction
+    def predict_proba(self, input_data: TensorData) -> torch.Tensor:
+        prediction = self.model.predict_proba(as_numpy(input_data.features))
+        if isinstance(prediction, list):
+            # Native KNN multioutput: one matrix per target, samples axis first.
+            return torch.stack([as_torch(p, device=input_data.device) for p in prediction], dim=1)
+        return as_torch(prediction, device=input_data.device)
 
-    def check_and_correct_k_value(self, input_data, model_impl: Callable):
-        """ Method check if the amount of neighbors is too big - clip it
 
-        :param input_data: InputData for fit
-        :param model_impl: Model to use
-        """
-        current_params = self.model.get_params()
-        n_neighbors = current_params.get('n_neighbors')
-
+class KNeighborsImplementation(SklearnModelAdapter):
+    def check_and_correct_k_value(self, input_data: TensorData, model_impl: Callable):
+        """Keep the historical correction for a training set smaller than k."""
+        n_neighbors = self.model.n_neighbors
         if n_neighbors > len(input_data.features):
-            # Improve the parameter "n_neighbors": n_neighbors <= n_samples
-            new_k_value = round(len(input_data.features) / 2)
-            if new_k_value == 0:
-                new_k_value = 1
+            new_k_value = max(1, round(len(input_data.features) / 2))
             self.params.update(n_neighbors=new_k_value)
             self.model = model_impl(**self.params.to_dict())
-
-            prefix = "n_neighbors of K-nn model was changed"
-            self.log.info(f"{prefix} from {n_neighbors} to {new_k_value}")
+            self.log.info(f'n_neighbors of K-nn model was changed from {n_neighbors} to {new_k_value}')
 
 
 class KnnClassificationAdapter(KNeighborsImplementation):
@@ -53,26 +56,10 @@ class KnnClassificationAdapter(KNeighborsImplementation):
         self.model = KNeighborsClassifier(**params)
         self.classes = None
 
-    def fit(self, train_data):
-        """ Method fit model on a dataset
-
-        :param train_data: data to train the model
-        """
-        self.classes = np.unique(np.array(train_data.target))
-
-        # Improve hyperparameters for model
+    def fit(self, train_data: TensorData):
+        self.classes = torch.unique(train_data.target)
         self.check_and_correct_k_value(train_data, KNeighborsClassifier)
-        self.model.fit(train_data.features, train_data.target)
-        return self.model
-
-    def predict_proba(self, input_data):
-        """ Method make prediction with probabilities of classes
-
-        :param input_data: data with features to process
-        """
-        prediction = self.model.predict_proba(input_data.features)
-
-        return prediction
+        return super().fit(train_data)
 
     @property
     def classes_(self):
@@ -85,20 +72,13 @@ class KnnRegressionAdapter(KNeighborsImplementation):
         params = round_n_neighbors(self.params.to_dict())
         self.model = KNeighborsRegressor(**params)
 
-    def fit(self, train_data):
-        """ Method fit model on a dataset
-
-        :param train_data: data to train the model
-        """
-
-        # Improve hyperparameters for model
+    def fit(self, train_data: TensorData):
         self.check_and_correct_k_value(train_data, KNeighborsRegressor)
-        self.model.fit(train_data.features, train_data.target)
-        return self.model
+        return super().fit(train_data)
 
 
 def round_n_neighbors(params: dict) -> dict:
-    """ Convert n_neighbors into integer value. Operation work inplace. """
+    """Round n_neighbors in place; preserve the minimum for values rounded to zero."""
     if 'n_neighbors' in params:
         n_neighbors = round(params['n_neighbors'])
         if n_neighbors == 0:
@@ -107,7 +87,7 @@ def round_n_neighbors(params: dict) -> dict:
     return params
 
 
-class FedotSVCImplementation(ModelImplementation):
+class FedotSVCImplementation(SklearnModelAdapter):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         if not self.params:
@@ -118,31 +98,15 @@ class FedotSVCImplementation(ModelImplementation):
         self.model = OneVsRestClassifier(self.inner_model)
         self.classes = None
 
-    def fit(self, train_data):
-        """ Method fit model on a dataset
+    def fit(self, train_data: TensorData):
+        self.classes = torch.unique(train_data.target)
+        return super().fit(train_data)
 
-        :param train_data: data to train the model
-        """
-        self.classes = np.unique(train_data.target)
-        self.model.fit(train_data.features, train_data.target)
-        return self.model
-
-    def predict(self, input_data):
-        """ Method make prediction with labels of classes
-
-        :param input_data: data with features to process
-        """
-        prediction = self.model.predict(input_data.features)
-
-        return prediction
-
-    def predict_proba(self, input_data):
-        """ Method make prediction with probabilities of classes
-
-        :param input_data: data with features to process
-        """
-        prediction = self.model.predict_proba(input_data.features)
-
+    def predict_proba(self, input_data: TensorData) -> torch.Tensor:
+        prediction = super().predict_proba(input_data)
+        if self.model.multilabel_:
+            # OneVsRest exposes only the positive probability for each binary target.
+            prediction = torch.stack((1 - prediction, prediction), dim=-1)
         return prediction
 
     @property
@@ -150,41 +114,12 @@ class FedotSVCImplementation(ModelImplementation):
         return self.classes
 
 
-class DiscriminantAnalysisImplementation(ModelImplementation):
+class DiscriminantAnalysisImplementation(SklearnModelAdapter):
+    def predict(self, input_data: TensorData) -> torch.Tensor:
+        return torch.nan_to_num(super().predict(input_data))
 
-    def __init__(self, params: Optional[OperationParameters] = None):
-        super().__init__(params)
-        self.model = None
-
-    def fit(self, train_data):
-        """ Method fit model on a dataset
-
-        :param train_data: data to train the model
-        """
-        self.model.fit(train_data.features, train_data.target)
-        return self.model
-
-    def predict(self, input_data):
-        """ Method make prediction with labels of classes
-
-        :param input_data: data with features to process
-        """
-        prediction = self.model.predict(input_data.features)
-
-        prediction = np.nan_to_num(prediction)
-
-        return prediction
-
-    def predict_proba(self, input_data):
-        """ Method make prediction with probabilities of classes
-
-        :param input_data: data with features to process
-        """
-        prediction = self.model.predict_proba(input_data.features)
-
-        prediction = np.nan_to_num(prediction)
-
-        return prediction
+    def predict_proba(self, input_data: TensorData) -> torch.Tensor:
+        return torch.nan_to_num(super().predict_proba(input_data))
 
     @property
     def classes_(self):
@@ -192,47 +127,33 @@ class DiscriminantAnalysisImplementation(ModelImplementation):
 
 
 class LDAImplementation(DiscriminantAnalysisImplementation):
-
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.model = LinearDiscriminantAnalysis(**self.params.to_dict())
 
-    def fit(self, train_data):
-        """ Method fit model on a dataset
-
-        :param train_data: data to train the model
-        """
-
+    def fit(self, train_data: TensorData):
         self.check_and_correct_params()
-
+        features, target = as_numpy(train_data.features), as_numpy(train_data.target)
         try:
-            self.model.fit(train_data.features, train_data.target)
+            self.model.fit(features, target)
         except (ValueError, IndexError):
-            # Problem arise when features and target are "ideally" mapping
-            # features [[1.0], [0.0], [0.0]] and target [[1], [0], [0]]
+            # Preserve the existing fallback for singular / perfectly mapped features.
             new_solver = 'lsqr'
-            self.log.debug(
-                f'Change invalid parameter solver ({self.model.solver}) to {new_solver}')
-
+            self.log.debug(f'Change invalid parameter solver ({self.model.solver}) to {new_solver}')
             self.model.solver = new_solver
             self.params.update(solver=new_solver)
-            self.model.fit(train_data.features, train_data.target)
+            self.model.fit(features, target)
         return self.model
 
     def check_and_correct_params(self):
-        """ Checks if the hyperparameters for the LDA model are correct and fixes them if needed """
         current_solver = self.params.get('solver')
         current_shrinkage = self.params.get('shrinkage')
-
-        is_solver_svd = current_solver is not None and current_solver == 'svd'
-        if is_solver_svd and current_shrinkage is not None:
-            # Ignore shrinkage
+        if current_solver == 'svd' and current_shrinkage is not None:
             self.params.update(shrinkage=None)
             self.model.shrinkage = None
 
 
 class QDAImplementation(DiscriminantAnalysisImplementation):
-
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.model = QuadraticDiscriminantAnalysis(**self.params.to_dict())

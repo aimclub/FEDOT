@@ -86,4 +86,7 @@ def update_tensor_data(data: TensorData, prepared_data: PreparedData) -> TensorD
     data.features = prepared_data.features
     data.target = prepared_data.target
     data.idx_mapping = prepared_data.idx_mapping
+    data.categorical_features = prepared_data.categorical_features
+    data.categorical_source_idx = prepared_data.categorical_source_idx
+    data.idx = prepared_data.row_idx
     return data

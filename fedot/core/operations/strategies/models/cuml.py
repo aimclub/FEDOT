@@ -5,6 +5,7 @@ import warnings
 from golem.utilities.requirements_notificator import warn_requirement
 import torch
 
+from fedot.core.backend.array_conversions import as_cupy, as_torch
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.operations.strategies.base import EvaluationStrategy
@@ -83,8 +84,8 @@ class CuMLModelStrategy(EvaluationStrategy):
     @staticmethod
     def _features_to_cuml(features: torch.Tensor, dtype: torch.dtype):
         device = features.device if features.is_cuda else torch.device('cuda')
-        features = features.detach().to(device=device, dtype=dtype).contiguous()
-        return cupy.from_dlpack(features), device
+        features = as_torch(features, device=device, dtype=dtype, contiguous=True)
+        return as_cupy(features), device
 
     @staticmethod
     def _target_to_cuml(target: Optional[torch.Tensor], dtype: torch.dtype, device: torch.device):
@@ -92,12 +93,11 @@ class CuMLModelStrategy(EvaluationStrategy):
             return None
         if len(target.shape) > 1 and target.shape[1] != 1:
             raise ValueError('cuML model engines currently support a single target column')
-        target = target.detach().to(device=device, dtype=dtype).reshape(-1).contiguous()
-        return cupy.from_dlpack(target)
+        target = as_torch(target.reshape(-1), device=device, dtype=dtype, contiguous=True)
+        return as_cupy(target)
 
     def _convert_cuml_output(self, prediction, predict_data: TensorData) -> TensorData:
-        prediction = cupy.ascontiguousarray(prediction)
-        runtime_prediction = torch.from_dlpack(prediction).to(predict_data.device)
+        runtime_prediction = as_torch(prediction, device=predict_data.device, contiguous=True)
         return self._replace_predict_in_tensor_data(runtime_prediction, predict_data)
 
 

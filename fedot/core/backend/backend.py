@@ -212,33 +212,3 @@ Backend.BACKEND_STRATEGIES = {
     Backend.CUDA_NAME: lambda backend: backend._set_cuda_stack_backend(Backend.CUDA_STACK_NAME),
     Backend.MPS_NAME: Backend._set_mps_backend,
 }
-
-
-def torch_to_xp(tensor: torch.Tensor, xp):
-    """
-    Convert torch.Tensor to xp array (numpy or cupy).
-
-    Parameters
-    ----------
-    tensor : torch.Tensor
-    xp : module (numpy or cupy)
-
-    Returns
-    -------
-    xp.ndarray
-    """
-    if tensor is None:
-        return None
-
-    if not isinstance(tensor, torch.Tensor):
-        raise TypeError(f"Expected torch.Tensor, got {type(tensor)}")
-
-    # numpy backend
-    if xp.__name__ == "numpy":
-        return tensor.detach().cpu().numpy()
-
-    # cupy backend
-    if xp.__name__ == "cupy":
-        return xp.fromDlpack(torch.utils.dlpack.to_dlpack(tensor))
-
-    raise ValueError(f"Unsupported xp backend: {xp}")

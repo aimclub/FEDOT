@@ -7,6 +7,7 @@ import numpy as np
 import torch
 
 from fedot.core.backend.backend import Backend
+from fedot.core.backend.array_conversions import as_torch
 from fedot.core.data.common.types import PathType, PandasType, ArrayType, IndexType
 from fedot.core.data.common.enums import StateEnum
 
@@ -468,7 +469,7 @@ def flatten_if_needed(x) -> torch.Tensor:
     - 3D ``(N, ..., ...)``: reshape to ``(N, -1)``
     """
     if not isinstance(x, torch.Tensor):
-        x = torch.as_tensor(x)
+        x = as_torch(x)
     if x.dim() == 1:
         x = x.unsqueeze(1)
     if x.dim() == 2:
@@ -507,8 +508,9 @@ def to_tensor(array: ArrayType, dtype=None) -> torch.Tensor:
     """
     Convert an array-like object to a torch tensor on the active backend device.
 
-    The function casts the input to `xp.float64` before creating the tensor, and
-    places it on `backend.device`.
+    Normalize prepared values (including numeric object arrays) through the
+    historical float64 step, then own tensor storage on the active backend.
+    General model exchanges use as_torch directly and preserve dtype.
 
     Args:
         array (ArrayType): Input array. If `None`, returns `None`.
@@ -517,14 +519,10 @@ def to_tensor(array: ArrayType, dtype=None) -> torch.Tensor:
     Returns:
         torch.Tensor: Tensor placed on `backend.device` (or `None` if `array is None`).
     """
-    xp = Backend().xp
-    device = Backend().device
-
     if array is None:
         return None
-
-    array = array.astype(xp.float64)
-    return torch.tensor(array, dtype=dtype, device=device)
+    array = array.astype(Backend().xp.float64)
+    return as_torch(array, device=Backend().device, dtype=dtype, copy=True)
 
 
 def td_values_equal(first: Any, second: Any) -> bool:
@@ -533,20 +531,25 @@ def td_values_equal(first: Any, second: Any) -> bool:
             return False
         if first.shape != second.shape or first.dtype != second.dtype:
             return False
+        first, second = first.detach(), second.detach().to(first.device)
         if first.is_floating_point() or second.is_floating_point():
             return torch.allclose(
-                first.detach().cpu(),
-                second.detach().cpu(),
+                first,
+                second,
                 rtol=0,
                 atol=0,
                 equal_nan=True,
             )
-        return torch.equal(first.detach().cpu(), second.detach().cpu())
+        return torch.equal(first, second)
 
     if isinstance(first, np.ndarray) or isinstance(second, np.ndarray):
         if not isinstance(first, np.ndarray) or not isinstance(second, np.ndarray):
             return False
-        return np.array_equal(first, second, equal_nan=True)
+        if first.shape != second.shape:
+            return False
+        if first.dtype.hasobject or second.dtype.hasobject:
+            return bool(np.all((first == second) | ((first != first) & (second != second))))
+        return np.array_equal(first, second, equal_nan=first.dtype.kind not in 'US' and second.dtype.kind not in 'US')
 
     if isinstance(first, dict) or isinstance(second, dict):
         if not isinstance(first, dict) or not isinstance(second, dict):

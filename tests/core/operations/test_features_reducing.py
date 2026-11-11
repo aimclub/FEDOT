@@ -24,7 +24,7 @@ from fedot.core.operations.implementations.data_operations.tools import (
     n_components_from_mle,
     resolve_spectrum_n_components,
 )
-from fedot.core.operations.strategies.data_operations.projection import ProjectionDataOperationStrategy
+from fedot.core.operations.strategies.data_operations.common_preprocessing import PreprocessingDataOperationStrategy
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
@@ -347,7 +347,7 @@ def test_pipeline_node_wires_pca_tensor_strategy():
         params=node.parameters,
         n_samples_data=40,
     )
-    assert isinstance(node.operation._eval_strategy, ProjectionDataOperationStrategy)
+    assert isinstance(node.operation._eval_strategy, PreprocessingDataOperationStrategy)
 
 
 @pytest.mark.unit
@@ -527,7 +527,7 @@ def test_truncated_svd_strategy_fit_is_reproducible(train_td):
     original_seed = RandomStateHandler.MODEL_FITTING_SEED
     RandomStateHandler.MODEL_FITTING_SEED = 7
     try:
-        strategy = ProjectionDataOperationStrategy(
+        strategy = PreprocessingDataOperationStrategy(
             'truncated_svd', OperationParameters(n_components=3),
         )
         first = strategy.fit(train_td)

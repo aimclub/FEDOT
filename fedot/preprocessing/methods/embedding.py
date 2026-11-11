@@ -1,7 +1,8 @@
 from typing import Optional, Sequence
 import torch
 
-from fedot.core.backend.backend import Backend, torch_to_xp
+from fedot.core.backend.backend import Backend
+from fedot.core.backend.array_conversions import torch_to_xp
 from fedot.core.data.prepared_data.prepared_data import PreparedData
 from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 

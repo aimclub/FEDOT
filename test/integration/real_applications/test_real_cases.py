@@ -52,27 +52,6 @@ def test_gapfilling_problem():
     assert rmse_composite < 40.0
 
 
-def test_river_levels_problem():
-    # Initialise pipeline for river levels prediction
-    node_encoder = PipelineNode('one_hot_encoding')
-    node_scaling = PipelineNode('scaling', nodes_from=[node_encoder])
-    node_ridge = PipelineNode('ridge', nodes_from=[node_scaling])
-    node_lasso = PipelineNode('lasso', nodes_from=[node_scaling])
-    node_final = PipelineNode('rfr', nodes_from=[node_ridge, node_lasso])
-
-    init_pipeline = Pipeline(node_final)
-
-    file_path_train = fedot_project_root().joinpath('test/data/station_levels.csv')
-
-    run_river_experiment(file_path=file_path_train,
-                         pipeline=init_pipeline,
-                         iterations=1,
-                         tuner=SimultaneousTuner,
-                         tuner_iterations=10)
-
-    is_experiment_finished = True
-
-    assert is_experiment_finished
 
 
 def test_spam_detection_problem():

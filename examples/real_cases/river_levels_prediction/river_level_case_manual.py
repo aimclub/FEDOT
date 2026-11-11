@@ -85,8 +85,7 @@ def run_river_experiment(file_path, pipeline, iterations=20, tuner=None,
 
 
 if __name__ == '__main__':
-    node_encoder = PipelineNode('one_hot_encoding')
-    node_scaling = PipelineNode('scaling', nodes_from=[node_encoder])
+    node_scaling = PipelineNode('scaling')
     node_ridge = PipelineNode('ridge', nodes_from=[node_scaling])
     node_lasso = PipelineNode('lasso', nodes_from=[node_scaling])
     node_final = PipelineNode('rfr', nodes_from=[node_ridge, node_lasso])

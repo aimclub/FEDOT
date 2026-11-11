@@ -1,8 +1,12 @@
+import cloudpickle
+import numpy as np
 import torch
 from typing import Sequence, Optional
 
 from fedot.core.data.prepared_data.prepared_data import PreparedData
 from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
+from fedot.preprocessing.tools.preprocessor_types import ImputationMethodEnum
+from fedot.core.data.tensor_data.contracts import select_rows
 
 
 class MeanImputation(AbstractPreprocessingHandler):
@@ -182,9 +186,8 @@ class ConstantImputation(AbstractPreprocessingHandler):
 class DeleteRawImputation(AbstractPreprocessingHandler):
     """Row-wise missing-value strategy that removes rows containing NaNs.
 
-    The handler builds a row validity mask in `fit` for selected columns and, in
-    `transform`, filters both `features` and `target` (if present) by that mask.
-    This keeps feature-target alignment while discarding incomplete samples.
+    Each transform computes its own mask and filters all sample-wise fields.
+    Training row positions must never be reused for a different prediction batch.
 
     Use this strategy when dropping corrupted rows is preferable to value
     imputation.
@@ -210,7 +213,84 @@ class DeleteRawImputation(AbstractPreprocessingHandler):
         if self.valid_rows_mask is None:
             raise RuntimeError("DeleteRawImputation is not fitted yet.")
 
+        self.valid_rows_mask = ~torch.isnan(data.features[:, self.features_idx]).any(dim=1)
         data.features = data.features[self.valid_rows_mask]
         if data.target is not None:
             data.target = data.target[self.valid_rows_mask]
+        data.categorical_features = select_rows(data.categorical_features, self.valid_rows_mask)
+        data.row_idx = select_rows(data.row_idx, self.valid_rows_mask)
+        return data
+
+
+class CategoricalImputation(AbstractPreprocessingHandler):
+    """Wrap a numeric imputer for steps that also select stored categories.
+
+    Replacement patterns are taken from the training tensor, preserving earlier
+    transformations of its encoded columns. A previously unseen constant is
+    encoded with the fitted source encoder, without fitting a new vocabulary.
+    """
+
+    def __init__(self, numeric_handler, groups, method, preparation_state, changed_sources):
+        self.numeric_handler = numeric_handler
+        self.groups = groups
+        self.method = method
+        self.preparation_state = preparation_state
+        self.changed_sources = set(changed_sources)
+        self.replacements = []
+
+    def fit(self, data, features_idx):
+        if self.method not in (ImputationMethodEnum.mode, ImputationMethodEnum.constant):
+            raise ValueError('Original categorical features support mode, constant, or row deletion imputation.')
+        constant = self.numeric_handler.constant if self.method == ImputationMethodEnum.constant else None
+        categorical_indices = {pos for _, positions in self.groups for pos in positions}
+        numeric_indices = [pos for pos in features_idx if pos not in categorical_indices]
+        if numeric_indices:
+            self.numeric_handler.fit(data, numeric_indices)
+        else:
+            self.numeric_handler = None
+        self.replacements = []
+        for column, positions in self.groups:
+            values = data.categorical_features[:, column]
+            valid = values == values  # Source preparation normalizes missing categories to np.nan.
+            if self.method == ImputationMethodEnum.mode:
+                categories, counts = np.unique(values[valid], return_counts=True)
+                if not len(categories):
+                    continue  # An entirely missing training source has no mode.
+                value = categories[counts.argmax()]
+            else:
+                value = np.nan if constant is None else constant
+            matches = np.flatnonzero(valid & (values == value))
+            if len(matches):
+                pattern = data.features[int(matches[0]), positions].clone()
+            else:
+                source = data.categorical_source_idx[column]
+                if source in self.changed_sources:
+                    raise ValueError('An unseen categorical constant requires an unmodified encoded source block.')
+                pattern = self._encode_constant(source, value, data.features)
+                if len(pattern) != len(positions):
+                    raise ValueError('An unseen categorical constant requires the complete unmodified encoded block.')
+            self.replacements.append((column, positions, value, pattern))
+        # Fitted encoders are only needed to prepare replacement patterns.
+        self.preparation_state = None
+        return self
+
+    def _encode_constant(self, source, value, features):
+        if self.preparation_state is None:
+            raise ValueError('An unseen categorical constant requires fitted source encoding metadata.')
+        fitted = next(step for step in self.preparation_state.encoding_steps if source in step.source_indices)
+        handler = cloudpickle.loads(fitted.handler_state)
+        column_idx = fitted.indices[fitted.source_indices.index(source)]
+        pattern = handler.encode_imputation_value(column_idx, value)
+        return torch.as_tensor(pattern, device=features.device, dtype=features.dtype)
+
+    def transform(self, data):
+        if self.numeric_handler is not None:
+            data = self.numeric_handler.transform(data)
+        for column, positions, value, pattern in self.replacements:
+            values = data.categorical_features[:, column]
+            missing = values != values
+            data.categorical_features[missing, column] = value
+            rows = torch.as_tensor(np.flatnonzero(missing), device=data.features.device)
+            columns = torch.as_tensor(positions, device=data.features.device)
+            data.features[rows[:, None], columns] = pattern.to(data.features)
         return data

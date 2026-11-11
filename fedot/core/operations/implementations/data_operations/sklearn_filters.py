@@ -1,9 +1,9 @@
-from copy import copy
+from dataclasses import replace
 from typing import Optional
 
 import numpy as np
 import sklearn
-from golem.core.log import default_log
+import torch
 from pkg_resources import parse_version
 from sklearn.ensemble import IsolationForest
 from sklearn.linear_model import LinearRegression, RANSACRegressor
@@ -11,245 +11,125 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeRegressor
 
-from fedot.core.data.input_data.data import InputData, OutputData
-from fedot.core.operations.implementations.base import DataOperationImplementation
+from fedot.core.backend.array_conversions import as_numpy, as_torch
+from fedot.core.data.tensor_data.tensor_data import TensorData
+from fedot.core.operations.implementations.base import TensorDataOperationImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 
 
-class FilterImplementation(DataOperationImplementation):
-    """ Base class for applying filtering operations on tabular data """
+class FilterImplementation(TensorDataOperationImplementation):
+    """CPU sklearn filter with device-local, training-only row selection."""
 
-    def __init__(self, params: Optional[OperationParameters]):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.inner_model = None
         self.operation = None
 
-        self.log = default_log(self)
+    def transform(self, data: TensorData) -> TensorData:
+        return replace(data, predict=None)
 
-    def fit(self, input_data: InputData):
-        """ Method for fit filter
-
-        :param input_data: data with features, target and ids to process
-        :return operation: trained operation (optional output)
-        """
-
-        self.operation.fit(input_data.features, input_data.target)
-
-        return self.operation
-
-    def transform(self, input_data: InputData) -> OutputData:
-        """ Method for making prediction for predict stage
-
-        :param input_data: data with features, target and ids to process
-        :return output_data: filtered input data by rows
-        """
-        output_data = self._convert_to_output(input_data,
-                                              input_data.features)
-        return output_data
-
-    def transform_for_fit(self, input_data: InputData) -> OutputData:
-        """ Method for making prediction for fit stage
-
-        :param input_data: data with features, target and ids to process
-        :return output_data: filtered input data by rows
-        """
-        # For fit stage - filter data
+    def transform_for_fit(self, data: TensorData) -> TensorData:
         mask = self.operation.inlier_mask_
-        if mask is not None:
-            input_data = update_data(input_data, mask)
-        else:
-            self.log.info(
-                "Filtering Algorithm: didn't fit correctly. Return all objects")
-        output_data = self._convert_to_output(input_data,
-                                              input_data.features)
-        return output_data
+        if mask is None:
+            self.log.info("Filtering Algorithm: didn't fit correctly. Return all objects")
+            return self.transform(data)
+        mask = as_torch(mask, device=data.device)
+        return self.transform(data.subset_rows(torch.nonzero(mask, as_tuple=True)[0]))
 
 
 class RegRANSACImplementation(FilterImplementation):
-    def __init__(self, params: Optional[OperationParameters]):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.max_iter = 10
         self.min_inliers_ratio = 0.4
 
-    def fit(self, input_data: InputData):
-        iter_ = 0
+    def fit(self, data: TensorData):
+        target = data.target if data.target.is_floating_point() else data.target.to(torch.float64)
+        threshold_step = (target - target.mean()).abs().mean().item() / self.max_iter
         residual_threshold = self.params.get('residual_threshold')
-        residual_threshold_step = np.mean(
-            np.abs(input_data.target - np.mean(input_data.target))) / self.max_iter
-
-        while iter_ < self.max_iter:
+        if residual_threshold is None:
+            # sklearn's default is the median absolute deviation. Make it explicit
+            # so the existing adaptive threshold can also be increased after a failed fit.
+            median = target.flatten().quantile(0.5)
+            residual_threshold = (target - median).abs().flatten().quantile(0.5).item()
+        features = as_numpy(data.features)
+        target_array = as_numpy(data.target.squeeze())
+        for _ in range(self.max_iter):
             try:
                 self.operation.inlier_mask_ = None
                 self.params.update(residual_threshold=residual_threshold)
                 self.operation.residual_threshold = residual_threshold
-
-                self.operation.fit(input_data.features,
-                                   input_data.target.squeeze())
-                if self.operation.inlier_mask_.mean() >= self.min_inliers_ratio:
-                    return self.operation
-            # LinAlgError does not inherit from ValueError in every supported NumPy version.
+                self.operation.fit(features, target_array)
+                mask = as_torch(self.operation.inlier_mask_)
+                if mask.to(torch.float64).mean().item() >= self.min_inliers_ratio:
+                    return self
+            # Consensus trials can fail for degenerate subsets; preserve the
+            # existing retry policy and the final unfiltered fallback.
             except (ValueError, np.linalg.LinAlgError):
                 pass
-
-            self.log.info(
-                f"RANSAC: increased residual_threshold by {residual_threshold_step}")
-            residual_threshold = residual_threshold + residual_threshold_step
-            iter_ += 1
-
-        # Do not filter the data if no fit retained a sufficient number of inliers.
+            self.log.info(f'RANSAC: increased residual_threshold by {threshold_step}')
+            residual_threshold += threshold_step
         self.operation.inlier_mask_ = None
-        return self.operation
+        return self
 
 
 class LinearRegRANSACImplementation(RegRANSACImplementation):
-    """
-    RANdom SAmple Consensus (RANSAC) algorithm with LinearRegression as core
-    Task type - regression
-    """
+    """RANSAC with the historical sklearn scaling + linear regression estimator."""
 
-    def __init__(self, params: Optional[OperationParameters]):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
-        self.inner_model = make_pipeline(
-            StandardScaler(with_mean=False), LinearRegression())
-
-        # TODO valer1435 | Delete this after removing compatibility with sklearn<1.1
+        # Scaling is fitted inside each consensus trial, on that trial's subset.
+        self.inner_model = make_pipeline(StandardScaler(with_mean=False), LinearRegression())
         if parse_version(sklearn.__version__) < parse_version('1.1.0'):
-            self.operation = RANSACRegressor(
-                base_estimator=self.inner_model, **self.params.to_dict())
+            self.operation = RANSACRegressor(base_estimator=self.inner_model, **self.params.to_dict())
         else:
-            self.operation = RANSACRegressor(
-                estimator=self.inner_model, **self.params.to_dict())
+            self.operation = RANSACRegressor(estimator=self.inner_model, **self.params.to_dict())
 
 
 class NonLinearRegRANSACImplementation(RegRANSACImplementation):
-    """
-    RANdom SAmple Consensus (RANSAC) algorithm with DecisionTreeRegressor as core
-    Task type - regression
-    """
+    """RANSAC with the historical sklearn DecisionTreeRegressor estimator."""
 
-    def __init__(self, params: Optional[OperationParameters]):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.inner_model = DecisionTreeRegressor()
-
-        # TODO valer1435 | Delete this after removing compatibility with sklearn<1.1
         if parse_version(sklearn.__version__) < parse_version('1.1.0'):
-            self.operation = RANSACRegressor(
-                base_estimator=self.inner_model, **self.params.to_dict())
+            self.operation = RANSACRegressor(base_estimator=self.inner_model, **self.params.to_dict())
         else:
-            self.operation = RANSACRegressor(
-                estimator=self.inner_model, **self.params.to_dict())
+            self.operation = RANSACRegressor(estimator=self.inner_model, **self.params.to_dict())
 
 
-class IsolationForestRegImplementation(DataOperationImplementation):
-    """
-    Isolation Forest algorithm based on ExtraTreeRegressor
-    Task type - regression
-    """
+class IsolationForestRegImplementation(FilterImplementation):
+    """Isolation Forest filtering for regression; inference keeps every row."""
 
-    def __init__(self, params: Optional[OperationParameters]):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
-        self.log = default_log(self)
         self.operation = IsolationForest(**self.params.to_dict())
 
-    def fit(self, input_data: InputData) -> 'IsolationForest':
-        """ Method for fit filter
+    def fit(self, data: TensorData):
+        # sklearn ignores y for this unsupervised estimator; keep target on its device.
+        self.operation.fit(as_numpy(data.features))
+        return self
 
-        :param input_data: data with features, target and ids to process
-        :return operation: trained operation (optional output)
-        """
+    def _get_inlier_mask(self, data: TensorData) -> torch.Tensor:
+        prediction = self.operation.predict(as_numpy(data.features))
+        return as_torch(prediction, device=data.device) == 1
 
-        self.operation.fit(input_data.features, input_data.target)
-
-        return self.operation
-
-    def _get_inlier_mask(self, input_data: InputData) -> np.ndarray:
-        """ Method for making boolean mask of inliers classified as False
-
-        :param input_data: data with features, target and ids to process
-        :return mask: boolean mask of inliers classified as False
-        """
-
-        predictions = self.operation.predict(input_data.features)
-        mask = predictions == 1
-        return mask
-
-    def transform(self, input_data: InputData) -> OutputData:
-        """ Method for making prediction for predict stage
-
-        :param input_data: data with features, target and ids to process
-        :return output_data: filtered input data by rows
-        """
-        output_data = self._convert_to_output(input_data,
-                                              input_data.features)
-        return output_data
-
-    def transform_for_fit(self, input_data: InputData) -> OutputData:
-        """ Method for making prediction for fit stage
-
-        :param input_data: data with features, target and ids to process
-        :return output_data: filtered input data by rows
-        """
-        # For fit stage - filter data
-        mask = self._get_inlier_mask(input_data)
-        input_data = update_data(input_data, mask)
-
-        output_data = self._convert_to_output(input_data,
-                                              input_data.features)
-        return output_data
+    def transform_for_fit(self, data: TensorData) -> TensorData:
+        mask = self._get_inlier_mask(data)
+        return self.transform(data.subset_rows(torch.nonzero(mask, as_tuple=True)[0]))
 
 
 class IsolationForestClassImplementation(IsolationForestRegImplementation):
-    """
-    Isolation Forest algorithm based on ExtraTreeRegressor
-    Task type - classification
-    """
+    """Isolation Forest with the existing per-class retention safeguard."""
 
     @staticmethod
-    def _is_inlier_mask_correct(input_targets: np.ndarray, modified_targets: np.ndarray) -> bool:
-        """ Method for checking if inlier mask is correct
-        Inlier mask considered correct if after its application no class is completely or partially
-        removed from the dataset by more than 80 percent
+    def _is_inlier_mask_correct(input_targets: torch.Tensor, modified_targets: torch.Tensor) -> bool:
+        classes, counts = torch.unique(input_targets, return_counts=True)
+        remaining, remaining_counts = torch.unique(modified_targets, return_counts=True)
+        return torch.equal(classes, remaining) and bool((counts <= 5 * remaining_counts).all())
 
-        :param input_targets: targets from input_data
-        :param modified_targets: targets from modified_targets
-        :return True if mask is correct otherwise False
-        """
-
-        if np.unique(input_targets).shape != np.unique(modified_targets).shape:
-            return False
-        for counts in zip(np.unique(input_targets, return_counts=True)[1],
-                          np.unique(modified_targets, return_counts=True)[1]):
-            if counts[0] > 5 * counts[1]:
-                return False
-        return True
-
-    def transform_for_fit(self, input_data: InputData) -> OutputData:
-        """ Method for making prediction for fit stage
-
-        :param input_data: data with features, target and ids to process
-        :return output_data: filtered input data by rows
-        """
-        # For fit stage - filter data
-        mask = self._get_inlier_mask(input_data)
-        modified_input_data = update_data(input_data, mask)
-        if self._is_inlier_mask_correct(input_data.target, modified_input_data.target):
-            input_data = modified_input_data
-
-        output_data = self._convert_to_output(input_data,
-                                              input_data.features)
-        return output_data
-
-
-def update_data(input_data: InputData, mask: np.ndarray) -> InputData:
-    """ Method for updating target and features"""
-
-    modified_input_data = copy(input_data)
-    old_features = modified_input_data.features
-    old_target = modified_input_data.target
-    old_idx = modified_input_data.idx
-
-    modified_input_data.features = old_features[mask]
-    modified_input_data.target = old_target[mask]
-    modified_input_data.idx = np.array(old_idx)[mask]
-
-    return modified_input_data
+    def transform_for_fit(self, data: TensorData) -> TensorData:
+        mask = self._get_inlier_mask(data)
+        if self._is_inlier_mask_correct(data.target, data.target[mask]):
+            return self.transform(data.subset_rows(torch.nonzero(mask, as_tuple=True)[0]))
+        return self.transform(data)

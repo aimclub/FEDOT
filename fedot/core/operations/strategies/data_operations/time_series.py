@@ -11,6 +11,7 @@ from fedot.core.operations.implementations.data_operations.ts_transformations im
     CutImplementation,
     NumericalDerivativeFilterImplementation,
 )
+from fedot.core.operations.implementations.data_operations.tabular import ImputationImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.utilities.random import ImplementationRandomStateHandler
 
@@ -29,6 +30,7 @@ class TimeSeriesDataOperationStrategy(EvaluationStrategy):
     """
 
     _operations_by_types = {
+        'simple_imputation': ImputationImplementation,
         'lagged': LaggedTransformationImplementation,
         'sparse_lagged': SparseLaggedTransformationImplementation,
         'smoothing': TsSmoothingImplementation,

@@ -1,8 +1,8 @@
 import numpy as np
-import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics import roc_auc_score as roc_auc, mean_squared_error, r2_score
 
+from fedot import create_data
 from fedot.core.data.input_data.data import InputData
 from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.operations.strategies.data_operations.text import SklearnTextVectorizationStrategy
@@ -83,10 +83,14 @@ def test_boosting_regression_operation():
 
 def run_tabpfn(
         model_name: str,
-        train_data: pd.DataFrame,
-        test_data: pd.DataFrame,
+        train_data: InputData,
+        test_data: InputData,
         task: str,
 ):
+    train_data = create_data(
+        train_data.features, target=train_data.target, task=train_data.task, backend='cpu', use_cache=False)
+    test_data = create_data(
+        test_data.features, target=test_data.target, from_data=train_data, backend='cpu', use_cache=False)
     try:
         pipeline = PipelineBuilder().add_node(model_name).build()
         pipeline.fit(train_data)

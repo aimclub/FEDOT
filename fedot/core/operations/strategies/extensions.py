@@ -1,9 +1,7 @@
 """Thin TensorData interpreters for model and transform extension contracts."""
 from dataclasses import replace
 
-import numpy as np
-import torch
-
+from fedot.core.backend.array_conversions import as_numpy, as_torch
 from fedot.core.operations.strategies.base import EvaluationStrategy
 from fedot.extensions.contracts import ArrayBackend, ExtensionContractError, ExtensionError, unwrap_extension_result
 from fedot.extensions.execution_rules import plan_execution
@@ -19,13 +17,13 @@ def _input_array(value, backend):
         return None
     # External code owns private buffers, never the caller's TensorData storage.
     if backend is ArrayBackend.numpy:
-        return value.detach().cpu().numpy().copy() if isinstance(value, torch.Tensor) else np.array(value, copy=True)
-    return value.clone() if isinstance(value, torch.Tensor) else torch.as_tensor(value).clone()
+        return as_numpy(value, copy=True)
+    return as_torch(value, copy=True, detach=False)
 
 
 def _output_tensor(value, data):
     try:
-        return torch.as_tensor(value, device=data.features.device).clone()
+        return as_torch(value, device=data.features.device, copy=True, detach=False)
     except (TypeError, ValueError, RuntimeError) as exc:
         raise ExtensionContractError(ExtensionError(
             'invalid_runtime_output', 'Output cannot be represented as a tensor.', cause=exc)) from exc

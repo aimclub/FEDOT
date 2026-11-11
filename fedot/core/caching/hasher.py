@@ -93,7 +93,7 @@ def ready_fingerprint(
     Build a fingerprint for prepared `TensorData`.
 
     The hash combines selected `TensorData` metadata with a deterministic sample
-    of `td.features` rows. Target and prediction values are not sampled.
+    of feature and prediction rows. Target values are hashed in full.
 
     Args:
         td: Prepared tensor container.

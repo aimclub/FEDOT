@@ -66,9 +66,13 @@ def replace_projected_features(data: TensorData, projected: torch.Tensor) -> Ten
     return replace(
         data,
         features=projected,
+        predict=None,
         categorical_idx=[],
         numerical_idx=list(range(projected.shape[1])),
         features_names=None,
+        idx_mapping=dict(enumerate(range(projected.shape[1]))),
+        categorical_features=None,
+        categorical_source_idx=[],
         fingerprint=None,
     )
 

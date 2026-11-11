@@ -6,6 +6,8 @@ from typing import Any, Optional
 import numpy as np
 import torch
 
+from fedot.core.backend.array_conversions import as_numpy, as_torch
+
 
 class TensorDataContractError(ValueError):
     """Invalid data with a stable category and the offending public field."""
@@ -14,6 +16,19 @@ class TensorDataContractError(ValueError):
         self.code = code
         self.field = field
         super().__init__(f'{field}: {message}')
+
+
+@dataclass(frozen=True)
+class CategoricalData:
+    """Original categories beside current numerical tensors, without a device transfer.
+
+    Model adapters choose how to combine these blocks for their library.
+    Missing category values are normalized to np.nan by source preparation.
+    """
+
+    numerical_features: torch.Tensor
+    categorical_features: np.ndarray
+    features_names: Optional[list] = None
 
 
 @dataclass(frozen=True)
@@ -48,6 +63,7 @@ class FittedPreparationStep:
     step: str
     indices: tuple[int, ...]
     handler_state: bytes = field(repr=False)
+    source_indices: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -64,12 +80,21 @@ class PreparationState:
     plan_hash: str
     backend_name: str
     input_hash: str
+    # A merger can rename branch-local categorical sources without changing
+    # original/target preparation. None means the original encoding steps.
+    categorical_steps: Optional[tuple[FittedPreparationStep, ...]] = None
 
     @property
     def plan(self):
         """Return a private plan restored from the trusted fitted snapshot."""
         import cloudpickle
         return cloudpickle.loads(self.plan_state)
+
+    @property
+    def encoding_steps(self):
+        if self.categorical_steps is not None:
+            return self.categorical_steps
+        return tuple(step for step in self.steps if step.step == 'encoding')
 
 
 def as_list(value):
@@ -154,16 +179,16 @@ def select_rows(value, mask):
     """Apply a strict boolean row mask, never flattening a higher-rank mask."""
     if value is None:
         return None
-    if hasattr(mask, 'get'):
-        mask = mask.get()
-    if isinstance(mask, torch.Tensor):
-        mask = mask.detach().cpu().numpy()
-    mask = np.asarray(mask)
+    if isinstance(value, torch.Tensor):
+        mask = as_torch(mask, device=value.device)
+        if mask.dtype != torch.bool or mask.ndim != 1 or len(mask) != len(value):
+            raise TensorDataContractError(
+                'invalid_mask', 'mask', 'expected one boolean per sample')
+        return value[mask]
+    mask = as_numpy(mask)
     if mask.dtype != np.bool_ or mask.ndim != 1 or len(mask) != len(value):
         raise TensorDataContractError(
             'invalid_mask', 'mask', 'expected one boolean per sample')
-    if isinstance(value, torch.Tensor):
-        return value[torch.as_tensor(mask, device=value.device)]
     return value[mask]
 
 
@@ -182,6 +207,15 @@ def validate_runtime_data(data):
     if data.idx is not None:
         validate_sample_index(data.idx, shape[0])
     validate_target_rows(data.target, shape[0])
+    if data.categorical_features is None:
+        if data.categorical_source_idx:
+            raise TensorDataContractError('missing_categories', 'categorical_features', 'source IDs require values')
+    elif (data.categorical_features.ndim != 2
+          or data.categorical_features.shape != (shape[0], len(data.categorical_source_idx))):
+        raise TensorDataContractError(
+            'row_alignment', 'categorical_features', 'expected one row per sample and one column per source ID')
+    if len(set(data.categorical_source_idx)) != len(data.categorical_source_idx):
+        raise TensorDataContractError('duplicate_selector', 'categorical_source_idx', 'source IDs must be unique')
     if data.predict is not None and (data.predict.ndim == 0 or data.predict.shape[0] != shape[0]):
         raise TensorDataContractError(
             'row_alignment', 'predict', 'predictions must align with samples')

@@ -1,9 +1,11 @@
 from copy import deepcopy
+from dataclasses import replace
 from pathlib import Path
 from typing import Any, List, Optional, Sequence
 
 from fedot.core.data.prepared_data.prepared_data import PreparedData
 from fedot.core.caching.cacher import Cacher
+from fedot.core.caching.hasher import Hasher
 from fedot.preprocessing.tools.index_mapping_tools import (update_index_mapping,
                                                            update_indices, create_index_mapping)
 from fedot.core.data.tensor_data.tensor_data import TensorData
@@ -11,6 +13,8 @@ from fedot.preprocessing.planner.optional_planner import build_optional_plan
 from fedot.preprocessing.planner.column_selection import compose_source_mapping
 from fedot.preprocessing.schemas import validate_optional_service_predict_ready
 from fedot.preprocessing.tools.preprocessor_types import PreprocessingStepEnum
+from fedot.preprocessing.tools.preprocessor_types import ImputationMethodEnum
+from fedot.preprocessing.methods.imputation import CategoricalImputation
 from fedot.preprocessing.tools.tools import (
     copy_handler_mapping,
     update_handler_mapping,
@@ -93,19 +97,26 @@ class OptionalService:
         self.handler_mapping = update_handler_mapping(
             self.plan, self.handler_mapping)
         prepared_data = self._create_prepared_data(deepcopy(data))
+        changed_sources = set()
 
         for i, step in enumerate(self.plan.steps):
             actual_mapping = prepared_data.idx_mapping
             prepared_data.new_cols_dict = None
+            prepared_data.retained_idx = None
             step.features_idx = update_indices(
                 actual_mapping, step.features_idx)
 
             handler_cls = self.handler_mapping[step.step][step.method]
             handler = handler_cls(**step.step_args)
+            handler = self._categorical_imputer(handler, step, data, prepared_data, changed_sources)
             prepared_data = handler.fit_transform(
                 prepared_data, step.features_idx)
+            if step.step != PreprocessingStepEnum.imputation:
+                changed_sources.update(data.idx_mapping[parent] for pos, parent in actual_mapping.items()
+                                       if pos in step.features_idx and parent in data.categorical_idx)
 
-            prepared_data.idx_mapping = update_index_mapping(
+            prepared_data.idx_mapping = self._update_mapping(
+                prepared_data,
                 actual_mapping,
                 step.features_idx,
                 prepared_data.features,
@@ -145,7 +156,10 @@ class OptionalService:
         if not self.plan.steps:
             return data
 
-        init_fingerprint = data.fingerprint
+        # Intermediate transforms deliberately invalidate fingerprints. Establish
+        # input identity before applying handlers, as for a directly created TensorData.
+        init_fingerprint = data.fingerprint if data.fingerprint is not None else Hasher.hash(data)
+        data = replace(data, features=data.features.clone(), predict=None)
         source_mapping = dict(data.idx_mapping)
         prepared_data = self._create_prepared_data(data)
         handlers = self._resolve_handlers()
@@ -153,15 +167,24 @@ class OptionalService:
         for step, handler in zip(self.plan.steps, handlers, strict=True):
             actual_mapping = prepared_data.idx_mapping
             prepared_data.new_cols_dict = None
+            prepared_data.retained_idx = None
             prepared_data = handler.transform(prepared_data)
 
-            prepared_data.idx_mapping = update_index_mapping(
+            prepared_data.idx_mapping = self._update_mapping(
+                prepared_data,
                 actual_mapping,
                 step.features_idx,
                 prepared_data.features,
                 prepared_data.new_cols_dict,
             )
 
+        # Optional handlers use input-column coordinates; refresh feature kinds
+        # and names before composing those coordinates with original source IDs.
+        retained = list(prepared_data.idx_mapping.values())
+        data.categorical_idx = [pos for pos, original in enumerate(retained) if original in data.categorical_idx]
+        data.numerical_idx = [pos for pos, original in enumerate(retained) if original in data.numerical_idx]
+        if data.features_names is not None:
+            data.features_names = [data.features_names[pos] for pos in retained]
         prepared_data.idx_mapping = compose_source_mapping(
             source_mapping, prepared_data.idx_mapping)
         data = update_tensor_data(data, prepared_data)
@@ -190,10 +213,38 @@ class OptionalService:
         ]
 
     @staticmethod
+    def _update_mapping(prepared, actual_mapping, indices, features, new_cols):
+        if prepared.retained_idx is not None:
+            return dict(enumerate(actual_mapping[pos] for pos in prepared.retained_idx))
+        return update_index_mapping(actual_mapping, indices, features, new_cols)
+
+    @staticmethod
+    def _categorical_imputer(handler, step, data, prepared, changed_sources):
+        if (step.step != PreprocessingStepEnum.imputation or prepared.categorical_features is None
+                or step.method == ImputationMethodEnum.delete_raw):
+            return handler
+        selected = set(step.features_idx)
+        groups = []
+        for col, source in enumerate(data.categorical_source_idx):
+            positions = [pos for pos, parent in prepared.idx_mapping.items()
+                         if parent in data.categorical_idx and data.idx_mapping[parent] == source]
+            if not selected.intersection(positions):
+                continue
+            if not set(positions).issubset(selected):
+                raise ValueError('Categorical imputation must select the whole encoded source feature.')
+            groups.append((col, positions))
+        if not groups:
+            return handler
+        return CategoricalImputation(handler, groups, step.method, data.preparation_state, changed_sources)
+
+    @staticmethod
     def _create_prepared_data(data: TensorData) -> PreparedData:
         return PreparedData(
             features=data.features,
             target=data.target,
             idx_mapping=create_index_mapping(data.features),
             ts_shape=data.ts_init_shape,
+            categorical_features=data.categorical_features,
+            categorical_source_idx=list(data.categorical_source_idx),
+            row_idx=data.idx,
         )

@@ -312,13 +312,11 @@ class FedotBuilder:
                     - ``cnn`` -> Convolutional Neural Network
                     - ``scaling`` -> Scaling
                     - ``normalization`` -> Normalization
-                    - ``simple_imputation`` -> Imputation
+                    - ``optional_preprocessing`` -> TensorData imputation and scaling
                     - ``pca`` -> Principal Component Analysis
                     - ``kernel_pca`` -> Kernel Principal Component Analysis
                     - ``fast_ica`` -> Independent Component Analysis
                     - ``poly_features`` -> Polynomial Features
-                    - ``one_hot_encoding`` -> One-Hot Encoder
-                    - ``label_encoding`` -> Label Encoder
                     - ``rfe_lin_reg`` -> Linear Regression Recursive Feature Elimination
                     - ``rfe_non_lin_reg`` -> Decision Tree Recursive Feature Elimination
                     - ``rfe_lin_class`` -> Logistic Regression Recursive Feature Elimination

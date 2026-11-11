@@ -10,6 +10,13 @@ TensorData-only адаптация новых моделей сохранена 
 Старые обученные пайплайны запускаются на исходной версии FEDOT;
 совместимость и конверсия сохранённого состояния сейчас не поддерживаются.
 
+Уточнение от 10 ноября: шесть CatBoost/XGBoost/LightGBM wrappers переведены на TensorData-only;
+подробности CPU/GPU-границ — в разделе 2.8.
+В тот же день все 23 ID прямых sklearn/InterpretML-моделей, включая KMeans объединены под TensorData-контрактом;
+временные `TensorSkLearn*` удалены. Следующим шагом в тот же день перенесены FEDOT-адаптеры KNN/SVC/LDA/QDA;
+CNN отделён в KerasClassificationStrategy с прежним InputData-контрактом.
+Затем TabPFN/TabICL и их четыре GPU-aliases перенесены на TensorData; границы библиотек — в разделе 2.10.
+
 ## 1. Как читать карту
 
 Формат здесь означает контейнер на границе стратегии/реализации, а не библиотеку
@@ -21,7 +28,6 @@ TensorData-only адаптация новых моделей сохранена 
 | TensorData | TensorData-контракт входа и выхода; InputData-путь отсутствует. |
 | InputData | Legacy-контракт InputData → OutputData/NumPy; полноценного TensorData-пути нет. |
 | InputData; TensorData CPU (legacy) | InputData-путь сохранён. CPU Torch-тензор может пройти в sklearn через неявное NumPy-преобразование; стратегия может вернуть TensorData с NumPy в `predict`. Это частичная совместимость, а не миграция. |
-| InputData; TensorData через OutputData | Legacy passthrough-стратегия возвращает OutputData; TensorData shell извлекает результат и возвращает TensorData. |
 | Нет рабочего fit-контракта | ID присутствует в каталоге, но текущая стратегия не допускает его обучение. |
 
 Для legacy-строк отметка InputData означает архитектурный контракт реализации,
@@ -30,13 +36,14 @@ TensorData-only адаптация новых моделей сохранена 
 Отдельно проверять нужно полный путь: API → pipeline → strategy → implementation → merger.
 
 Для строк с частичной CPU-совместимостью нельзя предполагать поддержку CUDA, нескольких
-targets, всех output modes, TS или комбинаций узлов. В этом аудите на CPU фактически
+targets, всех output modes, TS или комбинаций узлов. В исходном аудите на CPU фактически
 проверены `logit`, `rf`, `svc`, `knn`, `lda`, `qda`, `kmeans`:
-они вернули TensorData с **NumPy ndarray** в `predict`. Остальные строки этой категории
+тогда они вернули TensorData с **NumPy ndarray** в `predict`. После миграции sklearn
+это историческое наблюдение не относится к уже перенесённым sklearn и табличным адаптерам. Остальные строки этой категории
 классифицированы по общему коду стратегии; отдельный runtime-тест каждой не выполнялся.
 
 Внутренний NumPy/Pandas-адаптер у TensorData-only модели допустим. Например, новая
-`TensorSkLearn*Strategy` явно переводит Torch → CPU NumPy → Torch на исходном device.
+`Sklearn*Strategy` явно переводит Torch → CPU NumPy → Torch на исходном device через общие array_conversions.
 Это TensorData-контракт, но не GPU-обучение sklearn. У tabular neural моделей также
 есть CPU preprocessing; TensorData-поддержка не означает отсутствие CPU round-trip.
 
@@ -46,10 +53,10 @@ targets, всех output modes, TS или комбинаций узлов. В э
 | --- | ---: | --- |
 | [model_repository.json](../../fedot/core/repository/data/model_repository.json) | 62 | Основные модели |
 | [gpu_models_repository.json](../../fedot/core/repository/data/gpu_models_repository.json) | 21 | cuML, GPU-алиасы foundational моделей и неработающий solver alias |
-| [data_operation_repository.json](../../fedot/core/repository/data/data_operation_repository.json) | 39 | Все зарегистрированные data operations |
+| [data_operation_repository.json](../../fedot/core/repository/data/data_operation_repository.json) | 37 | Зарегистрированные data operations после удаления encoder nodes |
 | [automl_repository.json](../../fedot/core/repository/data/automl_repository.json) | 4 | H2O/TPOT wrappers |
 
-Всего **126 записей каталогов**, не 126 уникальных алгоритмов: ID вроде `rf`, `linear`,
+Всего **124 записей каталогов**, не 124 уникальных алгоритмов: ID вроде `rf`, `linear`,
 `kmeans` повторяются в обычном и GPU-каталогах с разными стратегиями.
 Динамические extensions описаны отдельно в разделе 6.
 
@@ -69,13 +76,13 @@ targets, всех output modes, TS или комбинаций узлов. В э
 | `torch_linear_reg` | `NeuralTabularRegressionStrategy` | `TorchLinearRegressor` | TensorData |
 | `torch_mlp_reg` | `NeuralTabularRegressionStrategy` | `TorchMLPRegressor` | TensorData |
 
-### 2.2. Новые sklearn/InterpretML-модели
+### 2.2. Дополнительные sklearn/InterpretML-модели
 
 Стратегии: [sklearn.py](../../fedot/core/operations/strategies/models/sklearn.py).
 EBM adapters: [estimator_adapters.py](../../fedot/core/operations/implementations/models/estimator_adapters.py).
 Нормализация target находится в стратегии; кодирование классов — внутри EBM adapter.
 
-Отделены от `SklearnModelStrategy`; InputData fit/predict-путь удалён.
+Объединены с остальными sklearn-моделями через `SklearnModelStrategy`; InputData fit/predict-путь удалён.
 Вычисления sklearn/InterpretML — CPU. Вход может лежать на CPU/CUDA; результат возвращается
 на исходный device. Для regression сохраняется MultiOutputRegressor.
 EBM обучается на integer class codes и восстанавливает исходные числовые метки.
@@ -83,12 +90,12 @@ JSON по-прежнему разрешает TS для regression ID; это н
 
 | ID | Стратегия | Estimator/adapter | Формат |
 | --- | --- | --- | --- |
-| `extra_trees` | `TensorSkLearnClassificationStrategy` | `sklearn.ensemble.ExtraTreesClassifier` | TensorData |
-| `hist_gb` | `TensorSkLearnClassificationStrategy` | `sklearn.ensemble.HistGradientBoostingClassifier` | TensorData |
-| `ebm` | `TensorSkLearnClassificationStrategy` | `ExplainableBoostingClassifierAdapter` → InterpretML | TensorData |
-| `hist_gbreg` | `TensorSkLearnRegressionStrategy` | `sklearn.ensemble.HistGradientBoostingRegressor` | TensorData |
-| `ebmreg` | `TensorSkLearnRegressionStrategy` | `ExplainableBoostingRegressorAdapter` → InterpretML | TensorData |
-| `mlpreg` | `TensorSkLearnRegressionStrategy` | `sklearn.neural_network.MLPRegressor` | TensorData |
+| `extra_trees` | `SklearnClassificationStrategy` | `sklearn.ensemble.ExtraTreesClassifier` | TensorData |
+| `hist_gb` | `SklearnClassificationStrategy` | `sklearn.ensemble.HistGradientBoostingClassifier` | TensorData |
+| `ebm` | `SklearnClassificationStrategy` | `ExplainableBoostingClassifierAdapter` → InterpretML | TensorData |
+| `hist_gbreg` | `SklearnRegressionStrategy` | `sklearn.ensemble.HistGradientBoostingRegressor` | TensorData |
+| `ebmreg` | `SklearnRegressionStrategy` | `ExplainableBoostingRegressorAdapter` → InterpretML | TensorData |
+| `mlpreg` | `SklearnRegressionStrategy` | `sklearn.neural_network.MLPRegressor` | TensorData |
 
 ### 2.3. Tabular neural модели
 
@@ -108,86 +115,105 @@ TensorData-only на границе; CPU/CUDA neural runtime, внутренни
 | `tab_resnet` | `NeuralTabularClassificationStrategy` | `ResNetClassifier` | TensorData |
 | `tab_resnetreg` | `NeuralTabularRegressionStrategy` | `ResNetRegressor` | TensorData |
 
-### 2.4. Legacy sklearn classification
+### 2.4. Sklearn classification
 
 Стратегия: [SklearnClassificationStrategy](../../fedot/core/operations/strategies/models/sklearn.py).
-Общий fit, estimator mapping и output conversion: [SklearnModelStrategy](../../fedot/core/operations/strategies/models/sklearn.py).
+Общий fit и output conversion: [SklearnModelStrategy](../../fedot/core/operations/strategies/models/sklearn.py).
 
-Это оставшийся legacy-пул, не затронутый переводом шести новых моделей. TensorData CPU — частичный путь по общей стратегии, без явного device adapter.
+TensorData-only. Mapping находится в classification-стратегии; общий fit и конвертеры переиспользуются.
+Multioutput trees / MultiOutputClassifier возвращают `(samples, targets, classes)` для full_probs;
+MLP multilabel нормализуется в тот же формат. Для binary default/probs остаётся `(samples, targets)`.
 
 | ID | Estimator из sklearn | Формат |
 | --- | --- | --- |
-| `logit` | `linear_model.LogisticRegression` | InputData; TensorData CPU (legacy) |
-| `bernb` | `naive_bayes.BernoulliNB` | InputData; TensorData CPU (legacy) |
-| `multinb` | `naive_bayes.MultinomialNB` | InputData; TensorData CPU (legacy) |
-| `dt` | `tree.DecisionTreeClassifier` | InputData; TensorData CPU (legacy) |
-| `rf` | `ensemble.RandomForestClassifier` | InputData; TensorData CPU (legacy) |
-| `mlp` | `neural_network.MLPClassifier` | InputData; TensorData CPU (legacy) |
+| `logit` | `linear_model.LogisticRegression` | TensorData |
+| `bernb` | `naive_bayes.BernoulliNB` | TensorData |
+| `multinb` | `naive_bayes.MultinomialNB` | TensorData |
+| `dt` | `tree.DecisionTreeClassifier` | TensorData |
+| `rf` | `ensemble.RandomForestClassifier` | TensorData |
+| `mlp` | `neural_network.MLPClassifier` | TensorData |
 
-### 2.5. Legacy sklearn regression
+### 2.5. Sklearn regression
 
 Стратегия: [SklearnRegressionStrategy](../../fedot/core/operations/strategies/models/sklearn.py).
-Общий fit и mapping: [SklearnModelStrategy](../../fedot/core/operations/strategies/models/sklearn.py).
+Общий fit: [SklearnModelStrategy](../../fedot/core/operations/strategies/models/sklearn.py).
 
-JSON допускает regression/TS. Native TensorData/CUDA adapter отсутствует; NumPy результат прикрепляется через общий output converter.
+TensorData-only. JSON допускает regression/TS; алгоритмы sklearn вычисляются на CPU.
+Модели с тегом non_multi оборачиваются в MultiOutputRegressor, остальные сохраняют native multioutput.
+Одноколоночный target разворачивается в 1D, multioutput сохраняет все столбцы.
 
 | ID | Estimator из sklearn | Формат |
 | --- | --- | --- |
-| `adareg` | `ensemble.AdaBoostRegressor` | InputData; TensorData CPU (legacy) |
-| `gbr` | `ensemble.GradientBoostingRegressor` | InputData; TensorData CPU (legacy) |
-| `dtreg` | `tree.DecisionTreeRegressor` | InputData; TensorData CPU (legacy) |
-| `treg` | `ensemble.ExtraTreesRegressor` | InputData; TensorData CPU (legacy) |
-| `rfr` | `ensemble.RandomForestRegressor` | InputData; TensorData CPU (legacy) |
-| `linear` | `linear_model.LinearRegression` | InputData; TensorData CPU (legacy) |
-| `ridge` | `linear_model.Ridge` | InputData; TensorData CPU (legacy) |
-| `lasso` | `linear_model.Lasso` | InputData; TensorData CPU (legacy) |
-| `svr` | `svm.LinearSVR` (не SVR) | InputData; TensorData CPU (legacy) |
-| `sgdr` | `linear_model.SGDRegressor` | InputData; TensorData CPU (legacy) |
+| `adareg` | `ensemble.AdaBoostRegressor` | TensorData |
+| `gbr` | `ensemble.GradientBoostingRegressor` | TensorData |
+| `dtreg` | `tree.DecisionTreeRegressor` | TensorData |
+| `treg` | `ensemble.ExtraTreesRegressor` | TensorData |
+| `rfr` | `ensemble.RandomForestRegressor` | TensorData |
+| `linear` | `linear_model.LinearRegression` | TensorData |
+| `ridge` | `linear_model.Ridge` | TensorData |
+| `lasso` | `linear_model.Lasso` | TensorData |
+| `svr` | `svm.LinearSVR` (не SVR) | TensorData |
+| `sgdr` | `linear_model.SGDRegressor` | TensorData |
 
-### 2.6. Legacy FEDOT classification wrappers
+### 2.6. FEDOT classification adapters и legacy CNN
 
 Стратегия: [AdapterClassificationStrategy](../../fedot/core/operations/strategies/models/adapters.py).
 
-Для четырёх tabular wrappers выполнен CPU TensorData smoke-check. Они отдают NumPy, не сохраняют CUDA runtime.
-`cnn` — другой контракт: image InputData, Keras/TensorFlow, `num_classes` и NumPy-операции.
+Четыре tabular adapter работают только с TensorData; реализации возвращают Torch, стратегия — TensorData.
+Sklearn вычисляет на CPU, переход выполняется общими as_numpy/as_torch только на границе estimator.
+Class unique, nan_to_num и probability shaping выполняются в Torch; выход сохраняет device входа.
+`cnn` — отдельная KerasClassificationStrategy в strategies/models/keras.py: прежний image InputData-контракт.
+Для multilabel KNN/SVC full_probs имеет форму `(samples, targets, classes)`, binary probs — `(samples, targets)`.
 
 | ID | Реализация | Где реализация | Формат |
 | --- | --- | --- | --- |
-| `lda` | `LDAImplementation` | [estimator_adapters.py](../../fedot/core/operations/implementations/models/estimator_adapters.py) | InputData; TensorData CPU (legacy) |
-| `qda` | `QDAImplementation` | [estimator_adapters.py](../../fedot/core/operations/implementations/models/estimator_adapters.py) | InputData; TensorData CPU (legacy) |
-| `svc` | `FedotSVCImplementation` (OneVsRestClassifier + SVC) | [estimator_adapters.py](../../fedot/core/operations/implementations/models/estimator_adapters.py) | InputData; TensorData CPU (legacy) |
-| `knn` | `KnnClassificationAdapter` | [estimator_adapters.py](../../fedot/core/operations/implementations/models/estimator_adapters.py) | InputData; TensorData CPU (legacy) |
+| `lda` | `LDAImplementation` | [estimator_adapters.py](../../fedot/core/operations/implementations/models/estimator_adapters.py) | TensorData |
+| `qda` | `QDAImplementation` | [estimator_adapters.py](../../fedot/core/operations/implementations/models/estimator_adapters.py) | TensorData |
+| `svc` | `FedotSVCImplementation` (OneVsRestClassifier + SVC) | [estimator_adapters.py](../../fedot/core/operations/implementations/models/estimator_adapters.py) | TensorData |
+| `knn` | `KnnClassificationAdapter` | [estimator_adapters.py](../../fedot/core/operations/implementations/models/estimator_adapters.py) | TensorData |
 | `cnn` | `FedotCNNImplementation` | [keras.py](../../fedot/core/operations/implementations/models/keras.py) | InputData |
 
-### 2.7. Legacy KNN regression и clustering
+### 2.7. KNN regression и clustering
 
 Стратегии: [AdapterRegressionStrategy](../../fedot/core/operations/strategies/models/adapters.py) и [SklearnClusteringStrategy](../../fedot/core/operations/strategies/models/sklearn.py).
 
-KNN wrapper передаёт features/target в sklearn; clustering передаёт features напрямую. Native TensorData/CUDA-контракта нет.
+Обе модели принимают TensorData, обучаются в sklearn на CPU NumPy и возвращают Torch на исходный device.
+KNN сохраняет коррекцию числа соседей и native target shape; default KMeans n_clusters=2 сохранён.
 
 | ID | Стратегия | Реализация и место | Формат |
 | --- | --- | --- | --- |
-| `knnreg` | `AdapterRegressionStrategy` | [estimator_adapters.py](../../fedot/core/operations/implementations/models/estimator_adapters.py) | InputData; TensorData CPU (legacy) |
-| `kmeans` | `SklearnClusteringStrategy` | `sklearn.cluster.KMeans`, mapping в `strategies/models/sklearn.py` | InputData; TensorData CPU (legacy) |
+| `knnreg` | `AdapterRegressionStrategy` | [estimator_adapters.py](../../fedot/core/operations/implementations/models/estimator_adapters.py) | TensorData |
+| `kmeans` | `SklearnClusteringStrategy` | `sklearn.cluster.KMeans`, mapping в `strategies/models/sklearn.py` | TensorData |
 
 ### 2.8. Boosting
 
 Стратегии: [boosting.py](../../fedot/core/operations/strategies/models/boosting.py).
 Все FEDOT wrappers: [boosting.py](../../fedot/core/operations/implementations/models/boosting.py).
 
-InputData-oriented. XGBoost/LightGBM используют DataFrame adapter, legacy split и
-`get_not_encoded_data()`; в adapter есть `target.size` как NumPy property.
-CatBoost использует Pool и legacy split/schema. GPU-возможности самих библиотек
-не являются TensorData-поддержкой этих FEDOT wrappers.
+TensorData-only. Реализации возвращают Torch predictions на устройстве входных данных,
+стратегии записывают их в TensorData.predict. Общая подготовка — `BoostingImplementation`.
+Split сохраняет политику стратификации; теперь она выполняется Torch, поэтому конкретные RNG-строки отличаются.
+Eval/early stopping и multioutput сохранены, последовательный default общего split не изменён.
+При `enable_categorical=True` берутся исходные категории с учётом optional imputation.
+В boosting-коде pandas отсутствует.
+
+XGBoost 3.0.5 получает Torch features/target/eval напрямую, CPU/CUDA; явный NumPy/CuPy adapter удалён.
+CPU-вход внутри XGBoost читается через NumPy, CUDA-вход — через CUDA Array Interface.
+CUDA predict выполняется через Booster.inplace_predict → CuPy → Torch DLPack без NumPy roundtrip.
+Сохранены best iteration, multiclass/multilabel/softmax; CPU и gblinear используют sklearn-путь.
+LightGBM принимает NumPy; CatBoost — Pool/FeaturesData с отдельными числовым и строковым блоками.
+Для них CUDA features проходят через host API, хотя само обучение выполняется на GPU при явной настройке.
+Проверены CPU и реальные GPU-запуски всех трёх семейств, включая исходные категории с пропусками.
+Автоматический выбор устройства и объединение CPU/GPU-каталогов остаются отдельной задачей.
 
 | ID | Стратегия | Реализация | Формат |
 | --- | --- | --- | --- |
-| `xgboost` | `BoostingClassificationStrategy` | `FedotXGBoostClassificationImplementation` | InputData |
-| `xgboostreg` | `BoostingRegressionStrategy` | `FedotXGBoostRegressionImplementation` | InputData |
-| `lgbm` | `BoostingClassificationStrategy` | `FedotLightGBMClassificationImplementation` | InputData |
-| `lgbmreg` | `BoostingRegressionStrategy` | `FedotLightGBMRegressionImplementation` | InputData |
-| `catboost` | `BoostingClassificationStrategy` | `FedotCatBoostClassificationImplementation` | InputData |
-| `catboostreg` | `BoostingRegressionStrategy` | `FedotCatBoostRegressionImplementation` | InputData |
+| `xgboost` | `BoostingClassificationStrategy` | `FedotXGBoostClassificationImplementation` | TensorData |
+| `xgboostreg` | `BoostingRegressionStrategy` | `FedotXGBoostRegressionImplementation` | TensorData |
+| `lgbm` | `BoostingClassificationStrategy` | `FedotLightGBMClassificationImplementation` | TensorData |
+| `lgbmreg` | `BoostingRegressionStrategy` | `FedotLightGBMRegressionImplementation` | TensorData |
+| `catboost` | `BoostingClassificationStrategy` | `FedotCatBoostClassificationImplementation` | TensorData |
+| `catboostreg` | `BoostingRegressionStrategy` | `FedotCatBoostRegressionImplementation` | TensorData |
 
 ### 2.9. Time series models
 
@@ -216,17 +242,30 @@ Legacy TS-контракт: NumPy/SciPy/statsmodels, forecast_length и OutputDa
 Стратегии: [foundation.py](../../fedot/core/operations/strategies/models/foundation.py).
 Реализации: [foundation.py](../../fedot/core/operations/implementations/models/foundation.py).
 
-BaseFoundationalImplementation возвращает OutputData через legacy implementation converter.
-Он требует `encoded_idx`, `categorical_features`, `supplementary_data`, которых нет у
-TensorData. TabPFN categorical path дополнительно вызывает `get_not_encoded_data()`.
-Тот факт, что сторонняя библиотека может принимать tensors, не закрывает этот контракт.
+TensorData-only для CPU/GPU. BaseFoundationalImplementation возвращает Torch prediction на device входа,
+стратегия — TensorData с исходными features/metadata. Контейнерных bridges и OutputData внутри семейства нет.
+
+| Библиотека / установленная версия | Features и target в public API | Выход public API | Что делает FEDOT |
+| --- | --- | --- | --- |
+| TabPFN 2.2.1, classification/regression | CPU NumPy; при raw categories — mixed object NumPy | NumPy labels / probabilities / regression mean | as_numpy перед библиотекой; as_torch на исходный device после неё |
+| TabICL 2.1.1, classification/regression | CPU NumPy, собственный sklearn preprocessing | NumPy labels / probabilities / regression | Те же общие конвертеры; transformer может вычислять на CUDA |
+
+Преобразование — требование обычного library preprocessing. В FEDOT unique классов и target reshape — Torch.
+Differentiable-input TabPFN не включён: он меняет transforms/ensembles; внутренний forward не подменяет
+public predict ради обхода NumPy, поскольку это потребовало бы дублировать библиотечную постобработку.
+
+TabPFN enable_categorical использует get_not_encoded_data, сохраняя обработку категорий самой библиотекой.
+Категориальные индексы задаются по восстановленному порядку numerical + categories, а не по OHE-позициям.
+Отсутствие optional imputation сохраняет missing values; unknown categories поступают native encoder.
+TabICL продолжает использовать уже закодированные TensorData.features. Лимиты FEDOT строк/признаков
+и параметры устройства сохранены; превышение вызывает ошибку, не скрытое сокращение данных.
 
 | ID | Стратегия | Реализация | Формат |
 | --- | --- | --- | --- |
-| `tabpfn` | `TabPFNClassificationStrategy` | `FedotTabPFNClassificationImplementation` | InputData |
-| `tabpfnreg` | `TabPFNRegressionStrategy` | `FedotTabPFNRegressionImplementation` | InputData |
-| `tabicl` | `TabICLClassificationStrategy` | `FedotTabICLClassificationImplementation` | InputData |
-| `tabiclreg` | `TabICLRegressionStrategy` | `FedotTabICLRegressionImplementation` | InputData |
+| `tabpfn` | `TabPFNClassificationStrategy` | `FedotTabPFNClassificationImplementation` | TensorData |
+| `tabpfnreg` | `TabPFNRegressionStrategy` | `FedotTabPFNRegressionImplementation` | TensorData |
+| `tabicl` | `TabICLClassificationStrategy` | `FedotTabICLClassificationImplementation` | TensorData |
+| `tabiclreg` | `TabICLRegressionStrategy` | `FedotTabICLRegressionImplementation` | TensorData |
 
 ### 2.11. Legacy custom model
 
@@ -308,20 +347,20 @@ GPU alias не меняет контейнерный контракт. Эти ч
 
 | ID | Стратегия | Реализация | Формат |
 | --- | --- | --- | --- |
-| `tabpfn_gpu` | `TabPFNClassificationStrategy` | `FedotTabPFNClassificationImplementation` | InputData |
-| `tabpfnreg_gpu` | `TabPFNRegressionStrategy` | `FedotTabPFNRegressionImplementation` | InputData |
-| `tabicl_gpu` | `TabICLClassificationStrategy` | `FedotTabICLClassificationImplementation` | InputData |
-| `tabiclreg_gpu` | `TabICLRegressionStrategy` | `FedotTabICLRegressionImplementation` | InputData |
+| `tabpfn_gpu` | `TabPFNClassificationStrategy` | `FedotTabPFNClassificationImplementation` | TensorData |
+| `tabpfnreg_gpu` | `TabPFNRegressionStrategy` | `FedotTabPFNRegressionImplementation` | TensorData |
+| `tabicl_gpu` | `TabICLClassificationStrategy` | `FedotTabICLClassificationImplementation` | TensorData |
+| `tabiclreg_gpu` | `TabICLRegressionStrategy` | `FedotTabICLRegressionImplementation` | TensorData |
 
 ## 4. Data operations — data_operation_repository.json
 
-Не путать legacy node ID `scaling`, `simple_imputation`, `one_hot_encoding` с
-одноимёнными методами новых preprocessing services. Services могут поддерживать
-TensorData, пока старые pipeline nodes всё ещё ждут InputData.
+Обновлено 11 ноября: general preprocessing и проекции объединены. OHE/label encoding pipeline nodes
+удалены, их функции выполняет obligatory TensorData preparation. Tabular imputation выполняет
+optional_preprocessing; InputData simple_imputation оставлен только для отложенного TS-пути.
 
 ### 4.1. TensorData-native transforms и optional preprocessing
 
-Стратегии: [ProjectionDataOperationStrategy](../../fedot/core/operations/strategies/data_operations/projection.py) и [OptionalPreprocessingStrategy](../../fedot/core/operations/strategies/data_operations/optional.py).
+Стратегии: [PreprocessingDataOperationStrategy](../../fedot/core/operations/strategies/data_operations/common_preprocessing.py) и [OptionalPreprocessingStrategy](../../fedot/core/operations/strategies/data_operations/optional.py).
 
 PCA/SVD сохраняют Torch runtime и возвращают transformed `features`, а не model `predict`.
 Для optional preprocessing в core зарегистрирован **только tabular runtime**:
@@ -331,62 +370,86 @@ TS/text/image runtime должен быть зарегистрирован exten
 
 | ID | Стратегия | Реализация и файл | Формат |
 | --- | --- | --- | --- |
-| `pca` | `ProjectionDataOperationStrategy` | [features_reducing.py](../../fedot/core/operations/implementations/data_operations/features_reducing.py) | TensorData |
-| `truncated_svd` | `ProjectionDataOperationStrategy` | [features_reducing.py](../../fedot/core/operations/implementations/data_operations/features_reducing.py) | TensorData |
+| `pca` | `PreprocessingDataOperationStrategy` | [features_reducing.py](../../fedot/core/operations/implementations/data_operations/features_reducing.py) | TensorData |
+| `truncated_svd` | `PreprocessingDataOperationStrategy` | [features_reducing.py](../../fedot/core/operations/implementations/data_operations/features_reducing.py) | TensorData |
 | `optional_preprocessing` | `OptionalPreprocessingStrategy` | [OptionalService](../../fedot/preprocessing/service/optional_service.py) / [OptionalTabularService](../../fedot/preprocessing/service/tabular_optional_service.py) | TensorData |
 
-### 4.2. Legacy общие tabular transforms
+### 4.2. Общие преобразования TensorData
 
-Стратегия для всех строк: [PreprocessingDataOperationStrategy](../../fedot/core/operations/strategies/data_operations/common_preprocessing.py).
+Стратегия для всех строк — PreprocessingDataOperationStrategy из common_preprocessing.py.
+Алгоритмы native Torch и CPU libraries разделены в implementations, без отдельных стратегий по формату.
 
-Scaling/normalization/poly_features наследуют EncodedInvariantImplementation с
-NumPy/Pandas branching и `.iloc`. Остальные legacy transforms используют OutputData,
-`encoded_idx` и column metadata. TensorData-поддержку новых services здесь не учитывать.
-
-| ID | Реализация | Файл | Формат |
+| ID | Реализация | Где находится | Формат / вычисления |
 | --- | --- | --- | --- |
-| `scaling` | `ScalingImplementation` (StandardScaler) | [sklearn_transformations.py](../../fedot/core/operations/implementations/data_operations/sklearn_transformations.py) | InputData |
-| `normalization` | `NormalizationImplementation` (MinMaxScaler) | [sklearn_transformations.py](../../fedot/core/operations/implementations/data_operations/sklearn_transformations.py) | InputData |
-| `simple_imputation` | `ImputationImplementation` | [sklearn_transformations.py](../../fedot/core/operations/implementations/data_operations/sklearn_transformations.py) | InputData |
-| `dask_pca` | `DaskPCAImplementation` | [features_reducing.py](../../fedot/core/operations/implementations/data_operations/features_reducing.py) | InputData |
-| `kernel_pca` | `KernelPCAImplementation` | [features_reducing.py](../../fedot/core/operations/implementations/data_operations/features_reducing.py) | InputData |
-| `fast_ica` | `FastICAImplementation` | [features_reducing.py](../../fedot/core/operations/implementations/data_operations/features_reducing.py) | InputData |
-| `poly_features` | `PolyFeaturesImplementation` | [sklearn_transformations.py](../../fedot/core/operations/implementations/data_operations/sklearn_transformations.py) | InputData |
-| `one_hot_encoding` | `OneHotEncodingImplementation` | [categorical_encoders.py](../../fedot/core/operations/implementations/data_operations/categorical_encoders.py) | InputData |
-| `label_encoding` | `LabelEncodingImplementation` | [categorical_encoders.py](../../fedot/core/operations/implementations/data_operations/categorical_encoders.py) | InputData |
-| `topological_features` | `TopologicalFeaturesImplementation` | [fast_topological_extractor.py](../../fedot/core/operations/implementations/data_operations/topological/fast_topological_extractor.py) | InputData |
+| scaling | ScalingImplementation | implementations/data_operations/tabular.py | TensorData, native Torch CPU/CUDA |
+| normalization | NormalizationImplementation | implementations/data_operations/tabular.py | TensorData, native Torch CPU/CUDA, min-max |
+| poly_features | PolyFeaturesImplementation | implementations/data_operations/tabular.py | TensorData, native Torch CPU/CUDA |
+| kernel_pca | KernelPCAImplementation | implementations/data_operations/features_reducing.py | TensorData, CPU sklearn boundary |
+| fast_ica | FastICAImplementation | implementations/data_operations/features_reducing.py | TensorData, CPU sklearn boundary |
+| dask_pca | DaskPCAImplementation | implementations/data_operations/features_reducing.py | TensorData, CPU Dask boundary |
+| topological_features | TopologicalFeaturesImplementation | implementations/data_operations/topological/fast_topological_extractor.py | TensorData; Torch windows/rows, CPU ripser/quantiles |
 
-### 4.3. Legacy regression preprocessing
+Scaling/normalization сохраняют исходный порядок и пропускают fitted columns с <=2 unique values;
+label-коды с большим количеством значений масштабируются. get_not_encoded_data восстанавливает raw categories,
+сохраняя текущие numerical columns. Статистики scaler общие с optional preprocessing, поддержаны clip и
+перенос fitted state на устройство inference. Прежний nan_to_num на выходе узлов сохранён.
 
-Стратегия для всех строк: [RegressionDataOperationStrategy](../../fedot/core/operations/strategies/data_operations/preprocessing.py).
+Legacy simple_imputation (ImputationImplementation в tabular.py) остался InputData-only для TS/Industrial;
+из табличного каталога задач он исключён. OptionalPreprocessingStrategy разрешён после промежуточных нод,
+а не только на входе; исходный TensorData при imputation/scaling не изменяется.
 
-Selectors/filters возвращают OutputData через legacy converter. Decompose дополнительно использует supplementary_data.compound_mask/flow_mask для разделения входов родителей.
+### 4.2.1. Отбор признаков TensorData
 
-| ID | Реализация | Файл | Формат |
-| --- | --- | --- | --- |
-| `ransac_lin_reg` | `LinearRegRANSACImplementation` | [sklearn_filters.py](../../fedot/core/operations/implementations/data_operations/sklearn_filters.py) | InputData |
-| `ransac_non_lin_reg` | `NonLinearRegRANSACImplementation` | [sklearn_filters.py](../../fedot/core/operations/implementations/data_operations/sklearn_filters.py) | InputData |
-| `isolation_forest_reg` | `IsolationForestRegImplementation` | [sklearn_filters.py](../../fedot/core/operations/implementations/data_operations/sklearn_filters.py) | InputData |
-| `rfe_lin_reg` | `LinearRegFSImplementation` | [sklearn_selectors.py](../../fedot/core/operations/implementations/data_operations/sklearn_selectors.py) | InputData |
-| `rfe_non_lin_reg` | `NonLinearRegFSImplementation` | [sklearn_selectors.py](../../fedot/core/operations/implementations/data_operations/sklearn_selectors.py) | InputData |
-| `decompose` | `DecomposerRegImplementation` | [decompose.py](../../fedot/core/operations/implementations/data_operations/decompose.py) | InputData |
+Стратегия: PreprocessingDataOperationStrategy (common_preprocessing.py).
+Реализации: [sklearn_selectors.py](../../fedot/core/operations/implementations/data_operations/sklearn_selectors.py).
 
-### 4.4. Legacy classification preprocessing
+| ID | Базовая sklearn-модель | Формат / вычисления |
+| --- | --- | --- |
+| rfe_lin_class | LogisticRegression | TensorData; RFE.fit CPU NumPy, transform Torch CPU/CUDA |
+| rfe_non_lin_class | DecisionTreeClassifier | TensorData; RFE.fit CPU NumPy, transform Torch CPU/CUDA |
+| rfe_lin_reg | LinearRegression | TensorData; RFE.fit CPU NumPy, transform Torch CPU/CUDA |
+| rfe_non_lin_reg | DecisionTreeRegressor | TensorData; RFE.fit CPU NumPy, transform Torch CPU/CUDA |
 
-Стратегия для всех строк: [ClassificationDataOperationStrategy](../../fedot/core/operations/strategies/data_operations/preprocessing.py).
+Все четыре используют TensorData.subset_features: схема колонок и categorical sidecar обновляются вместе.
+Частично оставленный OHE-блок сохраняет исходный category source, полностью удалённый не восстанавливается.
+GPU-обучение RFE отложено; наличие CUDA tensor на входе не означает GPU fit. InputData-путь удалён.
 
-`resample` требует `encoded_idx`, меняет строки/target и использует NumPy/Pandas.
-На TensorData CPU фактически воспроизведён AttributeError по `encoded_idx`.
-Его hard-coded insertion в mutation остаётся blocker поиска. `class_decompose`
-зависит от legacy metadata входов родителей.
+### 4.2.2. Фильтры и балансировка TensorData
 
-| ID | Реализация | Файл | Формат |
-| --- | --- | --- | --- |
-| `rfe_lin_class` | `LinearClassFSImplementation` | [sklearn_selectors.py](../../fedot/core/operations/implementations/data_operations/sklearn_selectors.py) | InputData |
-| `rfe_non_lin_class` | `NonLinearClassFSImplementation` | [sklearn_selectors.py](../../fedot/core/operations/implementations/data_operations/sklearn_selectors.py) | InputData |
-| `isolation_forest_class` | `IsolationForestClassImplementation` | [sklearn_filters.py](../../fedot/core/operations/implementations/data_operations/sklearn_filters.py) | InputData |
-| `class_decompose` | `DecomposerClassImplementation` | [decompose.py](../../fedot/core/operations/implementations/data_operations/decompose.py) | InputData |
-| `resample` | `ResampleImplementation` | [resampling.py](../../fedot/core/operations/implementations/data_operations/resampling.py) | InputData |
+Стратегия: PreprocessingDataOperationStrategy (common_preprocessing.py).
+Изменяют строки только в transform_for_fit; обычный transform возвращает все входные строки.
+
+| ID | Реализация и файл | Формат / вычисления |
+| --- | --- | --- |
+| ransac_lin_reg | LinearRegRANSACImplementation, sklearn_filters.py | TensorData; sklearn CPU fit, Torch thresholds/mask/rows |
+| ransac_non_lin_reg | NonLinearRegRANSACImplementation, sklearn_filters.py | TensorData; sklearn CPU fit, Torch thresholds/mask/rows |
+| isolation_forest_reg | IsolationForestRegImplementation, sklearn_filters.py | TensorData; sklearn CPU fit/predict, Torch mask/rows |
+| isolation_forest_class | IsolationForestClassImplementation, sklearn_filters.py | То же + Torch class retention guard |
+| resample | ResampleImplementation, resampling.py | Native Torch CPU/CUDA, NumPy/sklearn в runtime нет |
+
+TensorData.subset_rows сохраняет согласованность tensor fields, labels и original categories.
+Resample сохраняет прежние ratio/replacement/order, после балансировки выдаёт новые positional idx;
+Torch RNG отличается от NumPy RNG. Одинаковые random draws дают тот же результат, target dtype/shape
+сохраняются из TensorData. GPU fit filters отложен; CUDA resample проверен без CPU-переходов чисел.
+
+### 4.3. Регрессионный decompose
+
+Стратегия: PreprocessingDataOperationStrategy (common_preprocessing.py).
+Реализация: DecomposerRegImplementation в implementations/data_operations/decompose.py.
+Формат: TensorData, native Torch CPU/CUDA. Fit-stage target = y - baseline, inference сохраняет признаки.
+Входные роли и источник цели разрешаются по графу в pipelines/tensor_input_rules.py / tensor_input.py.
+Новых supplementary/target-role/depth fields в TensorData нет. Старые task-specific стратегии удалены.
+
+### 4.4. Классификационный decompose
+
+Стратегия: тот же PreprocessingDataOperationStrategy.
+Реализация: DecomposerClassImplementation в implementations/data_operations/decompose.py.
+Формат: TensorData, native Torch CPU/CUDA; class mapping, binary/multiclass residuals.
+После операции task=regression. При последующем main merge исходная задача и target выбираются из
+основной ветви; ensemble внутри residual fork продолжает учиться на локальных остатках.
+Legacy binary first-row argwhere defect исправлен после обсуждения с пользователем — см.
+[контракт](fedot_tensordata_decompose_contract_proposal_2026_11_11.md).
+Общий multioutput multiclass/ragged probability contract здесь не вводится.
 
 ### 4.5. Legacy time series transforms
 
@@ -422,17 +485,16 @@ Raw strings/string arrays и сторонние текстовые библио�
 
 Стратегия и реализация для всех строк: [DataSourceStrategy](../../fedot/core/operations/strategies/sources.py); отдельного implementation-класса нет.
 
-Fit возвращает `object()`; predict создаёт OutputData с исходными features.
-TensorData shell может переупаковать этот passthrough в TensorData без NumPy copy.
-На CPU проверен `data_source_table`. Остальные строки используют тот же код,
-но raw text/image/TS и multimodal API не проходили отдельный acceptance test.
+Fit возвращает object(); predict возвращает TensorData с теми же features и очищенным predict.
+NumPy/OutputData-конверсий нет. Это перенос passthrough-контракта; полноценные raw text/image/TS runtime
+и multimodal API ещё требуют своих последующих этапов.
 
 | ID | Назначение | Формат |
 | --- | --- | --- |
-| `data_source_table` | Tabular source | InputData; TensorData через OutputData |
-| `data_source_ts` | TS source | InputData; TensorData через OutputData |
-| `data_source_img` | Image source | InputData; TensorData через OutputData |
-| `data_source_text` | Text source | InputData; TensorData через OutputData |
+| `data_source_table` | Tabular source | TensorData |
+| `data_source_ts` | TS source | TensorData |
+| `data_source_img` | Image source | TensorData |
+| `data_source_text` | Text source | TensorData |
 
 ## 5. AutoML wrappers — automl_repository.json
 
@@ -470,16 +532,19 @@ ID, factories, задачи, типы данных и backend определяю
 
 ### 7.1. Сводка именно по operation runtime
 
+Обновлено 11 ноября после переноса decompose. Это число записей каталога с контейнерным
+TensorData-контрактом, а не число native GPU algorithms и не результат полного search acceptance.
+
 | Каталог | TensorData-контракт | Остальное |
 | --- | ---: | --- |
-| Основные модели | 18 | 22 legacy-модели с возможной CPU TensorData-совместимостью; 22 InputData-oriented |
-| GPU модели | 16 cuML | 4 foundational InputData aliases; 1 отвергаемый solver alias |
-| Data operations | 3 | 32 InputData-oriented; 4 passthrough data sources через OutputData |
-| AutoML | 0 | 4 InputData-oriented |
+| Основные модели | 50 | 10 TS-моделей, Keras CNN и legacy custom wrapper остаются InputData-oriented |
+| GPU модели | 20: 16 cuML + 4 foundation aliases | 1 отвергаемый low-level SGD solver alias |
+| Data operations | 25 | 7 TS transforms, legacy TS imputation и 4 текстовые операции |
+| AutoML | 0 | 4 wrappers H2O/TPOT остаются InputData-oriented |
 
-18 основных TensorData моделей — 4 базовых Torch, 6 sklearn/InterpretML adapters,
-8 tabular neural. Частичная CPU-совместимость не должна использоваться как
-TensorData-compatible allowlist для evolutionary search.
+Основные tabular classification/regression семейства и KMeans уже перенесены. CPU sklearn/library
+boundaries сохраняются там, где это необходимо. GPU-варианты объединяются следующим отдельным этапом;
+для его начала не требуется предварительно переносить отложенные TS/image/text семейства.
 
 ### 7.2. Общие границы, которые объясняют статусы
 
@@ -505,17 +570,17 @@ TensorData-compatible allowlist для evolutionary search.
 
 ### 7.3. Практический список следующих шагов
 
-1. Решить судьбу оставшихся legacy sklearn/tabular wrappers: явный TensorData adapter
-   или замена; устранить NumPy predictions внутри TensorData там, где нужен Torch runtime.
-2. Перенести или исключить из compatible pool legacy tabular data operations.
-   В первую очередь `resample`, hard-coded mutations и initial assumptions:
-   несовместимый узел не должен попадать в TensorData graph.
-3. Отдельно перенести boosting, foundational и legacy custom wrappers.
-   GPU training сторонней библиотеки и TensorData-контракт — отдельные задачи.
-4. TS models/transforms, текст, изображения и multimodal — отдельные acceptance gates;
-   не выводить их готовность из того, что общий pipeline принимает TensorData.
-5. CV/OOF, sampling/chunks, remote evaluation и auxiliary API лежат вне этой карты
-   operations. Даже полностью migrated allowlist сам по себе не закрывает полный search.
+1. Основные tabular модели и data operations готовы к этапу унификации CPU/GPU: общий каталог,
+   выбор варианта до стратегии, пользовательское управление устройствами, сохранение выбранного
+   варианта после fit. Предпочтения и добавление новых GPU алгоритмов — отдельные решения.
+2. Проверить совместимый пул tabular операций в initial assumptions / mutations / evaluators;
+   перенос runtime операции ещё не означает полноценный TensorData evolutionary search.
+3. TS models/transforms, text/image и multimodal остаются отдельными acceptance gates.
+   TS по договорённости отложены, это не препятствует общей CPU/GPU-инфраструктуре для tabular.
+4. Legacy custom callback и H2O/TPOT wrappers требуют отдельного контракта; manifest extensions
+   уже используют современный TensorData interface.
+5. Native CV/OOF, sampling/chunks, remote evaluation и auxiliary API лежат за пределами переноса
+   операций. После CPU/GPU-этапа продолжить завершение полного TensorData search/runtime.
 
 Подробный контекст search и последовательность этапов:
 [fedot_tensordata_handoff_2026_10_08.md](fedot_tensordata_handoff_2026_10_08.md)
@@ -524,8 +589,9 @@ TensorData-compatible allowlist для evolutionary search.
 ## 8. Как проверялось и как обновлять
 
 Основа аудита — JSON metadata → конкретная strategy → estimator/implementation →
-output converter. Сверены все 126 записей четырёх каталогов и operation mappings
-стратегий. Формат не определялся только по type hints.
+output converter. Исходный аудит охватывал 126 записей; после удаления двух legacy encoder nodes
+в четырёх каталогах 124 записи. Таблицы runtime обновлялись при переносе семейств; текущая сводка
+на 11 ноября приведена в разделе 7.1. Формат не определялся только по type hints.
 
 В этом проходе дополнительно выполнены CPU smoke checks для семи legacy моделей и
 `data_source_table`; ошибки `scaling` (`.iloc` у Torch tensor) и `resample`

@@ -4,6 +4,7 @@ from typing import Optional
 
 import numpy as np
 
+from fedot.core.backend.array_conversions import as_numpy
 from fedot.core.data.common.compatibility_rules import to_input_compatible_data_type
 from fedot.core.data.common.enums import StateEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -24,17 +25,7 @@ class TensorDataInputBridgePlan:
 
 
 def to_numpy_copy(value) -> Optional[np.ndarray]:
-    if value is None:
-        return None
-
-    if hasattr(value, 'detach'):
-        value = value.detach()
-    if hasattr(value, 'cpu'):
-        value = value.cpu()
-    if hasattr(value, 'numpy'):
-        value = value.numpy()
-
-    return np.array(value, copy=True)
+    return as_numpy(value, copy=True)
 
 
 def normalize_tensor_bridge_state(state) -> StateEnum:

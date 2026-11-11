@@ -1,8 +1,8 @@
 from typing import Optional
 
-import numpy as np
+import torch
 
-from fedot.core.data.input_data.data import InputData, OutputData
+from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.operations.strategies.base import EvaluationStrategy
 from fedot.core.operations.implementations.models.boosting import (
     FedotCatBoostClassificationImplementation,
@@ -40,26 +40,28 @@ class BoostingStrategy(EvaluationStrategy):
             raise ValueError(
                 f'Impossible to obtain Boosting Strategy for {operation_type}')
 
-    def fit(self, train_data: InputData):
+    def fit(self, train_data: TensorData):
         if train_data.task.task_type == TaskTypesEnum.ts_forecasting:
             raise ValueError(
                 'Time series forecasting not supported for boosting models')
 
-        if is_multi_output_target(train_data):
-            self.operation_impl.is_multi_target = True
+        params = self.params_for_fit.copy()
+        multi_output = is_multi_output_target(train_data)
+        if multi_output:
             if self.operation_type == 'catboost':
-                self.params_for_fit.update(loss_function='MultiLogloss')
+                params.update(loss_function='MultiLogloss')
             elif self.operation_type == 'catboostreg':
-                self.params_for_fit.update(loss_function='MultiRMSE')
+                params.update(loss_function='MultiRMSE')
 
-        operation_implementation = self.operation_impl(self.params_for_fit)
+        operation_implementation = self.operation_impl(params)
+        operation_implementation.is_multi_target = multi_output
 
         with ImplementationRandomStateHandler(implementation=operation_implementation):
             operation_implementation.fit(train_data)
 
         return operation_implementation
 
-    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
+    def predict(self, trained_operation, predict_data: TensorData) -> TensorData:
         raise NotImplementedError()
 
 
@@ -67,7 +69,7 @@ class BoostingClassificationStrategy(BoostingStrategy):
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         super().__init__(operation_type, params)
 
-    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
+    def predict(self, trained_operation, predict_data: TensorData) -> TensorData:
         if self.output_mode in ['labels']:
             prediction = trained_operation.predict(predict_data)
         elif (self.output_mode in ['probs', 'full_probs', 'default'] and
@@ -75,37 +77,28 @@ class BoostingClassificationStrategy(BoostingStrategy):
             n_classes = len(trained_operation.classes_)
 
             prediction = trained_operation.predict_proba(predict_data)
-            is_prediction_correct = self._check_prediction_correctness(
-                prediction)
-
             if n_classes < 2:
                 raise ValueError(
                     'Data set contain only 1 target class. Please reformat your data.')
-            elif n_classes == 2 and self.output_mode != 'full_probs' and is_prediction_correct:
-                if is_multi_output_model(self.operation_impl) and isinstance(prediction, list):
-                    prediction = np.stack([pred[:, 1]
-                                          for pred in prediction]).T
-                else:
-                    prediction = prediction[:, 1]
+            if is_multi_output_model(trained_operation):
+                # Native CatBoost/XGBoost return positive probabilities per target;
+                # the LightGBM wrapper already has a class axis.
+                if prediction.ndim == 2:
+                    prediction = torch.stack((1 - prediction, prediction), dim=-1)
+            if prediction.shape[-1] == 2 and self.output_mode != 'full_probs':
+                prediction = prediction[..., 1]
         else:
             raise ValueError(
                 f'Output mode {self.output_mode} is not supported')
 
-        return self._convert_to_output(prediction, predict_data)
-
-    @staticmethod
-    def _check_prediction_correctness(prediction) -> bool:
-        if isinstance(prediction, list):
-            return len(prediction[0].shape) > 1
-        else:
-            return len(prediction.shape) > 1
+        return self._replace_predict_in_tensor_data(prediction, predict_data)
 
 
 class BoostingRegressionStrategy(BoostingStrategy):
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         super().__init__(operation_type, params)
 
-    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
+    def predict(self, trained_operation, predict_data: TensorData) -> TensorData:
         prediction = trained_operation.predict(predict_data)
 
-        return self._convert_to_output(prediction, predict_data)
+        return self._replace_predict_in_tensor_data(prediction, predict_data)

@@ -30,7 +30,7 @@ def preprocessing_files_before_and_after_tests(request):
              'test_import_json_to_fitted_pipeline_correctly', 'test_export_import_for_one_pipeline_object_correctly_1',
              'test_export_import_for_one_pipeline_object_correctly_2', 'data_model_forecasting',
              'test_export_import_for_one_pipeline_object_correctly_3', 'data_model_classification',
-             'test_absolute_relative_paths_correctly_no_exception', 'test_export_one_hot_encoding_operation',
+             'test_absolute_relative_paths_correctly_no_exception',
              'test_import_custom_json_object_to_pipeline_and_fit_correctly_no_exception',
              'test_save_pipeline_with_np_int_type', 'test_pipeline_with_preprocessing_serialized_correctly',
              'test_multimodal_pipeline_serialized_correctly', 'test_load_though_api_perform_correctly',
@@ -412,26 +412,6 @@ def test_extract_subtree_root():
     assert all(assertion_list)
 
 
-def test_one_hot_encoder_serialization():
-    train_data, test_data, threshold = get_dataset('classification')
-
-    pipeline = Pipeline()
-    one_hot_node = PipelineNode('one_hot_encoding')
-    final_node = PipelineNode('dt', nodes_from=[one_hot_node])
-    pipeline.add_node(final_node)
-
-    pipeline.fit(train_data)
-    prediction_before_export = pipeline.predict(test_data)
-
-    pipeline.save('test_export_one_hot_encoding_operation',
-                  create_subdir=False)
-
-    pipeline_after = Pipeline.from_serialized(
-        create_correct_path('test_export_one_hot_encoding_operation'))
-    prediction_after_export = pipeline_after.predict(test_data)
-
-    assert np.array_equal(prediction_before_export.features,
-                          prediction_after_export.features)
 
 
 def test_save_pipeline_with_np_int_type():

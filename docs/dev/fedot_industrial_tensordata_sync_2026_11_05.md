@@ -339,3 +339,97 @@ InputData, пока необходимый отдельным Industrial impleme
 
 **Сохранение в Git:** записка включена в коммит реструктуризации вместе с её картой.
 Экспериментальные benchmark results и остальные локальные материалы туда не включены.
+
+## Уточнение 10 ноября: native row operations
+
+FEDOT TensorDataMerger использует Torch intersection/searchsorted для tensor row labels;
+смешанные числовые host labels могут переноситься на устройство числового потока.
+Host string labels сохраняют host-путь. Порядок пересечения нескольких веток остаётся отсортированным,
+одной ветки — исходным; для дубликатов сохраняется прежний выбор последней строки.
+Split и merger используют общий take_rows с согласованным обновлением raw category sidecar.
+При синхронизации Industrial переиспользовать эти row helpers вместо Tensor → NumPy ради индексирования.
+Новая Torch-стратификация сохраняет политику, но меняет RNG относительно sklearn; не переносить старые
+ожидания точных fold membership. CV/TS-политика и внешний Industrial этим изменением не переписывались.
+
+Общий обмен массивами вынесен в `fedot.core.backend.array_conversions`: as_numpy/as_cupy/as_torch и
+torch_to_xp. Последний больше не импортируется из backend.backend; прежние потребители FEDOT обновлены.
+Дублирующий core.common.tools.to_numpy удалён. При синхронизации внешних потребителей использовать
+новый модуль, с явным device/dtype/copy; выбор ресурса модели в конвертерах не реализован.
+
+
+## Уточнение 10 ноября: единые sklearn-стратегии
+
+Прямые sklearn/InterpretML-модели и KMeans теперь используют TensorData-only Sklearn*Strategy.
+TensorSkLearn* и core-helper convert_to_multivariate_model удалены.
+Единственный импорт helper в встроенном Industrial заменён локальным _fit_multi_output_model:
+его InputData-контракт и прежняя MultiOutput-адаптация сохранены. Сам Industrial не мигрирован.
+При будущей синхронизации проверить вызовы канонических Sklearn*Strategy с InputData, в частности
+SklearnClusteringStrategy в industrial_model_repository.json; одинаковое имя больше не означает старый контракт.
+Внешний Industrial сейчас не изменён. Общие CPU/GPU operation IDs и выбор реализации по устройству остаются отложенными.
+
+
+## Уточнение 10 ноября: табличные адаптеры
+
+KnnClassificationAdapter / KnnRegressionAdapter / FedotSVCImplementation / LDAImplementation /
+QDAImplementation теперь принимают TensorData и возвращают Torch predictions. Их стратегии возвращают
+TensorData; CNN отделён в KerasClassificationStrategy с прежним InputData-контрактом.
+Встроенный industrial/core/repository/excluded.py импортирует KNN adapters: при возобновлении этого пути
+учесть изменение контракта, а не только имена импортов. Сейчас Industrial и внешний репозиторий не менялись.
+CuML KNN/SVC остаются отдельными вариантами; перед объединением сохранить коррекцию k и явно сравнить
+OneVsRest на CPU с multiclass/multilabel поведением cuML. LDA/QDA пока CPU, ограниченный GPU-путь не добавлен.
+
+
+## Уточнение 11 ноября: general data operations
+
+Core PreprocessingDataOperationStrategy теперь TensorData-only, отдельный ProjectionDataOperationStrategy
+и projection.py удалены. KernelPCA/FastICA/DaskPCA и topological_features используют тот же контракт,
+хотя их внешние алгоритмы остаются CPU. Новый модуль implementations/data_operations/tabular.py заменил
+sklearn_transformations.py; встроенные Industrial imports обновлены. OHE/label nodes, их core implementations
+и записи встроенного Industrial catalogue / TEMPORARY_EXCLUDED удалены: source encoding теперь в TensorData.
+
+Native scaling сохраняет порядок; fitted columns с <=2 unique values исключены, многозначные label-коды
+масштабируются. Старый InputData ImputationImplementation оставлен для TS/Industrial; это временная
+зависимость, не TensorData-compatible imputer. Классы scaling/poly больше не принимают InputData.
+Внешний Industrial не изменялся: при синхронизации обновить импорты и эти контракты, не возвращать aliases.
+
+OptionalService теперь допускает pipeline positions после feature operations. Преобразования сбрасывают
+fingerprint; сервис должен установить input identity до изменения данных, а не хешировать None.
+Фичи/категориальные metadata для predict принадлежат выходу, исходная ветка не должна меняться in-place.
+Учитывать это при переносе Industrial preprocessing/cache. Identity/empty plan по-прежнему возвращает вход.
+
+
+### 11 ноября: RFE и выбор колонок
+
+Core rfe_lin_class/rfe_non_lin_class/rfe_lin_reg/rfe_non_lin_reg теперь TensorData-only в общей
+PreprocessingDataOperationStrategy. Имена и путь sklearn_selectors.py сохранены, InputData-обёртки удалены.
+Industrial переиспользует эти implementation-классы (в том числе excluded.py / собственные registration
+maps): при синхронизации перевести их вызовы на TensorData либо исключить операции до миграции runtime.
+Внешний Industrial и его стратегии сейчас не менялись; совместимость InputData здесь не поддерживается.
+Общий TensorData.subset_features сохраняет source mapping и только surviving raw categories, idx/target
+не трогает. После partial OHE selection category restoration возвращает исходный столбец целиком;
+fully removed sources не воскрешаются. Это учитывать в Industrial merger/feature filtering.
+
+
+### 11 ноября: фильтры и resample
+
+Core RANSAC/IsolationForest/Resample implementations стали TensorData-only, пути/имена сохранены.
+Industrial прямо импортирует их в model_repository.py / excluded.py и использует собственные стратегии:
+при синхронизации нужно адаптировать вызовы или отложить эти ID до TensorData runtime. Старый update_data
+в sklearn_filters.py удалён, вместо него общий TensorData.subset_rows + take_rows. Внешний репозиторий
+и Industrial runtime сейчас не менялись.
+Фильтры сохраняют исходные row labels для branch intersection; исходные categories теперь выбираются
+той же маской. Resample по-прежнему выдаёт новые positional idx, в том числе при дублировании строк;
+сохранить ограничения смешивания resample-ветвей. Его Torch RNG не повторяет NumPy sequence, но class
+sizes, replacement policy и minority-first order сохранены. Target не смешивается с float features.
+
+
+### 11 ноября: graph-context decompose
+
+Core decompose/class_decompose переходят на TensorData-only; пути и implementation names сохранены.
+Основная цель и all-auxiliary shallowest priority определяются обходом core graph в tensor_input_rules.py,
+а tensor_input.py подготавливает два parent outputs. Постоянных main/depth fields в TensorData нет.
+Merger принимает выбранный main_output_index и возвращает aligned_output с собственной схемой родителя.
+Industrial model_repository.py напрямую переиспользует DecomposerClassImplementation: его InputData
+runtime/отдельный merger при синхронизации должны перейти на эквивалентную подготовку входа. Само наличие
+двух родителей ещё не определяет target scope. Residual fork должен наследовать локальную цель,
+а присоединение основной ветви — исходный target/task. Внешний Industrial не менялся.

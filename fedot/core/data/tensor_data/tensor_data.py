@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, field, fields, replace
 from copy import deepcopy
 import sys
 from typing import Optional, Union, Dict, Any, Tuple
@@ -10,8 +10,11 @@ import numpy as np
 import torch
 import logging
 from fedot.core.data.tensor_data.tools import get_device_from_str, tensor_memory_usage, td_values_equal
+from fedot.core.data.tensor_data.row_operations import take_rows
 from fedot.core.data.common.types import TensorLike
-from fedot.core.data.tensor_data.contracts import PreparationState, validate_runtime_data
+from fedot.core.data.tensor_data.contracts import (
+    CategoricalData, PreparationState, TensorDataContractError, validate_runtime_data,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +97,8 @@ class TensorData:
     predict: TensorLike = None
     target_idx: IndexType = None
     categorical_idx: IndexType = field(default_factory=list)
+    categorical_features: Optional[np.ndarray] = field(default=None, repr=False)
+    categorical_source_idx: list[int] = field(default_factory=list)
     numerical_idx: IndexType = field(default_factory=list)
     features_names: IndexType = None
     idx_mapping: dict[int, int] = field(default_factory=dict)
@@ -113,8 +118,9 @@ class TensorData:
     def __post_init__(self):
         # Direct construction borrows tensor storage; create_data owns its output
         # tensors. Mutable metadata is always private to the new container.
-        for name in ('task', 'idx', 'target_idx', 'categorical_idx', 'numerical_idx',
-                     'features_names', 'idx_mapping', 'dataloader_kwargs', 'ts_terms_idx'):
+        for name in ('task', 'idx', 'target_idx', 'categorical_idx', 'categorical_features',
+                     'categorical_source_idx', 'numerical_idx', 'features_names', 'idx_mapping',
+                     'dataloader_kwargs', 'ts_terms_idx'):
             value = getattr(self, name)
             setattr(self, name, value.clone() if isinstance(
                 value, torch.Tensor) else deepcopy(value))
@@ -124,6 +130,79 @@ class TensorData:
         """Check row alignment and tensor devices; return self without mutation."""
         validate_runtime_data(self)
         return self
+
+    def subset_rows(self, row_ids: torch.Tensor) -> 'TensorData':
+        """Select or repeat sample positions in every row-aligned field.
+
+        Tensor values stay on their device; only host-backed row labels and
+        original categorical strings require host positions. Source column
+        metadata is unchanged; the changed sample set invalidates its fingerprint.
+        """
+        return replace(
+            self,
+            features=take_rows(self.features, row_ids),
+            target=take_rows(self.target, row_ids),
+            idx=take_rows(self.idx, row_ids),
+            predict=take_rows(self.predict, row_ids),
+            categorical_features=take_rows(self.categorical_features, row_ids),
+            fingerprint=None,
+        )
+
+    def subset_features(self, feature_ids: IndexType) -> 'TensorData':
+        """Select prepared columns in the supplied order, retaining source ownership.
+
+        Numerical values are indexed in Torch on their current device. Only
+        column positions become Python metadata; raw categorical strings stay
+        in their host sidecar. A category survives while any of its encoded
+        columns survives; fully removed categories cannot be restored later.
+        """
+        indices = torch.as_tensor(feature_ids, dtype=torch.long)
+        columns = indices.tolist()
+        mapping = {pos: self.idx_mapping.get(column, column) for pos, column in enumerate(columns)}
+        categorical = [pos for pos, column in enumerate(columns) if column in self.categorical_idx]
+        sources = {mapping[pos] for pos in categorical}
+        raw_columns = [pos for pos, source in enumerate(self.categorical_source_idx) if source in sources]
+        return replace(
+            self,
+            features=self.features.index_select(1, indices.to(self.device)),
+            predict=None,
+            idx_mapping=mapping,
+            categorical_idx=categorical,
+            numerical_idx=[pos for pos in range(len(columns)) if pos not in categorical],
+            categorical_features=self.categorical_features[:, raw_columns] if raw_columns else None,
+            categorical_source_idx=[self.categorical_source_idx[pos] for pos in raw_columns],
+            features_names=[self.features_names[column] for column in columns]
+            if self.features_names is not None else None,
+            fingerprint=None,
+        )
+
+    def get_not_encoded_data(self) -> CategoricalData:
+        """Keep current numerical features and restore active categorical sources.
+
+        Dropped/projected categories are not resurrected. Numerical values stay
+        on their device; a model adapter chooses its library's input format.
+        """
+        active = {self.idx_mapping[pos] for pos in self.categorical_idx}
+        if active - set(self.categorical_source_idx):
+            raise TensorDataContractError(
+                'missing_categories', 'categorical_features', 'active categorical sources require original values')
+        columns = [i for i, source in enumerate(self.categorical_source_idx) if source in active]
+        categories = (np.empty((len(self.features), 0), dtype=object) if self.categorical_features is None
+                      else self.categorical_features[:, columns])
+        names = None
+        if self.features_names is not None:
+            names = [self.features_names[pos] for pos in self.numerical_idx]
+            for col in columns:
+                source = self.categorical_source_idx[col]
+                if self.preparation_state is not None and self.preparation_state.schema.names is not None:
+                    source_names = dict(zip(dict(self.preparation_state.schema.mapping).values(),
+                                            self.preparation_state.schema.names))
+                    names.append(source_names[source])
+                else:
+                    names.append(f'categorical_{source}')
+        numerical = (self.features if list(self.numerical_idx) == list(range(self.features.shape[1]))
+                     else self.features[:, self.numerical_idx])
+        return CategoricalData(numerical, categories, names)
 
     @property
     def device(self):
@@ -170,6 +249,8 @@ class TensorData:
             self.idx,
             self.target_idx,
             self.categorical_idx,
+            self.categorical_features,
+            self.categorical_source_idx,
             self.numerical_idx,
             self.features_names,
             self.idx_mapping,

@@ -1,3 +1,5 @@
+import pytest
+
 from fedot.core.operations.operation_parameters import OperationParameters, get_default_params
 
 
@@ -39,3 +41,28 @@ def test_params_keeper_setdefault_and_defaults_from_repository():
     assert keeper.get('beta') == 3.0
     assert merged_keeper.get('alpha') == 0.75
     assert set(default_params).issubset(set(merged_keeper.to_dict()))
+
+@pytest.mark.parametrize('operation', ['catboost', 'catboostreg', 'catboost/1'])
+def test_catboost_legacy_alias_overrides_default_and_survives_repeated_merging(operation):
+    params = OperationParameters.from_operation_type(operation, od_wait=17, od_type='IncToDec', od_pval=0.1)
+    assert params.get('od_wait') == 17
+    assert 'early_stopping_rounds' not in params.keys()
+    assert params.get('od_type') == 'IncToDec'
+    repeated = OperationParameters.from_operation_type(operation, **params.to_dict())
+    assert repeated.to_dict() == params.to_dict()
+
+
+@pytest.mark.parametrize('operation', ['catboost', 'catboostreg'])
+def test_catboost_defaults_keep_patience_and_best_model_selection(operation):
+    params = OperationParameters.from_operation_type(operation)
+    assert params.get('early_stopping_rounds') == 100
+    assert 'od_wait' not in params.keys()
+    assert 'od_type' not in params.keys()
+    assert params.get('use_eval_set') is True
+    assert params.get('use_best_model') is True
+
+
+@pytest.mark.parametrize('operation', ['xgboost', 'xgboostreg'])
+def test_xgboost_default_matches_previous_effective_categorical_setting(operation):
+    assert OperationParameters.from_operation_type(operation).get('enable_categorical') is False
+    assert OperationParameters.from_operation_type(operation, enable_categorical=True).get('enable_categorical') is True

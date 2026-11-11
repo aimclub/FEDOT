@@ -6,6 +6,7 @@ from fedot.core.operations.atomized_model import AtomizedModel
 from fedot.core.operations.model import Model
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.tensor_input_rules import resolve_decompose_parents
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_all_operations_for_task, \
     get_operations_for_task, atomized_model_type
@@ -246,8 +247,8 @@ def has_no_conflicts_in_decompose(pipeline: Pipeline):
         decompose_nodes = pipeline.get_nodes_by_name(decomposer)
         if len(decompose_nodes) != 0:
             # Launch check decomposers
-            __check_decomposer_has_two_parents(nodes_to_check=decompose_nodes)
-            __check_decompose_parent_position(nodes_to_check=decompose_nodes)
+            for node in decompose_nodes:
+                resolve_decompose_parents(node.nodes_from)
 
     return True
 
@@ -333,37 +334,6 @@ def has_no_conflicts_after_class_decompose(pipeline: Pipeline):
                 raise ValueError(error_message)
 
     return True
-
-
-def __check_decompose_parent_position(nodes_to_check: list):
-    """ Function check if the data flow before decompose operation is correct
-    or not
-
-    :param nodes_to_check: list with decompose nodes in the pipeline
-    """
-    for decompose_node in nodes_to_check:
-        parents = decompose_node.nodes_from
-        model_parent = parents[0]
-
-        if not isinstance(model_parent.operation, Model):
-            raise ValueError(
-                f'{ERROR_PREFIX} For decompose operation Model as first parent is required')
-
-
-def __check_decomposer_has_two_parents(nodes_to_check: list):
-    """ Function check if there are two parent nodes for decompose operation
-
-    :param nodes_to_check: list with decompose nodes in the pipeline
-    """
-
-    for decompose_node in nodes_to_check:
-        parents = decompose_node.nodes_from
-
-        if parents is None:
-            raise ValueError('Decompose operation has no parents')
-        elif len(parents) != 2:
-            raise ValueError(f'{ERROR_PREFIX} Two parents for decompose node were'
-                             f' expected, but {len(parents)} were given')
 
 
 def __check_multitask_operation_location(pipeline: Pipeline, operations_for_classification: list):

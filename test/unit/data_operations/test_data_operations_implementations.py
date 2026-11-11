@@ -2,15 +2,17 @@ import os
 
 import numpy as np
 import pytest
+import torch
 
 from examples.simple.classification.classification_with_tuning import get_classification_dataset
 from examples.simple.regression.regression_with_tuning import get_regression_dataset
 from examples.simple.time_series_forecasting.gapfilling import generate_synthetic_data
+from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.input_data.data import InputData
 from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.data.multimodal.supplementary_data import SupplementaryData
 from fedot.core.operations.implementations.data_operations.resampling import ResampleImplementation
-from fedot.core.operations.implementations.data_operations.sklearn_transformations import (
+from fedot.core.operations.implementations.data_operations.tabular import (
     ImputationImplementation,
     PolyFeaturesImplementation,
 )
@@ -243,26 +245,16 @@ def get_unbalanced_dataset(size=10, disbalance=0.4, target_dim=None):
     minor_size = round(size * disbalance)
     major_size = size - minor_size
 
-    features = np.array([[np.random.rand(), 'minor']] *
-                        minor_size + [[np.random.rand(), 'major']] * major_size)
-    target = np.array([0] * minor_size + [1] * major_size)
-
-    if target_dim == 2:
-        target = target.reshape(-1, 1)
-
-    supp_data = SupplementaryData(col_type_ids={
-        'features': np.array([TYPE_TO_ID[int], TYPE_TO_ID[str]]),
-        'target': np.array([TYPE_TO_ID[int]])
-    })
-
-    input_data = InputData(idx=np.arange(features.shape[0]),
-                           features=features,
-                           target=target,
-                           task=Task(TaskTypesEnum.classification),
-                           data_type=DataTypesEnum.table,
-                           supplementary_data=supp_data)
-
-    return input_data
+    target = torch.tensor([0] * minor_size + [1] * major_size)
+    values = torch.cat((torch.rand(1).repeat(minor_size), torch.rand(1).repeat(major_size)))
+    features = torch.stack((values, target.float()), dim=1)
+    categories = np.array(['minor'] * minor_size + ['major'] * major_size, dtype=object)[:, None]
+    return TensorData(
+        features=features, target=target[:, None] if target_dim == 2 else target,
+        idx=torch.arange(size), task=Task(TaskTypesEnum.classification), data_type=DataTypesEnum.tabular,
+        categorical_idx=[1], numerical_idx=[0], idx_mapping={0: 0, 1: 1},
+        categorical_features=categories, categorical_source_idx=[1],
+    )
 
 
 def data_with_binary_int_features_and_equal_categories():
@@ -438,23 +430,6 @@ def test_feature_selection_of_single_features():
             assert predicted.shape == train_input.features.shape
 
 
-def test_one_hot_encoding_new_category_in_test():
-    """ Check if One Hot Encoding can correctly predict data with new categories
-    (which algorithm were not process during train stage)
-    """
-    cat_data = get_mixed_data(task=Task(TaskTypesEnum.classification),
-                              extended=True)
-    train, test = train_test_data_setup(cat_data)
-
-    # Create pipeline with encoding operation
-    one_hot_node = PipelineNode('one_hot_encoding')
-    final_node = PipelineNode('dt', nodes_from=[one_hot_node])
-    pipeline = Pipeline(final_node)
-
-    pipeline.fit(train)
-    predicted = pipeline.predict(test)
-
-    assert predicted is not None
 
 
 def test_knn_with_float_neighbors():
@@ -541,26 +516,6 @@ def test_imputation_binary_features_with_non_zero_categories_correct():
     assert np.allclose(predicted.predict[[0, 1, 2, 4], 0], [1, 2, 1, 1])
 
 
-def test_label_encoding_correct():
-    """
-    Check if LabelEncoder can perform transformations correctly. Also the dataset
-    is generated so that new categories appear in the test sample.
-    """
-    cat_data = data_with_only_categorical_features()
-    train_data, test_data = train_test_data_setup(cat_data)
-
-    encoding_node = PipelineNode('label_encoding')
-    encoding_node.fit(train_data)
-
-    predicted_train = encoding_node.predict(train_data)
-    predicted_test = encoding_node.predict(test_data)
-
-    # Label 'a' was in the training sample - convert it into 0
-    assert predicted_train.predict[0, 0] == 0
-    # Label 'b' was in the training sample - convert it into 1
-    assert predicted_train.predict[1, 0] == 1
-    # Label 'c' was not in the training sample - convert it into 2
-    assert predicted_test.predict[0, 0] == 2
 
 
 def test_lagged_with_multivariate_time_series():
@@ -667,7 +622,7 @@ def test_correctness_resample_operation_with_expand_minority(balance_ratio, targ
 
     data = get_unbalanced_dataset(target_dim=target_dim)
 
-    assert resample.transform_for_fit(data).predict.shape == expected
+    assert resample.transform_for_fit(data).features.shape == expected
 
 
 @pytest.mark.parametrize(
@@ -683,7 +638,7 @@ def test_correctness_resample_operation_with_reduce_majority(balance_ratio, targ
 
     data = get_unbalanced_dataset(target_dim=target_dim)
 
-    assert resample.transform_for_fit(data).predict.shape == expected
+    assert resample.transform_for_fit(data).features.shape == expected
 
 
 @pytest.mark.parametrize(
@@ -736,7 +691,7 @@ def test_pca_transform_reduces_feature_space():
     assert transformed.categorical_idx == []
 
 
-def test_poly_features_transform_initializes_feature_types_when_absent():
+def test_poly_features_transform_initializes_tensor_column_metadata():
     input_data = InputData(
         idx=np.arange(0, 6),
         features=np.array([
@@ -752,12 +707,13 @@ def test_poly_features_transform_initializes_feature_types_when_absent():
         data_type=DataTypesEnum.table,
     )
 
+    input_data = TensorData(features=torch.as_tensor(input_data.features),
+                            target=torch.as_tensor(input_data.target),
+                            task=input_data.task, data_type=input_data.data_type)
     operation = PolyFeaturesImplementation(
         OperationParameters(degree=2, interaction_only=False))
     operation.fit(input_data)
     transformed = operation.transform(input_data)
 
-    assert transformed.supplementary_data.col_type_ids is not None
-    assert 'features' in transformed.supplementary_data.col_type_ids
-    assert transformed.supplementary_data.col_type_ids[
-        'features'].shape[0] == transformed.predict.shape[1]
+    assert transformed.features.shape[1] > input_data.features.shape[1]
+    assert transformed.numerical_idx == list(range(transformed.features.shape[1]))
