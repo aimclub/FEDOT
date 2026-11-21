@@ -13,6 +13,7 @@ from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.data.data import InputData
+from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.operations.model import Model
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.utilities.debug import is_recording_mode, report_pipeline_fit_error, save_debug_info_for_pipeline
@@ -72,6 +73,12 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         evaluation_failed = False
         evaluation_started = monotonic()
         for fold_id, (train_data, test_data) in enumerate(self._data_producer()):
+            if isinstance(train_data, MultiModalData) and not all(
+                    node.operation.operation_type in train_data for node in graph.nodes if node.is_primary):
+                self._log.debug(f'Skipping a pipeline incompatible with the provided data sources: {graph_id}')
+                evaluation_failed = True
+                break
+
             fit_time_constraint = self._time_constraint
             if self._evaluation_time_constraint is not None:
                 remaining = self._evaluation_time_constraint.total_seconds() - (monotonic() - evaluation_started)
