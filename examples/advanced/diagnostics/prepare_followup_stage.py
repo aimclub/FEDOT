@@ -19,6 +19,17 @@ def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def require_canonical_new_file(path, expected):
+    # git archive on a Windows checkout can export CRLF patch text. Normalize
+    # ONLY a newly copied/patched file, and ONLY if it exactly matches the
+    # independently pinned LF artifact. Never touch the archive or old copy.
+    if sha(path) != expected:
+        canonical = path.read_bytes().replace(b'\r\n', b'\n')
+        if hashlib.sha256(canonical).hexdigest() != expected:
+            raise ValueError(f'Unexpected runtime implementation: {path}')
+        path.write_bytes(canonical)
+
+
 def prepare(root, series, archive, expected_sha, commit):
     if sys.version_info < (3, 9):
         raise RuntimeError('Use the framework Python (>=3.9), not system Python')
@@ -59,8 +70,7 @@ def prepare(root, series, archive, expected_sha, commit):
             subprocess.run(['git', 'apply', '--ignore-space-change',
                             str(code / 'examples/advanced/diagnostics/golem_metadata_cow.patch')],
                            cwd=vendor, check=True)
-        if sha(individual) != corrected:
-            raise ValueError('Unrecognized metadata implementation')
+        require_canonical_new_file(individual, corrected)
     old_harness = root / 'experiments/pr1467-5fbcaf16/automlbenchmark'
     harness = stage / 'harness'
     # Follow the top-level deployment symlink into a NEW real tree. Never follow
@@ -75,8 +85,7 @@ def prepare(root, series, archive, expected_sha, commit):
         subprocess.run(['git', 'apply', '--ignore-space-change',
                         str(stage / 'candidate/examples/advanced/diagnostics/amlb_overlay_transport.patch')],
                        cwd=harness, check=True)
-    if sha(adapter) != '96dcc35e61a13c0f35c1d9b551e7bfd27992c280d1eb29b73af69e353ae14c2c':
-        raise ValueError('Unexpected harness adapter')
+    require_canonical_new_file(adapter, '96dcc35e61a13c0f35c1d9b551e7bfd27992c280d1eb29b73af69e353ae14c2c')
     runtime = ['harness/frameworks/FEDOT/__init__.py', 'harness/frameworks/FEDOT/exec.py',
                'harness/frameworks/shared/caller.py']
     for variant in ('baseline', 'candidate'):
