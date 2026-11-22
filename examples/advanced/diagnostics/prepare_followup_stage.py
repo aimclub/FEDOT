@@ -67,9 +67,9 @@ def prepare(root, series, archive, expected_sha, commit):
         original = '7b0d1de39ad586774883025bc1c690ac1539634a9f71b43a249a059c123af527'
         corrected = '1d4f11ca785b4cb60f33d717db08c649104054b5fabeab41771085309ff61cb0'
         if sha(individual) == original:
-            subprocess.run(['git', 'apply', '--ignore-space-change',
-                            str(code / 'examples/advanced/diagnostics/golem_metadata_cow.patch')],
-                           cwd=vendor, check=True)
+            patch = code / 'examples/advanced/diagnostics/golem_metadata_cow.patch'
+            subprocess.run(['git', 'apply', '--ignore-space-change', '-'],
+                           input=patch.read_bytes().replace(b'\r\n', b'\n'), cwd=vendor, check=True)
         require_canonical_new_file(individual, corrected)
     old_harness = root / 'experiments/pr1467-5fbcaf16/automlbenchmark'
     harness = stage / 'harness'
@@ -82,9 +82,9 @@ def prepare(root, series, archive, expected_sha, commit):
         root / 'automlbenchmark/frameworks/FEDOT/venv', target_is_directory=True)
     adapter = harness / 'frameworks/FEDOT/__init__.py'
     if sha(adapter) == '497587c2e49990e8c244efdbb2c75683907649f0ffa522653dc1373ac582c4e9':
-        subprocess.run(['git', 'apply', '--ignore-space-change',
-                        str(stage / 'candidate/examples/advanced/diagnostics/amlb_overlay_transport.patch')],
-                       cwd=harness, check=True)
+        patch = stage / 'candidate/examples/advanced/diagnostics/amlb_overlay_transport.patch'
+        subprocess.run(['git', 'apply', '--ignore-space-change', '-'],
+                       input=patch.read_bytes().replace(b'\r\n', b'\n'), cwd=harness, check=True)
     require_canonical_new_file(adapter, '96dcc35e61a13c0f35c1d9b551e7bfd27992c280d1eb29b73af69e353ae14c2c')
     runtime = ['harness/frameworks/FEDOT/__init__.py', 'harness/frameworks/FEDOT/exec.py',
                'harness/frameworks/shared/caller.py']
