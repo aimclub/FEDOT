@@ -30,7 +30,7 @@ def require_canonical_new_file(path, expected):
         path.write_bytes(canonical)
 
 
-def prepare(root, series, archive, expected_sha, commit):
+def prepare(root, series, archive, expected_sha, commit, candidate_patch=None):
     if sys.version_info < (3, 9):
         raise RuntimeError('Use the framework Python (>=3.9), not system Python')
     root = root.resolve()
@@ -71,6 +71,13 @@ def prepare(root, series, archive, expected_sha, commit):
             subprocess.run(['git', 'apply', '--ignore-space-change', '-'],
                            input=patch.read_bytes().replace(b'\r\n', b'\n'), cwd=vendor, check=True)
         require_canonical_new_file(individual, corrected)
+    if candidate_patch:
+        if candidate_patch not in ('coupled_horizon', 'xgb_category_schema'):
+            raise ValueError('Unapproved candidate patch')
+        patch = stage / f'candidate/examples/advanced/diagnostics/{candidate_patch}.patch'
+        subprocess.run(['git', 'apply', '--ignore-space-change', '-'],
+                       input=patch.read_bytes().replace(b'\r\n', b'\n'), cwd=stage / 'candidate', check=True)
+        (stage / 'candidate-patch.sha256').write_text(sha(patch) + '  ' + patch.name + '\n')
     old_harness = root / 'experiments/pr1467-5fbcaf16/automlbenchmark'
     harness = stage / 'harness'
     # Follow the top-level deployment symlink into a NEW real tree. Never follow
@@ -114,5 +121,6 @@ if __name__ == '__main__':
     parser.add_argument('--archive', type=Path, required=True)
     parser.add_argument('--sha256', required=True)
     parser.add_argument('--commit', required=True)
+    parser.add_argument('--candidate-patch', choices=['coupled_horizon', 'xgb_category_schema'])
     args = parser.parse_args()
-    prepare(args.root, args.series, args.archive, args.sha256, args.commit)
+    prepare(args.root, args.series, args.archive, args.sha256, args.commit, args.candidate_patch)

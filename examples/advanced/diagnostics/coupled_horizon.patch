@@ -1,0 +1,35 @@
+--- a/fedot/core/operations/evaluation/operation_implementations/models/boostings_implementations.py
++++ b/fedot/core/operations/evaluation/operation_implementations/models/boostings_implementations.py
+@@ -327,11 +327,13 @@
+ 
+ 
+ class FedotLightGBMImplementation(ModelImplementation):
+-    __operation_params = ['use_eval_set', 'enable_categorical', 'fit_time_limit']
+-
+-    def __init__(self, params: Optional[OperationParameters] = None):
+-        super().__init__(params)
+-
++    __operation_params = ['use_eval_set', 'enable_categorical', 'fit_time_limit', 'horizon_profile']
++
++    def __init__(self, params: Optional[OperationParameters] = None):
++        super().__init__(params)
++
++        from examples.advanced.diagnostics.coupled_horizon import apply_profile
++        apply_profile(self.params)
+         self.check_and_update_params()
+ 
+         self.model_params = {k: v for k, v in self.params.to_dict().items() if k not in self.__operation_params}
+--- a/fedot/core/pipelines/tuning/search_space.py
++++ b/fedot/core/pipelines/tuning/search_space.py
+@@ -958,6 +958,11 @@
+             }
+         }
+ 
++        # Isolated prospective joint learning-rate/horizon policy.
++        parameters_per_operation['lgbm'].pop('learning_rate')
++        parameters_per_operation['lgbm']['horizon_profile'] = {
++            'hyperopt-dist': hp.choice, 'sampling-scope': [[0, 1, 2, 3]], 'type': 'categorical'}
++
+         if self.custom_search_space is not None:
+             if self.replace_default_search_space:
+                 parameters_per_operation.update(self.custom_search_space)
