@@ -1398,3 +1398,18 @@ as requested when this bounded hypothesis set is exhausted. No duplicate
 scheduler was created. All old archives, results, deployed/shared sources,
 and user-untracked files remain intact; only this regression test and reports
 changed in the closing pass.
+
+## New user-authorized cycle: 2026-11-22
+
+The November10 cycle remains closed. The user subsequently requested execution
+of the six-direction improvement plan. Its prospective protocol, isolated
+source/runtime manifests and live evidence are recorded in
+[pr1467_followup_20261122.md](pr1467_followup_20261122.md).
+
+New outer fold6 is used; no November10 job was repeated. H2 (simple initial
+models) and H4 (OOF/blending/temperature) failed their train-only gates after
+independent probability audits. H3 passed its train-only gate and its full
+Covertype pair is active on Dysprosium; the H5 final-refit confirmation pair
+is active on Copper. Fabert H1 is still in its paired training-only screen,
+with H6's category-fit check queued behind it under the same exclusive host
+lock. No new scheduler or general default/PR1467 change was made.

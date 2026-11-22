@@ -262,3 +262,16 @@ remaining-refit retains only its limited opt-in evidence. No general default,
 search-space or original-PR promotion follows. Further calibration would be
 a new prospectively designed study, not another repeat of these runs. The
 existing monitoring task was deleted; no new experiments were launched.
+
+## New authorized follow-up: 2026-11-22
+
+See [the new prospective study](pr1467_followup_20261122.md) for execution of
+the subsequently requested six-direction plan. New fold6 controls use fresh
+isolated copies, COW-corrected metadata and verified AMLB environment transport.
+H2/H4 train-only gates were negative and their full jobs were not launched.
+H3's joint learning-rate/horizon policy passed its mechanism gate; the full
+Covertype comparison and H5's Dionis refit confirmation are active. Fabert H1
+continues and H6 waits for its host lock. These are new experiments, not
+restarts of the audited November10 pairs; no full-run quality result is claimed
+yet. Source archives, old results, deployed/shared runtimes and PR1467 remain
+unchanged. The previous scheduler stays deleted.
