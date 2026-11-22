@@ -1412,4 +1412,16 @@ independent probability audits. H3 passed its train-only gate and its full
 Covertype pair is active on Dysprosium; the H5 final-refit confirmation pair
 is active on Copper. Fabert H1 is still in its paired training-only screen,
 with H6's category-fit check queued behind it under the same exclusive host
-lock. No new scheduler or general default/PR1467 change was made.
+lock. No general default/PR1467 change was made.
+
+At12:51UTC H1's16 saved prediction artifacts passed independent audit, but
+both policies exhausted all five proposals: the additional-proposal gate was
+saturated and did not pass. No full H1/H2/H4 jobs. H6 reproduced the original
+category-fit failure on fabert6 training data and the candidate fixed it;
+independent admission plus21 host contracts and2 real transport tests passed.
+Its prospectively frozen full pair is ready for launch under the existing
+exclusive host lock. H3 baseline COMPLETE/independently loss.16127634533286989,
+job1825.6/train1800.0s; candidate STARTED12:40:55. H5 remains active. Details,
+hashes, limitations and failed preflight invocations are in the new study.
+A single15-minute continuation task was subsequently created for this new
+cycle, next12:55:09UTC at creation; delete after all pending audits, not now.

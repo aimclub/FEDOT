@@ -29,13 +29,27 @@ def test_lexical_class_alignment_and_paired_truth(tmp_path):
     assert result['candidate']['prediction_sha256'] == result['baseline']['prediction_sha256']
 
 
-@pytest.mark.parametrize('fault', ['budget', 'info', 'truth', 'columns', 'norm', 'failed'])
+def test_six_decimal_amlb_score_rounding(tmp_path):
+    stage = make_pair(tmp_path)
+    for score in stage.rglob('scores/results.csv'):
+        frame = pd.read_csv(score, keep_default_na=False)
+        frame['logloss'] = frame['logloss'].round(6)
+        frame.to_csv(score, index=False)
+    result = audit_pair(stage)
+    assert result['baseline']['logloss'] == pytest.approx(-np.log(.9))
+
+
+@pytest.mark.parametrize('fault', ['budget', 'info', 'truth', 'columns', 'norm', 'failed', 'score'])
 def test_bad_results_are_rejected(tmp_path, fault):
     stage = make_pair(tmp_path)
     run = stage / 'runs/candidate/toy-fold6-small'
     score = run / 'results/session/scores/results.csv'
     prediction = run / 'results/session/predictions/toy/6/predictions.csv'
-    if fault in ('budget', 'info'):
+    if fault == 'score':
+        frame = pd.read_csv(score, keep_default_na=False)
+        frame.loc[0, 'logloss'] += 1e-6
+        frame.to_csv(score, index=False)
+    elif fault in ('budget', 'info'):
         frame = pd.read_csv(score, keep_default_na=False)
         frame.loc[0, 'duration' if fault == 'budget' else 'info'] = 3601 if fault == 'budget' else 'fit failed'
         frame.to_csv(score, index=False)

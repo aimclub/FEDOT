@@ -44,7 +44,9 @@ def audit_run(run):
     if norm_error > 1e-6:
         raise ValueError('Invalid probability normalization')
     loss = float(log_loss(truth, probabilities, labels=classes))
-    if not np.isclose(loss, float(row['logloss']), atol=1e-7, rtol=1e-6):
+    # AMLB writes aggregate scores to six decimal places; predictions retain
+    # more precision. Permit only half a unit in that last stored decimal.
+    if not np.isclose(loss, float(row['logloss']), atol=5.00001e-7, rtol=0):
         raise ValueError('Recomputed loss differs from AMLB score')
     history = list((run / 'results').rglob('history.json'))
     result = dict(rows=len(truth), classes=classes, csv_columns=columns, logloss=loss,
