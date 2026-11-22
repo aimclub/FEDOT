@@ -11,6 +11,7 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
+import sys
 import tarfile
 
 
@@ -19,6 +20,8 @@ def sha(path):
 
 
 def prepare(root, series, archive, expected_sha, commit):
+    if sys.version_info < (3, 9):
+        raise RuntimeError('Use the framework Python (>=3.9), not system Python')
     root = root.resolve()
     if root != Path('/var/essdata') / os.environ['USER'] / 'fedot-amlb-official-1h8c':
         raise ValueError('Unexpected benchmark root')
@@ -35,8 +38,15 @@ def prepare(root, series, archive, expected_sha, commit):
         code.mkdir()
         with tarfile.open(archive) as bundle:
             for member in bundle.getmembers():
-                if member.issym() or member.islnk() or not (code / member.name).resolve().is_relative_to(code):
+                destination = (code / member.name).resolve()
+                if not destination.is_relative_to(code):
                     raise ValueError('Unsafe archive entry')
+                if member.issym() or member.islnk():
+                    link_base = destination.parent if member.issym() else code
+                    if not (link_base / member.linkname).resolve().is_relative_to(code):
+                        raise ValueError('Archive link escapes the new source tree')
+                elif not (member.isfile() or member.isdir()):
+                    raise ValueError('Unsupported archive member type')
             bundle.extractall(code)
         (stage / (variant + '.commit')).write_text(commit + '\n')
         vendor = stage / 'vendor' / variant
