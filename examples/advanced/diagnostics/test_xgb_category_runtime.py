@@ -48,15 +48,16 @@ def model(module, categorical=True, evaluation=False, regression=False):
     return cls(params)
 
 
-def test_unknown_prediction_reproduces_and_candidate_survives_serialization(candidate):
+def test_unknown_prediction_and_candidate_survives_serialization(candidate):
     # Category determines the target: force the tree to actually use this
     # feature. An unused categorical column need not exercise recoding.
     train = data(['a', 'c', 'e'] * 30)
     predict = data(['a', 'b', 'e'] * 10)
     old, new = model(baseline), model(candidate)
     old.fit(train)
-    with pytest.raises(Exception, match='categor|Categor'):
-        old.predict_proba(predict)
+    # XGBoost 3.2 already accepts unseen string categories at predict time.
+    # The training eval_set boundary is tested separately below.
+    assert np.isfinite(old.predict_proba(predict)).all()
     new.fit(train)
     probs = new.predict_proba(predict)
     assert probs.shape == (30, 3) and np.isfinite(probs).all()
@@ -72,6 +73,8 @@ def test_eval_set_categories_do_not_enter_training_vocabulary(candidate):
     categories = np.array(['a', 'c'] * 45, dtype=object)
     categories[int(valid.idx[0])] = 'eval_only'
     train = data(categories)
+    with pytest.raises(Exception, match='categor|Categor'):
+        model(baseline, evaluation=True).fit(train)
     new = model(candidate, evaluation=True)
     new.fit(train)
     assert all('eval_only' not in dtype.categories for dtype in new._category_schema.types.values())
