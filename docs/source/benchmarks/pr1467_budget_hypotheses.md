@@ -1414,7 +1414,7 @@ is active on Copper. Fabert H1 is still in its paired training-only screen,
 with H6's category-fit check queued behind it under the same exclusive host
 lock. No general default/PR1467 change was made.
 
-At12:51UTC H1's16 saved prediction artifacts passed independent audit, but
+At12:48UTC H1's16 saved prediction artifacts passed independent audit, but
 both policies exhausted all five proposals: the additional-proposal gate was
 saturated and did not pass. No full H1/H2/H4 jobs. H6 reproduced the original
 category-fit failure on fabert6 training data and the candidate fixed it;
@@ -1425,3 +1425,13 @@ job1825.6/train1800.0s; candidate STARTED12:40:55. H5 remains active. Details,
 hashes, limitations and failed preflight invocations are in the new study.
 A single15-minute continuation task was subsequently created for this new
 cycle, next12:55:09UTC at creation; delete after all pending audits, not now.
+
+Subsequently H6 full baseline STARTED12:49:05 after protocol5d443572 push,
+21+2 cheap tests and independent gate verification; actual isolated exec
+1305996 confirmed. H5 control COMPLETE/independent loss.8555497437494369,
+job2996.3/train2922.6s, valid41619x355 probabilities, native scaling/logit,
+CV metadata921.3188s consistent with921.012s log boundaries. Tuning skipped,
+final refit229.434s succeeded without fallback. H5 candidate STARTED12:46:25;
+H3 candidate remains active. All pending comparisons are already queued;
+do not launch another copy. Full details and fresh audit hashes are in the
+new study's latest section. No paired candidate quality is claimed yet.

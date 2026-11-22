@@ -276,7 +276,7 @@ restarts of the audited November10 pairs; no full-run quality result is claimed
 yet. Source archives, old results, deployed/shared runtimes and PR1467 remain
 unchanged. The previous scheduler stays deleted.
 
-At12:51UTC H1 is closed without a full run: both fidelities completed all five
+At12:48UTC H1 is closed without a full run: both fidelities completed all five
 proposals and the count gate was saturated. H2/H4 remain negative. H6's task
 failure was reproduced and resolved, with independent probability/source
 admission and21+2 full-stage contracts passed; its isolated full comparison
@@ -285,3 +285,11 @@ is now admitted. H3 control outer loss is independently.16127634533286989
 not final paired effects. The new study records one continuation task for the
 pending work; the old November10 task remains deleted. No general defaults
 or PR1467 changes follow from these interim results.
+
+H6 full baseline subsequently STARTED12:49:05 with verified isolated runtime;
+its candidate waits. H5 control independently completed at loss.8555497437494369
+within both budgets (job2996.3/train2922.6s), with successful native-logit final
+refit and no fallback. H5 candidate STARTED12:46:25; H3 candidate remains active.
+Continue these three existing queues, audit their candidate outputs and close
+the study. H1/H2/H4 will not receive full jobs; no additional experiment is
+admitted simply to occupy a free server.
