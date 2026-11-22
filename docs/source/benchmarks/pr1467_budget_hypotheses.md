@@ -1435,3 +1435,12 @@ final refit229.434s succeeded without fallback. H5 candidate STARTED12:46:25;
 H3 candidate remains active. All pending comparisons are already queued;
 do not launch another copy. Full details and fresh audit hashes are in the
 new study's latest section. No paired candidate quality is claimed yet.
+
+At12:56UTC the same three queues remain active; runtime manifests and actual
+named environments verify. H3 candidate initial CV is finite.3329453387774629
+in303.483s; trial0 explicitly uses horizon_profile0=(100,.1), with100 fitted
+rounds logged for its first LightGBM fold. Other profiles and outer quality
+are pending. H5 candidate initial379.1s completed and composition is active.
+H6 baseline initial87.9s completed, composition5->3fold is active; candidate
+has no STARTED. No restarts, new jobs or source changes. Continue waiting for
+these existing comparisons; the single continuation task remains enabled.

@@ -293,3 +293,10 @@ refit and no fallback. H5 candidate STARTED12:46:25; H3 candidate remains active
 Continue these three existing queues, audit their candidate outputs and close
 the study. H1/H2/H4 will not receive full jobs; no additional experiment is
 admitted simply to occupy a free server.
+
+Read-only check12:56UTC: no new completed pair. H3's candidate joint-search
+activation is demonstrated by an actual horizon_profile0 trial and its
+first LightGBM fold's100 fitted rounds; the other profiles and final quality
+are still pending. H5 candidate and H6 baseline are composing; H6 candidate
+waits without STARTED. All three runtime manifests and actual environments
+verify. H1/H2/H4 stay closed; no new jobs or model/default changes were made.
