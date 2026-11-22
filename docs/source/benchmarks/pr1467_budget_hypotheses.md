@@ -1484,3 +1484,10 @@ initial90.6s completed, composition active. Only remaining full run.
 Audit helper v3 corrects source-confirmed {:.6g} significant-digit score
 formatting (13 tests pass); use stage-root audit_followup_v3.py for H6 final
 pair, retain v2 and all old artifacts. No benchmark/source changes or reruns.
+
+At13:56UTC sole H6 candidate remains ACTIVE in original queue1305782,
+benchmark1308881/exec1308920. Stage-specific environment, all7runtime entries,
+candidate booster/schema full-map hashes and v3 auditor verify. Initial
+stack/CatBoost/XGBoost/LGBM CV evaluations are finite and match their control
+values; RF CV active. These are not final selection or outer quality. No
+COMPLETE/FAILED/predictions/history; no new training, restarts or changes.

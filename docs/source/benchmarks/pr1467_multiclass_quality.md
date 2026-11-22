@@ -330,3 +330,9 @@ H6 candidate STARTED13:42:38 in the original queue and remains active; it is
 the sole remaining full run. Final pair must use the new v3 audit helper's
 source-confirmed six-significant-digit score rule (13 tests pass). Full
 provenance and hashes are in the new study. Five directions closed, H6 pending.
+
+Read-only13:56UTC: H6 candidate remains in composition, original processes
+live and runtime/source hashes verified. Its four completed initial CV
+evaluations match control values, but final selection and outer predictions
+are pending. No COMPLETE/FAILED/history yet. Five directions stay closed;
+continue only this existing run and its final paired audit.
