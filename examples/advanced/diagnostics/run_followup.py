@@ -51,6 +51,13 @@ def main(root, stage, mode, after=None):
             raise RuntimeError('Dependency has not completed successfully')
         check_idle()
         verify(stage)
+        if mode == 'category-full':
+            from category_gate import audit_category_gate
+            if after is None:
+                raise ValueError('Full category comparison requires its completed mechanism gate')
+            gate = audit_category_gate(after, stage)
+            with (stage / 'gate-audit.json').open('x') as stream:
+                json.dump(gate, stream, indent=2)
         preflight = json.loads((stage / 'preflight-passed.json').read_text())
         for relative, expected in preflight.items():
             if hashlib.sha256((stage / relative).read_bytes()).hexdigest() != expected:
@@ -58,10 +65,11 @@ def main(root, stage, mode, after=None):
         with (stage / 'QUEUE_STARTED').open('x') as stream:
             stream.write(time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()))
         try:
-            if mode in ('refit', 'horizon'):
+            if mode in ('refit', 'horizon', 'category-full'):
                 script = stage / 'candidate/examples/advanced/run_multiclass_quality_pair.sh'
-                command = ['bash', '-s', '--', str(root), 'large',
-                           'Dionis' if mode == 'refit' else 'Covertype', '6', stage.name,
+                suite, task = {'refit': ('large', 'Dionis'), 'horizon': ('large', 'Covertype'),
+                               'category-full': ('small', 'fabert')}[mode]
+                command = ['bash', '-s', '--', str(root), suite, task, '6', stage.name,
                            'true' if mode == 'refit' else 'false', 'baseline candidate', 'none', 'isolated']
                 subprocess.run(command, input=script.read_bytes().replace(b'\r\n', b'\n'),
                                cwd=stage, check=True)
@@ -132,7 +140,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, required=True)
     parser.add_argument('--stage', type=Path, required=True)
-    parser.add_argument('--mode', choices=['refit', 'horizon', 'fabert', 'Covertype', 'category'], required=True)
+    parser.add_argument('--mode', choices=['refit', 'horizon', 'fabert', 'Covertype', 'category', 'category-full'], required=True)
     parser.add_argument('--after', type=Path)
     args = parser.parse_args()
     main(args.root, args.stage, args.mode, args.after)
