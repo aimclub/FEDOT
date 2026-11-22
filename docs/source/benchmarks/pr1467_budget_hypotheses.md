@@ -1444,3 +1444,17 @@ are pending. H5 candidate initial379.1s completed and composition is active.
 H6 baseline initial87.9s completed, composition5->3fold is active; candidate
 has no STARTED. No restarts, new jobs or source changes. Continue waiting for
 these existing comparisons; the single continuation task remains enabled.
+
+At13:15UTC H3 is COMPLETE and independently paired-audited: Covertype6 loss
+.16127634533286989 -> .17973857943837115 (11.4476% worse), job1825.6/1872.4s,
+train1800.0/1847.3s, valid58101x7 probabilities, identical paired truth and
+all CSV columns. Returned trial1 exact graph/params/edges and both final log
+sections match; four finite CV evaluations, successful209.454s refit, no
+fallback. Both candidate proposals chose profile0=(100,.1), so the longer
+profiles were never sampled; this is a negative joint-policy screen, not a
+fixed-tree causal comparison. Full hashes and limitations are in the new
+study. Original queue finished13:12:40, matching processes absent.
+H5 remains composing. H6 baseline composition completed13:14:14.845;
+measured38.9s/fold ->3fold152s cap/1365s search,1668.3s tuning allocation,
+114.3s refit reserve. Candidate still queued. Four directions closed, two
+pending; retain the existing continuation task and do not launch new jobs.

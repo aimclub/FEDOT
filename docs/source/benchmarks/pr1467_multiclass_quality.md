@@ -300,3 +300,14 @@ first LightGBM fold's100 fitted rounds; the other profiles and final quality
 are still pending. H5 candidate and H6 baseline are composing; H6 candidate
 waits without STARTED. All three runtime manifests and actual environments
 verify. H1/H2/H4 stay closed; no new jobs or model/default changes were made.
+
+H3 outer pair is now COMPLETE/audited13:15UTC: control logloss.16127634533286989
+versus candidate.17973857943837115,11.4476% worse on Covertype6. Both budgets,
+probabilities, paired truth/classes and final-refit checks pass. Both sampled
+candidate profiles were0=(100,.1); the150/300/450 profiles were not exercised
+and other selected parameters differed. Close this policy screen without
+default promotion or another run; it does not refute the train-only horizon
+mechanism. Exact artifacts/history/log provenance are in the new study.
+H5 candidate remains composing; H6 baseline began tuning13:14:14.948 with
+3fold152s cap/1365s search, and its candidate waits. H1/H2/H3/H4 are closed;
+H5/H6 still require complete paired results and final audits.
