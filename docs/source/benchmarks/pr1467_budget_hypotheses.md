@@ -1491,3 +1491,10 @@ candidate booster/schema full-map hashes and v3 auditor verify. Initial
 stack/CatBoost/XGBoost/LGBM CV evaluations are finite and match their control
 values; RF CV active. These are not final selection or outer quality. No
 COMPLETE/FAILED/predictions/history; no new training, restarts or changes.
+
+At14:12UTC H6 candidate composition is DONE14:08:32.984 (23.497min),
+measured39.4s/fold ->3fold154s cap/1314s search,1621.6s tuning allocation,
+117.8s reserve. Initial tuner expired14:11:18.598,fitnessinf; wall165.519s
+exceeds rounded154s, with whole-job budget still pending. Trial0 is active.
+Original queue/benchmark/exec paths and runtime/environment verify. No outer
+predictions/history/COMPLETE/FAILED yet; no new jobs or changes.

@@ -336,3 +336,9 @@ live and runtime/source hashes verified. Its four completed initial CV
 evaluations match control values, but final selection and outer predictions
 are pending. No COMPLETE/FAILED/history yet. Five directions stay closed;
 continue only this existing run and its final paired audit.
+
+At14:12UTC H6 candidate has completed composition and entered CatBoost tuning.
+Initial inner fitness is invalid after a timeout; trial0 is active. This is
+not an outer-quality result or completed framework failure. Original processes
+and isolated runtime verify; final refit, predictions and paired audit remain
+pending. No new jobs, restarts or source changes.
