@@ -1498,3 +1498,11 @@ measured39.4s/fold ->3fold154s cap/1314s search,1621.6s tuning allocation,
 exceeds rounded154s, with whole-job budget still pending. Trial0 is active.
 Original queue/benchmark/exec paths and runtime/environment verify. No outer
 predictions/history/COMPLETE/FAILED yet; no new jobs or changes.
+
+At14:27UTC the original H6 candidate queue/benchmark/exec remain live with
+isolated candidate environment and absent overlay. All7runtime entries,
+run-manifest equality, source.commit and v3 auditor hash verify. Six completed
+tuner proposals retain bestinf; seventh starts14:27:23.617. No final artifacts
+or terminal markers yet. Inner invalid fitness does not establish outer loss
+or full-job failure; refit, whole budget and paired audit are still pending.
+No new jobs, restarts, code changes or repeated tests.
