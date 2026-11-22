@@ -35,12 +35,20 @@ def check_idle():
             raise RuntimeError('Training process is already active: PID ' + entry.name)
 
 
-def main(root, stage, mode):
+def main(root, stage, mode, after=None):
     stage, root = stage.resolve(), root.resolve()
     if not stage.is_relative_to(root / 'experiments/pr1467-diagnostics-20261109'):
         raise ValueError('Unexpected stage')
+    if after:
+        after = after.resolve()
+        if not after.is_relative_to(root / 'experiments/pr1467-diagnostics-20261109'):
+            raise ValueError('Dependency outside diagnostic root')
+        with (stage / 'QUEUED').open('x') as stream:
+            stream.write(str(after))
     with (root / 'experiments/pr1467-followup-host.lock').open('a') as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        fcntl.flock(lock, fcntl.LOCK_EX | (0 if after else fcntl.LOCK_NB))
+        if after and (not (after / 'QUEUE_FINISHED').exists() or (after / 'QUEUE_FAILED').exists()):
+            raise RuntimeError('Dependency has not completed successfully')
         check_idle()
         verify(stage)
         preflight = json.loads((stage / 'preflight-passed.json').read_text())
@@ -57,6 +65,34 @@ def main(root, stage, mode):
                            'true' if mode == 'refit' else 'false', 'baseline candidate', 'none', 'isolated']
                 subprocess.run(command, input=script.read_bytes().replace(b'\r\n', b'\n'),
                                cwd=stage, check=True)
+            elif mode == 'category':
+                if after is None:
+                    raise ValueError('Category screen requires the completed fabert train-only stage')
+                env = os.environ.copy()
+                env.update(PYTHONPATH=f'{stage}/vendor/candidate:{stage}/baseline',
+                           TMPDIR=str(root / 'tmp'), OMP_NUM_THREADS='8',
+                           OPENBLAS_NUM_THREADS='8', MKL_NUM_THREADS='8',
+                           FEDOT_CATEGORY_CANDIDATE=str(stage / 'candidate/fedot/core/operations/evaluation/operation_implementations/models/boostings_implementations.py'),
+                           FEDOT_DIAGNOSTIC_VENDOR=str(stage / 'vendor/candidate'))
+                # Run host-native cheap model contracts only AFTER the previous
+                # worker releases the host lock, before any dataset fit.
+                with (stage / 'preflight-category.log').open('x') as log:
+                    subprocess.run(['timeout', '180s',
+                                    str(root / 'automlbenchmark/frameworks/FEDOT/venv/bin/python'),
+                                    '-m', 'pytest', '-q',
+                                    str(stage / 'candidate/examples/advanced/diagnostics/test_xgb_category_runtime.py'),
+                                    str(stage / 'candidate/examples/advanced/diagnostics/test_category_schema.py'),
+                                    str(stage / 'candidate/examples/advanced/diagnostics/test_runtime_contracts.py'),
+                                    '-k', 'not real_sanitized'],
+                                   stdout=log, stderr=subprocess.STDOUT, env=env, check=True, cwd=stage)
+                env['PYTHONPATH'] = f'{stage}/vendor/candidate:{stage}/candidate'
+                with (stage / 'probe.log').open('x') as log:
+                    subprocess.run(['timeout', '--kill-after=30s', '1320s',
+                                    str(root / 'automlbenchmark/frameworks/FEDOT/venv/bin/python'),
+                                    str(stage / 'candidate/examples/advanced/diagnostics/weak_dataset_probe.py'),
+                                    'category', '--data', str(after / 'train.npz'),
+                                    '--output', str(stage / 'screen'), '--stage', str(stage)],
+                                   stdout=log, stderr=subprocess.STDOUT, env=env, check=True, cwd=stage)
             else:
                 task_id = {'fabert': 168910, 'Covertype': 7593}[mode]
                 env = os.environ.copy()
@@ -96,6 +132,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, required=True)
     parser.add_argument('--stage', type=Path, required=True)
-    parser.add_argument('--mode', choices=['refit', 'horizon', 'fabert', 'Covertype'], required=True)
+    parser.add_argument('--mode', choices=['refit', 'horizon', 'fabert', 'Covertype', 'category'], required=True)
+    parser.add_argument('--after', type=Path)
     args = parser.parse_args()
-    main(args.root, args.stage, args.mode)
+    main(args.root, args.stage, args.mode, args.after)

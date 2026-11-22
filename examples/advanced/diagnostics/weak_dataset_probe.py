@@ -107,6 +107,8 @@ def fit_diagnostics(pipe):
 
 def worker(data_path, spec_path, output):
     from datetime import timedelta
+    import fedot
+    import golem
     with np.load(data_path, allow_pickle=False) as data:
         x, y = data['features'], data['target'].ravel()
     spec = json.loads(spec_path.read_text())
@@ -144,6 +146,7 @@ def worker(data_path, spec_path, output):
     with output.with_suffix('.npz').open('xb') as stream:
         np.savez_compressed(stream, classes=classes, **predictions)
     write_json(output, dict(seconds=time.monotonic() - started, folds=results,
+                            runtime=dict(fedot=fedot.__file__, golem=golem.__file__),
                             prediction_sha256=digest(output.with_suffix('.npz'))))
 
 
@@ -367,15 +370,56 @@ def screen(data, output, kind):
     print(json.dumps({k: v['status'] for k, v in results.items()}), flush=True)
 
 
+def category_screen(data, output, stage):
+    output.mkdir(exist_ok=False)
+    with np.load(data, allow_pickle=False) as source:
+        y = source['target'].ravel()
+        assert int(source['fold']) == 6 and int(source['task_id']) == 168910
+    parts = split_rows(y)
+    with (output / 'splits.npz').open('xb') as stream:
+        np.savez_compressed(stream, **parts)
+    # Exact failed evolutionary proposal from the earlier fold5 LOG, evaluated
+    # prospectively on fold6 OUTER TRAIN only. No old model is trained again.
+    params = dict(booster='dart', tree_method='auto', enable_categorical=True,
+                  use_eval_set=True, early_stopping_rounds=30, max_depth=6,
+                  learning_rate=.005463670187786161, subsample=.8752726757040556,
+                  min_child_weight=19, alpha=911, colsample_bytree=.4832522580434177,
+                  scale_pos_weight=2)
+    params['lambda'] = 845
+    results = {}
+    deadline = time.monotonic() + 1250
+    for variant in ('baseline', 'candidate'):
+        os.environ['PYTHONPATH'] = f'{stage}/vendor/{variant}:{stage}/{variant}:{stage}/harness'
+        cell = run_cell(data, output, variant,
+                        fit_spec('xgboost', parts['fit'], parts, params), 600, deadline)
+        if successful(cell):
+            source_path = Path(cell['evaluation']['runtime']['fedot']).resolve()
+            if not source_path.is_relative_to((stage / variant).resolve()):
+                raise ValueError('Wrong actual source loaded in category worker')
+        results[variant] = cell
+    old_log = (output / 'baseline.log').read_text(errors='replace')
+    reproduced = results['baseline']['status'] == 'failed' and 'Found a category not in the training set' in old_log
+    passed = reproduced and successful(results['candidate'])
+    result = dict(status='passed' if passed else 'failed_gate',
+                  reproduced_on_fold6_training=reproduced, cells=results,
+                  data_sha256=digest(data), split_sha256=digest(output / 'splits.npz'))
+    write_json(output / 'summary.json', result)
+    (output / 'COMPLETE').write_text(digest(output / 'summary.json'))
+    print(json.dumps(result), flush=True)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=['worker', 'screen'])
+    parser.add_argument('command', choices=['worker', 'screen', 'category'])
     parser.add_argument('--data', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--spec', type=Path)
     parser.add_argument('--task', choices=['fabert', 'Covertype'])
+    parser.add_argument('--stage', type=Path)
     args = parser.parse_args()
     if args.command == 'worker':
         worker(args.data, args.spec, args.output)
+    elif args.command == 'category':
+        category_screen(args.data, args.output, args.stage)
     else:
         screen(args.data, args.output, args.task)
