@@ -1468,3 +1468,19 @@ evaluation wall163.079s exceeds rounded152s allowance. This is not infinite
 outer loss or finished failure; full budget/refit/predictions/history pending.
 H6 candidate has no STARTED. H3 stays COMPLETE/idle. No new jobs or changes;
 details and counting limitations are in the latest study section.
+
+At13:47UTC H5 COMPLETE/audited: both Dionis6 losses.8555497437494369 with
+byte-identical valid41619x355 probabilities and exact same native logit graph.
+Candidate job2904.1/train2849.7s, explicit450.5s refit allowance, successful
+222.213s final fit/no fallback; baseline229.434s also below324s. No quality
+or speed claim. H6 baseline COMPLETE loss1.2840150620620987,job3183.8/train3159.8s,
+valid824x7 predictions, successful73.797s refit. All10 tuner fitness records
+invalid,8 proposals,7 explicit expired lines. Correctly preserved original
+CatBoost116.7281s metadata matches116.456s CV, but all three folds HIT its
+prediction cache: this is not cold tuner-cost evidence. Exact-match/MAX and
+final graph/log audit completed; see new report for full hashes.
+H6 candidate automatically STARTED13:42:38, actual isolated exec1308920 live;
+initial90.6s completed, composition active. Only remaining full run.
+Audit helper v3 corrects source-confirmed {:.6g} significant-digit score
+formatting (13 tests pass); use stage-root audit_followup_v3.py for H6 final
+pair, retain v2 and all old artifacts. No benchmark/source changes or reruns.

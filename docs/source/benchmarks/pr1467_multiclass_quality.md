@@ -319,3 +319,14 @@ timeout evidence; this is not an outer-test quality result or completed fit
 failure. Candidate XGBoost-schema code has not started training yet. No new
 predictions/history or COMPLETE/FAILED markers on these active runs. Runtime
 and actual isolated environments verify; no jobs, sources or defaults changed.
+
+H5 closed13:47UTC: Dionis6 expanded-refit/control losses both.8555497437494369,
+byte-identical predictions, same native logit graph, valid budgets and
+successful refits under even the original cap. No new quality gain or basis
+for a default change. H6 baseline completed with finite loss1.2840150620620987
+and valid budget/probabilities despite invalid inner tuner fitness. Its
+correct EVO timing included prediction-cache hits, not a fresh cost probe.
+H6 candidate STARTED13:42:38 in the original queue and remains active; it is
+the sole remaining full run. Final pair must use the new v3 audit helper's
+source-confirmed six-significant-digit score rule (13 tests pass). Full
+provenance and hashes are in the new study. Five directions closed, H6 pending.

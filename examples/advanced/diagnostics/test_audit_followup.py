@@ -5,7 +5,8 @@ import pytest
 from examples.advanced.diagnostics.audit_followup import audit_pair
 
 
-def make_pair(tmp_path):
+def make_pair(tmp_path, probability=.9):
+    other = (1 - probability) / 2
     for variant in ('baseline', 'candidate'):
         run = tmp_path / 'runs' / variant / 'toy-fold6-small'
         scores = run / 'results/session/scores'
@@ -13,10 +14,11 @@ def make_pair(tmp_path):
         scores.mkdir(parents=True)
         predictions.mkdir(parents=True)
         (run / 'COMPLETE').write_text('test-marker')
-        pd.DataFrame({'2': [.05, .05, .9], '1': [.9, .05, .05], '10': [.05, .9, .05],
+        pd.DataFrame({'2': [other, other, probability], '1': [probability, other, other],
+                      '10': [other, probability, other],
                       'truth': ['1', '10', '2'], 'predictions': ['1', '10', '2']}).to_csv(
             predictions / 'predictions.csv', index=False)
-        pd.DataFrame([dict(logloss=-np.log(.9), duration=100, training_duration=90, info='')]).to_csv(
+        pd.DataFrame([dict(logloss=-np.log(probability), duration=100, training_duration=90, info='')]).to_csv(
             scores / 'results.csv', index=False)
     return tmp_path
 
@@ -29,14 +31,22 @@ def test_lexical_class_alignment_and_paired_truth(tmp_path):
     assert result['candidate']['prediction_sha256'] == result['baseline']['prediction_sha256']
 
 
-def test_six_decimal_amlb_score_rounding(tmp_path):
-    stage = make_pair(tmp_path)
+@pytest.mark.parametrize('loss', [.10536051565782628, 1.2840150620620987,
+                                 12.3456789, .0000123456789, .9999998])
+def test_six_significant_digit_amlb_scores(tmp_path, loss):
+    stage = make_pair(tmp_path, probability=np.exp(-loss))
     for score in stage.rglob('scores/results.csv'):
         frame = pd.read_csv(score, keep_default_na=False)
-        frame['logloss'] = frame['logloss'].round(6)
+        frame['logloss'] = frame['logloss'].map('{:.6g}'.format).astype(float)
         frame.to_csv(score, index=False)
     result = audit_pair(stage)
-    assert result['baseline']['logloss'] == pytest.approx(-np.log(.9))
+    assert result['baseline']['logloss'] == pytest.approx(loss)
+    score = stage / 'runs/candidate/toy-fold6-small/results/session/scores/results.csv'
+    frame = pd.read_csv(score, keep_default_na=False)
+    frame.loc[0, 'logloss'] += 2 * 10 ** (np.floor(np.log10(frame.loc[0, 'logloss'])) - 5)
+    frame.to_csv(score, index=False)
+    with pytest.raises(ValueError, match='Recomputed loss'):
+        audit_pair(stage)
 
 
 @pytest.mark.parametrize('fault', ['budget', 'info', 'truth', 'columns', 'norm', 'failed', 'score'])

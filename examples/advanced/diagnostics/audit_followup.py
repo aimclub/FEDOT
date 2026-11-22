@@ -44,9 +44,10 @@ def audit_run(run):
     if norm_error > 1e-6:
         raise ValueError('Invalid probability normalization')
     loss = float(log_loss(truth, probabilities, labels=classes))
-    # AMLB writes aggregate scores to six decimal places; predictions retain
-    # more precision. Permit only half a unit in that last stored decimal.
-    if not np.isclose(loss, float(row['logloss']), atol=5.00001e-7, rtol=0):
+    # Scoreboard.as_printable_data_frame uses {:.6g}, i.e. six significant
+    # digits, not six decimal places. Compare at that exact stored precision.
+    reported_loss = float(row['logloss'])
+    if not np.isfinite(reported_loss) or format(loss, '.6g') != format(reported_loss, '.6g'):
         raise ValueError('Recomputed loss differs from AMLB score')
     history = list((run / 'results').rglob('history.json'))
     result = dict(rows=len(truth), classes=classes, csv_columns=columns, logloss=loss,
