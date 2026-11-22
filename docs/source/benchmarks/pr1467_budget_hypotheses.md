@@ -1458,3 +1458,13 @@ H5 remains composing. H6 baseline composition completed13:14:14.845;
 measured38.9s/fold ->3fold152s cap/1365s search,1668.3s tuning allocation,
 114.3s refit reserve. Candidate still queued. Four directions closed, two
 pending; retain the existing continuation task and do not launch new jobs.
+
+Read-only13:26UTC: H5/H6 original processes remain active, all seven runtime
+entries verified on all hosts. H5 candidate LGBM CV completed finite1.0599980594
+in1348.295s; logit CV began13:16:44.783 and is active. Its actual TaskConfig
+confirms remaining-refit=true. H6 BASELINE initial tuner fitness is inf and
+three completed proposals retain bestinf; next started13:24:50.650. Initial
+evaluation wall163.079s exceeds rounded152s allowance. This is not infinite
+outer loss or finished failure; full budget/refit/predictions/history pending.
+H6 candidate has no STARTED. H3 stays COMPLETE/idle. No new jobs or changes;
+details and counting limitations are in the latest study section.

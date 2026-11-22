@@ -311,3 +311,11 @@ mechanism. Exact artifacts/history/log provenance are in the new study.
 H5 candidate remains composing; H6 baseline began tuning13:14:14.948 with
 3fold152s cap/1365s search, and its candidate waits. H1/H2/H3/H4 are closed;
 H5/H6 still require complete paired results and final audits.
+
+At13:26UTC the remaining original H5/H6 queues are still active. H5 candidate
+is evaluating native logit after a finite LGBM CV. H6 baseline initial tuner
+fitness and three completed proposals remain invalid/inf, with explicit
+timeout evidence; this is not an outer-test quality result or completed fit
+failure. Candidate XGBoost-schema code has not started training yet. No new
+predictions/history or COMPLETE/FAILED markers on these active runs. Runtime
+and actual isolated environments verify; no jobs, sources or defaults changed.
