@@ -49,8 +49,10 @@ def model(module, categorical=True, evaluation=False, regression=False):
 
 
 def test_unknown_prediction_reproduces_and_candidate_survives_serialization(candidate):
-    train = data(['a', 'c'] * 45)
-    predict = data(['c', 'b', 'a'] * 10)
+    # Category determines the target: force the tree to actually use this
+    # feature. An unused categorical column need not exercise recoding.
+    train = data(['a', 'c', 'e'] * 30)
+    predict = data(['a', 'b', 'e'] * 10)
     old, new = model(baseline), model(candidate)
     old.fit(train)
     with pytest.raises(Exception, match='categor|Categor'):
