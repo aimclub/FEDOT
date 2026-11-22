@@ -1506,3 +1506,26 @@ tuner proposals retain bestinf; seventh starts14:27:23.617. No final artifacts
 or terminal markers yet. Inner invalid fitness does not establish outer loss
 or full-job failure; refit, whole budget and paired audit are still pending.
 No new jobs, restarts, code changes or repeated tests.
+
+Final six-direction closure,2026-11-22 14:43UTC: H6 candidate COMPLETE,
+original queue finished14:37:03 and all three hosts have no matching workers.
+Independent v3 paired audit gives fabert6 loss1.2840150620620987 on both sides,
+byte-identical valid824x7 predictions, candidate3232.8/3209.6s job/train versus
+control3183.8/3159.8s. Both budgets pass. Exact native CatBoost graph/parameters/
+edges match control, returned history, _tuning_result and final log sections.
+Candidate final fit succeeds14:36:50.496,72.627s after generation, no fallback.
+All10 tuner records are invalid;6 explicit expired lines, no blanket attribution
+for the other4. Original metadata118.16191378701478s (MAX over all3 exactgraph
+matches) agrees with117.877s CV but all3 folds HIT prediction cache. This is
+correct metadata ownership, not cold cost calibration. Initial165.519s wall
+exceeds rounded154s cap; complete-job compliance is independently verified.
+
+All6 directions are closed within6 full jobs. H1 count gate saturated; H2/H4
+quality gates fail; H3 outer policy worsens11.4476% while both trials choose
+native profile0; H5/H6 outer predictions are unchanged. No general defaults
+are justified. Cache-aware cost calibration is a future hypothesis, not an
+admitted extra run or a proven remedy. H6 schema repair retains correctness
+evidence from the reproducing task-level probe. Full hashes, exact provenance,
+limits and final chart are in pr1467_followup_20261122.md and its companion HTML.
+After final chart preview/render, the sole study continuation task was deleted
+with confirmed deleted=true. No remaining study jobs or audits.

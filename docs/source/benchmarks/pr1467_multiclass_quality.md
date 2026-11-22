@@ -350,3 +350,27 @@ No predictions/history/COMPLETE/FAILED yet, so no candidate outer-quality
 conclusion is available. Five directions remain closed; retain the existing
 continuation task until H6 final paired and history/refit audits. No new jobs,
 restarts, source changes or repeated tests.
+
+Final closure,2026-11-22 14:43UTC: H6 COMPLETE and independently paired-audited.
+Fabert6 control/candidate loss1.2840150620620987, byte-identical824x7 predictions,
+paired truth/classes/columns and valid probabilities. Candidate job3232.8s,
+training3209.6s; both variants under3600s. Same exact native scaling/CatBoost
+graph, final tuner/pipeline parameters verified. Full candidate refit succeeds
+in72.627s after generation, no fallback. All10 tuner fitness records invalid,
+6 explicit expired lines; finite outer loss is independently established.
+The selected graph's118.1619s metadata matches117.877s logged CV, with explicit
+prediction-cache hits on all3 folds. It is not a cold timing measurement.
+All1476 frozen source files and7runtime entries verify; original queue ended
+14:37:03, and matching workers are absent on all three hosts at14:42:29.
+
+All six directions are now closed. No new general quality gain is established:
+H1/H2/H4 did not pass original admission gates; H3 joint-policy outer loss is
+11.4476% worse (both trials sampled native profile0); H5 and H6 preserve exactly
+the control predictions. H6 remains a correctness fix for the reproduced
+category failure, without outer-quality improvement on this selected CatBoost.
+No general defaults or PR1467 changes. Train-only results, outer comparisons,
+audit hashes and limitations are summarized in pr1467_followup_20261122.md;
+the companion HTML keeps the two evaluation levels separate. Six full jobs
+were used, with no repeats or extra admissions.
+The final comparison was previewed/rendered and the sole continuation task
+was deleted with confirmed deleted=true. No pending study work remains.
