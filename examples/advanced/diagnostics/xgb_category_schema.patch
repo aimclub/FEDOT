@@ -1,0 +1,74 @@
+--- a/fedot/core/operations/evaluation/operation_implementations/models/boostings_implementations.py
++++ b/fedot/core/operations/evaluation/operation_implementations/models/boostings_implementations.py
+@@ -211,6 +211,7 @@
+ 
+     def fit(self, input_data: InputData):
+         self.features_names = input_data.features_names
++        self._category_schema = None
+ 
+         if self.params.get('enable_categorical'):
+             input_data = input_data.get_not_encoded_data()
+@@ -218,13 +219,9 @@
+         if check_eval_set_condition(input_data, self.params):
+             train_input, eval_input = train_test_data_setup(input_data)
+ 
+-            X_train, y_train = convert_to_dataframe(
+-                train_input, identify_cats=self.params.get('enable_categorical')
+-            )
+-
+-            X_eval, y_eval = convert_to_dataframe(
+-                eval_input, identify_cats=self.params.get('enable_categorical')
+-            )
++            X_train, y_train = self._convert_data(train_input, fit=True)
++
++            X_eval, y_eval = self._convert_data(eval_input)
+ 
+             self.model.eval_metric = self.set_eval_metric(self.classes_)
+ 
+@@ -241,9 +238,7 @@
+                 self.params.update(early_stopping_rounds=None)
+ 
+             # Training model without splitting on train and eval
+-            X_train, y_train = convert_to_dataframe(
+-                input_data, identify_cats=self.params.get('enable_categorical')
+-            )
++            X_train, y_train = self._convert_data(input_data, fit=True)
+             self.model.fit(
+                 X=X_train, y=y_train,
+                 verbose=self.model_params['verbosity'],
+@@ -252,6 +247,17 @@
+ 
+         return self.model
+ 
++    def _convert_data(self, input_data, fit=False):
++        frame, target = convert_to_dataframe(input_data, self.params.get('enable_categorical'))
++        if self.params.get('enable_categorical'):
++            from examples.advanced.diagnostics.category_schema import CategorySchema
++            if fit:
++                self._category_schema = CategorySchema().fit(frame)
++            if self._category_schema is None:
++                raise ValueError('Categorical schema has not been fitted')
++            frame = self._category_schema.transform(frame)
++        return frame, target
++
+     def _fit_callback_params(self) -> dict:
+         if _XGBOOST_CALLBACKS_IN_FIT and self.fit_callbacks:
+             return {'callbacks': self.fit_callbacks}
+@@ -261,7 +267,7 @@
+         if self.params.get('enable_categorical'):
+             input_data = input_data.get_not_encoded_data()
+ 
+-        X, _ = convert_to_dataframe(input_data, self.params.get('enable_categorical'))
++        X, _ = self._convert_data(input_data)
+         prediction = self.model.predict(X)
+ 
+         return prediction
+@@ -315,7 +321,7 @@
+         if self.params.get('enable_categorical'):
+             input_data = input_data.get_not_encoded_data()
+ 
+-        X, _ = convert_to_dataframe(input_data, self.params.get('enable_categorical'))
++        X, _ = self._convert_data(input_data)
+         prediction = self.model.predict_proba(X)
+         return prediction
+ 
