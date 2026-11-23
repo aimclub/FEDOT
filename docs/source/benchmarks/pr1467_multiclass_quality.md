@@ -464,3 +464,8 @@ No benchmark-quality conclusion. NextH14 tests distinct joint all-row/fixed-hori
 policy: actualAPI/originalTRAIN, native3000trees, onlyuse_eval_setFalse, frozen
 H11control/no refit. One bounded CV, actual4942Poolrows/fold and3000trees required,
 >=1%mean gain/fold2%guard. Same exploredTRAIN, no untouched/outer/speed claim.
+
+H14 ACTIVE13:28:39UTC, prospective336a2dba pushed before launch. Host26pass/1skip
+including tiny actualAPI categorical all-rowCV; actualfabert quality pending.
+Worker1333723/suite1333707 live13:28:50, exact isolatedenv/1473entrymanifest
+ed9508f4bc6d053d8ea2edc1e630d9ebcc993976b749e10ce11e51fab4f99a25. No default/fulljob promotion.
