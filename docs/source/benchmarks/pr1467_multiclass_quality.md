@@ -394,3 +394,7 @@ H8 v2 STARTED11:53:59UTC after31 passing host tests. An earlier admission
 attempt stopped before training when the overlap guard saw its own timeout
 parent; that artifact is preserved. No active job was repeated. H8 results
 are pending; the same continuation task carries the adaptive campaign forward.
+At11:57:40 the original H8 control is confirming the native graph after invalid
+initial/proposal CVs. Partial fold metrics are not full-CV or outer scores.
+Candidate policy and paired feasibility/budget audit remain pending; all680
+frozen manifest entries verify. No source changes or extra launches.

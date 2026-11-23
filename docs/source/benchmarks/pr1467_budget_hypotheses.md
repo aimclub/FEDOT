@@ -1552,3 +1552,9 @@ H8 v1 guard rejected its own timeout parent BEFORE STARTED; retained unchanged.
 Corrected v2 passes31 host contracts and STARTED11:53:59UTC, suite1323491,
 wrapper1323490, initial worker1323507. Isolated environment and frozen680-file
 manifest verify; no modelling changes. Calibration/feasibility results pending.
+At11:57:40 H8 control confirmation is active in the original suite. Initial
+and sole proposal CVs are invalid, with partial artifacts preserved. Initial
+process87.1296s includes termination grace beyond81.9516s external waiting
+allowance; proposal exits normally78.2411s. Evaluator58.1634/60.5498s exceeds
+rounded51.9516s CV cap; whole600s policy-budget verification is still pending.
+No terminal marker or candidate result, no changes/restarts;680 hashes verify.
