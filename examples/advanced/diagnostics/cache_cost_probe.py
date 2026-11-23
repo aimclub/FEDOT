@@ -47,7 +47,7 @@ def cost_gate(cached, fresh, predictions_match, cache_activated):
                 min(fresh) > 1.3 * max(cached))
 
 
-def worker(stage, label, smoke=False):
+def worker(stage, label, smoke=False, spec=None):
     from datetime import timedelta
     import fedot
     import golem
@@ -66,6 +66,7 @@ def worker(stage, label, smoke=False):
     if not smoke:
         assert Path(fedot.__file__).resolve().is_relative_to(stage / 'source')
         assert Path(golem.__file__).resolve().is_relative_to(stage / 'vendor')
+    spec = spec or {}
     random.seed(SEED)
     np.random.seed(SEED)
     with np.load(stage / 'train.npz', allow_pickle=False) as z:
@@ -75,6 +76,7 @@ def worker(stage, label, smoke=False):
                      task=Task(TaskTypesEnum.classification), data_type=DataTypesEnum.table)
     scale = PipelineNode('scaling')
     cat = PipelineNode('catboost', nodes_from=[scale])
+    cat.parameters = {**cat.parameters, **spec.get('params', {})}
     if smoke:
         cat.parameters = {**cat.parameters, 'num_trees': 8, 'max_depth': 2,
                           'use_eval_set': True, 'enable_categorical': False}
@@ -105,7 +107,18 @@ def worker(stage, label, smoke=False):
         def prepare_graph(self, graph, train_data, fold_id=None, n_jobs=-1, **kwargs):
             start = time.monotonic()
             result = super().prepare_graph(graph, train_data, fold_id, n_jobs, **kwargs)
-            timings.append({'fold': fold_id, 'prepare_seconds': time.monotonic() - start})
+            fitted = []
+            for node in graph.nodes:
+                implementation = node.fitted_operation
+                model = getattr(implementation, 'model', implementation)
+                item = {'operation': node.operation.operation_type}
+                for attr in ('tree_count_', 'best_iteration_', 'n_estimators_'):
+                    value = getattr(model, attr, None)
+                    if value is not None:
+                        item[attr] = int(value)
+                fitted.append(item)
+            timings.append({'fold': fold_id, 'prepare_seconds': time.monotonic() - start,
+                            'fitted_nodes': fitted})
             arrays[f'train_rows_{fold_id}'] = np.asarray(train_data.idx).copy()
             return result
 
@@ -125,7 +138,7 @@ def worker(stage, label, smoke=False):
 
     splitter = DataSourceSplitter(cv_folds=3, random_seed=42)
     evaluator = TimedEvaluator(MetricsObjective(metric), splitter.build(data),
-                               evaluation_time_constraint=timedelta(seconds=600),
+                               evaluation_time_constraint=timedelta(seconds=spec.get('cap', 600)),
                                eval_n_jobs=8, **cache)
     before = counters()
     node_before = dict(cache['predictions_cache']._db.retrieve_stats()) if enabled else {}
@@ -139,6 +152,7 @@ def worker(stage, label, smoke=False):
         np.savez_compressed(stream, **arrays)
     write_json(target.with_suffix('.json'), {
         'label': label, 'valid': bool(fitness.valid), 'seconds': seconds,
+        'evaluation_cap': spec.get('cap', 600), 'parameter_override': spec.get('params', {}),
         'fitness': float(fitness.value) if fitness.valid else None,
         'folds': timings, 'cache_enabled': enabled, 'cache_before': before,
         'cache_after': after, 'graph_id_before': graph_id,
