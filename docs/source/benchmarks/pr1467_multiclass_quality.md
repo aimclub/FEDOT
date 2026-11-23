@@ -521,3 +521,9 @@ H17 preflight local2pass/7hostskip, host9pass17.68s. Real tiny tuner/CV/Pool/his
 integration verified; stronger serialized-history audit passed without refit.
 TinyCV requires5s minimum cap due evaluator1s cutoff; fabertcaps unaffected.
 v1failed-preflight artifacts preserved. Model/vendor/harness unchanged.
+
+H17 STARTED14:38:44UTC after prospective ebeac99b push. Suite1340915/worker1340931
+live14:38:55, isolatedruntime/nooverlay. Frozen1481manifestSHA
+4cb63053ac894c82d3c86c6768516ed75a0364a40dbe7443e5d6ad4a44a96a3f.
+Real tuner initial/trial/final integration and1100swholebudget pending; never
+restart/patch. Full protocol/audit instructions in adaptive report. No fulljob.
