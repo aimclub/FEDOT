@@ -1880,3 +1880,16 @@ zero model fits. Within-stream exacttrial/history/selection parity; across-strea
 proposalchange, hooklegacyRNGstatedigests unchanged. Local2pass1skip/host3pass16.19s.
 All1484runtimefiles unchanged;60sworker/270stage/300external+5. Fullprotocol in
 adaptive report. No H21retry or shared/default/RNGpromotion.
+
+H24 STARTED16:47:35UTC20261123 after prospective3c4ca921 push. Suite1363934/
+wrapper1363933/worker1363942 live16:47:49 exactstage/vendor:source:harness/nooverlay;
+terminalmarkersabsent. Neverrestart/duplicate/patchSTARTEDstage.
+Frozen1492manifestSHA28b18c87f39559f949ac7cb160c215be6dfc512dabc9370e71764810e283e873;
+protocolSHA3bba31962d2639bcbc4225ca8a96ef131b21fcf6a57d0c35166640cd5bbfd5a9;
+driverSHA806d2104d83049505d566ec00a957978bde7fcd9507cc5b62c55289ec7437e81;
+testSHAbe285cc16ec75af51f8876a3027ecf03592b8891c2cc84dd88e49beccad0c3e1.
+AfterCOMPLETE FIRSTverify1492hashes, then readonlyframeworkpython
+fallback_rng_contract.py audit --stage STAGE with isolatedPYTHONPATH/AMLB_PATH.
+Compare savedindependent-audit excludingstage_seconds; inspectactualprocessabsence,
+sixanalyticalcalls/twoentropyrequests/twofmincalls,flagparity/hookRNGdigest/serialized
+historylineage/zero fits. FAILED investigateexactcause withoutrefit/retry/startedpatch.
