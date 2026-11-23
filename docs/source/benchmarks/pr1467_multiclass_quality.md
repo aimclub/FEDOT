@@ -490,3 +490,9 @@ All1468hashes valid; auditSHA89feb1377094cfe544f2abc876fb9035374e3214b852610af77
 Newsplit on exploredTRAIN, not independentdataset/outergain. H16 next tests actual
 parentserialization+callee deserialization fidelity with aTRAINproxy and nofit,
 compared to frozenH9APIframe, before considering any prospective full protocol.
+
+H16 ACTIVE14:18:17UTC, prospective2d177716 pushedfirst,7hosttests pass. Parent1337923/
+realchild1337940 live14:18:28 underisolatedenv. Manifest1471SHA1d37a1f4d29158c558b04332fa3fd4c90d8ad49f59c821213d183450e355006e.
+No-fit fullTRAINproxy transport fidelity stillpending; neither qualityresult
+nor fulljob admission. Preflightintegercolumnnames normalized tostring, retained;
+string-column scenario matchingfabert passes withoutweakeningexactfullgate.

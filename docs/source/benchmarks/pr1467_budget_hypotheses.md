@@ -1655,3 +1655,9 @@ Controlinitial/proposal2foldinvalid/nominal152soverrun; confirmationexternaltime
 197.335s with2foldNPZ but0acceptedrecord, notzero work/infiniteouterloss.
 H16 prospective no-fit realparent/caller/callee/API dataframe transport audit,
 oneTRAINproxy capture/stage300s,fullprotocol in adaptive report. No fulljob yet.
+
+H16 STARTED14:18:17UTC afterprospective2d177716 and7hostpass21.90s. Parent1337923/
+child1337940 active14:18:28, realcaller isolatedenv/nooverlay. Manifest1471SHA
+1d37a1f4d29158c558b04332fa3fd4c90d8ad49f59c821213d183450e355006e. No model fits;
+fullTRAINtransport audit pending. v1integercolumn-name normalization failure
+retained; v2string-schema fixture passes, fullfabert gate remains exact.
