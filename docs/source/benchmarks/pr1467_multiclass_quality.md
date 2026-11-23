@@ -728,3 +728,16 @@ fallback_rng_contract.py audit --stage STAGE with isolatedPYTHONPATH/AMLB_PATH.
 Compare savedindependent-audit excludingstage_seconds; inspectactualprocessabsence,
 sixanalyticalcalls/twoentropyrequests/twofmincalls,flagparity/hookRNGdigest/serialized
 historylineage/zero fits. FAILED investigateexactcause withoutrefit/retry/startedpatch.
+
+H24 COMPLETE16:48:33UTC/all1492hashes/separatereadonlyauditexact/processesabsent.
+Audit272eaa77cfa6473a1d1d806b2ed9f68a2184725fc9ba8349b9ba3e2f6c26924b;
+stage58.525517s, four6-call analyticcasesPASS/0fits. Sameentropy flags exact,
+differententropy proposalchange;ineligiblehooklegacyRNGstateunchanged.
+H25prospective distinct explicitrandom_state opt-in in NEWisolatedGOLEMvendor,
+sameGenerator passed to BOTHfminpaths;defaultNone compatibility with frozenH24.
+ActualTunerBuilder/Hyperopt/selection/history,4fixedno-fitcases, same/differentseed
+anddefaultcontrol;analyticobjective only. No API/adapterseedwiring/defaultpromotion.
+All1486codeverifiedbeforetwo declaredvendorchanges;model/FEDOT/H18unchanged.
+Local1pass2skip/hostv2 3pass14.42s;v1 2pass1fail14.34s retained (diagnosticcounted
+internalTPEseededgenerators;observercorrected,patchunchanged). Worker60/stage270/
+external300+5,no retries/fullpair. Exactcontrols/hashes/gates in adaptive report.
