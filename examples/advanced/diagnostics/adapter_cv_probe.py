@@ -97,7 +97,8 @@ def run_pair(stage, labels, audit_function, worker_script, stage_limit=1400):
             conflict=training_conflict(pid,args,os.getpid(),os.getppid(),str(worker_script))
             own_parent=pid==os.getppid() and args and Path(args[0]).name=='timeout' and str(worker_script) in args
             extra=any(Path(a).name in ('adapter_cv_probe.py','adapter_fidelity_probe.py',
-                                      'subspace_validation_probe.py','catboost_ceiling_probe.py') for a in args)
+                                      'subspace_validation_probe.py','catboost_ceiling_probe.py',
+                                      'noeval_probe.py','allrow_fit_probe.py') for a in args)
             if pid!=os.getpid() and not own_parent and (conflict or extra):
                 raise RuntimeError('Host occupied: '+str(pid))
         manifest=json.loads((stage/'manifest.json').read_text())

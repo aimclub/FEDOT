@@ -456,3 +456,11 @@ No independent/outer quality or speed conclusion. Next H13 is correctness-only:
 fix reproduced CatBoost use_eval_set=False alias conflict in an isolatedcopy,
 test8synthetic cells with exact true-path prediction parity and all-row false-path
 fit. Prospective bounded protocol in adaptive report; no default/PR promotion.
+
+H13 COMPLETE13:21:29UTC: synthetic correctness gate passes,8fixed cells,
+independent audit exact/all1870hashes. Both no-eval errors reproduced and repaired;
+eval-set predictions/params unchanged. AuditSHA81c242b30757743c7117e8e7fb6ff1ebf72994f6bcbd1b2300cb8fbf38e0861a.
+No benchmark-quality conclusion. NextH14 tests distinct joint all-row/fixed-horizon
+policy: actualAPI/originalTRAIN, native3000trees, onlyuse_eval_setFalse, frozen
+H11control/no refit. One bounded CV, actual4942Poolrows/fold and3000trees required,
+>=1%mean gain/fold2%guard. Same exploredTRAIN, no untouched/outer/speed claim.

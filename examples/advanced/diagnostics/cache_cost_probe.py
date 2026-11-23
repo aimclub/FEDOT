@@ -86,7 +86,8 @@ def worker(stage, label, smoke=False, spec=None, input_data=None):
     cat.parameters = {**cat.parameters, **spec.get('params', {})}
     if smoke:
         cat.parameters = {**cat.parameters, 'num_trees': 8, 'max_depth': 2,
-                          'use_eval_set': True, 'enable_categorical': False}
+                          'use_eval_set': spec.get('params', {}).get('use_eval_set', True),
+                          'enable_categorical': spec.get('params', {}).get('enable_categorical', False)}
     if label == 'prime' and not smoke:
         root = PipelineNode('logit', nodes_from=[cat,
                             PipelineNode('xgboost', nodes_from=[scale]),

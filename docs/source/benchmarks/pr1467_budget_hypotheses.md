@@ -1620,3 +1620,11 @@ Exactly8tiny synthetic cells, classification/regression and true/false evalset,
 native/isolatedpatch;240s internal/300s external stage limit. Gate requires exact
 true-path parity and corrected false-path all240rows/12trees, callbacks8threads
 preserved. No dataset-quality/fulljob admission; full protocol in adaptive report.
+
+H13 COMPLETE13:21:29UTC,8fixed cells pass,1870hashes and independent audit exact.
+Baseline no-eval conflicts reproduced in classification/regression; candidate
+fitsall240rows/12trees; true-path parameters and predictions exact. Measured
+stage1.321s excludes imports; external300s bound separate. AuditSHA81c242b30757743c7117e8e7fb6ff1ebf72994f6bcbd1b2300cb8fbf38e0861a.
+H14 prospectively tests ONE actualAPI all-row fixed3000tree CV against frozenH11
+control, use_eval_setFalse only graph change, H13patch required.600sCV/660sprocess/
+700sstage; explicitPoolrow evidence,>=1%mean quality/no fold>2%worse. No new fulljob.
