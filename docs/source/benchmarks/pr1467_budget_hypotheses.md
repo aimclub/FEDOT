@@ -1529,3 +1529,9 @@ evidence from the reproducing task-level probe. Full hashes, exact provenance,
 limits and final chart are in pr1467_followup_20261122.md and its companion HTML.
 After final chart preview/render, the sole study continuation task was deleted
 with confirmed deleted=true. No remaining study jobs or audits.
+
+2026-11-23: the user authorized a NEW sequential hypothesis campaign after
+each result. The completed six-direction study stays closed. H7 prospectively
+tests cache-conditioned composition cost versus fresh tuner cost; protocol,
+bounded A-B-B-A cells and admission evidence are in pr1467_adaptive_20261123.md.
+No new full AMLB run is admitted by this mechanism experiment.

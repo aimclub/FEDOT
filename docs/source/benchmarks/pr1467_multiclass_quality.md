@@ -374,3 +374,8 @@ the companion HTML keeps the two evaluation levels separate. Six full jobs
 were used, with no repeats or extra admissions.
 The final comparison was previewed/rendered and the sole continuation task
 was deleted with confirmed deleted=true. No pending study work remains.
+
+2026-11-23: new user-authorized adaptive campaign begins with H7, measuring
+cached/fresh CV cost for the identical CatBoost graph. This is train-only
+mechanism work, not an outer quality result or a repeat of H1's fidelity gate.
+See pr1467_adaptive_20261123.md for prospective controls and admission evidence.
