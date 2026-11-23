@@ -1574,3 +1574,8 @@ InputData marks all numerical. API32 numerical values are identical to H7;
 APIframe differs only by float32 rounding<=2.9648e-8. Full row/label pairing
 passes. This motivates H10 two bounded fresh CVs on these two API representations
 against frozen H7 probabilities, with fixed native graph/splits and no full jobs.
+
+H10 admitted after7 host tests23.37s; prospective commit48260d21 pushed first.
+STARTED12:24:39UTC, original suite1327630/API32worker1327646 live12:24:50,
+isolated environment confirmed. Manifest822files SHAbc35880cb302567eb0cde09b426929cb0c49ad2d1c3f42c66c29d15feacaa440.
+Two fixed API-data CVs only; paired audit pending. No restarts/full jobs.

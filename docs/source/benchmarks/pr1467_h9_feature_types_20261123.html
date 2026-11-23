@@ -1,0 +1,14 @@
+<style>
+#h9{font-family:var(--font-sans);color:var(--foreground)}
+#h9 .row{margin:20px 0}#h9 .bar{display:flex;height:24px;margin-top:8px;background:var(--secondary)}
+#h9 .numeric{background:var(--chart-1)}#h9 .categorical{background:var(--chart-2)}
+#h9 .legend{display:flex;gap:24px;flex-wrap:wrap}#h9 .dot{display:inline-block;width:12px;height:12px;margin-right:5px}
+</style>
+<section id="h9" aria-label="H9: типы 800 признаков до начала композиции, обучение не выполнялось">
+<h3>H9 · Типы признаков перед композицией</h3>
+<div class="row">Прямой InputData · 800 числовых<div class="bar"><div class="numeric" style="width:100%"></div></div></div>
+<div class="row">API + float32 · 715 числовых, 85 категориальных<div class="bar"><div class="numeric" style="width:89.375%"></div><div class="categorical" style="width:10.625%"></div></div></div>
+<div class="row">API + dataframe · 715 числовых, 85 категориальных<div class="bar"><div class="numeric" style="width:89.375%"></div><div class="categorical" style="width:10.625%"></div></div></div>
+<div class="legend"><span><i class="dot numeric"></i>Числовые</span><span><i class="dot categorical"></i>Категориальные</span></div>
+<p>7413 обучающих строк · порядок строк и метки совпадают · 0 обучений моделей</p>
+</section>

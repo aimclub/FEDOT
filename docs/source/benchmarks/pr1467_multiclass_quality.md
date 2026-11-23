@@ -414,3 +414,8 @@ frame rounding<=2.9648e-8, API32 numerically identical. This is representation
 evidence, not measured quality improvement. H10 prospectively tests two new
 native API-path CVs, same model/splits, bounded1400s total, no cache or outer test.
 All source/runtime changes remain isolated diagnostics; no defaults promoted.
+
+H10 STARTED12:24:39UTC after7 passing host tests and prospective commit48260d21.
+Original suite1327630, API32worker1327646 active12:24:50. Both source isolation
+and frozen822-entry manifest verified. No complete native API-path CV evidence
+yet; do not infer quality from H9's no-fit type counts. Continue existing pair.
