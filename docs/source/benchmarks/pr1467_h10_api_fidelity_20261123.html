@@ -1,0 +1,16 @@
+<style>
+#h10{font-family:var(--font-sans);color:var(--foreground)}
+#h10 .row{margin:18px 0}#h10 .labels{display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap}
+#h10 .track{height:24px;background:var(--secondary);margin-top:7px}
+#h10 .bar{height:24px;background:var(--chart-1)}#h10 .api{background:var(--chart-2)}
+#h10 .axis{display:flex;justify-content:space-between;color:var(--muted-foreground)}
+</style>
+<section id="h10" aria-label="H10: CV logloss, одинаковая модель и разбиения обучающей выборки">
+<h3>H10 · CV logloss по пути подготовки данных ↓</h3>
+<div class="row"><div class="labels"><span>H7 · прямой InputData</span><span>1,714373</span></div><div class="track"><div class="bar" style="width:95.24296%"></div></div></div>
+<div class="row"><div class="labels"><span>H10 · API + float32</span><span>0,924240</span></div><div class="track"><div class="bar api" style="width:51.34667%"></div></div></div>
+<div class="row"><div class="labels"><span>H10 · API + исходный dataframe</span><span>0,924240</span></div><div class="track"><div class="bar api" style="width:51.34667%"></div></div></div>
+<div class="axis"><span>0</span><span>0,9</span><span>1,8</span></div>
+<p>Оба API-результата точно воспроизводят исторический CV FEDOT. Восстановлена достоверность диагностики; новый прирост качества FEDOT не заявляется.</p>
+<p>7413 обучающих строк · вероятности API32/APIframe идентичны · внешняя тестовая выборка не используется</p>
+</section>

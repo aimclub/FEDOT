@@ -1579,3 +1579,13 @@ H10 admitted after7 host tests23.37s; prospective commit48260d21 pushed first.
 STARTED12:24:39UTC, original suite1327630/API32worker1327646 live12:24:50,
 isolated environment confirmed. Manifest822files SHAbc35880cb302567eb0cde09b426929cb0c49ad2d1c3f42c66c29d15feacaa440.
 Two fixed API-data CVs only; paired audit pending. No restarts/full jobs.
+
+H10 COMPLETE12:32:33UTC and independently audited12:40,822 hashes intact.
+API32/APIframe CV0.9242401336464137, byte-identical probabilities, EXACT historical
+H6native CV; fresh costs206.3413/207.0910s, stage474.5283s withinlimits. Fitted
+trees2998/3000/2996,85categorical columns eachfold. AuditSHA3d9fa3f9afe8c748161e12fa0449e18b3efbedd8b83ce5cce354a1b97f978f21.
+H7direct1.71437 reflects different API data contract, not current FEDOT quality;
+float32 rounding has no prediction effect here. Cold~207s exceeds historical
+cache-conditioned152s tuning cap, without a speed/generalquality claim.
+H11 prospectively tests ONLY colsample_bylevel=.5 vs native on actualAPI data,
+new CVseed104736,>=1%mean gain/no fold>2%worse, two bounded cells. No full jobs.

@@ -145,7 +145,7 @@ def worker(stage, label, smoke=False, spec=None, input_data=None):
         timings[-1].update(prediction_seconds=seconds, logloss=loss)
         return loss
 
-    splitter = DataSourceSplitter(cv_folds=3, random_seed=42)
+    splitter = DataSourceSplitter(cv_folds=3, random_seed=spec.get('split_seed', 42))
     evaluator = TimedEvaluator(MetricsObjective(metric), splitter.build(data),
                                evaluation_time_constraint=timedelta(seconds=spec.get('cap', 600)),
                                eval_n_jobs=8, **cache)
@@ -162,6 +162,7 @@ def worker(stage, label, smoke=False, spec=None, input_data=None):
     write_json(target.with_suffix('.json'), {
         'label': label, 'valid': bool(fitness.valid), 'seconds': seconds,
         'evaluation_cap': spec.get('cap', 600), 'parameter_override': spec.get('params', {}),
+        'split_seed': spec.get('split_seed', 42),
         'fitness': float(fitness.value) if fitness.valid else None,
         'folds': timings, 'cache_enabled': enabled, 'cache_before': before,
         'cache_after': after, 'graph_id_before': graph_id,

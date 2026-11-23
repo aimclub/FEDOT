@@ -81,7 +81,12 @@ def paired_audit(stage):
 
 
 def suite(stage):
+    run_pair(stage, LABELS, paired_audit, Path(__file__).resolve())
+
+
+def run_pair(stage, labels, audit_function, worker_script):
     import fcntl
+    worker_script = Path(worker_script).resolve()
     started=time.monotonic()
     with (stage.parents[2]/'experiments/pr1467-followup-host.lock').open('a') as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
@@ -89,9 +94,10 @@ def suite(stage):
             try:args=[a.decode(errors='replace') for a in p.read_bytes().split(b'\0') if a]
             except OSError:continue
             pid=int(p.parent.name)
-            conflict=training_conflict(pid,args,os.getpid(),os.getppid(),str(Path(__file__).resolve()))
-            own_parent=pid==os.getppid() and args and Path(args[0]).name=='timeout' and str(Path(__file__).resolve()) in args
-            extra=any(Path(a).name in ('adapter_cv_probe.py','adapter_fidelity_probe.py') for a in args)
+            conflict=training_conflict(pid,args,os.getpid(),os.getppid(),str(worker_script))
+            own_parent=pid==os.getppid() and args and Path(args[0]).name=='timeout' and str(worker_script) in args
+            extra=any(Path(a).name in ('adapter_cv_probe.py','adapter_fidelity_probe.py',
+                                      'subspace_validation_probe.py') for a in args)
             if pid!=os.getpid() and not own_parent and (conflict or extra):
                 raise RuntimeError('Host occupied: '+str(pid))
         manifest=json.loads((stage/'manifest.json').read_text())
@@ -99,10 +105,10 @@ def suite(stage):
         for n,h in manifest['files'].items():assert sha(stage/n)==h,n
         write_json(stage/'STARTED',dict(utc=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),pid=os.getpid()))
         try:
-            for label in LABELS:
+            for label in labels:
                 before=time.monotonic()
                 with (stage/'cells'/(label+'.log')).open('x') as log:
-                    p=subprocess.Popen([sys.executable,str(Path(__file__).resolve()),'worker','--stage',str(stage),'--label',label],
+                    p=subprocess.Popen([sys.executable,str(worker_script),'worker','--stage',str(stage),'--label',label],
                                        stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
                     try:code=p.wait(timeout=660)
                     except subprocess.TimeoutExpired:
@@ -112,7 +118,7 @@ def suite(stage):
                         code=p.returncode
                 write_json(stage/'cells'/(label+'.process.json'),dict(exit_code=code,seconds=time.monotonic()-before))
                 if code!=0:raise RuntimeError('CV worker failed: '+label)
-            audit=paired_audit(stage)
+            audit=audit_function(stage)
             audit['stage_seconds']=time.monotonic()-started
             assert audit['stage_seconds']<=1400
             write_json(stage/'independent-audit.json',audit)

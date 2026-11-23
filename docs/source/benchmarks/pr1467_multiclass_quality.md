@@ -419,3 +419,13 @@ H10 STARTED12:24:39UTC after7 passing host tests and prospective commit48260d21.
 Original suite1327630, API32worker1327646 active12:24:50. Both source isolation
 and frozen822-entry manifest verified. No complete native API-path CV evidence
 yet; do not infer quality from H9's no-fit type counts. Continue existing pair.
+
+H10 COMPLETE12:32:33UTC, independently audited12:40: both actualAPI paths give
+0.9242401336464137, byte-identical7413x7 probabilities and exact historicalH6CV.
+The46.09% reduction relative to H7direct is DIAGNOSTIC FIDELITY recovery, not a
+gain over existing FEDOT. Float32/rawframe predictions match exactly; combined
+API preprocessing contract matters. All822hashes/probabilities/splits/graphs/
+budgets verified; auditSHA3d9fa3f9afe8c748161e12fa0449e18b3efbedd8b83ce5cce354a1b97f978f21.
+H11 prospectively tests one fixed feature-subsampling proposal against native
+on actualAPI data with a new predeclared CV split, not an untouched dataset.
+No outer data or full-job admission; protocol and limitations in adaptive report.
