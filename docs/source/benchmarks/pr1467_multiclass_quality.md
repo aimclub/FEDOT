@@ -469,3 +469,11 @@ H14 ACTIVE13:28:39UTC, prospective336a2dba pushed before launch. Host26pass/1ski
 including tiny actualAPI categorical all-rowCV; actualfabert quality pending.
 Worker1333723/suite1333707 live13:28:50, exact isolatedenv/1473entrymanifest
 ed9508f4bc6d053d8ea2edc1e630d9ebcc993976b749e10ce11e51fab4f99a25. No default/fulljob promotion.
+
+H14 COMPLETE13:32:48UTC and audited: native.9330059458264569 -> all-row.9032609807535016,
+3.18808%gain passes1%gate, allfoldsimprove. Actual3000trees/all4942Poolrows/85cats
+eachfold, pairedprobs/budgets pass/all1473hashes intact. AuditSHA6b7d5c479eacb5644eefd1995de559b8ba6bf727a108f4b4a8280950bba1ab2e.
+Jointsample-use/stopping policy, exploredTRAIN/historicalcontrol, noouter/speedclaim.
+H15 prospectively combines paidactualAPIcalibration with NEWsplit104741 replication
+of thisONEproposal,1100sperpolicy,max6cells. Actualnewsplitnativecontrol required,
+no borrowedqualityscore. Fullprotocol/gates in adaptive report, no defaultpromotion.

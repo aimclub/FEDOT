@@ -1633,3 +1633,11 @@ H14 STARTED13:28:39UTC after prospective push336a2dba and host26pass/1skip;
 suite1333707/worker1333723 active13:28:50, isolatedruntime/nooverlay verified.
 Manifest1473entries SHAed9508f4bc6d053d8ea2edc1e630d9ebcc993976b749e10ce11e51fab4f99a25.
 Actual full3000tree/all4942rowCV quality and process budget pending; no repeat.
+
+H14 COMPLETE13:32:48UTC/all1473hashes/independent audit exact. CV.9330059458264569
+->.9032609807535016,3.18808%gain PASS1%gate/allfoldguard;3000trees/all4942rows
+eachfold. CV217.8084/process248.2762/stage250.0525s valid. AuditSHA6b7d5c479eacb5644eefd1995de559b8ba6bf727a108f4b4a8280950bba1ab2e.
+H15 prospective actualAPI paid calibration/newsplit104741: fixedhistorical152s
+cap vsinitial300s thenmin(300,1.3*freshcost), BOTH1100s including all overhead.
+One H14proposal, validincumbent selection, finalconfirmation, max6cells,stage2250s.
+Requires extra validproposal AND>=1%newsplitgain/foldguard; no full/default admission.
