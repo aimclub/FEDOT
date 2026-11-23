@@ -1922,3 +1922,15 @@ PYTHONPATH/AMLB_PATH; compare savedJSONexcludingstage_seconds. Checkprocessabsen
 samegeneratoridentity/continuousstate,seededno-unseededrequests,6analyticcalls,
 historylineage/final.05percentselection/defaultH24parity/zerofits/budgets.
 FAILED requires exactmechanismanalysis; no retries/sourcepatch/refit.
+
+H25 COMPLETE17:02:41UTC/all1502hashes/separateauditexact/processesabsent.
+Audit9765ec3234c8f58efbd3174942c695835244b396a8b226a1ac5920619f80febd;
+stage58.982354s,4analyticcasesPASS/0fits. SameSeedexact/differentSeedchangestrials,
+sameadvancingGeneratorbothfminpaths,defaultEXACTH24. No APIseedwiring/qualityclaim.
+H26prospective distinct adapter _tuner_random_state validation and ApiComposer
+original/paidbuilder routing,4NOFITcases absent/null vs explicitstring/integerseed.
+Newisolatedadapter/ApiComposer/paidpolicychangesONLY,H25vendor/modelunchanged.
+Originalcalls/history mustmatchfrozenH25;paidfake1.0/.9 exercisesreal1percentselection
+with exactnative3000/allrowproposal and budgetbounds. No actualparenttransport/
+Fedot.fit ormodelquality. Local14pass2skip/host16pass15.17s;mainnotrunbeforeadmission.
+Worker60/stage270/external300+5, no retries/default/fullpair. Details in adaptive report.
