@@ -1950,3 +1950,55 @@ composer_seed_contract.py audit --stage STAGE with isolatedPYTHONPATH/AMLB_PATH.
 Compare savedJSONexcludingstage_seconds; verifyactualprocessabsence/originalH25
 analyticparity/paidfixedproposal andhistorylineage/seedrouting/caps/0fits/budgets.
 Failedrequires exactmechanismanalysis, no retries/sourcepatch/refit. No qualityclaim.
+
+## H26 COMPLETE/audited; H27 prospective real seed transport
+
+H26 COMPLETE17:19:39UTC20261123, all1503hashes verified FIRST; separate readonly
+frameworkpython auditor EXACT savedJSON excludingstage_seconds; processesabsent
+17:24:09UTC. AuditSHA97cddc3a294b33ffe425d00c1206370466148fa3eeb3538c3eba5d7b65d65e9b.
+Stage61.357365873s; process16.147264/11.850353/10.287270/10.537957s.
+AllfourcasesPASS/0fits: originalsixanalyticcalls/historyEXACTH25, paid3calls/
+1proposal/native1.0->allrow.9 artificialscalar/real1percentselection; explicitseed
+reachesbothbuilders, defaultbehavior preserved. Cap300->5/refit324/postfit162/
+allocation<=1100/admission>=110 verified. First stdoutJSON extraction encountered
+importlogprefix; parser corrected outsidefrozenstage, readonlyauditrepeatedwithout
+anyfit/write. Auditoritselfpassed bothcalls. No modelquality/timedreproducibilityclaim.
+
+H27 DISTINCT realparent/caller/callee transport integration, new
+seed-transport-contract-20261123. H26 testedfactorydirectly, not serialization.
+ALL1492 inheritedsource/vendor/harnessentries unchanged, H26runtime/H25vendor/
+H13model retained; only seed_transport_contract.py/test_seed_transport_contract.py
+added as root+source diagnosticcopies. Shared/default/localcore untouched.
+Fourfixedcases original-none/original-seeded/paid-none/paid-seeded; absent/null/
+string104758/integer104758 respectively; modelseed104735 separate. Actual
+framework.run_fedot_tabular -> caller.run_in_venv -> callee.call_run -> received
+config -> unchangedadapterfactory -> actualcomposer/TunerBuilder/Hyperopt/history.
+Entrypoint/interpreter/rconfig substitution and TemporaryDirectory retention only.
+H26generatedexpectedconfig checked then replaced by actualreceivedconfig atfactory;
+actualtypedparent/child/factory values recorded. No adapter.run/evolution/Fedot.fit.
+Empty syntheticTRAIN/TEST arrays; no realdataset/labels. Manualfitclock/18row
+structuralbuilderinputunusedbyobjective. Fedot.fit/Pipeline.fit forbidden.
+
+H23graphONLY and four H26 analyticreferences hashguarded:
+original-none d7ed2d88aedfccfa65aff649c874387cb40e54f0c920023795c186e356cc5fc6;
+original-seeded f714ced8672926675ef206f60d402a633f17b3d329036a57150dad50fa13c67b;
+paid-none 1e8248bffe2da1ec68e0009f8ec5a3ee5454ba08391e7958e15f3370a7ff6f1e;
+paid-seeded cd5736efaea678f3287158688d402858c8d517bf68fb8610b4ca0f70a801096f.
+No borrowedmodelquality. GateEXACTtypedconfig/actualcomposerseed; onefactory;
+differentparent/childPID andreturnedchildartifactSHA. Original6calls/2fmin andpaid
+3calls/1fmin matchH26graphs/scalars/returnedgraph/builders/history/requests. Reload
+serializedhistory/recomputeanalyticvalues; paidONEuse_eval_setFalse/native3000/
+real1percentselection/caps300->5/refit324/postfit162/allocation<=1100/admission110.
+Seeded0unseededrequests/default2or1; zero fits. ParentexactPYTHONPATH, childexpected
+harnessprepend; nooverlay. No modelquality/speed/fullretry/defaultpromotion.
+
+Childinterrupt60/measured60,parentcall80/wholeparent90+max5killgrace(over90fails),
+stage390/external420+5;4sequentialcells/8threads/noretries. Additionalparentallowance
+is benchmarkimports/serialization/startup/cleanupONLY; H26tuner/APIcapsunchanged.
+Local7pass2hostskip;hostALL9pass35.36s, actualseededtransport bothroutes onDIFFERENT
+tinylogit/scaling and CatBoost12tree NOFITsmoke; retainpreflight/contracts-v1.log/
+pytest-v1. MainH23/native3000transportcases NOT runbeforeprospectivepush/hash.
+AfterCOMPLETE verifyfrozenmanifestFIRST, then separate readonlyframeworkpython
+seed_transport_contract.py audit --stage STAGE underisolatedPYTHONPATH/AMLB_PATH,
+comparesavedJSONexcludingstage_seconds andverifyprocessabsence. Partialnotcomplete;
+FAILED exactmechanismanalysis/noautorepeat/noSTARTEDsourcepatch.
