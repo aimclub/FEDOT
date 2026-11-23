@@ -1661,3 +1661,28 @@ child1337940 active14:18:28, realcaller isolatedenv/nooverlay. Manifest1471SHA
 1d37a1f4d29158c558b04332fa3fd4c90d8ad49f59c821213d183450e355006e. No model fits;
 fullTRAINtransport audit pending. v1integercolumn-name normalization failure
 retained; v2string-schema fixture passes, fullfabert gate remains exact.
+
+
+## H16 COMPLETE: real parent transport preserves the TRAIN contract
+
+COMPLETE2026-11-23 14:18:47UTC, no FAILED; matching processes absent14:23:52.
+All1471 frozen hashes verified before a separate read-only benchmark-python audit;
+returned JSON exactly matches saved audit excluding stage_seconds. GatePASS:
+7413x800,85categorical, dataframe/index/columns/dtypes/labels and API representation
+exactly preserved, ZERO model fits. Parent27.834915060s; stage30.016755847s.
+AuditSHA984a772039964e4f2d09ec45694bd253e54d10c237a0d7139cdfa036e48fbe21;
+childJSONSHAf3e87ec52db60ee6f0203a2a733700992369886b53341a01bbe2499cc5e9e966;
+receivedarraysSHA5fbfe6f8c7f05bcf4b53781b6a375923443d0889373e6557bae554c4926e4133.
+Real caller/callee serialization and child API tested with TRAIN-only proxy,
+encoded-label sklearn proxy and empty test. Not a full OpenML task/target encoder,
+not a quality result or full-run admission. All transport artifacts retained.
+
+H17 prospective actual TunerBuilder/SimultaneousTuner paid-calibration integration,
+one fixed all-row proposal plus native initial/final CV,1100s wholeworker.
+Singleton choices preserve ALL graph parameters; real final selection/history
+audited. Full protocol in adaptive report. No composer/default/fulljob admission.
+
+H17 preflight local2pass/7hostskip, host9pass17.68s. Real tiny tuner/CV/Pool/history
+integration verified; stronger serialized-history audit passed without refit.
+TinyCV requires5s minimum cap due evaluator1s cutoff; fabertcaps unaffected.
+v1failed-preflight artifacts preserved. Model/vendor/harness unchanged.
