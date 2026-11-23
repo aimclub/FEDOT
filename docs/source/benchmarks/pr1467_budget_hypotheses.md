@@ -1535,3 +1535,6 @@ each result. The completed six-direction study stays closed. H7 prospectively
 tests cache-conditioned composition cost versus fresh tuner cost; protocol,
 bounded A-B-B-A cells and admission evidence are in pr1467_adaptive_20261123.md.
 No new full AMLB run is admitted by this mechanism experiment.
+H7 STARTED11:22:11UTC after13 host contracts passed; exclusive Ruthenium suite
+PID1320131 runs the fixed five-cell cache/fresh protocol. One new continuation
+task handles this new campaign. Frozen hashes and status are in the new report.

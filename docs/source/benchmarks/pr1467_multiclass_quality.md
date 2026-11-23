@@ -379,3 +379,6 @@ was deleted with confirmed deleted=true. No pending study work remains.
 cached/fresh CV cost for the identical CatBoost graph. This is train-only
 mechanism work, not an outer quality result or a repeat of H1's fidelity gate.
 See pr1467_adaptive_20261123.md for prospective controls and admission evidence.
+H7 started11:22:11UTC in a new isolated stage after13 passing host contracts.
+Its cost hypothesis and paired probability checks are pending; no quality gain
+or default change is claimed. One new task continues the authorized campaign.
