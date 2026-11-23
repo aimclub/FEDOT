@@ -1548,3 +1548,7 @@ times/losses are not interchangeable with full AMLB's adapter data path.
 H8 is prospectively declared: equal600s policies, one common fixed proposal,
 fresh calibration charged, final CV reserved. No outer jobs admitted yet;
 details and limitations are in pr1467_adaptive_20261123.md.
+H8 v1 guard rejected its own timeout parent BEFORE STARTED; retained unchanged.
+Corrected v2 passes31 host contracts and STARTED11:53:59UTC, suite1323491,
+wrapper1323490, initial worker1323507. Isolated environment and frozen680-file
+manifest verify; no modelling changes. Calibration/feasibility results pending.

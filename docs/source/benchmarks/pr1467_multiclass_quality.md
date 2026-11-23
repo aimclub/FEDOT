@@ -390,3 +390,7 @@ This is not an outer-quality gain. Its direct float32 NPZ/InputData path has
 different absolute inner metrics from historical AMLB; adapter fidelity still
 needs checking. H8 now tests charged calibration/feasibility under equal600s
 budgets with a fixed proposal; full quality confirmation remains a later gate.
+H8 v2 STARTED11:53:59UTC after31 passing host tests. An earlier admission
+attempt stopped before training when the overlap guard saw its own timeout
+parent; that artifact is preserved. No active job was repeated. H8 results
+are pending; the same continuation task carries the adaptive campaign forward.
