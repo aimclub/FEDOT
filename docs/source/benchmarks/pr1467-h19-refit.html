@@ -1,0 +1,37 @@
+<style>
+#h19-result { color:var(--foreground); font-family:var(--font-sans); }
+#h19-result h3 { font-weight:500; margin:16px 0 10px; }
+#h19-result .row { display:grid; grid-template-columns:96px 1fr 84px; gap:8px; align-items:center; margin:12px 0; }
+#h19-result .track { height:20px; background:var(--secondary); }
+#h19-result .mark { height:20px; background:var(--chart-1); }
+#h19-result .candidate { background:var(--chart-2); }
+#h19-result .num { text-align:right; font-variant-numeric:tabular-nums; }
+#h19-result .scale { display:flex; justify-content:space-between; margin-left:104px; margin-right:92px; }
+#h19-result .budget { display:flex; height:28px; background:var(--secondary); }
+#h19-result .legend { display:flex; flex-wrap:wrap; gap:8px 18px; margin:12px 0; }
+#h19-result .legend span { display:inline-flex; gap:6px; align-items:center; }
+#h19-result i { width:12px; height:12px; display:inline-block; }
+#h19-result .caption { color:var(--muted-foreground); margin:10px 0; }
+</style>
+<div id="h19-result">
+  <h3>H19 · API → тюнинг → полный TRAIN refit</h3>
+  <div class="caption">TRAIN-CV · split 42 · log loss, меньше — лучше</div>
+  <div role="img" aria-label="Native CV 0.924240, all-row proposal и confirmation 0.898091; точное совпадение с H17.">
+    <div class="row"><span>Native</span><div class="track"><div class="mark" style="width:92.424013%"></div></div><span class="num">0,924240</span></div>
+    <div class="row"><span>All-row</span><div class="track"><div class="mark candidate" style="width:89.809059%"></div></div><span class="num">0,898091</span></div>
+    <div class="scale"><span>0</span><span>log loss</span><span>1</span></div>
+  </div>
+  <h3>Процесс: 865,37 / 1500 с</h3>
+  <div class="budget" role="img" aria-label="Тюнинг 588.91 с, полный refit 238.39 с, прочее 38.07 с; остаток 634.63 с.">
+    <div style="width:39.260922%;background:var(--chart-1)"></div>
+    <div style="width:15.892554%;background:var(--chart-2)"></div>
+    <div style="width:2.537702%;background:var(--chart-3)"></div>
+  </div>
+  <div class="legend">
+    <span><i style="background:var(--chart-1)"></i>Тюнинг 588,91 с</span>
+    <span><i style="background:var(--chart-2)"></i>Refit 238,39 с</span>
+    <span><i style="background:var(--chart-3)"></i>Прочее 38,07 с</span>
+  </div>
+  <div>Финальная модель: 3000 деревьев · один Pool · 7413 строк</div>
+  <div class="caption">Исследованный TRAIN · заданный граф · outer-оценки нет</div>
+</div>
