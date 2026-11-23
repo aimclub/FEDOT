@@ -2068,3 +2068,17 @@ seeded_fit_contract.py audit --stage STAGE withisolatedPYTHONPATH/AMLB_PATH;
 comparesavedJSONexcludingstage_seconds,verifyprocessabsence/CVprobabilities/history/
 RNG/finalrefit/budgets. Partialnotcomplete; noSTARTEDpatch/refit/autoretry. NoH21retry,
 fullpair/defaultpromotion/arbitrarygraph or timed-searchreproducibilityclaim.
+
+H28 STARTED17:45:18UTC20261123 after prospective7d387047 push. Suite1370039/
+wrapper1370038/worker1370047 live17:45:28 exactstage/vendor:source:harness/nooverlay;
+terminalmarkersabsent. Neverrestart/duplicate/patchSTARTEDstage.
+Frozen1501manifestSHA734e896aa8f93cf58cd53624c883e8918de984b0e25c4824d068934326b09e84;
+protocolSHAad94c047c0209f0aca16ef6ba0f1f54b06a381b03b58e93475aaa587063475e4;
+driverSHA647e1a2c006b86c9f3c4455dfee2ba7206b0c7acdb58ebff0b0e4189c7414245;
+testSHA8533241926376527a6d79f50fdd6bbdf5062f8a5275507cf918e279e55071a1e.
+All1494inheritedcodeentriesUNCHANGED/all1501manifestfilesverifiedbeforelaunch.
+Hostpreflight recorded19actualPipeline.fit calls/APIfit2.029586s, bothfminSAMErng;
+main90rowcomparison stillpending. AfterCOMPLETE FIRSTverify1501manifest THENseparate
+readonlyframeworkpython seeded_fit_contract.py audit --stage STAGE isolatedPYTHONPATH/
+AMLB_PATH,compareJSONexcludingstage_seconds/actualprocessabsence/history/CVprobarrays/
+seedstate/selection/finalrefit/budgets. Noqualitygain/default/fullpairadmission.
