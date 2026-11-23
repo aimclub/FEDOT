@@ -1793,3 +1793,9 @@ Protocol/gates in adaptive report; no fullAMLB/default admission.
 H20 local5pass2skip/host7pass18.10s no-fit preflight. Factory-only v1 omitted
 composer initialization (5pass1fail retained); corrected using real initialization,
 unchangedpolicy. All1474 inheritedcode hashes checked; mainreplay prospective.
+
+H20 STARTED15:49:44.836272UTC, suite1348296/wrapper1348295 live15:49:55 isolated,
+nooverlay/no terminalmarkers. Prospective87396dbd pushedfirst. Frozen1489manifestSHA
+d5f4f6eb2c41e20b48b5b844cdf438e2bc1de7839eae32d5715d8edc946ef3f3;
+protocolSHAa52101f633c3dcf0aefd66ea3d0165d1d3d31220f31ba79028e29240f73a7030.
+No-fit historicalentry audit pending;180s/210s external, no retries/startedpatches.
