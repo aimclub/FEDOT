@@ -1727,3 +1727,9 @@ No repeatedfabert screen/defaultpromotion/fulljob; fullprotocol in adaptive repo
 H18 local9pass/4skip; host13pass16.15s including actual30row API/composer/
 tuner/finalrefit. Explicit originalperfoldcap retained plus wholeCV/policybounds.
 Only isolatedApiComposer/adapterflagpatch; no local/shared/defaultmodel edits.
+
+H18 STARTED15:07:06UTC, suite1343790/wrapper1343789 live15:07:14 isolated/nooverlay.
+Prospective8af328bf pushedfirst;1482manifestSHA
+e6d85d89c2c990e54a1ed87eaa7863224d2bacac6df0608aa488384e3975c56f.
+Synthetic90row correctness only; stage300s timer excludes earlyimports/verification,
+external330s boundsstartup separately. Auditpending; neverrestart/patch.
