@@ -7,7 +7,7 @@ import sys
 import numpy as np
 import pytest
 
-from examples.advanced.diagnostics.fresh_budget_probe import audit, calibrated_cap, trial_fits
+from examples.advanced.diagnostics.fresh_budget_probe import audit, calibrated_cap, trial_fits, training_conflict
 from examples.advanced.diagnostics.cache_cost_probe import sha
 
 
@@ -22,6 +22,19 @@ def test_cost_cap_and_final_reserve():
     assert calibrated_cap(200) == 180
     assert not trial_fits(319.9, 130)
     assert trial_fits(320, 130)
+
+
+@pytest.mark.parametrize('pid,args,expected', [
+    (10, ['python', '/stage/fresh_budget_probe.py'], False),
+    (9, ['timeout', '1260s', 'python', '/stage/fresh_budget_probe.py'], False),
+    (8, ['timeout', '1260s', 'python', '/stage/fresh_budget_probe.py'], True),
+    (9, ['timeout', '1260s', 'python', '/other/fresh_budget_probe.py'], True),
+    (9, ['python', '/other/fresh_budget_probe.py'], True),
+    (8, ['python', '/harness/runbenchmark.py'], True),
+    (8, ['python', '-c', 'print(1)'], False),
+])
+def test_only_own_exact_timeout_parent_is_exempt(pid, args, expected):
+    assert training_conflict(pid, args, 10, 9, '/stage/fresh_budget_probe.py') is expected
 
 
 def policy_fixture(stage):

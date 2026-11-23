@@ -28,6 +28,19 @@ def trial_fits(remaining, cap):
     return remaining >= 2 * (cap + 30)
 
 
+def training_conflict(pid, args, own_pid, parent_pid, own_script):
+    if pid == own_pid:
+        return False
+    # GNU timeout is our launcher, not a second training worker. Exempt only
+    # the direct parent with this exact script; other timeout workers conflict.
+    if (pid == parent_pid and args and Path(args[0]).name == 'timeout' and
+            own_script in args):
+        return False
+    return any(Path(a).name in ('runbenchmark.py', 'exec.py', 'cache_cost_probe.py',
+                               'fresh_budget_probe.py', 'weak_dataset_probe.py',
+                               'run_followup.py', 'queue_driver.py') for a in args)
+
+
 def execute_cell(stage, policy, label, cap, params, deadline):
     name = 'fresh_' + policy + '_' + label
     spec = {'cap': cap, 'params': params}
@@ -175,9 +188,8 @@ def suite(stage):
                 args = (p / 'cmdline').read_bytes().split(b'\0')
             except OSError:
                 continue
-            if any(Path(a.decode(errors='replace')).name in
-                   ('runbenchmark.py', 'exec.py', 'cache_cost_probe.py', 'fresh_budget_probe.py',
-                    'weak_dataset_probe.py', 'run_followup.py', 'queue_driver.py') for a in args):
+            if training_conflict(int(p.name), [a.decode(errors='replace') for a in args],
+                                 os.getpid(), os.getppid(), str(Path(__file__).resolve())):
                 raise RuntimeError('Host occupied: ' + p.name)
         manifest = json.loads((stage / 'manifest.json').read_text())
         assert manifest['preflight_passed']
