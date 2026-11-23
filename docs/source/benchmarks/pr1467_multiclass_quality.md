@@ -407,3 +407,10 @@ Control invalid CV is not infinite outer loss. All680 hashes verify; audit SHA
 79c457ea35045e72bda4931b59ef47e1897ad1ebbf7e758394910195bb443bfd.
 Next H9 is a prospective no-fit actual-adapter preprocessing audit to resolve
 data-contract uncertainty before any new model-quality/full-job admission.
+
+H9 no-fit audit COMPLETE12:19:15UTC: actual API marks85 categorical columns
+where direct InputData starts with800 numerical. Rows/labels unchanged; original
+frame rounding<=2.9648e-8, API32 numerically identical. This is representation
+evidence, not measured quality improvement. H10 prospectively tests two new
+native API-path CVs, same model/splits, bounded1400s total, no cache or outer test.
+All source/runtime changes remain isolated diagnostics; no defaults promoted.

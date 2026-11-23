@@ -47,7 +47,7 @@ def cost_gate(cached, fresh, predictions_match, cache_activated):
                 min(fresh) > 1.3 * max(cached))
 
 
-def worker(stage, label, smoke=False, spec=None):
+def worker(stage, label, smoke=False, spec=None, input_data=None):
     from datetime import timedelta
     import fedot
     import golem
@@ -74,6 +74,13 @@ def worker(stage, label, smoke=False, spec=None):
     classes = np.unique(y)
     data = InputData(idx=np.arange(len(y)), features=x.copy(), target=y.copy(),
                      task=Task(TaskTypesEnum.classification), data_type=DataTypesEnum.table)
+    if input_data is not None:
+        from copy import deepcopy
+        if (not np.array_equal(input_data.idx, data.idx) or
+                not np.array_equal(np.asarray(input_data.target).ravel(), y) or
+                not np.array_equal(np.asarray(input_data.features, dtype=np.float32), x, equal_nan=True)):
+            raise ValueError('Injected representation must preserve H7 rows, targets and float32 values')
+        data = deepcopy(input_data)
     scale = PipelineNode('scaling')
     cat = PipelineNode('catboost', nodes_from=[scale])
     cat.parameters = {**cat.parameters, **spec.get('params', {})}
@@ -116,6 +123,8 @@ def worker(stage, label, smoke=False, spec=None):
                     value = getattr(model, attr, None)
                     if value is not None:
                         item[attr] = int(value)
+                if hasattr(model, 'get_cat_feature_indices'):
+                    item['cat_feature_indices'] = model.get_cat_feature_indices()
                 fitted.append(item)
             timings.append({'fold': fold_id, 'prepare_seconds': time.monotonic() - start,
                             'fitted_nodes': fitted})

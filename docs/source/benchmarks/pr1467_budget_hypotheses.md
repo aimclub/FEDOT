@@ -1567,3 +1567,10 @@ cap148.8450s, selected colsample_bylevel=.5; confirmed same-split CV1.7133149501
 versus1.7143731903 native. Mechanism gate passes; tiny CV gain is not independent
 quality. H9 prospectively tests actual adapter preprocessing fidelity with two
 no-fit captures, row/target/representation audit,600s cap. No full-job admission.
+
+H9 COMPLETE12:19:15UTC,22.2641s/zero model fits,819 hashes verified. Actual
+adapter/Fedot input preprocessing marks85 of800 features categorical; direct
+InputData marks all numerical. API32 numerical values are identical to H7;
+APIframe differs only by float32 rounding<=2.9648e-8. Full row/label pairing
+passes. This motivates H10 two bounded fresh CVs on these two API representations
+against frozen H7 probabilities, with fixed native graph/splits and no full jobs.
