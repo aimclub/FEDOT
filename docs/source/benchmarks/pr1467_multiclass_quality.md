@@ -852,3 +852,54 @@ seed_transport_contract.py audit --stage STAGE isolatedPYTHONPATH/AMLB_PATH;
 compareJSONexcludingstage_seconds (stdoutmayhaveimportlogprefix),processabsence,
 actualtypedconfig/original+paidanalyticparity/H26reference/history/0fits/budgets.
 No retries/STARTEDsourcepatch/refit/defaultpromotion or fullpairadmission.
+
+## H27 COMPLETE/audited; H28 prospective real fixed-count seeded fits
+
+H27 COMPLETE17:32:33UTC20261123, all1504hashes verified FIRST; separate readonly
+frameworkpython auditor EXACT savedJSON excludingstage_seconds; processesabsent
+17:39:14UTC. AuditSHAfbac427a0c8754c44ae4cc714e2b4ac95a8269e612c49cd0e38e56e2b19e296b.
+Stage81.031838318s; wholeparent21.164574/12.997588/13.048430/17.502939s;
+childinstrumented1.509309/.921296/.822483/.986415s (notwholechild/importtime).
+AllfourcasesPASS/0fits. Actualparent/caller/callee preserved absent/null/string/int
+seedvalues through factory/composer, original/paid downstreamanalyticresults EXACT
+H26, serializedhistory/lineage and budgets independentlychecked. No modeltraining,
+qualitygain or timed-searchreproducibilityclaim. H27sources/results frozen.
+
+H28 DISTINCT replacing artificialobjective with real model CV and actualFedot.fit,
+new seeded-fit-contract-20261123. H25-H27 established seedcapability/routing/transport
+but used graphSHA/artificialscalars; reproducibilitywithrealtraining remaineduntested.
+Twofreshprocesses first/second with SAMEexplicitseed104760/modelseed104735 and fixed
+fouroriginaltunertrials. Supplied logit(C1)<-scaling graph via initialassumption/
+compositionsubstitutions; actualadapterfactory/Fedot.fit/composer/originalfallback/
+TunerBuilder/Hyperopt/3foldCV/finalselection/fullTRAINrefit/TRAINprediction. Paidflag
+true butgraphineligible: expectedoriginalfallback, noallrowproposal. No evolution,
+parent/callee orfulladapter.run; no objective/entropy substitution. Fmin/fit/builder
+observation and existingH21 CVobserver only. Cachesdisabled. ALL1494inheritedcode
+unchanged; onlyseeded_fit_contract.py/test_seeded_fit_contract.py root+sourcecopies.
+Shared/deployed/default/localmodel untouched.
+
+Fixed synthetic90TRAINx6 numeric/3classes. RandomState104761 normalfeatures,
+y=arange90%3,x0+=.8*y,x1+=.5*(y==1). No realdataset/outer/testlabels, nohistorical
+fitness/reference reuse. Main90rowdata NOT evaluatedbeforeprospectivepush/hash.
+Two repeats are the prospective freshprocessreproducibility comparison, not an old
+screen/fulljob retry. Noqualitygain requirement/search/boostingceilingchange.
+Gate6validrealCVevaluations each (initial+4proposals+confirmation),18foldNPZ each.
+Independentlogloss/probs/classes/rows/split42 and serializedhistoryreload/lineage;
+EXACTtrialgraphs/fitness/finalselection(.05percent ORIGINALthreshold)/returnedgraph,
+normalizedhistory and all18CV+1finalTRAINprobarrays acrossprocesses. Confirmonebuilder
+seed104760/twofminSAMEadvancingGenerator/statecontinuity/exactstatesacrossprocesses.
+Atleast19observedPipeline.fitcalls each (18CV+fullrefit), notzero fits. FinalTRAIN
+prediction is reproducibilitydiagnosticONLY, notgeneralization/selectionevidence.
+
+API54s/perfit5.4s/wholeworker90+max5killgrace(over90fails),stage210/external240+5;
+2sequential8threadworkers,noretries/extensions. Bounds smaller than earliercontracts;
+fixed4trials mustfinish withinexistingbudget, not extendtimedsearch. Negative gate
+closesmechanismwithoutautomaticrepeat. Local1pass1hostskip;hostALL2pass18.48s,
+actualrealfit on DIFFERENT30rowdataset/seed104762, sixCV/history/finalrefit audit and
+intentionalNPZprobabilitycorruption rejectedwithoutrefit. Retainpreflight/contracts-v1.log,
+pytest-v1/original+damagedcopies. No failedpreflightversions.
+AfterCOMPLETE verifyfrozenmanifestFIRST then separate readonlyframeworkpython
+seeded_fit_contract.py audit --stage STAGE withisolatedPYTHONPATH/AMLB_PATH;
+comparesavedJSONexcludingstage_seconds,verifyprocessabsence/CVprobabilities/history/
+RNG/finalrefit/budgets. Partialnotcomplete; noSTARTEDpatch/refit/autoretry. NoH21retry,
+fullpair/defaultpromotion/arbitrarygraph or timed-searchreproducibilityclaim.
