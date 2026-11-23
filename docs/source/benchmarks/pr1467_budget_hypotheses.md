@@ -1641,3 +1641,8 @@ H15 prospective actualAPI paid calibration/newsplit104741: fixedhistorical152s
 cap vsinitial300s thenmin(300,1.3*freshcost), BOTH1100s including all overhead.
 One H14proposal, validincumbent selection, finalconfirmation, max6cells,stage2250s.
 Requires extra validproposal AND>=1%newsplitgain/foldguard; no full/default admission.
+
+H15 STARTED13:46:35UTC, prospective0d2112f3 pushed first;24hosttests32.46s pass.
+Suite1335200/baselineworker1335216 live13:46:54, exactisolatedenv/nooverlay.
+Frozen1468manifestSHAa656efee867702127a0060f6ac90ccf1dd4ca454db4de5e35b8529a3ef680e92.
+Both paid1100s policies and NEWsplitquality pending; neverrepeat/patchstartedstage.

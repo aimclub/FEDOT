@@ -477,3 +477,8 @@ Jointsample-use/stopping policy, exploredTRAIN/historicalcontrol, noouter/speedc
 H15 prospectively combines paidactualAPIcalibration with NEWsplit104741 replication
 of thisONEproposal,1100sperpolicy,max6cells. Actualnewsplitnativecontrol required,
 no borrowedqualityscore. Fullprotocol/gates in adaptive report, no defaultpromotion.
+
+H15 ACTIVE13:46:35UTC,24hosttestspass/prospective0d2112f3 pushed before launch.
+Suite1335200/worker1335216 live13:46:54 withisolatedsource/vendor/harness/nooverlay.
+Manifest1468SHAa656efee867702127a0060f6ac90ccf1dd4ca454db4de5e35b8529a3ef680e92.
+ActualAPI calibration/NEWsplit104741 quality pending; no newouterfulljob admission.
