@@ -1864,3 +1864,19 @@ live_adapter_contract.py audit --stage STAGE with isolatedPYTHONPATH/AMLB_PATH.
 Compare savedindependent-audit excludingstage_seconds; inspect actualprocessabsence,
 history/graphs/policybranches, syntheticpredictionserialization and partialCVs.
 FAILED requires exactcause/newreadonlyauditor only if necessary, no rerun/patch.
+
+H23 COMPLETE16:34:10UTC, all1489hashes then separate readonlyauditexact, processesabsent.
+AuditSHAab5d1e9a0b2b1d81ad63ff4f2b9ec39810f942da701bd16d5e4488931eaf4c16;
+stage342.281218s, process161.957711/158.581224s; syntheticlifecyclecorrectnessPASS.
+Both realcomposition graphs identical5node logit/knn/scaling/xgboost/lgbm; candidate
+ineligible_original_path, ALLROW neverused. Originaltuner54/55validtrials; original
+0.05percent finalselection/fitness/lineage separatelyverified, auditSHA
+0c5a3d6732add4ef91ef1b971fc1d0f214d36f16304f4f37920f8a34a73dff6f.
+No policyquality/speedclaim. Same seed does not control Hyperopt default_rng entropy;
+both actualfmincalls omit rstate. Historicaluniquecause NOTestablished.
+H24prospective distinct nofit fourcell common/differententropy x policyfalse/true,
+actualcomposer/originalHyperopt with deterministicgraphscalar objective,4trials,
+zero model fits. Within-stream exacttrial/history/selection parity; across-stream
+proposalchange, hooklegacyRNGstatedigests unchanged. Local2pass1skip/host3pass16.19s.
+All1484runtimefiles unchanged;60sworker/270stage/300external+5. Fullprotocol in
+adaptive report. No H21retry or shared/default/RNGpromotion.
