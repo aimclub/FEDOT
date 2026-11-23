@@ -482,3 +482,11 @@ H15 ACTIVE13:46:35UTC,24hosttestspass/prospective0d2112f3 pushed before launch.
 Suite1335200/worker1335216 live13:46:54 withisolatedsource/vendor/harness/nooverlay.
 Manifest1468SHAa656efee867702127a0060f6ac90ccf1dd4ca454db4de5e35b8529a3ef680e92.
 ActualAPI calibration/NEWsplit104741 quality pending; no newouterfulljob admission.
+
+H15 COMPLETE14:08:46UTC and audited: newnative.9393191375716047 -> .903242901679233,
+3.84068%gain passes1%gate/allfoldguards; proposal/finalbyteidentical, actual3000trees/
+4942rows/85cats eachfold. Paidcandidate743.3454s within1100;0->1validproposal.
+All1468hashes valid; auditSHA89feb1377094cfe544f2abc876fb9035374e3214b852610af7791537a9a411bc.
+Newsplit on exploredTRAIN, not independentdataset/outergain. H16 next tests actual
+parentserialization+callee deserialization fidelity with aTRAINproxy and nofit,
+compared to frozenH9APIframe, before considering any prospective full protocol.

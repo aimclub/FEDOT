@@ -1646,3 +1646,12 @@ H15 STARTED13:46:35UTC, prospective0d2112f3 pushed first;24hosttests32.46s pass.
 Suite1335200/baselineworker1335216 live13:46:54, exactisolatedenv/nooverlay.
 Frozen1468manifestSHAa656efee867702127a0060f6ac90ccf1dd4ca454db4de5e35b8529a3ef680e92.
 Both paid1100s policies and NEWsplitquality pending; neverrepeat/patchstartedstage.
+
+H15 COMPLETE14:08:46UTC,all1468hashes/independent auditexact. Validproposal0->1,
+control587.7590s/candidate743.3454s both<=1100. Fresh202.8135s calibration yields
+263.6575s cap; newnativeCV.9393191375716047 -> confirmedallrow.903242901679233,
+3.84068%gain/foldguards PASS. AuditSHA89feb1377094cfe544f2abc876fb9035374e3214b852610af7791537a9a411bc.
+Controlinitial/proposal2foldinvalid/nominal152soverrun; confirmationexternaltimeout
+197.335s with2foldNPZ but0acceptedrecord, notzero work/infiniteouterloss.
+H16 prospective no-fit realparent/caller/callee/API dataframe transport audit,
+oneTRAINproxy capture/stage300s,fullprotocol in adaptive report. No fulljob yet.
