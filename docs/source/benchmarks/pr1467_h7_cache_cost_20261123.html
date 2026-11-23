@@ -1,0 +1,24 @@
+<style>
+#h7-cost{color:var(--foreground);font-family:var(--font-sans)}
+#h7-cost h3{font-weight:500;margin:0 0 12px}
+#h7-cost .labelrow{margin-bottom:12px;color:var(--muted-foreground)}
+#h7-cost .row{display:grid;grid-template-columns:94px minmax(0,1fr) 65px;gap:8px;align-items:center;min-height:45px}
+#h7-cost .track{position:relative;height:18px;background:var(--secondary)}
+#h7-cost .bar{height:18px;background:var(--chart-1)}
+#h7-cost .fresh{background:var(--chart-2)}
+#h7-cost .limit{position:absolute;left:43.29301725079616%;top:-5px;height:28px;border-left:2px dashed var(--foreground)}
+#h7-cost .value{text-align:right;font-variant-numeric:tabular-nums}
+#h7-cost .axis{display:flex;justify-content:space-between;margin-left:102px;margin-right:73px}
+#h7-cost .foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:18px}
+</style>
+<div id="h7-cost">
+<h3>H7 · Время CV на трёх фолдах, fabert</h3>
+<div class="labelrow">Только обучающая часть · одинаковый CatBoost · 7 413 строк</div>
+<div class="labelrow">Пунктир: лимит из кеша с запасом 30% — 51.95 с</div>
+<div class="row"><span>Кеш A</span><div class="track" role="img" aria-label="Кеш A: 39.96 секунд"><div class="bar " style="width:33.302320962150894%"></div><div class="limit"></div></div><span class="value">39.96 с</span></div>
+<div class="row"><span>Свежее A</span><div class="track" role="img" aria-label="Свежее A: 112.82 секунд"><div class="bar fresh" style="width:94.01857466514532%"></div><div class="limit"></div></div><span class="value">112.82 с</span></div>
+<div class="row"><span>Свежее B</span><div class="track" role="img" aria-label="Свежее B: 113.59 секунд"><div class="bar fresh" style="width:94.66246704027678%"></div><div class="limit"></div></div><span class="value">113.59 с</span></div>
+<div class="row"><span>Кеш B</span><div class="track" role="img" aria-label="Кеш B: 39.92 секунд"><div class="bar " style="width:33.27025469004487%"></div><div class="limit"></div></div><span class="value">39.92 с</span></div>
+<div class="axis"><span>0</span><span>Время CV, с</span><span>120</span></div>
+<div class="foot"><span>Подготовка кеша отдельно: 183,31 с</span><span>Разница вероятностей: 0</span></div>
+</div>

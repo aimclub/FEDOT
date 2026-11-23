@@ -1538,3 +1538,13 @@ No new full AMLB run is admitted by this mechanism experiment.
 H7 STARTED11:22:11UTC after13 host contracts passed; exclusive Ruthenium suite
 PID1320131 runs the fixed five-cell cache/fresh protocol. One new continuation
 task handles this new campaign. Frozen hashes and status are in the new report.
+
+H7 COMPLETE11:31:45UTC, independently audited11:40: cached39.9628/39.9243s
+versus fresh112.8223/113.5950s, EXACT same7413-row paired probabilities and
+native graph, all3root prediction-cache hits confirmed in both cached cells.
+Both fresh CVs exceed1.3*MAXcached=51.9516s; gate passes, ratio at least2.823.
+This isolates the combined cache regime, not a single cache layer. Absolute
+times/losses are not interchangeable with full AMLB's adapter data path.
+H8 is prospectively declared: equal600s policies, one common fixed proposal,
+fresh calibration charged, final CV reserved. No outer jobs admitted yet;
+details and limitations are in pr1467_adaptive_20261123.md.

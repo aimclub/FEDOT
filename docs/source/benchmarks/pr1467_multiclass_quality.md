@@ -382,3 +382,11 @@ See pr1467_adaptive_20261123.md for prospective controls and admission evidence.
 H7 started11:22:11UTC in a new isolated stage after13 passing host contracts.
 Its cost hypothesis and paired probability checks are pending; no quality gain
 or default change is claimed. One new task continues the authorized campaign.
+
+H7 audited11:40UTC: cache-cost mechanism gate PASSES with zero probability
+difference on all paired7413 training rows and unchanged graph. Cached CV~40s
+versus fresh~113s means30% headroom is insufficient in this controlled probe.
+This is not an outer-quality gain. Its direct float32 NPZ/InputData path has
+different absolute inner metrics from historical AMLB; adapter fidelity still
+needs checking. H8 now tests charged calibration/feasibility under equal600s
+budgets with a fixed proposal; full quality confirmation remains a later gate.
