@@ -429,3 +429,8 @@ budgets verified; auditSHA3d9fa3f9afe8c748161e12fa0449e18b3efbedd8b83ce5cce354a1
 H11 prospectively tests one fixed feature-subsampling proposal against native
 on actualAPI data with a new predeclared CV split, not an untouched dataset.
 No outer data or full-job admission; protocol and limitations in adaptive report.
+
+H11 admitted after15 host tests, prospective commit4c94e496 pushed first.
+STARTED12:45:15UTC, nativeworker1329413/suite1329396 alive12:45:41 with isolated
+runtime and824-entry manifest. New-split control/candidate quality gate pending.
+Same existing continuation task; no full AMLB launches or default changes.

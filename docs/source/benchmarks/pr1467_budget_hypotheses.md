@@ -1589,3 +1589,8 @@ float32 rounding has no prediction effect here. Cold~207s exceeds historical
 cache-conditioned152s tuning cap, without a speed/generalquality claim.
 H11 prospectively tests ONLY colsample_bylevel=.5 vs native on actualAPI data,
 new CVseed104736,>=1%mean gain/no fold>2%worse, two bounded cells. No full jobs.
+
+H11 STARTED12:45:15UTC after15 passing host contracts and prospective push
+4c94e496. Suite1329396/nativeworker1329413 active12:45:41; isolated environment
+confirmed,824-file manifest00de65835e6e061b362cec2e8cc5f64d1027045874a051732a5fd5a525dad9f6.
+Native control and single fixed proposal on NEWsplit pending; no repeat/full job.
