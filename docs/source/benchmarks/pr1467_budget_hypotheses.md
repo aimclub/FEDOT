@@ -1603,3 +1603,9 @@ Native best trees2995/2990/2999 all near3000 motivates distinct H12: one6000-tre
 CatBoost CV, sameAPI/splits/remainingparams, reuse audited nativecontrol without
 refit.600sCV/660sprocess/stage700s;>=1%mean gain,foldguard2%,actual>3000activation.
 No fulljobs/defaultpromotion; prospective details in adaptive report.
+
+H12 STARTED13:00:03UTC after7host contracts21.98s/prospective push6978b375.
+Only one6000-tree candidate; oldH11control artifacts byte-identical, no refit.
+Suite1330764/worker1330780 live13:00:31 with exactisolatedenvironment. Manifest
+828files SHA2e5334e5c82000aa4076a4d44a2cebda0bec8a91333ad00d74dc0c753773f6e9.
+Actual horizon/quality/700s stage budget pending; no new fulljobs or sourcepatch.

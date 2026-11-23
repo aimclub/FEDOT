@@ -442,3 +442,8 @@ AuditSHA821f7156a6d73325f4333a909593965b84533d473f68b31d1b72209cdb7aad85.
 Next H12 tests a distinct observed ceiling: native best iterations are within10
 of3000 everyfold. ONE6000-tree CatBoost candidate, all otherparamsunchanged,
 frozenH11control reused and re-audited, no newoutertest/fulljob/default changes.
+
+H12 admitted after7host tests; STARTED13:00:03UTC in new immutable stage.
+Originalsuite1330764/worker1330780 active13:00:31; exact runtime isolation and
+828-entrymanifest recorded. Candidate6000-tree activation and paired quality
+are still pending; constructor check alone is not evidence of fitted rounds.
