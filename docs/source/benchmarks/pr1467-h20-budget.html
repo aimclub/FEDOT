@@ -1,0 +1,23 @@
+<style>
+#h20-budget { color:var(--foreground);font-family:var(--font-sans); }
+#h20-budget h3 { font-weight:500;margin:12px 0; }
+#h20-budget .label { display:flex;justify-content:space-between;gap:12px;margin:16px 0 6px; }
+#h20-budget .bar { display:flex;height:25px;background:var(--secondary); }
+#h20-budget .legend { display:flex;flex-wrap:wrap;gap:10px 20px;margin:14px 0; }
+#h20-budget i { display:inline-block;width:12px;height:12px;margin-right:5px; }
+#h20-budget .caption { color:var(--muted-foreground);margin:12px 0; }
+</style>
+<div id="h20-budget">
+  <h3>H20 · бюджет после исторической композиции</h3>
+  <div class="caption">Шкала 0–1800 с · нижняя граница остатка бюджета</div>
+  <div class="label"><span>H6 baseline</span><span>1730,05 с</span></div>
+  <div class="bar" role="img" aria-label="Остаток 1730.05 с, хвост H19 с резервом 989.30 с, запас 740.75 с.">
+    <div style="width:54.96123%;background:var(--chart-1)"></div><div style="width:41.15277%;background:var(--chart-2)"></div>
+  </div>
+  <div class="label"><span>H6 candidate</span><span>1684,93 с</span></div>
+  <div class="bar" role="img" aria-label="Остаток 1684.93 с, хвост H19 с резервом 989.30 с, запас 695.62 с.">
+    <div style="width:54.96123%;background:var(--chart-1)"></div><div style="width:38.64571%;background:var(--chart-2)"></div>
+  </div>
+  <div class="legend"><span><i style="background:var(--chart-1)"></i>Хвост H19 + резерв: 989,30 с</span><span><i style="background:var(--chart-2)"></i>Оставшийся запас</span></div>
+  <div class="caption">Историческая проверка · 0 fit · не гарантия будущего времени</div>
+</div>
