@@ -1,5 +1,7 @@
 # PR #1467 multiclass-quality experiments
 
+Current status (2026-11-23): H7-H29 audited, including H21 FAILED. Adaptive continuation stopped after H29; no justified next distinct mechanism within current constraints. The sole continuation task was deleted. No default/shared promotion or successful full AMLB quality claim. Earlier status entries below are historical.
+
 Branch: `codex/pr1467-multiclass-quality`, parent
 `2667e5df1081efcf342c44567ff9dddeb974cbf5`.
 
@@ -991,3 +993,57 @@ FIRSTverify1505manifest THEN separate readonlyframeworkpython live_seed_contract
 audit --stage STAGE isolatedPYTHONPATH/AMLB_PATH; compareJSONexcludingstage_seconds
 andactualprocessabsence. LifecyclePASS andconditionalmechanismgate MUSTreported
 separately; negative/inapplicable noforcegraph/retry/extraqualitysearch/defaultpromotion.
+
+## H29 COMPLETE/audited; adaptive continuation stopped
+
+H29 COMPLETE18:04:24UTC20261123. FIRST all1505manifesthashes verified; separate
+readonlyframeworkpython live_seed_contract.py audit EXACT savedJSON excluding
+stage_seconds; actualprocessesabsent18:09:14UTC. FrozenauditSHA
+5db48cb699ee236335e9a6c970f58532f34c2a7ffdeca752910724decf0043a9.
+Stage172.727467616s; process75.483345+78.445979s, actualAPI49.195220+50.577452s,
+composition42.003388+43.266552s, finalrefit.214319+.205044s. AllprospectivebudgetsPASS.
+Bothactualcompositiongraphs lgbm<-scaling with EXACTsameparameters; initial4,
+extended5, observedgeneration8, finalchoice1 onbothsides. No suppliedgraph.
+Candidatepaidpolicyineligible_original_path; ALLROWNOTUSED. SixvalidCV/4validtrials
+each; all18CVNPZarrays and syntheticpredictionarrays EXACT acrossflags. Serialized
+tuninggraphs/fitness/labels/initialparentlineage/returnedgraph andbothfmin continuous
+seed104760 RNGstates EXACT. LifecyclePASS, applicabilityPASS, H29mechanismPASS.
+This is conditionalineligiblehookneutrality on this fixed-count syntheticlivecase,
+not paidallrowquality, uniqueH23historicalcausality, timed-search/arbitrarygraph
+reproducibility, speed, outergeneralization or defaultpromotion.
+
+InitialCV.4786680228945414; besttrial/confirmation.6535260037502248 onbothsides.
+ORIGINAL.05percentselection correctlyreturnednative. Nested inheritedH21auditor
+proper_selection/mechanism_passed=false refer its ALLROWgate only; the H29outer
+mechanism_passed=true and independentfallback_history checks verifyoriginalselection.
+Threeuniformloss1.09861228866811 proposals are valid evaluatedmodels, nottimeouts,
+missingfolds or infiniteouterloss. No adaptivechoice uses syntheticTESTloss.
+
+Read-only follow-up of the firsttrial's parameter coverage used actualfrozen
+PipelineSearchSpace/PipelineAdapter/get_node_parameters_for_hyperopt, ZEROmodel fits.
+Of12LGBMsearchparameters, only3areexplicit in nativegraph and fixedininitialsearch:
+bagging_fraction,early_stopping_rounds,extra_trees. Other9(class_weight,
+colsample_bytree,force_col_wise,learning_rate,min_data_in_leaf,num_leaves,reg_alpha,
+reg_lambda,subsample) are sampled. All9explicitnativegraphparameters remainunchanged
+infirsttrial, while the additional9searchvalues are inserted. Thus search-near-initial
+is NOT an exactnative/defaults rerun; this is existingdocumentedpartialinitialization,
+not evidence of a lostincumbent or seed/flag regression. Nativeinitial was evaluated
+and returned correctly. No claim that any single sampledparameter causeduniformloss.
+No source/default/searchspace/modelchange or furthermodelrun resultedfromthis check.
+
+Stop decision: no new DISTINCT mechanism justified by the current auditedexecution
+orTRAIN evidence within the authorized constraints. The cache-startup/transport/
+composer/seed-routing/real-fit/live-ineligible-path gaps pursued afterH21 are now
+covered by H22-H29. This does not establish the untested fullAMLB paid-policyquality
+claim. Anotherseed/dataset/graph merely expands these completedscreens; another
+fabertfold/fullpair would reopen unadmitted work; changingsearchspace based on this
+syntheticsample lacks newtransfer evidence. No H30 ornewfulljob/defaultpromotion
+is admitted. H11/H12 and original sixdirectionstudy remainclosed; H21 remainsFAILED.
+Futurework requires a new supportedmechanism/scope, not an automaticrepeat.
+
+Peruserstopcondition, deleted ONLY existing continuation task
+scheduled-task:command:mcp:2d2515f3-2ee3-40fd-bfd8-44dfdaeb3adc:schedule-task:fedot-adaptive-hypotheses-20261123-v1;
+toolconfirmed deleted=true. No replacementtask, subagent orworker launched. All
+frozenstages/results/preflightfailures/user-untrackedpaths retained. Shared/deployed/
+default/localmodel/PR1467 unchanged; VPN remainsdisabled. No newqualitychart needed:
+H29 is a correctness/equality contract, not a modelqualitycomparison.
