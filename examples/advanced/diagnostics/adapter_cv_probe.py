@@ -84,7 +84,7 @@ def suite(stage):
     run_pair(stage, LABELS, paired_audit, Path(__file__).resolve())
 
 
-def run_pair(stage, labels, audit_function, worker_script):
+def run_pair(stage, labels, audit_function, worker_script, stage_limit=1400):
     import fcntl
     worker_script = Path(worker_script).resolve()
     started=time.monotonic()
@@ -97,7 +97,7 @@ def run_pair(stage, labels, audit_function, worker_script):
             conflict=training_conflict(pid,args,os.getpid(),os.getppid(),str(worker_script))
             own_parent=pid==os.getppid() and args and Path(args[0]).name=='timeout' and str(worker_script) in args
             extra=any(Path(a).name in ('adapter_cv_probe.py','adapter_fidelity_probe.py',
-                                      'subspace_validation_probe.py') for a in args)
+                                      'subspace_validation_probe.py','catboost_ceiling_probe.py') for a in args)
             if pid!=os.getpid() and not own_parent and (conflict or extra):
                 raise RuntimeError('Host occupied: '+str(pid))
         manifest=json.loads((stage/'manifest.json').read_text())
@@ -120,7 +120,7 @@ def run_pair(stage, labels, audit_function, worker_script):
                 if code!=0:raise RuntimeError('CV worker failed: '+label)
             audit=audit_function(stage)
             audit['stage_seconds']=time.monotonic()-started
-            assert audit['stage_seconds']<=1400
+            assert audit['stage_seconds']<=stage_limit
             write_json(stage/'independent-audit.json',audit)
             write_json(stage/'COMPLETE',dict(utc=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime())))
         except BaseException as error:

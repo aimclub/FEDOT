@@ -434,3 +434,11 @@ H11 admitted after15 host tests, prospective commit4c94e496 pushed first.
 STARTED12:45:15UTC, nativeworker1329413/suite1329396 alive12:45:41 with isolated
 runtime and824-entry manifest. New-split control/candidate quality gate pending.
 Same existing continuation task; no full AMLB launches or default changes.
+
+H11 COMPLETE12:53:43UTC: nativeCV.9330059458264569 -> .9317823676310706 is only
+0.13114% improvement, below prospective1%gate. Independent split/probability/
+graph/runtime audit passes,824hashes intact; proposal closed, no extension.
+AuditSHA821f7156a6d73325f4333a909593965b84533d473f68b31d1b72209cdb7aad85.
+Next H12 tests a distinct observed ceiling: native best iterations are within10
+of3000 everyfold. ONE6000-tree CatBoost candidate, all otherparamsunchanged,
+frozenH11control reused and re-audited, no newoutertest/fulljob/default changes.

@@ -1594,3 +1594,12 @@ H11 STARTED12:45:15UTC after15 passing host contracts and prospective push
 4c94e496. Suite1329396/nativeworker1329413 active12:45:41; isolated environment
 confirmed,824-file manifest00de65835e6e061b362cec2e8cc5f64d1027045874a051732a5fd5a525dad9f6.
 Native control and single fixed proposal on NEWsplit pending; no repeat/full job.
+
+H11 COMPLETE12:53:43UTC, independent audit exact/all824hashes valid. Native
+CV.9330059458264569 vs subsampling.9317823676310706, gain0.13114% FAILS1%gate;
+stage508.7763s, both valid and underlimits. Closeproposal without extension.
+AuditSHA821f7156a6d73325f4333a909593965b84533d473f68b31d1b72209cdb7aad85.
+Native best trees2995/2990/2999 all near3000 motivates distinct H12: one6000-tree
+CatBoost CV, sameAPI/splits/remainingparams, reuse audited nativecontrol without
+refit.600sCV/660sprocess/stage700s;>=1%mean gain,foldguard2%,actual>3000activation.
+No fulljobs/defaultpromotion; prospective details in adaptive report.

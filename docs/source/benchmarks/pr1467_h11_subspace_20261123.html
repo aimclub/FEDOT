@@ -1,0 +1,14 @@
+<style>
+#h11{font-family:var(--font-sans);color:var(--foreground)}
+#h11 .row{margin:20px 0}#h11 .labels{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+#h11 .track{height:24px;margin-top:8px;background:var(--secondary)}#h11 .bar{height:24px;background:var(--chart-1)}
+#h11 .candidate{background:var(--chart-2)}#h11 .axis{display:flex;justify-content:space-between;color:var(--muted-foreground)}
+</style>
+<section id="h11" aria-label="H11: logloss на новом CV-разбиении обучающей выборки">
+<h3>H11 · Выбор половины признаков не прошёл порог</h3>
+<div class="row"><div class="labels"><span>Native CatBoost</span><span>0,933006</span></div><div class="track"><div class="bar" style="width:93.30059%"></div></div></div>
+<div class="row"><div class="labels"><span>colsample_bylevel = 0.5</span><span>0,931782</span></div><div class="track"><div class="bar candidate" style="width:93.17824%"></div></div></div>
+<div class="axis"><span>0</span><span>CV logloss ↓</span><span>1,0</span></div>
+<p>Снижение: 0,131% · требовалось ≥1% · гипотеза не прошла критерий</p>
+<p>7413 обучающих строк · новое разбиение seed 104736 · внешний тест не использовался</p>
+</section>
