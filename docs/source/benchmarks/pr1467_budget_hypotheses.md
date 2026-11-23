@@ -1558,3 +1558,12 @@ process87.1296s includes termination grace beyond81.9516s external waiting
 allowance; proposal exits normally78.2411s. Evaluator58.1634/60.5498s exceeds
 rounded51.9516s CV cap; whole600s policy-budget verification is still pending.
 No terminal marker or candidate result, no changes/restarts;680 hashes verify.
+
+H8 COMPLETE12:03:49UTC, independently audited12:12: all680 hashes intact;
+saved audit exactly reproduced, SHA79c457ea35045e72bda4931b59ef47e1897ad1ebbf7e758394910195bb443bfd.
+Control0 valid CVs/0 valid proposals,240.68375s policy. Charged fresh calibration
+candidate3 valid CVs/1 valid proposal,349.51583s policy; both<=600s. Calibrated
+cap148.8450s, selected colsample_bylevel=.5; confirmed same-split CV1.7133149501
+versus1.7143731903 native. Mechanism gate passes; tiny CV gain is not independent
+quality. H9 prospectively tests actual adapter preprocessing fidelity with two
+no-fit captures, row/target/representation audit,600s cap. No full-job admission.

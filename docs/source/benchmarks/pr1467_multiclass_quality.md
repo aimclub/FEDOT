@@ -398,3 +398,12 @@ At11:57:40 the original H8 control is confirming the native graph after invalid
 initial/proposal CVs. Partial fold metrics are not full-CV or outer scores.
 Candidate policy and paired feasibility/budget audit remain pending; all680
 frozen manifest entries verify. No source changes or extra launches.
+
+H8 COMPLETE12:03:49UTC and independently audited12:12. Charged calibration
+restores one valid proposal and final CV; candidate349.51583s/control240.68375s,
+both under600s. Confirmed CV1.7133149501 vs common native1.7143731903 is only
+0.06173% lower on the SAME splits; it is not independent quality or outer gain.
+Control invalid CV is not infinite outer loss. All680 hashes verify; audit SHA
+79c457ea35045e72bda4931b59ef47e1897ad1ebbf7e758394910195bb443bfd.
+Next H9 is a prospective no-fit actual-adapter preprocessing audit to resolve
+data-contract uncertainty before any new model-quality/full-job admission.

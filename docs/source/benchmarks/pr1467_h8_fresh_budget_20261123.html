@@ -1,0 +1,22 @@
+<style>
+#h8 {color:var(--foreground);font-family:var(--font-sans)}
+#h8 .row {margin:18px 0} #h8 .label {display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#h8 .track {background:var(--secondary);height:22px;margin-top:7px}
+#h8 .bar {height:22px;background:var(--chart-1)}
+#h8 .candidate {background:var(--chart-2)}
+#h8 .axis {display:flex;justify-content:space-between;color:var(--muted-foreground)}
+#h8 table {width:100%;border-collapse:collapse;margin-top:18px} #h8 td,#h8 th {text-align:left;padding:10px 4px;border-bottom:1px solid var(--border)}
+</style>
+<section id="h8" aria-label="H8, train-only: time charged to each 600 second policy budget">
+<h3>H8 · Полное время политики, лимит 600 с</h3>
+<div class="row"><div class="label"><span>Контроль: лимит из кэшированного CV</span><span>240,7 с · 0/1 допустимых проб</span></div><div class="track"><div class="bar" style="width:40.11396%"></div></div></div>
+<div class="row"><div class="label"><span>Кандидат: оплаченная свежая калибровка</span><span>349,5 с · 1/1 допустимых проб</span></div><div class="track"><div class="bar candidate" style="width:58.25264%"></div></div></div>
+<div class="axis"><span>0 с</span><span>300 с</span><span>600 с</span></div>
+<table><thead><tr><th>Проверка</th><th>Контроль</th><th>Кандидат</th></tr></thead><tbody>
+<tr><td>Завершённых CV</td><td>0 из 3</td><td>3 из 3</td></tr>
+<tr><td>Лимит следующего CV</td><td>51,952 с</td><td>148,845 с</td></tr>
+<tr><td>Финальный CV logloss ↓</td><td>Недопустимый CV</td><td>1,713315</td></tr>
+<tr><td>Общий исходный CV logloss</td><td colspan="2">1,714373 · результат H7</td></tr>
+</tbody></table>
+<p>Только обучающая выборка. Внешний AMLB test не оценивался. Повторная проверка использовала те же CV-разбиения.</p>
+</section>
