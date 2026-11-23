@@ -1824,3 +1824,16 @@ nooverlay. Candidate alreadyqueued/notSTARTED; no duplicate/restart/patch.
 1496manifestSHA2811371bc5db136402aa89a1e2bd5d076eba4553e5684e50bed308085ffd60c1;
 protocolSHA220c855499e0c0817bc4b9bb97a9def16e04f9dbd82864321e85006e27250c04.
 Fulloutcomes pending; readonlypairaudit onlyafterbothterminal, before anyouterclaim.
+
+H21 queue finished16:12:02UTC, BOTH FAILED before Fedot.fit: custom run/cache
+directory absent, BaseCacheDB Path.samefile raises FileNotFoundError in constructor.
+Processes24.067041/16.599972s, exitcode0 does not mean valid benchmark. All1496hashes
+verified; originalsuccess-pathauditor fails on absent fit.json. Separate readonly
+failure audit SHA c3393e056c266e8c525600e9a3b09bb7778bc5d49aa7dcce56430c5715198758.
+Zero training inferred from traceback+sourcecontrolflow; no fitcounter installed.
+No validouterresult/infinite-loss substitution, no fulljob retry/stagepatch.
+H22prospective distinct constructor/cache preparation contract:4fixed nofit cells,
+missing/preparedcache x policyfalse/true, actualadapterfactory/caches enabled.
+Newexclusive directory helper tested local6/host6pass; all1480 inheritedcode unchanged.
+Each60s/stage270s/external300+5,8threads/sequential/no datasets. Full protocol in
+adaptive report; no model/default/sharedchanges or automaticfullpair admission.
