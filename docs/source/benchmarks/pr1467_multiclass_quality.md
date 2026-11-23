@@ -652,3 +652,10 @@ No mainfold7fit before prospectivepush/hash. No default/generalpromotion.
 H21 final1476inheritedcode check passes exceptdeclaredcommon observerfactory hook;
 adapterSHAcb5d81e78759afec394f74e9427aa1c06d05b1319eea622e938a2677d6a7733c.
 Model/vendor/H18policyunchanged. Four diagnosticmodules/hashes in adaptive report.
+
+H21 fullpairSTARTED16:11:17UTC after097a3a37prospectivepush; baseline16:11:18,
+queue1351618/wrapper1351617/benchmark1351619/actualexec1351664 live16:11:33isolated,
+nooverlay. Candidate alreadyqueued/notSTARTED; no duplicate/restart/patch.
+1496manifestSHA2811371bc5db136402aa89a1e2bd5d076eba4553e5684e50bed308085ffd60c1;
+protocolSHA220c855499e0c0817bc4b9bb97a9def16e04f9dbd82864321e85006e27250c04.
+Fulloutcomes pending; readonlypairaudit onlyafterbothterminal, before anyouterclaim.
