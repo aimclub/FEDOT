@@ -1609,3 +1609,14 @@ Only one6000-tree candidate; oldH11control artifacts byte-identical, no refit.
 Suite1330764/worker1330780 live13:00:31 with exactisolatedenvironment. Manifest
 828files SHA2e5334e5c82000aa4076a4d44a2cebda0bec8a91333ad00d74dc0c753773f6e9.
 Actual horizon/quality/700s stage budget pending; no new fulljobs or sourcepatch.
+
+H12 COMPLETE13:05:31UTC, all828hashes/independent audit pass.6000 ceiling
+activated actual3542/3936/4004trees; CV.9330059458264569 -> .9290785089350727,
+0.42094%gain FAILS1%gate. CV298.6741s/process327.6956s/stage328.5945s valid.
+AuditSHA0dea3132a0c6072619056197467f76ee787ae00b93f5e43db74c973931a57b64.
+Close candidate with no additional ceilings. H13 prospectively addresses a
+different reproduced correctness issue: no-eval-set CatBoost alias collision.
+Exactly8tiny synthetic cells, classification/regression and true/false evalset,
+native/isolatedpatch;240s internal/300s external stage limit. Gate requires exact
+true-path parity and corrected false-path all240rows/12trees, callbacks8threads
+preserved. No dataset-quality/fulljob admission; full protocol in adaptive report.

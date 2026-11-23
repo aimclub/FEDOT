@@ -447,3 +447,12 @@ H12 admitted after7host tests; STARTED13:00:03UTC in new immutable stage.
 Originalsuite1330764/worker1330780 active13:00:31; exact runtime isolation and
 828-entrymanifest recorded. Candidate6000-tree activation and paired quality
 are still pending; constructor check alone is not evidence of fitted rounds.
+
+H12 COMPLETE13:05:31UTC and fully audited: fitted3542/3936/4004trees, valid
+7413x7 probabilities, nativeCV.9330059458264569 -> .9290785089350727. Only0.42094%
+gain FAILS1%gate despite foldguards/budgets passing; close6000candidate.
+All828hashes valid; auditSHA0dea3132a0c6072619056197467f76ee787ae00b93f5e43db74c973931a57b64.
+No independent/outer quality or speed conclusion. Next H13 is correctness-only:
+fix reproduced CatBoost use_eval_set=False alias conflict in an isolatedcopy,
+test8synthetic cells with exact true-path prediction parity and all-row false-path
+fit. Prospective bounded protocol in adaptive report; no default/PR promotion.
