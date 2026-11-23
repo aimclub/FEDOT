@@ -1,0 +1,41 @@
+<style>
+#h17-result { color:var(--foreground); font-family:var(--font-sans); }
+#h17-result h3 { font-weight:500; margin:16px 0 10px; }
+#h17-result .row { display:grid; grid-template-columns:120px 1fr 84px; gap:10px; align-items:center; margin:12px 0; }
+#h17-result .track { height:20px; background:var(--secondary); }
+#h17-result .mark { height:20px; background:var(--chart-1); }
+#h17-result .candidate { background:var(--chart-2); }
+#h17-result .num { text-align:right; font-variant-numeric:tabular-nums; }
+#h17-result .scale { display:flex; justify-content:space-between; margin-left:130px; margin-right:94px; color:var(--muted-foreground); }
+#h17-result .budget { display:flex; height:28px; background:var(--secondary); }
+#h17-result .legend { display:flex; flex-wrap:wrap; gap:8px 18px; margin:12px 0; }
+#h17-result .legend span { display:inline-flex; gap:6px; align-items:center; }
+#h17-result i { width:12px; height:12px; display:inline-block; }
+#h17-result .caption { color:var(--muted-foreground); margin:10px 0; }
+@media(max-width:450px) { #h17-result .row { grid-template-columns:86px 1fr 80px; gap:6px; } #h17-result .scale { margin-left:92px; margin-right:86px; } }
+</style>
+<div id="h17-result">
+  <h3>H17 · реальный тюнер · TRAIN-CV</h3>
+  <div class="caption">7413 строк · 3 folds · split 42 · меньше log loss — лучше</div>
+  <div role="img" aria-label="Native 0.924240, all-row proposal и confirmation 0.898091. Снижение log loss на 2.829 процента.">
+    <div class="row"><span>Native</span><div class="track"><div class="mark" style="width:92.424013%"></div></div><span class="num">0,924240</span></div>
+    <div class="row"><span>Proposal</span><div class="track"><div class="mark candidate" style="width:89.809059%"></div></div><span class="num">0,898091</span></div>
+    <div class="row"><span>Confirm</span><div class="track"><div class="mark candidate" style="width:89.809059%"></div></div><span class="num">0,898091</span></div>
+    <div class="scale"><span>0</span><span>log loss</span><span>1</span></div>
+  </div>
+  <div>Снижение 2,829% · порог 1% пройден · все folds улучшились</div>
+  <h3>Процесс: 625,29 с / 1100 с</h3>
+  <div class="budget" role="img" aria-label="Калибровка 208.75 с, proposal 189.70 с, confirmation 187.64 с, остальные расходы 39.19 с, не использовано 474.71 с.">
+    <div style="width:18.977361%;background:var(--chart-1)"></div>
+    <div style="width:17.245448%;background:var(--chart-2)"></div>
+    <div style="width:17.058427%;background:var(--chart-3)"></div>
+    <div style="width:3.562905%;background:var(--chart-4)"></div>
+  </div>
+  <div class="legend">
+    <span><i style="background:var(--chart-1)"></i>Initial 208,75 с</span>
+    <span><i style="background:var(--chart-2)"></i>Proposal 189,70 с</span>
+    <span><i style="background:var(--chart-3)"></i>Confirm 187,64 с</span>
+    <span><i style="background:var(--chart-4)"></i>Прочее 39,19 с</span>
+  </div>
+  <div class="caption">Исследованный TRAIN · outer-test не использован · полного AMLB ещё нет</div>
+</div>

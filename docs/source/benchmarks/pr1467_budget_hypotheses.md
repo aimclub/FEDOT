@@ -1692,3 +1692,38 @@ live14:38:55, isolatedruntime/nooverlay. Frozen1481manifestSHA
 4cb63053ac894c82d3c86c6768516ed75a0364a40dbe7443e5d6ad4a44a96a3f.
 Real tuner initial/trial/final integration and1100swholebudget pending; never
 restart/patch. Full protocol/audit instructions in adaptive report. No fulljob.
+
+
+## H17 COMPLETE: actual tuner calibration and selection gate PASS
+
+COMPLETE2026-11-23 14:49:24UTC, noFAILED; matching processes absent14:54:00.
+ALL1481manifest hashes verified BEFORE separate read-only frameworkpython audit;
+returned JSON exactly matches saved audit excluding stage_seconds. AuditSHA
+26a6bf83eaa2f754d69370dc9544a1783fc52cdb886eb746bdce2bfa9167a811;
+resultSHA29f827a9aee99993dfbb3ac88b55775af1ce4902f0186a7f0703f81f7bf9076b.
+Actual TunerBuilder + opt-in SimultaneousTuner, native initialCV.9242401336464137
+(EXACThistoricalH10) -> proposal AND final.8980905917033347,2.829301714percent
+lower; PASS1percentmean/everyfold2percentguard. Initialfolds.9485798728137981/
+.9169527275116044/.9071878006138384; candidate.9279015701868993/.8866737336060454/
+.8796964713170595. Native2998/3000/2996trees;allrow3000each,4942Poolrows/85cats.
+Initial208.750968277s ->271.376258759s nextcap; proposal189.699924587s,
+confirmation187.642691988s. Admission remaining864.684432507s exceeds reserve
+642.752517519s. Internalpolicy621.269943037s; entireworker625.285534889s<=1100;
+stage639.704438980s includes separate suite audit. No speed claim.
+InitialNPZ50ec9f413f2e384393de500d20efad3c3048b18e10e407d47b46d3a2889132d2;
+proposal/final byteidentical46e8f1d12bc13280b5e040476dc1b97c826c9049442bed0b09f7893c71f854a1.
+Allrows/classes/split42/graphparams/Poolconstructor/noevalnormalization/budgets
+verified; real serialized3generation history reloads with exact graph/fitness,
+labels/lineage. Realfinalcheck selected all-row. No retries/refits of oldstage.
+ExploredTRAIN/split42, not independentdataset/outerquality. H17 still does not
+wire this policy into ApiComposer's remaining-budget/refit accounting or change
+defaults. New H17 chart previewed/rendered, previous charts not repeated.
+
+H18 prospective correctness-only adapter opt-in/ApiComposer actualwallbudget/
+refitreserve integration. ONE90row synthetic12tree controlledselectedgraph,
+realFedot.fit/tuning/finalrefit,300sstage. Local9contracts pass; hosttests pending.
+No repeatedfabert screen/defaultpromotion/fulljob; fullprotocol in adaptive report.
+
+H18 local9pass/4skip; host13pass16.15s including actual30row API/composer/
+tuner/finalrefit. Explicit originalperfoldcap retained plus wholeCV/policybounds.
+Only isolatedApiComposer/adapterflagpatch; no local/shared/defaultmodel edits.
