@@ -1,0 +1,23 @@
+<style>
+#h18-contract {font-family:var(--font-sans);color:var(--foreground)}
+#h18-contract h3 {font-weight:500}
+#h18-contract .line {display:grid;grid-template-columns:110px 1fr 80px;gap:8px;align-items:center;margin:14px 0}
+#h18-contract .track {height:18px;background:var(--secondary)}
+#h18-contract .mark {height:18px;background:var(--chart-1)}
+#h18-contract .value {text-align:right;font-variant-numeric:tabular-nums}
+#h18-contract .muted {color:var(--muted-foreground);margin:10px 0}
+#h18-contract .axis {display:flex;justify-content:space-between;margin:0 88px 16px 118px}
+@media(max-width:450px) {#h18-contract .line {grid-template-columns:84px 1fr 78px;gap:6px} #h18-contract .axis {margin-left:90px;margin-right:84px}}
+</style>
+<div id="h18-contract">
+  <h3>H18 · синтетическая проверка выбора</h3>
+  <div class="muted">90 строк · 12 деревьев · CV log loss, меньше — лучше</div>
+  <div role="img" aria-label="Native 0.619929, all-row 0.619819. Порог для выбора all-row 0.613730. Поэтому сохранён native.">
+    <div class="line"><span>Native</span><div class="track"><div class="mark" style="width:61.992880%"></div></div><span class="value">0,619929</span></div>
+    <div class="line"><span>All-row</span><div class="track"><div class="mark" style="width:61.981888%;background:var(--chart-2)"></div></div><span class="value">0,619819</span></div>
+    <div class="line"><span>Порог −1%</span><div class="track"><div class="mark" style="width:61.372951%;background:var(--chart-3)"></div></div><span class="value">0,613730</span></div>
+    <div class="axis"><span>0</span><span>log loss</span><span>1</span></div>
+  </div>
+  <div>Выбран native · финальный refit: Pool 72/18 · 12 деревьев</div>
+  <div class="muted">Проверка корректности пройдена. Это не оценка качества fabert или outer-test.</div>
+</div>

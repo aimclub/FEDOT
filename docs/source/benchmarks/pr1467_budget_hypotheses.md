@@ -1733,3 +1733,36 @@ Prospective8af328bf pushedfirst;1482manifestSHA
 e6d85d89c2c990e54a1ed87eaa7863224d2bacac6df0608aa488384e3975c56f.
 Synthetic90row correctness only; stage300s timer excludes earlyimports/verification,
 external330s boundsstartup separately. Auditpending; neverrestart/patch.
+
+
+## H18 COMPLETE: adapter/composer/refit correctness gate PASS
+
+COMPLETE15:07:20UTC, processesabsent15:09:30. All1482hashesverified THEN separate
+read-only frameworkpython audit exactly matches savedJSON excludingstage_seconds.
+AuditSHAed6968d40f64a1e12213d86167c9c9f543eccb7271e69bb3d49682264d28233a.
+Synthetic90rows: nativeCV.6199288021316188, proposal/final.6198188811869084;
+less than1percent gain, so realfinalcheck correctly returns native. Final12trees,
+Pool72/18rows, thread8, originalnativebestmodel/detectorparams, fullfinalfit verified.
+Actualfit1.462757726s; chargedtuning1.141476s; allocation275.327783490s, fullrefit
+reserve32.4s/postfit16.2s intact. Initialcap58.442594497s, paidinitialCV.424315579s;
+5s nextcap, proposal.256774307s/final.246564104s. Stage13.791123237s EXCLUDESearly
+moduleimports/manifestverification; external330s is separate startup bound.
+This is correctness evidence on synthetic data with supplied selectedgraph;
+not fabert/outerquality. It exercised native finalrefit, not selectedallrow fullfit.
+No mainrepeat/sourcechange. H19 tests that remaining concrete integration gap.
+
+H19 prospective integrated actualfabertTRAIN selectedallrow fullrefit, supplied
+selectedgraph/noevolution/noouter. RuntimeunchangedH18; one lifecycle1100stuner+
+324sreservedrefit within1500swholeworker. ExactH17CVpredictionreferences,actual
+7413rowPool/3000trees/constructor/history/budgets gate. No fullAMLB admission.
+
+
+H19 preflight local2pass/1hostskip; hostALL3pass18.51s, including actual30row
+API/composer/real3CV/perfoldNPZ+Poolrecorder/finalrefit and independent audit;
+auditor rejects corrupted actualtreecount. All1472 inheritedsource/vendor/harness
+files verified unchanged from H18; only2newdiagnostics. H17probability/result/audit
+references and originalTRAINframe/NPZ copied after explicit hash checks, no rerun.
+DriverSHA8f30cc1a7cb8dc85bbd49e0e6ce8b9f64200fe0456ff5918641a1ca9c5f62579;
+testSHA167f3da282dae59fb34c37ae7760d3932583e2d69865a8d368a9c108da627a49.
+H18syntheticselection chart previewed/rendered; no prior chart repeated.
+No fullfabert fit before prospectiveadmission and no fullAMLB/default promotion.
