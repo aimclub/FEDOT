@@ -1,0 +1,40 @@
+{
+  "valid": true,
+  "verified_files": 1532,
+  "model_fits": 3,
+  "control_retrained": false,
+  "candidate": {
+    "fold_losses": [
+      1.09861228866811,
+      1.09861228866811,
+      1.09861228866811
+    ],
+    "active_splits": [
+      false,
+      false,
+      false
+    ],
+    "uniform": [
+      true,
+      true,
+      true
+    ],
+    "actual_train_rows": [
+      48,
+      48,
+      48
+    ],
+    "iterations": [
+      1,
+      1,
+      1
+    ],
+    "mean": 1.09861228866811
+  },
+  "control_mean": 1.09861228866811,
+  "control_probability_match": true,
+  "mechanism_passed": true,
+  "process_seconds": 14.595655109733343,
+  "scope": "Early stopping alone insufficient on fixed H29 synthetic TRAIN: prospective negative-control mechanism; not universal causality or quality search.",
+  "stage_seconds": 16.89139587059617
+}

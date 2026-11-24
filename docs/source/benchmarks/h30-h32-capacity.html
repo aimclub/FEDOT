@@ -1,0 +1,51 @@
+<section id="h30-capacity" aria-label="Средний log loss на исследованном синтетическом TRAIN">
+  <h3>H30–H32 · синтетический TRAIN</h3>
+  <div class="text-small">Средний log loss трёх CV-фолдов · меньше — лучше</div>
+  <div class="capacity-bars"></div>
+  <svg class="capacity-axis" height="40" aria-hidden="true"></svg>
+  <div class="text-small">H29 native — сохранённый исходный граф, только контекст. Не outer test.</div>
+</section>
+<style>
+#h30-capacity .capacity-row {margin-top:16px}
+#h30-capacity .capacity-label {display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#h30-capacity svg {display:block;width:100%;overflow:visible}
+#h30-capacity svg text {fill:var(--foreground);font-size:12px}
+#h30-capacity .capacity-value {font-variant-numeric:tabular-nums}
+</style>
+<script>
+(() => {
+ const root=document.getElementById('h30-capacity');
+ const rows=[
+  {label:'H29 · исходный граф (native)',value:0.4786680228945414,color:'--chart-2'},
+  {label:'H29 · неудачная проба, контроль',value:1.09861228866811,color:'--chart-1'},
+  {label:'H30 · размер листа 29 → 20',value:0.48181308658000593,color:'--chart-3'},
+  {label:'H31 · без eval set, лист 29',value:0.4826988659034826,color:'--chart-3'},
+  {label:'H32 · только без ранней остановки',value:1.09861228866811,color:'--chart-1'}
+ ];
+ const host=root.querySelector('.capacity-bars');
+ rows.forEach(r=>{
+  const row=document.createElement('div');row.className='capacity-row';
+  const label=document.createElement('div');label.className='capacity-label';
+  const name=document.createElement('span');name.textContent=r.label;
+  const value=document.createElement('span');value.className='capacity-value';value.textContent=r.value.toFixed(5).replace('.',',');
+  label.append(name,value);row.append(label);
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('height','24');svg.setAttribute('role','img');svg.setAttribute('aria-label',r.label+': '+r.value.toFixed(5));row.append(svg);r.svg=svg;host.append(row);
+ });
+ const max=Math.max(...rows.map(r=>r.value))*1.04;
+ function draw(){
+  const width=host.getBoundingClientRect().width;
+  if(width<=0)return;
+  rows.forEach(r=>{
+   r.svg.setAttribute('viewBox',`0 0 ${width} 24`);
+   r.svg.innerHTML=`<rect x="0" y="6" width="${width*r.value/max}" height="14" fill="var(${r.color})" />`;
+  });
+  const axis=root.querySelector('.capacity-axis');axis.setAttribute('viewBox',`0 0 ${width} 40`);
+  axis.innerHTML=`<line x1="0" y1="5" x2="${width}" y2="5" stroke="var(--border)"/>`;
+  [0,max/2,max].forEach((v,i)=>{
+   const x=width*v/max;
+   axis.innerHTML+=`<text x="${x}" y="22" text-anchor="${i===0?'start':i===2?'end':'middle'}">${v.toFixed(2).replace('.',',')}</text>`;
+  });
+ }
+ new ResizeObserver(draw).observe(host);draw();
+})();
+</script>

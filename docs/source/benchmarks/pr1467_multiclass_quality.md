@@ -1,6 +1,6 @@
 # PR #1467 multiclass-quality experiments
 
-Current status (2026-11-24): H30/H31 audited PASS; H32 stopping-only negative-control mechanism admitted prospectively after contracts, main launch pending. H7-H29 retained, including H21 FAILED. Former continuation task remains deleted. No default/shared promotion or successful full AMLB quality claim. Earlier status entries below are historical.
+Current status (2026-11-24): H30/H31 causal interventions and H32 stopping-only negative control COMPLETE/audited; all prospective mechanism gates passed. Native H29 remains better; no quality promotion. Bounded sequence closed after resolving the specific ambiguity, no justified next distinct mechanism admitted. H7-H29 retained, including H21 FAILED; no active workers or scheduler. Earlier status entries below are historical.
 
 Branch: `codex/pr1467-multiclass-quality`, parent
 `2667e5df1081efcf342c44567ff9dddeb974cbf5`.
@@ -1166,3 +1166,50 @@ different60row8tree smoke (32internaltrain/8eval), actualcallbacks/rowaudit and
 intentional callback corruption rejected withoutrefit. All preflight artifacts retained.
 Main90rowcase not evaluated before this prospectivepush. Freezemanifest; afterCOMPLETE
 verifyfirst then separate read-only frameworkaudit/JSONcomparison/processabsence.
+
+## H32 COMPLETE/audited; bounded causal sequence closed
+
+H32 STARTED2026-11-24T10:13:51Z, COMPLETE10:14:08Z, wrapper1381787/suite1381788.
+FIRST all1532manifesthashes verified then independent framework read-only audit
+EXACT savedJSON excludingstage_seconds; actualprocessesabsent.
+AuditSHA69c6ca5bdd7fe72b2f756b0e89c6dd8e1df80a3c903d48fde5813a38170cba70;
+manifest7170bf1edb1e76ee652e800ee9622501b2097e558ed4764f7dff645298075bcf;
+protocol52139eb17513943cbb34a1889711e8108b2043ba9ccad17d336fab62d1732576;
+driverb8fca557c959ed61cab3b724d09fa959843fd96910f82d9f143f1842530fd5f7.
+Stage16.891396s/process14.595655s, allbudgetsPASS. Three48row fits with12eval rows,
+minleaf29, early_stopping_roundsNone, only time-limit callback. Each model retained
+one boosting iteration/three multiclass trees, allsingleleaf; n_estimators100 is
+a ceiling, not a promise of100 usefuliterations. Saved probabilities all1/3 and
+matchH29 control within1e-12. Allfoldloss/mean1.09861228866811.
+Prospective H32 NEGATIVE-CONTROL mechanism PASS: removing early stopping alone
+does NOT cure this case. This is not a successful quality proposal or a failedfit.
+
+The sequence answers the concrete ambiguity exposed by H29:
+- H30 smaller leaf requirement alone restores splits on48rows.
+- H31 existing no-eval mode at unchangedleaf29 restores splits on60rows.
+- H32 only disabling stopping, still48rows/leaf29, does not restore splits.
+This supports a training-row/leaf-capacity interaction on the exact explored
+syntheticcase. No universal row-count rejection theorem, historicalcontrol tree
+dump claim, unbiased generalization, speed improvement or realfabert transfer.
+Both working variants remain slightly WORSE than nativeH29 (.4786680228945414).
+No quality winner is promoted and no search-space/default/modelruntime is patched.
+
+New results table (mean3foldTRAINCV):
+retainedH29firsttrial1.09861228866811; H30 .48181308658000593;
+H31 .4826988659034826; H32 1.09861228866811; nativecontext .4786680228945414.
+Exact copies of frozen audits are in h30-h32-evidence/h30-audit.json,
+h31-audit.json,h32-audit.json. h30-h32-capacity.html rendered after html_preview,
+dark/light at360/728-736px; no clipping/consoleerrors. Initial path preview rejected
+fragment-only document; passed samefragment inline, no artifact or runtime changes.
+These new charts compare syntheticTRAIN only, not outer-test scores.
+
+Continuation assessment: no further DISTINCT mechanism supported by these findings
+is admitted now. A smaller-leaf grid, more seeds/data/folds, combined favorable
+switches, or larger boosting ceilings would extend this completed screen. A general
+pre-fit rejection policy cannot safely follow from a strict2*minleaf row formula:
+LightGBM uses Hessian approximations, and no transferable feasibility bound was proven.
+H32 resolves the specific stopping ambiguity; another modelrun is not justified
+merely by a possible improvement on this synthetic sample. This causal sequence
+therefore closes afterH32. All H11/H12/fullfold7 prohibitions remain; no H33/fullpair/
+defaultpromotion. No activeworkers remain. The former scheduler was already deleted;
+none recreated, no otherhosts/subagents/VPNchanges. Oldsources/artifacts/userpaths retained.
