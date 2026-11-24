@@ -1,0 +1,41 @@
+{
+  "valid": true,
+  "verified_files": 1532,
+  "model_fits": 3,
+  "control_retrained": false,
+  "control_mean": 1.09861228866811,
+  "control_fold_losses": [
+    1.09861228866811,
+    1.09861228866811,
+    1.09861228866811
+  ],
+  "candidate": {
+    "fold_losses": [
+      0.5350501317731973,
+      0.44671305074609347,
+      0.46633341519115706
+    ],
+    "active_splits": [
+      true,
+      true,
+      true
+    ],
+    "actual_train_rows": [
+      60,
+      60,
+      60
+    ],
+    "iterations": [
+      100,
+      100,
+      100
+    ],
+    "mean": 0.4826988659034826
+  },
+  "h30_context_only": 0.48181308658000593,
+  "h29_native_context_only": 0.4786680228945414,
+  "mechanism_passed": true,
+  "process_seconds": 15.094708831980824,
+  "scope": "Single eval-set switch at fixed leaf29; explored synthetic TRAIN. Existing early-stopping removal is inseparable; no pure row-count causality, quality search or default promotion.",
+  "stage_seconds": 18.02586650289595
+}

@@ -1,0 +1,35 @@
+{
+  "valid": true,
+  "verified_files": 1532,
+  "model_fits": 3,
+  "control_retrained": false,
+  "control_mean": 1.09861228866811,
+  "control_fold_losses": [
+    1.09861228866811,
+    1.09861228866811,
+    1.09861228866811
+  ],
+  "candidate": {
+    "fold_losses": [
+      0.523451170003591,
+      0.4462692588076324,
+      0.4757188309287944
+    ],
+    "active_splits": [
+      true,
+      true,
+      true
+    ],
+    "inner_train_rows": [
+      48,
+      48,
+      48
+    ],
+    "mean": 0.48181308658000593
+  },
+  "h29_native_context_only": 0.4786680228945414,
+  "mechanism_passed": true,
+  "process_seconds": 13.740340542979538,
+  "scope": "Single 29->20 min_data_in_leaf intervention on explored synthetic H29 TRAIN; no overall native quality gain requirement, default/searchspace promotion or fabert transfer",
+  "stage_seconds": 16.191135327331722
+}
