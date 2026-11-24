@@ -1,6 +1,6 @@
 # PR1467 follow-up: measured CV budget and prediction headroom
 
-Current status (2026-11-24): user renewed testing. H7-H29 audited; H30 single-parameter leaf-capacity probe admitted prospectively after passing contracts, main launch pending. The former continuation task remains deleted. No default/shared promotion or successful full AMLB quality claim. Earlier status entries below are historical.
+Current status (2026-11-24): H30 audited PASS; H31 distinct eval-set mode probe admitted prospectively after contracts, main launch pending. H7-H29 retained, including H21 FAILED. Former continuation task remains deleted. No default/shared promotion or successful full AMLB quality claim. Earlier status entries below are historical.
 
 Experimental branch: `codex/pr1467-multiclass-quality`. Original PR and all
 previous deployed code/results remain unchanged. No quality gain is claimed.
@@ -2252,3 +2252,46 @@ Main 90row candidate has NOT run before this prospective commit/push.
 After completion verify frozen manifest FIRST, independently audit with framework
 Python, compare saved audit excluding stage_seconds, check processes absent.
 Negative mechanism gate is a completed experiment, not a reason to retry.
+
+## H30 COMPLETE/audited; H31 prospective
+
+H30 STARTED2026-11-24T10:04:44Z, COMPLETE10:05:00Z, wrapper1379889/suite1379890.
+All1532manifesthashes FIRST verified, then independent framework read-only audit
+EXACT excluding stage_seconds; processes absent. AuditSHA
+aa8ad7eb520450cf3239a1e5437c5f78de31c096cd8b7ce93504a99e6b03ea2e.
+ManifestSHA b69b82e987052b9cd4bfcad10e09ef3390263d35e184b72261e9f40a58ab33c7;
+protocol8026b27c4d98a021e39fa14139b7894d4770b552b90032872431bacb410a3738;
+drivere7b0989eecfa969298f3a95c095af699ab3b0aa00f211a4920b040ac9fb03078.
+Three actual candidate fits, retained control never retrained. Process13.740341s.
+Control fold losses all1.09861228866811; candidate .523451170003591,
+.4462692588076324,.4757188309287944; mean .48181308658000593.
+All inner fitting rowcounts48; useful2-leaf trees on every fold; bestiterations
+92/52/96, actual fit .168376/.204996/.179813s. Prospective mechanism gate PASS.
+One leaf-size change suffices on this explored synthetic TRAIN to remove the
+uniform-prediction failure. Still worse than H29 native .4786680228945414;
+no overall native gain, generalization or transfer claim.
+
+H31 derives a DISTINCT execution-mode intervention: retain min_data_in_leaf29 and
+all other graph parameters, switch ONLY use_eval_set true->false. Actual no-eval
+LightGBM path uses all60 CV train rows instead48 and normalizes early_stopping_rounds
+to None; this existing coupled behavior is explicitly part of the intervention.
+Do NOT claim pure row-count causality independent of early stopping. Existing
+n_estimators100 remains unchanged (no boosting ceiling increase). One new3fold CV,
+no search/other leaf sizes/control rerun/full refit. Same retained H29 TRAIN/control,
+H30 result context only, no syntheticTEST/realouter labels.
+Stage eval-capacity-probe-20261124; all1500 inherited source/vendor/harness hashes
+verified unchanged, only new eval_capacity_probe.py/test_eval_capacity_probe.py.
+Observation forwards actual LGBMClassifier.fit, records60 fitting rows/targets,
+no eval_set, exactly one time-limit callback, early_stopping_roundsNone, original
+constructor params, tree count/iterations and useful splits. No extra fitting.
+Gate3validfolds/usefulsplitseveryfold/mean<=.99control/everyfold<=1.02control;
+H30/native context NOT adaptive quality targets. Negative gate closes mechanism,
+no follow-on toggles/grid/leaf-size list. Same perfit21.6/CV60/worker90+5/stage120/
+external150+5, sequentialoneworker8threads, no retries/extensions/defaultpromotion.
+Preflight local1pass1hostskip; host2pass16.44s on DIFFERENT60row8tree smoke input,
+including actual40row no-eval fits and constructor-row corruption rejected without
+refit. Initial orchestration command arrived before immutable copying completed;
+log directory absent, no pytest/model process started. Recorded preparation-note;
+copy completed and verified before actual preflight. All artifacts retained.
+Commit/push this protocol before main launch; freeze hashes, after COMPLETE first
+verify manifest then independent read-only audit/exactcomparison/processabsence.
