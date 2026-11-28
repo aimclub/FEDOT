@@ -41,9 +41,12 @@ from fedot.utilities.composer_timer import fedot_composer_timer
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
-
-class PipelineTimeLimitExceeded(TimeoutError):
-    """A process isolation deadline expired before a pipeline operation finished."""
+_NATIVE_TIME_LIMITED_OPERATIONS = frozenset({
+    'catboost', 'catboostreg',
+    'lgbm', 'lgbmreg',
+    'xgboost', 'xgboostreg',
+})
+_NATIVE_FIT_TIME_FRACTION = 0.9
 
 
 # A timed-out unpickler cannot safely be killed in Python. Bound outstanding
@@ -157,7 +160,7 @@ def _run_in_process(function, args, timeout_seconds):
     is allowed; subsequent results fail closed if it does not finish in time.
     """
     if timeout_seconds <= 0:
-        raise PipelineTimeLimitExceeded('Limited worker time budget is exhausted')
+        raise TimeoutError('Limited worker time budget is exhausted')
     deadline = time.monotonic() + _FIT_STARTUP_SECONDS
     parent, child = multiprocessing.Pipe()
     random_states = random.getstate(), np.random.get_state()
@@ -170,7 +173,7 @@ def _run_in_process(function, args, timeout_seconds):
         process.start()
         child.close()
         if not parent.poll(max(0, deadline - time.monotonic())):
-            raise PipelineTimeLimitExceeded('Limited worker startup time budget is exhausted')
+            raise TimeoutError('Limited worker startup time budget is exhausted')
         if parent.recv_bytes() != b'ready':
             raise RuntimeError('Limited worker sent an invalid readiness message')
         if os.name == 'nt':
@@ -186,9 +189,9 @@ def _run_in_process(function, args, timeout_seconds):
         deadline = time.monotonic() + timeout_seconds
         parent.send_bytes(b'start')
         if not parent.poll(max(0, deadline - time.monotonic())):
-            raise PipelineTimeLimitExceeded('Limited worker execution time budget is exhausted')
+            raise TimeoutError('Limited worker execution time budget is exhausted')
         if not _RESULT_READER.acquire(timeout=max(0, deadline - time.monotonic())):
-            raise PipelineTimeLimitExceeded('Previous limited worker result is still decoding')
+            raise TimeoutError('Previous limited worker result is still decoding')
         results = queue.Queue(maxsize=1)
         try:
             threading.Thread(target=_receive_result, args=(parent, results), daemon=True).start()
@@ -199,7 +202,7 @@ def _run_in_process(function, args, timeout_seconds):
         try:
             kind, result = results.get(timeout=max(0, deadline - time.monotonic()))
         except queue.Empty:
-            raise PipelineTimeLimitExceeded('Limited worker result time budget is exhausted') from None
+            raise TimeoutError('Limited worker result time budget is exhausted') from None
         if kind == 'error':
             raise result
         return result
@@ -243,7 +246,6 @@ def _fit_in_process(pipeline, input_data, predictions_cache, fold_id):
     return predicted, pipeline.computation_time, nodes
 
 
-
 class Pipeline(GraphDelegate, Serializable):
     """Base class used for composite model structure definition
 
@@ -283,7 +285,7 @@ class Pipeline(GraphDelegate, Serializable):
 
         Args:
             input_data: data used for operations training
-            time: time constraint for operations fitting process (in minutes)
+            time: time constraint for operations fitting
 
         Returns:
             OutputData: values predicted on the provided ``input_data``
@@ -300,21 +302,15 @@ class Pipeline(GraphDelegate, Serializable):
 
     def _fit(self,
              input_data: Optional[InputData] = None,
-             process_state_dict: dict = None,
-             fitted_operations: list = None,
              predictions_cache: Optional[PredictionsCache] = None,
              fold_id: Optional[int] = None) -> Optional[OutputData]:
         """Runs training process in all the pipeline nodes starting with root
 
         Args:
             input_data: data used for operation training
-            process_state_dict: dictionary used for saving required pipeline parameters
-                (which were changed inside the process) in case of operations fit time control (when process created)
-            fitted_operations: list used for saving fitted operations of pipeline nodes
 
         Returns:
-            Optional[OutputData]: values predicted on the provided ``input_data`` or nothing
-            in case of the time controlled call
+            Optional[OutputData]: values predicted on the provided ``input_data``
         """
 
         with Timer() as t:
@@ -324,13 +320,7 @@ class Pipeline(GraphDelegate, Serializable):
             if computation_time_update:
                 self.computation_time = round(t.minutes_from_start, 3)
 
-        if process_state_dict is None:
-            return train_predicted
-        else:
-            process_state_dict['train_predicted'] = train_predicted
-            process_state_dict['computation_time_in_seconds'] = self.computation_time
-            for node in self.nodes:
-                fitted_operations.append(node.fitted_operation)
+        return train_predicted
 
     def _preprocess(self, input_data: Union[InputData, MultiModalData], *, is_fit_stage: bool = True) -> \
             Union[InputData, MultiModalData]:
@@ -407,15 +397,61 @@ class Pipeline(GraphDelegate, Serializable):
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
-        if time_constraint is None:
-            train_predicted = self._fit(input_data=copied_input_data,
-                                        predictions_cache=predictions_cache, fold_id=fold_id)
-        else:
-            train_predicted = self._fit_with_time_limit(
-                input_data=copied_input_data, time=time_constraint, predictions_cache=predictions_cache,
-                fold_id=fold_id)
+        temporarily_updated_nodes = []
+        try:
+            if time_constraint is None:
+                train_predicted = self._fit(input_data=copied_input_data,
+                                            predictions_cache=predictions_cache, fold_id=fold_id)
+            else:
+                temporarily_updated_nodes = self._set_default_native_fit_time_limits(time_constraint)
+                train_predicted = self._fit_with_time_limit(
+                    input_data=copied_input_data, time=time_constraint, predictions_cache=predictions_cache,
+                    fold_id=fold_id)
+        finally:
+            # A caller-provided ``time_constraint`` belongs to this fit call,
+            # not to the serialised pipeline. Explicit node limits are never
+            # changed and automatically injected limits are removed afterwards.
+            for node, original_parameters in temporarily_updated_nodes:
+                node.parameters = original_parameters
 
         return train_predicted
+
+    def _set_default_native_fit_time_limits(self, time_constraint: timedelta) -> list:
+        """Bound native boosting fits that otherwise ignore Python timeouts.
+
+        Process isolation enforces the pipeline-level deadline, while native
+        callbacks let XGBoost, LightGBM and CatBoost stop cleanly inside their
+        compiled training loops. Ten percent of the pipeline allowance is kept
+        for non-booster nodes and train prediction. The remaining time is split
+        between boosting nodes, and an explicit ``fit_time_limit`` is preserved.
+
+        Returns the nodes changed by this method together with their original
+        parameters so the caller can restore them after the fit.
+        """
+        total_seconds = time_constraint.total_seconds()
+        if total_seconds <= 0:
+            return []
+
+        boosting_nodes = [
+            node for node in self.nodes
+            if node.operation.operation_type.split('/', 1)[0]
+            in _NATIVE_TIME_LIMITED_OPERATIONS
+        ]
+        if not boosting_nodes:
+            return []
+
+        per_node_seconds = max(
+            0.1,
+            total_seconds * _NATIVE_FIT_TIME_FRACTION / len(boosting_nodes),
+        )
+        updated_nodes = []
+        for node in boosting_nodes:
+            parameters = dict(node.parameters or {})
+            if parameters.get('fit_time_limit') is not None:
+                continue
+            updated_nodes.append((node, parameters))
+            node.parameters = {**parameters, 'fit_time_limit': per_node_seconds}
+        return updated_nodes
 
     @property
     def is_fitted(self) -> bool:
@@ -658,9 +694,19 @@ class Pipeline(GraphDelegate, Serializable):
         :param n_jobs: required number of the jobs to assign to the nodes
         """
         for node in self.nodes:
-            for param in ['n_jobs', 'num_threads']:
-                if param in node.content['params']:
-                    node.content['params'][param] = n_jobs
+            parameters = node.parameters
+            updated_parameters = {
+                **parameters,
+                **{
+                    param: n_jobs
+                    for param in ['n_jobs', 'num_threads']
+                    if param in parameters
+                },
+            }
+            if updated_parameters != parameters:
+                # Keep the public, serialisable parameters and the
+                # OperationParameters instance used by Node.fit in sync.
+                node.parameters = updated_parameters
 
     @copy_doc(Graph.show)
     def show(self, save_path: Optional[Union[PathLike, str]] = None, engine: Optional[str] = None,

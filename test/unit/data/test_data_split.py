@@ -8,7 +8,7 @@ import pytest
 
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.data_split import _are_stratification_allowed, train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -158,6 +158,18 @@ def test_split_data():
 
     assert len(train) == 4
     assert len(test) == 1
+
+
+def test_stratification_uses_ceiling_for_fractional_test_size():
+    """A 20% holdout of 11 rows has 3 rows, enough to include all 3 classes."""
+    target = np.array([0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2])
+    data = InputData(idx=np.arange(len(target)),
+                     features=np.arange(len(target)).reshape(-1, 1),
+                     target=target,
+                     task=Task(TaskTypesEnum.classification),
+                     data_type=DataTypesEnum.table)
+
+    assert _are_stratification_allowed(data, split_ratio=0.8)
 
 
 @pytest.mark.parametrize('data_generator, expected_output',

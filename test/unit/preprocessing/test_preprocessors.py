@@ -10,7 +10,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 from fedot.preprocessing.data_types import TYPE_TO_ID
-from fedot.preprocessing.data_types import TableTypesCorrector, apply_type_transformation
+from fedot.preprocessing.data_types import TableTypesCorrector, apply_type_transformation, define_column_types
 from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME
 from test.unit.preprocessing.test_pipeline_preprocessing import correct_preprocessing_params, \
     data_with_mixed_types_in_each_column
@@ -136,6 +136,50 @@ def test_column_types_converting_correctly():
     assert len(target_type_ids) == 2
     assert (feature_type_ids[[0, 1, 2]] == TYPE_TO_ID[str]).all()
     assert (target_type_ids == TYPE_TO_ID[str]).all()
+
+
+def test_homogeneous_numeric_type_detection_matches_object_fallback():
+    numeric = np.array(
+        [[1.0, np.nan], [2.0, 3.0], [4.0, 5.0]], dtype=np.float32
+    )
+
+    fast_info = define_column_types(numeric)
+    fallback_info = define_column_types(numeric.astype(object))
+
+    for column in range(numeric.shape[1]):
+        assert set(fast_info.loc['types', column]) == set(
+            fallback_info.loc['types', column]
+        )
+        for count_name in (
+            'float_number', 'int_number', 'str_number', 'nan_number'
+        ):
+            assert fast_info.loc[count_name, column] == fallback_info.loc[
+                count_name, column
+            ]
+        assert np.array_equal(
+            fast_info.loc['nan_ids', column],
+            fallback_info.loc['nan_ids', column],
+        )
+
+
+def test_high_cardinality_numeric_table_keeps_native_dtype():
+    features = np.arange(45, dtype=np.int32).reshape(15, 3)
+    target = (np.arange(15) % 2).reshape(-1, 1)
+    input_data = InputData(
+        idx=np.arange(15),
+        features=features,
+        target=target,
+        task=Task(TaskTypesEnum.classification),
+        data_type=DataTypesEnum.table,
+    )
+
+    transformed = TableTypesCorrector().convert_data_for_fit(input_data)
+
+    assert transformed.features.dtype == np.int32
+    assert (
+        transformed.supplementary_data.col_type_ids['features']
+        == TYPE_TO_ID[int]
+    ).all()
 
 
 def test_column_types_process_correctly():

@@ -13,10 +13,12 @@ from fedot.preprocessing.base_preprocessing import BasePreprocessor
 
 class PredefinedModel:
     def __init__(self, predefined_model: Union[str, Pipeline], data: InputData, log: LoggerAdapter,
-                 use_input_preprocessing: bool = True, api_preprocessor: BasePreprocessor = None):
+                 use_input_preprocessing: bool = True, api_preprocessor: BasePreprocessor = None,
+                 n_jobs: int = 1):
         self.predefined_model = predefined_model
         self.data = data
         self.log = log
+        self.n_jobs = n_jobs
         self.pipeline = self._get_pipeline(use_input_preprocessing, api_preprocessor)
 
     def _get_pipeline(self, use_input_preprocessing: bool = True,
@@ -52,7 +54,7 @@ class PredefinedModel:
 
     def fit(self):
         try:
-            self.pipeline.fit(self.data)
+            self.pipeline.fit(self.data, n_jobs=self.n_jobs)
         except Exception as ex:
             fit_failed_info = f'Predefined model fit was failed due to: {ex}.'
             advice_info = f'{fit_failed_info} Check pipeline structure and the correctness of the data'

@@ -702,10 +702,6 @@ class PipelineSearchSpace(SearchSpace):
                     'hyperopt-dist': hp.choice,
                     'sampling-scope': [[True, False]],
                     'type': 'categorical'},
-                'force_row_wise ': {
-                    'hyperopt-dist': hp.choice,
-                    'sampling-scope': [[True, False]],
-                    'type': 'categorical'},
                 'colsample_bytree': {
                     'hyperopt-dist': hp.uniform,
                     'sampling-scope': [0.4, 1],
@@ -756,10 +752,6 @@ class PipelineSearchSpace(SearchSpace):
                     'hyperopt-dist': hp.choice,
                     'sampling-scope': [[True, False]],
                     'type': 'categorical'},
-                'force_row_wise ': {
-                    'hyperopt-dist': hp.choice,
-                    'sampling-scope': [[True, False]],
-                    'type': 'categorical'},
                 'colsample_bytree': {
                     'hyperopt-dist': hp.uniform,
                     'sampling-scope': [0.4, 1],
@@ -806,7 +798,7 @@ class PipelineSearchSpace(SearchSpace):
                 },
                 'max_bin': {
                     'hyperopt-dist': hp.uniformint,
-                    'sampling-scope': [1, 65535],
+                    'sampling-scope': [16, 255],
                     'type': 'discrete'
                 },
                 'l2_leaf_reg': {
@@ -838,7 +830,7 @@ class PipelineSearchSpace(SearchSpace):
                 },
                 'max_bin': {
                     'hyperopt-dist': hp.uniformint,
-                    'sampling-scope': [1, 65535],
+                    'sampling-scope': [16, 255],
                     'type': 'discrete'
                 },
                 'l2_leaf_reg': {

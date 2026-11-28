@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import timedelta
 from typing import Optional, Sequence
 
 from golem.core.optimisers.optimization_parameters import GraphRequirements
@@ -19,6 +20,7 @@ class PipelineComposerRequirements(GraphRequirements):
     primary: Sequence[str] = tuple()
     secondary: Sequence[str] = tuple()
     cv_folds: Optional[int] = None
+    evaluation_time_constraint: Optional[timedelta] = None
 
     def __post_init__(self):
         super().__post_init__()

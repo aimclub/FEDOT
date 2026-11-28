@@ -77,4 +77,11 @@ dist/
 test/unit/test_log.log
 test/unit/catboost_info
 
+# samples for multimodal
+/examples/data/multimodal/*.jpeg
+/examples/data/multimodal/*.json
 local/
+
+# experiment folder
+/experiment/
+.venv

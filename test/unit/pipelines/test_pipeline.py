@@ -1,9 +1,6 @@
 import datetime
 import os
-import platform
-import time
 from copy import deepcopy
-from multiprocessing import set_start_method
 
 import numpy as np
 import pytest
@@ -18,7 +15,6 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import probs_to_labels
 from fedot.preprocessing.preprocessing import DataPreprocessor
 from test.integration.composer.test_composer import to_categorical_codes
-from test.integration.models.test_model import classification_dataset_with_redundant_features
 from test.unit.dag.test_graph_operator import get_pipeline
 from test.unit.pipelines.test_pipeline_comparison import pipeline_first
 from test.unit.tasks.test_forecasting import get_ts_data
@@ -358,44 +354,71 @@ def test_delete_subtree():
     assert pipeline.length == 3
 
 
-def test_pipeline_fit_time_constraint():
-    system = platform.system()
-    if system == 'Linux':
-        set_start_method("spawn", force=True)
-    data = classification_dataset_with_redundant_features()
-    train_data, test_data = train_test_data_setup(data=data)
-    test_pipeline_first = pipeline_first()
+def test_pipeline_fit_time_constraint(data_setup):
+    pipeline = Pipeline(PipelineNode('logit'))
 
-    time_constraint = datetime.timedelta(seconds=0)
-    predicted_first = None
-    computation_time_first = None
-    process_start_time = time.time()
-    try:
-        predicted_first = test_pipeline_first.fit(input_data=train_data, time_constraint=time_constraint)
-    except Exception as ex:
-        received_ex = ex
-        computation_time_first = test_pipeline_first.computation_time
-        assert isinstance(received_ex, TimeoutError)
-    comp_time_proc_with_first_constraint = (time.time() - process_start_time)
+    with pytest.raises(TimeoutError):
+        pipeline.fit(input_data=data_setup, time_constraint=datetime.timedelta(0))
 
-    time_constraint = datetime.timedelta(seconds=3)
-    process_start_time = time.time()
-    try:
-        test_pipeline_first.fit(input_data=train_data, time_constraint=time_constraint)
-    except Exception as ex:
-        received_ex = ex
-        assert isinstance(received_ex, TimeoutError)
-    comp_time_proc_with_second_constraint = (time.time() - process_start_time)
+    assert pipeline.computation_time is None
+    assert not pipeline.is_fitted
 
-    test_pipeline_second = pipeline_first()
-    predicted_second = test_pipeline_second.fit(input_data=train_data,
-                                                time_constraint=datetime.timedelta(seconds=2.1))
-    computation_time_second = test_pipeline_second.computation_time
-    assert comp_time_proc_with_first_constraint < comp_time_proc_with_second_constraint
-    assert computation_time_first is None
-    assert predicted_first is None
-    assert computation_time_second is not None
-    assert predicted_second is not None
+    prediction = pipeline.fit(input_data=data_setup, time_constraint=datetime.timedelta(seconds=30))
+
+    assert prediction is not None
+    assert pipeline.computation_time is not None
+    assert pipeline.is_fitted
+
+
+def test_native_fit_time_limit_is_split_and_explicit_value_is_preserved():
+    explicit_node = PipelineNode('xgboost')
+    explicit_node.parameters = {
+        **explicit_node.parameters,
+        'fit_time_limit': 7.0,
+    }
+    automatic_node = PipelineNode('lgbm', nodes_from=[explicit_node])
+    pipeline = Pipeline(automatic_node)
+    original_explicit_parameters = explicit_node.parameters
+    original_automatic_parameters = automatic_node.parameters
+
+    changed_nodes = pipeline._set_default_native_fit_time_limits(
+        datetime.timedelta(seconds=100)
+    )
+
+    assert explicit_node.parameters['fit_time_limit'] == 7.0
+    assert automatic_node.parameters['fit_time_limit'] == pytest.approx(45.0)
+    assert changed_nodes == [(automatic_node, original_automatic_parameters)]
+
+    for node, original_parameters in changed_nodes:
+        node.parameters = original_parameters
+    assert explicit_node.parameters == original_explicit_parameters
+    assert automatic_node.parameters == original_automatic_parameters
+
+
+def test_pipeline_fit_restores_automatically_injected_native_limit(
+        monkeypatch, data_setup):
+    pipeline = Pipeline(PipelineNode('lgbm'))
+    original_parameters = pipeline.root_node.parameters
+    observed = {}
+
+    def fake_fit_with_time_limit(input_data, time, predictions_cache=None,
+                                 fold_id=None):
+        del input_data, time, predictions_cache, fold_id
+        observed.update(pipeline.root_node.parameters)
+        return 'prediction'
+
+    monkeypatch.setattr(
+        pipeline, '_fit_with_time_limit', fake_fit_with_time_limit
+    )
+
+    result = pipeline.fit(
+        data_setup,
+        time_constraint=datetime.timedelta(seconds=10),
+    )
+
+    assert result == 'prediction'
+    assert observed['fit_time_limit'] == pytest.approx(9.0)
+    assert pipeline.root_node.parameters == original_parameters
 
 
 @pytest.mark.parametrize('data_fixture', ['data_setup', 'file_data_setup'])

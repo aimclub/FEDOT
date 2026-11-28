@@ -66,7 +66,27 @@ def reduce_mem_usage(features, initial_types):
     types_array = [ID_TO_TYPE[_type] for _type in initial_types]
 
     for index, col in enumerate(df.columns):
-        df[col] = df[col].astype(types_array[index])
+        requested_type = types_array[index]
+        preserve_integer_values = False
+        # Column types inferred on the training split need not describe every
+        # prediction row: an integer-valued column can contain NaN/inf in the
+        # held-out split. Preserve missingness for downstream imputation
+        # instead of failing while converting a float column to integer.
+        if requested_type in (int, bool):
+            values = df[col]
+            has_nonfinite = values.isna().any()
+            if pd.api.types.infer_dtype(values, skipna=True) in ('integer', 'floating', 'mixed-integer-float'):
+                has_infinite = values.isin([np.inf, -np.inf]).any()
+                if has_infinite:
+                    df[col] = values.mask(values.isin([np.inf, -np.inf]), np.nan)
+                    has_nonfinite = True
+            if has_nonfinite:
+                requested_type = float
+                preserve_integer_values = True
+                finite_values = df[col].dropna().astype(object)
+                if not (finite_values.astype(float).astype(object) == finite_values).all():
+                    continue
+        df[col] = df[col].astype(requested_type)
         col_type = df[col].dtype.name
 
         if col_type not in ['object', 'category', 'datetime64[ns, UTC]']:
@@ -83,7 +103,9 @@ def reduce_mem_usage(features, initial_types):
                     df[col] = df[col].astype(np.int64)
             else:
                 if c_min > np.finfo(np.float32).min and c_max < np.finfo(np.float32).max:
-                    df[col] = df[col].astype(np.float32)
+                    narrowed = df[col].astype(np.float32)
+                    if not preserve_integer_values or (narrowed.dropna() == df[col].dropna()).all():
+                        df[col] = narrowed
                 else:
                     df[col] = df[col].astype(np.float64)
 

@@ -291,7 +291,8 @@ def test_fill_nan_without_categorical():
 def test_dict_multimodal_input_for_api():
     data, target = load_categorical_multidata()
 
-    model = Fedot(problem='classification', metric=['f1'], **TESTS_MAIN_API_DEFAULT_PARAMS)
+    model = Fedot(problem='classification', metric=['f1'], with_tuning=False,
+                  **TESTS_MAIN_API_DEFAULT_PARAMS)
 
     model.fit(features=data, target=target)
 

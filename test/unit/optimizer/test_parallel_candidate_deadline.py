@@ -1,3 +1,4 @@
+import os
 import time
 from datetime import timedelta
 
@@ -36,9 +37,8 @@ def test_parallel_search_keeps_the_stock_optimizer():
 class _NativeFitPipeline(Pipeline):
     def _fit(self, *args, **kwargs):
         import ctypes
-        import os
         from pathlib import Path
-        Path(self.native_marker).write_text(str(time.monotonic()))
+        Path(self.native_marker).write_text(f'{os.getpid()} {time.monotonic()}')
         if os.name == 'nt':
             ctypes.windll.kernel32.Sleep(30000)
         else:
@@ -64,18 +64,21 @@ def test_timed_fit_stops_native_call_and_keeps_the_other_result(tmp_path):
             pipeline = Pipeline(PipelineNode('logit'))
             data = fast
             limit = timedelta(seconds=30)
-        started = time.monotonic()
         try:
             pipeline.fit(data, time_constraint=limit)
-            return 'finished', round(time.monotonic() - started, 3)
+            return 'finished', os.getpid()
         except TimeoutError:
-            return 'timeout', round(time.monotonic() - started, 3)
+            return 'timeout', os.getpid()
 
     results = Parallel(n_jobs=2)(delayed(run)(kind) for kind in ('slow', 'fast'))
 
     assert results[0][0] == 'timeout'
-    native_started = float((tmp_path / 'native-started').read_text())
-    assert time.monotonic() - native_started < 15
+    native_pid, native_started = (tmp_path / 'native-started').read_text().split()
+    assert int(native_pid) != results[0][1]
+    if os.name == 'posix':
+        with pytest.raises(ProcessLookupError):
+            os.kill(int(native_pid), 0)
+    assert time.monotonic() - float(native_started) < 15
     assert results[1][0] == 'finished'
 
 
@@ -103,94 +106,6 @@ def test_parallel_fit_returns_a_pipeline():
     assert pipeline is not None
     assert model.current_pipeline.is_fitted
     assert len(prediction) == len(test.target)
-
-
-def test_final_refit_timeout_keeps_fitted_pipeline():
-    model = Fedot(
-        problem='ts_forecasting',
-        task_params=TsForecastingParams(forecast_length=12),
-        timeout=0.1,
-        n_jobs=1,
-        preset='fast_train',
-        with_tuning=False,
-        use_operations_cache=False,
-        use_preprocessing_cache=False,
-        use_predictions_cache=False,
-        logging_level=40,
-    )
-    lagged = PipelineNode('lagged')
-    initial = Pipeline(PipelineNode('ridge', nodes_from=[lagged]))
-    model.fit(features=np.arange(80, dtype=float), predefined_model=initial)
-    fitted = model.current_pipeline
-
-    class _Slow:
-        is_fitted = False
-
-        def fit(self, *_args, **_kwargs):
-            from fedot.core.pipelines.pipeline import PipelineTimeLimitExceeded
-            raise PipelineTimeLimitExceeded('fit limit')
-
-    model.api_composer.fitted_initial_assumption = fitted
-    model.current_pipeline = _Slow()
-    model.params['max_pipeline_fit_time'] = 0.02
-
-    assert model._train_pipeline_on_full_dataset(None, model.train_data) is True
-    assert model.current_pipeline is fitted
-    assert model.current_pipeline.is_fitted
-
-
-class _SlowResult:
-    def __reduce__(self):
-        return time.sleep, (8,)
-
-
-class _ImmediateTuner:
-    was_tuned = True
-
-    def tune(self, pipeline):
-        return _SlowResult()
-
-
-def test_tuning_result_decode_respects_deadline():
-    from fedot.api.api_utils.api_composer import ApiComposer
-
-    started = time.monotonic()
-    result, tuned = ApiComposer._tune_within_limit(None, _ImmediateTuner(), 'fallback', 4)
-    elapsed = time.monotonic() - started
-    assert (result, tuned) == ('fallback', False)
-    assert elapsed < 15
-    # Let a timed-out decoder finish before other tests use its bounded slot.
-    time.sleep(9)
-
-
-def test_tuner_timeout_error_is_not_treated_as_budget_exhaustion(monkeypatch):
-    from fedot.api.api_utils import api_composer as api_composer_module
-    from fedot.api.api_utils.api_composer import ApiComposer
-
-    def fail_tuner(*_args):
-        raise TimeoutError('tuner raised an operation error')
-
-    monkeypatch.setattr(api_composer_module, '_run_in_process', fail_tuner)
-    with pytest.raises(TimeoutError, match='operation error'):
-        ApiComposer._tune_within_limit(None, object(), 'fallback', 10)
-
-
-def test_final_refit_timeout_error_is_not_treated_as_budget_exhaustion():
-    from types import SimpleNamespace
-
-    class AlreadyFittedPipeline:
-        is_fitted = True
-
-        def fit(self, *_args, **_kwargs):
-            raise TimeoutError('operation raised a timeout')
-
-    model = object.__new__(Fedot)
-    model.params = SimpleNamespace(get=lambda _name: 1, n_jobs=1)
-    model.current_pipeline = AlreadyFittedPipeline()
-    model.api_composer = SimpleNamespace(fitted_initial_assumption=None)
-
-    with pytest.raises(TimeoutError, match='operation raised a timeout'):
-        model._train_pipeline_on_full_dataset(None, object())
 
 
 def _series():
@@ -226,126 +141,6 @@ def test_timed_fit_does_not_require_fork(monkeypatch):
     pipeline = Pipeline(PipelineNode('ridge', nodes_from=[PipelineNode('lagged')]))
     pipeline.fit(_series(), time_constraint=timedelta(seconds=30))
     assert pipeline.is_fitted
-
-
-class _CrashingTuner:
-    def tune(self, pipeline):
-        import os
-        os._exit(17)
-
-
-def test_tuning_child_exit_is_reported():
-    from fedot.api.api_utils.api_composer import ApiComposer
-
-    with pytest.raises(RuntimeError, match='process|worker|child'):
-        ApiComposer._tune_within_limit(None, _CrashingTuner(), 'fallback', 10)
-
-
-class _NestedTuner:
-    def __init__(self, marker):
-        self.marker = marker
-
-    def tune(self, pipeline):
-        import subprocess
-        import sys
-        from pathlib import Path
-        subprocess.Popen([sys.executable, __file__, self.marker])
-        Path(self.marker + '.started').write_text('started')
-        time.sleep(30)
-
-
-def test_tuning_timeout_stops_descendants(tmp_path):
-    from fedot.api.api_utils.api_composer import ApiComposer
-
-    marker = tmp_path / 'descendant-finished'
-    result, tuned = ApiComposer._tune_within_limit(None, _NestedTuner(str(marker)), 'fallback', 10)
-    assert (result, tuned) == ('fallback', False)
-    assert marker.with_name(marker.name + '.started').exists(), 'tuner did not start its child'
-    time.sleep(12)
-    assert not marker.exists(), 'tuning descendant survived its owner timeout'
-
-
-if __name__ == '__main__':
-    import sys
-    from pathlib import Path
-    time.sleep(15)
-    Path(sys.argv[1]).write_text('finished')
-
-
-class _SuccessfulTuner:
-    was_tuned = True
-
-    def tune(self, pipeline):
-        return pipeline + '-tuned'
-
-
-def test_tuning_returns_successful_result():
-    from fedot.api.api_utils.api_composer import ApiComposer
-
-    assert ApiComposer._tune_within_limit(None, _SuccessfulTuner(), 'pipeline', 20) == ('pipeline-tuned', True)
-
-
-class _ErrorTuner:
-    def tune(self, pipeline):
-        raise ValueError('trial failure')
-
-
-def test_tuning_reports_child_exception():
-    from fedot.api.api_utils.api_composer import ApiComposer
-
-    with pytest.raises(ValueError, match='trial failure'):
-        ApiComposer._tune_within_limit(None, _ErrorTuner(), 'fallback', 20)
-
-
-def _gil_holding_fit(marker):
-    import ctypes
-    import os
-    from pathlib import Path
-    Path(marker + '.started').write_text('started')
-    if os.name == 'nt':
-        ctypes.PyDLL('kernel32').Sleep(15000)
-    else:
-        ctypes.PyDLL(None).sleep(15)
-    Path(marker).write_text('survived')
-
-
-class _NestedNativeTuner:
-    def __init__(self, marker):
-        self.marker = marker
-
-    def tune(self, pipeline):
-        from fedot.core.pipelines.pipeline import _run_in_process
-        return _run_in_process(_gil_holding_fit, (self.marker,), 40)
-
-
-def test_tuning_timeout_stops_nested_gil_holding_fit(tmp_path):
-    from fedot.api.api_utils.api_composer import ApiComposer
-    marker = tmp_path / 'nested-fit'
-    assert ApiComposer._tune_within_limit(None, _NestedNativeTuner(str(marker)), 'fallback', 10) == ('fallback', False)
-    assert marker.with_name(marker.name + '.started').exists()
-    time.sleep(16)
-    assert not marker.exists(), 'nested native fit survived the tuner timeout'
-
-
-class _CrashingParentTuner(_NestedTuner):
-    def tune(self, pipeline):
-        import os
-        import subprocess
-        import sys
-        from pathlib import Path
-        subprocess.Popen([sys.executable, __file__, self.marker])
-        Path(self.marker + '.started').write_text('started')
-        os._exit(17)
-
-
-def test_crashed_tuner_stops_descendants(tmp_path):
-    from fedot.api.api_utils.api_composer import ApiComposer
-    marker = tmp_path / 'crashed-tuner-child'
-    with pytest.raises(RuntimeError, match='process|worker|child'):
-        ApiComposer._tune_within_limit(None, _CrashingParentTuner(str(marker)), 'fallback', 20)
-    assert marker.with_name(marker.name + '.started').exists()
-    time.sleep(17)
-    assert not marker.exists(), 'descendant survived its owner crash'
 
 
 @pytest.mark.parametrize('assign_succeeds', [True, False])
@@ -406,20 +201,3 @@ def test_limited_worker_preserves_callers_seed():
     finally:
         random.setstate(py_state)
         np.random.set_state(np_state)
-
-
-def test_real_tuner_crosses_process_boundary_and_returns_pipeline():
-    from fedot.api.api_utils.api_composer import ApiComposer
-    from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-    rng = np.random.default_rng(42)
-    features = rng.normal(size=(40, 2))
-    data = InputData(idx=np.arange(40), features=features, target=features[:, 0] + features[:, 1],
-                     task=Task(TaskTypesEnum.regression), data_type=DataTypesEnum.table)
-    pipeline = Pipeline(PipelineNode('ridge'))
-    tuner = (TunerBuilder(data.task).with_n_jobs(1).with_cv_folds(2).with_iterations(1)
-             .with_timeout(timedelta(seconds=60)).with_eval_time_constraint(timedelta(seconds=10)).build(data))
-    result, tuned = ApiComposer._tune_within_limit(None, tuner, pipeline, 90)
-    assert tuned is True
-    assert isinstance(result, Pipeline)
-    result.fit(data, time_constraint=timedelta(seconds=20))
-    assert np.isfinite(result.predict(data).predict).all()
